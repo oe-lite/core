@@ -12,7 +12,7 @@ CFLAGS=""
 CXXFLAGS=""
 LDFLAGS=""
 
-SRC_URI_append = " file://defconfig.${TARGET_SYS}"
+SRC_URI_append = " file://defconfig.${TARGET_ARCH}"
 
 addtask build_tool after do_unpack before do_configure
 do_build_tool[dirs] = "${S}"
@@ -27,7 +27,7 @@ do_fetch_tarballs[dirs] = "${S}"
 do_fetch_tarballs () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
-    	    ${WORKDIR}/defconfig.${TARGET_SYS} > .config
+    	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
 	./ct-ng build
 }
 
@@ -54,9 +54,9 @@ do_configure () {
 	cd ${S}
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%.*\(CT_SAVE_TARBALLS_DIR\).*%\1=n%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${CROSS_DIR}"%' \
-	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1="${TARGET_SYS}"%' \
-    	    ${WORKDIR}/defconfig.${TARGET_SYS} > .config
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${STAGING_DIR}/${TARGET_ARCH}"%' \
+	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1="${TARGET_ARCH}"%' \
+    	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
 	./ct-ng oldconfig
 }
 

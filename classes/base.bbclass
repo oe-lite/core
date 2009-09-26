@@ -1191,12 +1191,12 @@ def base_after_parse(d):
         bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
     # 'multimachine' handling
-    mach_arch = bb.data.getVar('MACHINE_ARCH', d, 1)
-    pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
+    arch_prefix = bb.data.getVar('RECIPE_ARCH_PREFIX', d, 1)
 
-    if (pkg_arch == mach_arch):
-        # Already machine specific - nothing further to do
+    if (arch_prefix):
+        # Already machine specific or something - nothing further to do
         return
+    arch_prefix=''
 
     #
     # We always try to scan SRC_URI for urls with machine overrides
@@ -1216,24 +1216,42 @@ def base_after_parse(d):
                 local = bb.data.expand(bb.fetch.localpath(s, d), d)
                 for mp in paths:
                     if local.startswith(mp):
-                        bb.note("overriding PACKAGE_ARCH from %s to %s" % (pkg_arch, mach_arch))
-                        bb.data.setVar('PACKAGE_ARCH', mach_arch, d)
+                        arch_prefix += "${MACHINE}/"
+			break
+        paths = []
+        for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
+            path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${DISTRO}"), d)
+            if os.path.isdir(path):
+                paths.append(path)
+        if len(paths) != 0:
+            for s in srcuri.split():
+                if not s.startswith("file://"):
+                    continue
+                local = bb.data.expand(bb.fetch.localpath(s, d), d)
+                for dp in paths:
+                    if local.startswith(dp):
+                        arch_prefix += "${DISTRO}/"
                         return
 
-#    multiarch = pkg_arch
-#
-#    packages = bb.data.getVar('PACKAGES', d, 1).split()
-#    for pkg in packages:
-#        pkgarch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
-#
-#        # We could look for != PACKAGE_ARCH here but how to choose 
-#        # if multiple differences are present?
-#        # Look through PACKAGE_ARCHS for the priority order?
-#        if pkgarch and pkgarch == mach_arch:
-#            multiarch = mach_arch
-#            break
-#
-#    bb.data.setVar('MULTIMACH_ARCH', multiarch, d)
+    packages = bb.data.getVar('PACKAGES', d, 1).split()
+    for pkg in packages:
+        pkgarch_prefix = bb.data.getVar("PACKAGE_ARCH_PREFIX_%s" % pkg, d, 1)
+
+        # We could look for != PACKAGE_ARCH here but how to choose 
+        # if multiple differences are present?
+        # Look through PACKAGE_ARCHS for the priority order?
+        if pkgarch_prefix and pkgarch_prefix != '':
+            if arch_prefix == '':
+                arch_prefix = pkgarch_prefix
+                break
+            elif pkgarch_prefix != arch_prefix:
+                bb.error("ARCH_PREFIX conflict! %s != %s"%(pkgarch_prefix, arch_prefix))
+                return
+
+    if len(arch_prefix) > 0:
+        bb.note("setting RECIPE_ARCH_PREFIX to %s" % (arch_prefix))
+        bb.data.setVar('RECIPE_ARCH_PREFIX', arch_prefix, d)
+
 
 python () {
     import bb
