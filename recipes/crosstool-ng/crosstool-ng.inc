@@ -26,6 +26,7 @@ addtask fetch_tarballs after do_build_tool before do_configure
 do_fetch_tarballs[dirs] = "${S}"
 do_fetch_tarballs () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${STAGING_DIR}/${TARGET_ARCH}"%' \
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
     	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
 	./ct-ng build

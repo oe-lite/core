@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # crosstool-NG version: 1.4.2
-# Thu Sep 24 22:34:38 2009
+# Sun Sep 27 14:56:36 2009
 #
 
 #
@@ -20,10 +20,10 @@ CT_DEBUG_CT=y
 #
 # Paths
 #
-CT_LOCAL_TARBALLS_DIR="/home/esben/src/oe-bakery/oe-lite/tmp.d/master-abi0/work/powerpc-linux/crosstool-ng-1.4.2-r1.0"
+CT_LOCAL_TARBALLS_DIR="/home/esben/src/oe-bakery/oe-lite/ingredients"
 # CT_SAVE_TARBALLS is not set
 CT_WORK_DIR="${CT_TOP_DIR}/targets"
-CT_PREFIX_DIR="/home/esben/src/oe-bakery/oe-lite/tmp.d/master-abi0/cross/powerpc-linux"
+CT_PREFIX_DIR="/home/esben/src/oe-bakery/oe-lite/tmp.d/master-abi0/staging/powerpc-linux-gnu"
 CT_INSTALL_DIR="${CT_PREFIX_DIR}"
 # CT_CUSTOM_PATCH is not set
 CT_REMOVE_DOCS=y
@@ -85,8 +85,8 @@ CT_ARCH_SUPPORT_TUNE=y
 CT_ARCH_ABI=""
 CT_ARCH_CPU=""
 CT_ARCH_TUNE=""
-CT_ARCH_FLOAT_HW=y
-# CT_ARCH_FLOAT_SW is not set
+# CT_ARCH_FLOAT_HW is not set
+CT_ARCH_FLOAT_SW=y
 CT_TARGET_CFLAGS=""
 CT_TARGET_LDFLAGS=""
 
@@ -124,7 +124,7 @@ CT_SHARED_LIBS=y
 #
 CT_TARGET_VENDOR="unknown"
 CT_TARGET_ALIAS_SED_EXPR=""
-CT_TARGET_ALIAS="powerpc-linux"
+CT_TARGET_ALIAS="powerpc-linux-gnu"
 
 #
 # Toolchain type
