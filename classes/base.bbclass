@@ -135,7 +135,7 @@ def base_dep_prepend(d):
 	# that case though.
 	#
 	deps = "shasum-native coreutils-native"
-	if bb.data.getVar('PN', d, True) == "shasum-native" or bb.data.getVar('PN', d, True) == "stagemanager-native":
+	if bb.data.getVar('PN', d, True) == "shasum-native" or bb.data.getVar('PN', d, True) == "stage-manager-native":
 		deps = ""
 	if bb.data.getVar('PN', d, True) == "coreutils-native":
 		deps = "shasum-native"
@@ -1003,14 +1003,20 @@ base_do_stage () {
 	:
 }
 
+#do_populate_staging[dirs] = "\
+#	${STAGING_DIR_TARGET}/${layout_bindir} \
+#	${STAGING_DIR_TARGET}/${layout_libdir} \
+#	${STAGING_DIR_TARGET}${layout_includedir} \
+#	${STAGING_DIR_BUILD}${layout_bindir} \
+#	${STAGING_DIR_BUILD}${layout_libdir} \
+#	${STAGING_DIR_BUILD}${layout_includedir} \
+#	${STAGING_DIR_HOST}${layout_datadir} \
+#	${S} ${B}"
+
 do_populate_staging[dirs] = "\
-	${STAGING_DIR_TARGET}/${layout_bindir} \
-	${STAGING_DIR_TARGET}/${layout_libdir} \
-	${STAGING_DIR_TARGET}${layout_includedir} \
-	${STAGING_DIR_BUILD}${layout_bindir} \
-	${STAGING_DIR_BUILD}${layout_libdir} \
-	${STAGING_DIR_BUILD}${layout_includedir} \
-	${STAGING_DIR_HOST}${layout_datadir} \
+	${STAGING_DIR}${layout_bindir} \
+	${STAGING_DIR}${layout_libdir} \
+	${STAGING_DIR}${layout_includedir} \
 	${S} ${B}"
 
 # Could be compile but populate_staging and do_install shouldn't run at the same time

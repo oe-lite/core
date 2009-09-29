@@ -37,6 +37,15 @@ LDFLAGS		= "${BUILD_LDFLAGS}"
 # Don't use site files for native builds
 export CONFIG_SITE = ""
 
+STAGING_BINDIR		 = "${STAGING_DIR}${layout_bindir}"
+STAGING_SBINDIR		 = "${STAGING_DIR}${layout_sbindir}"
+STAGING_LIBDIR		 = "${STAGING_DIR}${layout_libdir}"
+STAGING_INCDIR		 = "${STAGING_DIR}${layout_includedir}"
+STAGING_DATADIR		 = "${STAGING_DIR}${layout_datadir}"
+
+# No reason to have usr/ in staging
+#layout_prefix	= "${layout_base_prefix}"
+
 # Build and install to STAGING_DIR
 base_prefix	= "${STAGING_DIR}${layout_base_prefix}"
 prefix		= "${STAGING_DIR}${layout_prefix}"
