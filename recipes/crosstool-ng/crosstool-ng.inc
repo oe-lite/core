@@ -1,10 +1,9 @@
-INC_PR = ".0"
-
-inherit cross
+INC_PR_append = .0
 
 INHIBIT_DEFAULT_DEPS = 1
 
-S = "${WORKDIR}/${PN}"
+S = "${WORKDIR}/${BPN}"
+B = "${WORKDIR}/build"
 
 # Let Crosstool NG manage compiler and linker flags
 CPPFLAGS=""
@@ -49,8 +48,10 @@ addtask fetch_tarballs after do_build_tool before do_configure
 do_fetch_tarballs[dirs] = "${S}"
 do_fetch_tarballs () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${STAGING_DIR_TARGET}"%' \
+	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${B}"%' \
+	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
     	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
 	./ct-ng build
 }
@@ -74,23 +75,21 @@ python do_save_tarballs () {
 			bb.utils.unlockfile(lf)
 }
 
+do_configure[dirs] = "${S}"
 do_configure () {
-	cd ${S}
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${STAGING_DIR_TARGET}"%' \
-	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
+	    -e 's%\(CT_ONLY_DOWNLOAD\)=.*%\1=n%' \
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${B}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
+	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
 	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
     	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
 	./ct-ng oldconfig
 }
 
-do_stage () {
-	cd ${S}
+do_compile[dirs] = "${S}"
+do_compile () {
 	./ct-ng build
 }
-
-# CT_TARGET_CFLAGS
-# CT_TARGET_LDFLAGS
