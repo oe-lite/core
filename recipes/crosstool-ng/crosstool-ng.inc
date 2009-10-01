@@ -70,8 +70,11 @@ python do_save_tarballs () {
 			lf = bb.utils.lockfile(lckfile)
 			shutil.copyfile(srcfile, dstfile)
 			md5data = bb.utils.md5_file(dstfile)
-			with open(md5file, "w") as md5out:
+			md5out = open(md5file, "w")
+			try:
 				md5out.write(md5data)
+			finally:
+				md5out.close()
 			bb.utils.unlockfile(lf)
 }
 
