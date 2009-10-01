@@ -1,4 +1,4 @@
-INC_PR_append = .0
+INC_PR_append = ".0"
 
 INHIBIT_DEFAULT_DEPS = 1
 
