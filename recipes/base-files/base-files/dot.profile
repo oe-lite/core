@@ -7,4 +7,5 @@ fi
 # path set by /etc/profile
 # export PATH
 
+# Disallow other users to write to your terminal
 mesg n

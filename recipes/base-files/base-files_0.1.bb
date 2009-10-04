@@ -16,23 +16,50 @@ SRC_URI = " \
            file://dot.bashrc \
            file://dot.profile "
 
-# Basic filesystem directories - TO BE CLEANED
-dirs1777 = "/tmp ${localstatedir}/volatile/lock ${localstatedir}/volatile/tmp"
-dirs2775 = "/home ${prefix}/src ${localstatedir}/local"
-dirs755 = "/bin /boot /dev ${sysconfdir} ${sysconfdir}/default \
-	   ${sysconfdir}/skel /lib /mnt /proc /home/root /sbin \
-	   ${prefix} ${bindir} ${docdir} ${includedir} \
-	   ${libdir} ${sbindir} ${datadir} \
-	   ${datadir}/common-licenses ${datadir}/dict ${infodir} \
-	   ${mandir} ${datadir}/misc ${localstatedir} \
-	   ${localstatedir}/backups ${localstatedir}/lib \
-	   /sys ${localstatedir}/lib/misc ${localstatedir}/spool \
-	   ${localstatedir}/volatile ${localstatedir}/volatile/cache \
+# Basic filesystem directories (adheres to FHS)
+dirs1777 = "/tmp \
+	   ${localstatedir}/volatile/lock \
+	   ${localstatedir}/volatile/tmp"
+dirs2775 = "/home \
+	    ${localstatedir}/local"
+dirs755 = "${bindir} \
+	   ${sbindir} \
+	   ${libdir} \
+	   ${libexecdir} \
+	   ${includedir} \
+	   ${sysconfdir} \
+	   ${sysconfdir}/default \
+	   ${sysconfdir}/skel \
+	   ${prefix} \
+	   ${docdir} \
+	   ${datadir} \
+	   ${infodir} \
+	   ${mandir} \
+	   ${datadir}/misc \
+	   ${localstatedir} \
+	   ${localstatedir}/backups \
+	   ${localstatedir}/lib \
+	   ${localstatedir}/lib/misc \
+	   ${localstatedir}/spool \
+	   ${localstatedir}/volatile \
+	   ${localstatedir}/volatile/cache \
 	   ${localstatedir}/volatile/lock/subsys \
 	   ${localstatedir}/volatile/log \
 	   ${localstatedir}/volatile/run \
-	   /media /media/card /media/cf /media/net /media/ram \
-	   /media/union /media/realroot /media/hdd "
+	   /sys \
+	   /boot \
+	   /dev \
+	   /dev/pts \
+	   /mnt \
+	   /proc \
+	   /root \
+	   /srv \
+	   /media \
+	   /media/card \
+	   /media/cf \
+	   /media/net \
+	   /media/ram \
+	   /media/hdd "
 
 volatiles = "cache run log lock tmp"
 
@@ -57,7 +84,7 @@ do_install () {
 
 	# Install files
 
-        echo name_me > ${D}${sysconfdir}/hostname
+        echo ${DISTRO}-host > ${D}${sysconfdir}/hostname
 
  	install -m 0644 ${WORKDIR}/issue ${D}${sysconfdir}/issue
         install -m 0644 ${WORKDIR}/issue.net ${D}${sysconfdir}/issue.net
