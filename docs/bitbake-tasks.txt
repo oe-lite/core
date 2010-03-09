@@ -1,0 +1,32 @@
+do_set_stage		install all DEPENDS' to $WORKDIR/stage
+do_fetch		fetch everything in SRC_URI
+do_unpack		unpack archive files
+do_patch		apply patches
+do_configure		configure bulid (ie. ./configure)
+do_configure_qa		various QA checks on the now configured source tree
+do_compile		compile!
+do_install		install to $WORKDIR/image
+do_target_install	install (from $WORKDIR/image to $WORKDIR/target-images)
+do_target_qa		various QA checks on $WORKDIR/target-packages
+do_target_package	build tar-balls from $WORKDIR/target-packages
+do_stage_install	install (from $WORKDIR/image to $WORKDIR/stage-image)
+do_stage_qa		various QA checks on $WORKDIR/stage-packages
+do_stage_package	build tar-balls from $WORKDIR/stage-packages
+
+current OE/poky situation:
+do_setscene
+do_fetch
+do_unpack
+do_patch
+do_configure
+do_qa_configure
+do_compile
+do_install
+do_package
+do_populate_staging
+do_qa_staging
+do_package_write_ipk
+do_package_write
+do_package_stage
+do_package_stage_all
+do_build
