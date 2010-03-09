@@ -15,7 +15,7 @@ PRIORITY = "required"
 INC_PR = ".0"
 
 SRC_URI = "\
-	http://www.busybox.net/downloads/busybox-${PV}.tar.gz\
+	http://www.busybox.net/downloads/busybox-${PV}.tar.bz2\
 	file://defconfig \
 "
 
