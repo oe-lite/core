@@ -10,136 +10,15 @@ def base_path_join(a, *p):
             path += '/' + b
     return path
 
-def base_path_relative(src, dest):
-    """ Return a relative path from src to dest.
-
-    >>> base_path_relative("/usr/bin", "/tmp/foo/bar")
-    ../../tmp/foo/bar
-
-    >>> base_path_relative("/usr/bin", "/usr/lib")
-    ../lib
-
-    >>> base_path_relative("/tmp", "/tmp/foo/bar")
-    foo/bar
-    """
-    from os.path import sep, pardir, normpath, commonprefix
-
-    destlist = normpath(dest).split(sep)
-    srclist = normpath(src).split(sep)
-
-    # Find common section of the path
-    common = commonprefix([destlist, srclist])
-    commonlen = len(common)
-
-    # Climb back to the point where they differentiate
-    relpath = [ pardir ] * (len(srclist) - commonlen)
-    if commonlen < len(destlist):
-        # Add remaining portion
-        relpath += destlist[commonlen:]
-
-    return sep.join(relpath)
-
-def base_path_out(path, d):
-    """ Prepare a path for display to the user. """
-    rel = base_path_relative(d.getVar("TOPDIR", 1), path)
-    if len(rel) > len(path):
-        return path
-    else:
-        return rel
-
-# for MD5/SHA handling
-def base_chk_load_parser(config_paths):
-    import ConfigParser, os, bb
-    parser = ConfigParser.ConfigParser()
-    if len(parser.read(config_paths)) < 1:
-        raise ValueError("no ini files could be found")
-
-    return parser
-
-def base_chk_file(parser, pn, pv, src_uri, localpath, data):
-    import os, bb
-    no_checksum = False
-    # Try PN-PV-SRC_URI first and then try PN-SRC_URI
-    # we rely on the get method to create errors
-    pn_pv_src = "%s-%s-%s" % (pn,pv,src_uri)
-    pn_src    = "%s-%s" % (pn,src_uri)
-    if parser.has_section(pn_pv_src):
-        md5    = parser.get(pn_pv_src, "md5")
-        sha256 = parser.get(pn_pv_src, "sha256")
-    elif parser.has_section(pn_src):
-        md5    = parser.get(pn_src, "md5")
-        sha256 = parser.get(pn_src, "sha256")
-    elif parser.has_section(src_uri):
-        md5    = parser.get(src_uri, "md5")
-        sha256 = parser.get(src_uri, "sha256")
-    else:
-        no_checksum = True
-
-    # md5 and sha256 should be valid now
-    if not os.path.exists(localpath):
-        localpath = base_path_out(localpath, data)
-        bb.note("The localpath does not exist '%s'" % localpath)
-        raise Exception("The path does not exist '%s'" % localpath)
-
-
-    # call md5(sum) and shasum
-    try:
-	md5pipe = os.popen('PATH=%s md5sum %s' % (bb.data.getVar('PATH', data, True), localpath))
-        md5data = (md5pipe.readline().split() or [ "" ])[0]
-        md5pipe.close()
-    except OSError:
-        raise Exception("Executing md5sum failed")
-
-    try:
-        shapipe = os.popen('PATH=%s oe_sha256sum %s' % (bb.data.getVar('PATH', data, True), localpath))
-        shadata = (shapipe.readline().split() or [ "" ])[0]
-        shapipe.close()
-    except OSError:
-        raise Exception("Executing shasum failed")
-
-    if no_checksum == True:	# we do not have conf/checksums.ini entry
-        try:
-            file = open("%s/checksums.ini" % bb.data.getVar("TMPDIR", data, 1), "a")
-        except:
-            return False
-
-        if not file:
-            raise Exception("Creating checksums.ini failed")
-        
-        file.write("[%s]\nmd5=%s\nsha256=%s\n\n" % (src_uri, md5data, shadata))
-        file.close()
-        if not bb.data.getVar("OE_STRICT_CHECKSUMS",data, True):
-            bb.note("This package has no entry in checksums.ini, please add one")
-            bb.note("\n[%s]\nmd5=%s\nsha256=%s" % (src_uri, md5data, shadata))
-            return True
-        else:
-            bb.note("Missing checksum")
-            return False
-
-    if not md5 == md5data:
-        bb.note("The MD5Sums did not match. Wanted: '%s' and Got: '%s'" % (md5,md5data))
-        raise Exception("MD5 Sums do not match. Wanted: '%s' Got: '%s'" % (md5, md5data))
-
-    if not sha256 == shadata:
-        bb.note("The SHA256 Sums do not match. Wanted: '%s' Got: '%s'" % (sha256,shadata))
-        raise Exception("SHA256 Sums do not match. Wanted: '%s' Got: '%s'" % (sha256, shadata))
-
-    return True
-
-
 def base_dep_prepend(d):
-	import bb
 	#
 	# Ideally this will check a flag so we will operate properly in
 	# the case where host == build == target, for now we don't work in
 	# that case though.
 	#
-	deps = "shasum-native coreutils-native"
-	if bb.data.getVar('PN', d, True) == "shasum-native" or bb.data.getVar('PN', d, True) == "stage-manager-native":
-		deps = ""
-	if bb.data.getVar('PN', d, True) == "coreutils-native":
-		deps = "shasum-native"
 
+	deps = ""
+    
 	# INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.  Whether or  not
 	# we need that built is the responsibility of the patch function / class, not
 	# the application.
@@ -150,7 +29,6 @@ def base_dep_prepend(d):
 	return deps
 
 def base_read_file(filename):
-	import bb
 	try:
 		f = file( filename, "r" )
 	except IOError, reason:
@@ -159,28 +37,19 @@ def base_read_file(filename):
 		return f.read().strip()
 	return None
 
-def base_ifelse(condition, iftrue = True, iffalse = False):
-    if condition:
-        return iftrue
-    else:
-        return iffalse
-
 def base_conditional(variable, checkvalue, truevalue, falsevalue, d):
-	import bb
 	if bb.data.getVar(variable,d,1) == checkvalue:
 		return truevalue
 	else:
 		return falsevalue
 
 def base_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
-	import bb
 	if float(bb.data.getVar(variable,d,1)) <= float(checkvalue):
 		return truevalue
 	else:
 		return falsevalue
 
 def base_version_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
-    import bb
     result = bb.vercmp(bb.data.getVar(variable,d,True), checkvalue)
     if result <= 0:
         return truevalue
@@ -188,7 +57,6 @@ def base_version_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
         return falsevalue
 
 def base_contains(variable, checkvalues, truevalue, falsevalue, d):
-	import bb
 	matches = 0
 	if type(checkvalues).__name__ == "str":
 		checkvalues = [checkvalues]
@@ -200,37 +68,24 @@ def base_contains(variable, checkvalues, truevalue, falsevalue, d):
 	return falsevalue
 
 def base_both_contain(variable1, variable2, checkvalue, d):
-       import bb
        if bb.data.getVar(variable1,d,1).find(checkvalue) != -1 and bb.data.getVar(variable2,d,1).find(checkvalue) != -1:
                return checkvalue
        else:
                return ""
 
 DEPENDS_prepend="${@base_dep_prepend(d)} "
+DEPENDS_virtclass-native_prepend="${@base_dep_prepend(d)} "
+DEPENDS_virtclass-nativesdk_prepend="${@base_dep_prepend(d)} "
 
-# Returns PN with various suffixes removed
-# or PN if no matching suffix was found.
-def base_package_name(d):
-  import bb;
-
-  pn = bb.data.getVar('PN', d, 1)
-  if pn.endswith("-native"):
-		pn = pn[0:-7]
-  elif pn.endswith("-cross"):
-		pn = pn[0:-6]
-  elif pn.endswith("-initial"):
-		pn = pn[0:-8]
-  elif pn.endswith("-intermediate"):
-		pn = pn[0:-13]
-  elif pn.endswith("-sdk"):
-		pn = pn[0:-4]
-
-
-  return pn
+def base_prune_suffix(var, suffixes, d):
+    # See if var ends with any of the suffixes listed and 
+    # remove it if found
+    for suffix in suffixes:
+        if var.endswith(suffix):
+            return var.replace(suffix, "")
+    return var
 
 def base_set_filespath(path, d):
-	import os, bb
-	bb.note("base_set_filespath usage is deprecated, %s should be fixed" % d.getVar("P", 1))
 	filespath = []
 	# The ":" ensures we have an 'empty' override
 	overrides = (bb.data.getVar("OVERRIDES", d, 1) or "") + ":"
@@ -238,6 +93,8 @@ def base_set_filespath(path, d):
 		for o in overrides.split(":"):
 			filespath.append(os.path.join(p, o))
 	return ":".join(filespath)
+
+FILESPATH = "${@base_set_filespath([ "${FILE_DIRNAME}/${PF}", "${FILE_DIRNAME}/${P}", "${FILE_DIRNAME}/${PN}", "${FILE_DIRNAME}/${BP}", "${FILE_DIRNAME}/${BPN}", "${FILE_DIRNAME}/files", "${FILE_DIRNAME}" ], d)}"
 
 def oe_filter(f, str, d):
 	from re import match
@@ -394,6 +251,7 @@ oe_libinstall() {
 	__runcmd install -d $destpath/
 	dota=$libname.a
 	if [ -f "$dota" -o -n "$require_static" ]; then
+		rm -f $destpath/$dota
 		__runcmd install -m 0644 $dota $destpath/
 	fi
 	if [ -f "$dotlai" -a -n "$libtool" ]; then
@@ -407,6 +265,7 @@ oe_libinstall() {
 				     -e "/^dependency_libs=/s,\([[:space:]']\)${libdir},\1${STAGING_LIBDIR},g" \
 				     $dotlai >$destpath/$libname.la
 		else
+			rm -f $destpath/$libname.la
 			__runcmd install -m 0644 $dotlai $destpath/$libname.la
 		fi
 	fi
@@ -422,6 +281,7 @@ oe_libinstall() {
 				__runcmd cp -P "$f" $destpath/
 			elif [ ! -L "$f" ]; then
 				libfile="$f"
+				rm -f $destpath/$libfile
 				__runcmd install -m 0755 $libfile $destpath/
 			fi
 		done
@@ -448,7 +308,6 @@ oe_libinstall() {
 }
 
 def package_stagefile(file, d):
-    import bb, os
 
     if bb.data.getVar('PSTAGING_ACTIVE', d, True) == "1":
         destfile = file.replace(bb.data.getVar("TMPDIR", d, 1), bb.data.getVar("PSTAGE_TMPDIR_STAGE", d, 1))
@@ -515,79 +374,19 @@ python base_do_clean() {
 	"""clear the build and temp directories"""
 	dir = bb.data.expand("${WORKDIR}", d)
 	if dir == '//': raise bb.build.FuncFailed("wrong DATADIR")
-	bb.note("removing " + base_path_out(dir, d))
+	bb.note("removing " + dir)
 	os.system('rm -rf ' + dir)
 
 	dir = "%s.*" % bb.data.expand(bb.data.getVar('STAMP', d), d)
-	bb.note("removing " + base_path_out(dir, d))
+	bb.note("removing " + dir)
 	os.system('rm -f '+ dir)
 }
 
-python do_cleanall() {
-    pass
-}
-do_cleanall[recrdeptask] = "do_clean"
-addtask cleanall after do_clean
-
-#Uncomment this for bitbake 1.8.12
-#addtask rebuild after do_${BB_DEFAULT_TASK}
-addtask rebuild
+addtask rebuild after do_${BB_DEFAULT_TASK}
 do_rebuild[dirs] = "${TOPDIR}"
 do_rebuild[nostamp] = "1"
 python base_do_rebuild() {
 	"""rebuild a package"""
-	from bb import __version__
-	try:
-		from distutils.version import LooseVersion
-	except ImportError:
-		def LooseVersion(v): print "WARNING: sanity.bbclass can't compare versions without python-distutils"; return 1
-	if (LooseVersion(__version__) < LooseVersion('1.8.11')):
-		bb.build.exec_func('do_clean', d)
-		bb.build.exec_task('do_' + bb.data.getVar('BB_DEFAULT_TASK', d, 1), d)
-}
-
-addtask mrproper
-do_mrproper[dirs] = "${TOPDIR}"
-do_mrproper[nostamp] = "1"
-python base_do_mrproper() {
-	"""clear downloaded sources, build and temp directories"""
-	dir = bb.data.expand("${DL_DIR}", d)
-	if dir == '/': bb.build.FuncFailed("wrong DATADIR")
-	bb.debug(2, "removing " + dir)
-	os.system('rm -rf ' + dir)
-	bb.build.exec_func('do_clean', d)
-}
-
-addtask distclean
-do_distclean[dirs] = "${TOPDIR}"
-do_distclean[nostamp] = "1"
-python base_do_distclean() {
-	"""clear downloaded sources, build and temp directories"""
-	import os
-
-	bb.build.exec_func('do_clean', d)
-
-	src_uri = bb.data.getVar('SRC_URI', d, 1)
-	if not src_uri:
-		return
-
-	for uri in src_uri.split():
-		if bb.decodeurl(uri)[0] == "file":
-			continue
-
-		try:
-			local = bb.data.expand(bb.fetch.localpath(uri, d), d)
-		except bb.MalformedUrl, e:
-			bb.debug(1, 'Unable to generate local path for malformed uri: %s' % e)
-		else:
-			bb.note("removing %s" % base_path_out(local, d))
-			try:
-				if os.path.exists(local + ".md5"):
-					os.remove(local + ".md5")
-				if os.path.exists(local):
-					os.remove(local)
-			except OSError, e:
-				bb.note("Error in removal: %s" % e)
 }
 
 SCENEFUNCS += "base_scenefunction"
@@ -610,7 +409,6 @@ python base_scenefunction () {
 
 addtask fetch
 do_fetch[dirs] = "${DL_DIR}"
-do_fetch[depends] = "shasum-native:do_populate_staging"
 python base_do_fetch() {
 	import sys
 
@@ -626,9 +424,6 @@ python base_do_fetch() {
 	except bb.fetch.NoMethodError:
 		(type, value, traceback) = sys.exc_info()
 		raise bb.build.FuncFailed("No method: %s" % value)
-	except bb.MalformedUrl:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("Malformed URL: %s" % value)
 
 	try:
 		bb.fetch.go(localdata)
@@ -645,42 +440,7 @@ python base_do_fetch() {
 		(type, value, traceback) = sys.exc_info()
 		raise bb.build.FuncFailed("Unknown fetch Error: %s" % value)
 
-
-	# Verify the SHA and MD5 sums we have in OE and check what do
-	# in
-	checksum_paths = bb.data.getVar('BBPATH', d, True).split(":")
-
-	# reverse the list to give precedence to directories that
-	# appear first in BBPATH
-	checksum_paths.reverse()
-
-	checksum_files = ["%s/conf/checksums.ini" % path for path in checksum_paths]
-	try:
-		parser = base_chk_load_parser(checksum_files)
-	except ValueError:
-		bb.note("No conf/checksums.ini found, not checking checksums")
-		return
-	except:
-		bb.note("Creating the CheckSum parser failed")
-		return
-
-	pv = bb.data.getVar('PV', d, True)
-	pn = bb.data.getVar('PN', d, True)
-
-	# Check each URI
-	for url in src_uri.split():
-		localpath = bb.data.expand(bb.fetch.localpath(url, localdata), localdata)
-		(type,host,path,_,_,_) = bb.decodeurl(url)
-		uri = "%s://%s%s" % (type,host,path)
-		try:
-			if type == "http" or type == "https" or type == "ftp" or type == "ftps":
-				if not base_chk_file(parser, pn, pv,uri, localpath, d):
-					if not bb.data.getVar("OE_ALLOW_INSECURE_DOWNLOADS",d, True):
-						bb.fatal("%s-%s: %s has no entry in conf/checksums.ini, not checking URI" % (pn,pv,uri))
-					else:
-						bb.note("%s-%s: %s has no entry in conf/checksums.ini, not checking URI" % (pn,pv,uri))
-		except Exception:
-			raise bb.build.FuncFailed("Checksum of '%s' failed" % uri)
+	return
 }
 
 addtask fetchall after do_fetch
@@ -738,10 +498,11 @@ def subprocess_setup():
 	import signal
 	# Python installs a SIGPIPE handler by default. This is usually not what
 	# non-Python subprocesses expect.
+	# SIGPIPE errors are known issues with gzip/bash
 	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 def oe_unpack_file(file, data, url = None):
-	import bb, os, subprocess
+	import subprocess
 	if not url:
 		url = "file://%s" % file
 	dots = file.split(".")
@@ -765,20 +526,17 @@ def oe_unpack_file(file, data, url = None):
 		(type, host, path, user, pswd, parm) = bb.decodeurl(url)
 		if 'dos' in parm:
 			cmd = '%s -a' % cmd
-		cmd = '%s %s' % (cmd, file)
+		cmd = "%s '%s'" % (cmd, file)
 	elif os.path.isdir(file):
+		filesdir = os.path.realpath(bb.data.getVar("FILESDIR", data, 1))
 		destdir = "."
-		filespath = bb.data.getVar("FILESPATH", data, 1).split(":")
-		for fp in filespath:
-			if file[0:len(fp)] == fp:
-				destdir = file[len(fp):file.rfind('/')]
-				destdir = destdir.strip('/')
-				if len(destdir) < 1:
-					destdir = "."
-				elif not os.access("%s/%s" % (os.getcwd(), destdir), os.F_OK):
-					os.makedirs("%s/%s" % (os.getcwd(), destdir))
-				break
-
+		if file[0:len(filesdir)] == filesdir:
+			destdir = file[len(filesdir):file.rfind('/')]
+			destdir = destdir.strip('/')
+			if len(destdir) < 1:
+				destdir = "."
+			elif not os.access("%s/%s" % (os.getcwd(), destdir), os.F_OK):
+				os.makedirs("%s/%s" % (os.getcwd(), destdir))
 		cmd = 'cp -pPR %s %s/%s/' % (file, os.getcwd(), destdir)
 	else:
 		(type, host, path, user, pswd, parm) = bb.decodeurl(url)
@@ -809,7 +567,7 @@ def oe_unpack_file(file, data, url = None):
 		os.chdir(newdir)
 
 	cmd = "PATH=\"%s\" %s" % (bb.data.getVar('PATH', data, 1), cmd)
-	bb.note("Unpacking %s to %s/" % (base_path_out(file, data), base_path_out(os.getcwd(), data)))
+	bb.note("Unpacking %s to %s/" % (file, os.getcwd()))
 	ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True)
 
 	os.chdir(save_cwd)
@@ -819,62 +577,59 @@ def oe_unpack_file(file, data, url = None):
 addtask unpack after do_fetch
 do_unpack[dirs] = "${WORKDIR}"
 python base_do_unpack() {
-	import re, os
+	import re
 
 	localdata = bb.data.createCopy(d)
 	bb.data.update_data(localdata)
 
-	src_uri = bb.data.getVar('SRC_URI', localdata)
+	src_uri = bb.data.getVar('SRC_URI', localdata, True)
 	if not src_uri:
 		return
-	src_uri = bb.data.expand(src_uri, localdata)
+
 	for url in src_uri.split():
 		try:
 			local = bb.data.expand(bb.fetch.localpath(url, localdata), localdata)
 		except bb.MalformedUrl, e:
-			raise bb.build.FuncFailed('Unable to generate local path for malformed uri: %s' % e)
-		if not local:
-			raise bb.build.FuncFailed('Unable to locate local file for %s' % url)
+			raise FuncFailed('Unable to generate local path for malformed uri: %s' % e)
 		local = os.path.realpath(local)
 		ret = oe_unpack_file(local, localdata, url)
 		if not ret:
 			raise bb.build.FuncFailed()
 }
 
-METADATA_SCM = "${@base_get_scm(d)}"
-METADATA_REVISION = "${@base_get_scm_revision(d)}"
-METADATA_BRANCH = "${@base_get_scm_branch(d)}"
+METADATA_BRANCH ?= "${@base_detect_branch(d)}"
+METADATA_REVISION ?= "${@base_detect_revision(d)}"
 
-def base_get_scm(d):
-	import os
-	from bb import which
-	baserepo = os.path.dirname(os.path.dirname(which(d.getVar("BBPATH", 1), "classes/base.bbclass")))
-	for (scm, scmpath) in {"svn": ".svn",
-			       "git": ".git",
-			       "monotone": "_MTN"}.iteritems():
-		if os.path.exists(os.path.join(baserepo, scmpath)):
-			return "%s %s" % (scm, baserepo)
-	return "<unknown> %s" % baserepo
+def base_detect_revision(d):
+	path = base_get_scmbasepath(d)
 
-def base_get_scm_revision(d):
-	(scm, path) = d.getVar("METADATA_SCM", 1).split()
-	try:
-		if scm != "<unknown>":
-			return globals()["base_get_metadata_%s_revision" % scm](path, d)
-		else:
-			return scm
-	except KeyError:
-		return "<unknown>"
+	scms = [base_get_metadata_git_revision, \
+			base_get_metadata_svn_revision]
 
-def base_get_scm_branch(d):
-	(scm, path) = d.getVar("METADATA_SCM", 1).split()
-	try:
-		if scm != "<unknown>":
-			return globals()["base_get_metadata_%s_branch" % scm](path, d)
-		else:
-			return scm
-	except KeyError:
-		return "<unknown>"
+	for scm in scms:
+		rev = scm(path, d)
+		if rev <> "<unknown>":
+			return rev
+
+	return "<unknown>"	
+
+def base_detect_branch(d):
+	path = base_get_scmbasepath(d)
+
+	scms = [base_get_metadata_git_branch]
+
+	for scm in scms:
+		rev = scm(path, d)
+		if rev <> "<unknown>":
+			return rev.strip()
+
+	return "<unknown>"	
+	
+	
+
+def base_get_scmbasepath(d):
+	path_to_bbfiles = bb.data.getVar( 'BBFILES', d, 1 ).split()
+	return path_to_bbfiles[0][:path_to_bbfiles[0].rindex( "packages" )]
 
 def base_get_metadata_monotone_branch(path, d):
 	monotone_branch = "<unknown>"
@@ -907,34 +662,63 @@ def base_get_metadata_svn_revision(path, d):
 	return revision
 
 def base_get_metadata_git_branch(path, d):
-	import os
-	branch = os.popen('cd %s; PATH=%s git symbolic-ref HEAD 2>/dev/null' % (path, d.getVar("PATH", 1))).read().rstrip()
+	branch = os.popen('cd %s; git branch | grep "^* " | tr -d "* "' % path).read()
 
 	if len(branch) != 0:
-		return branch.replace("refs/heads/", "")
+		return branch
 	return "<unknown>"
 
 def base_get_metadata_git_revision(path, d):
-	import os
-	rev = os.popen("cd %s; PATH=%s git show-ref HEAD 2>/dev/null" % (path, d.getVar("PATH", 1))).read().split(" ")[0].rstrip()
+	rev = os.popen("cd %s; git log -n 1 --pretty=oneline --" % path).read().split(" ")[0]
 	if len(rev) != 0:
 		return rev
 	return "<unknown>"
 
+GIT_CONFIG = "${STAGING_DIR_NATIVE}/usr/etc/gitconfig"
+
+def generate_git_config(e):
+        from bb import data
+
+        if data.getVar('GIT_CORE_CONFIG', e.data, True):
+                gitconfig_path = bb.data.getVar('GIT_CONFIG', e.data, True)
+                proxy_command = "    gitproxy = %s\n" % data.getVar('GIT_PROXY_COMMAND', e.data, True)
+
+                bb.mkdirhier(bb.data.expand("${STAGING_DIR_NATIVE}/usr/etc/", e.data))
+                if (os.path.exists(gitconfig_path)):
+                        os.remove(gitconfig_path)
+
+                f = open(gitconfig_path, 'w')
+                f.write("[core]\n")
+                ignore_hosts = data.getVar('GIT_PROXY_IGNORE', e.data, True).split()
+                for ignore_host in ignore_hosts:
+                        f.write("    gitproxy = none for %s\n" % ignore_host)
+                f.write(proxy_command)
+                f.close
 
 addhandler base_eventhandler
 python base_eventhandler() {
 	from bb import note, error, data
 	from bb.event import Handled, NotHandled, getName
-	import os
+
+	messages = {}
+	messages["Completed"] = "completed"
+	messages["Succeeded"] = "completed"
+	messages["Started"] = "started"
+	messages["Failed"] = "failed"
 
 	name = getName(e)
-	if name == "TaskCompleted":
-		msg = "package %s: task %s is complete." % (data.getVar("PF", e.data, 1), e.task)
+	msg = ""
+	if name.startswith("Pkg"):
+		msg += "package %s: " % data.getVar("P", e.data, 1)
+		msg += messages.get(name[3:]) or name[3:]
+	elif name.startswith("Task"):
+		msg += "package %s: task %s: " % (data.getVar("PF", e.data, 1), e.task)
+		msg += messages.get(name[4:]) or name[4:]
+	elif name.startswith("Build"):
+		msg += "build %s: " % e.name
+		msg += messages.get(name[5:]) or name[5:]
 	elif name == "UnsatisfiedDep":
-		msg = "package %s: dependency %s %s" % (e.pkg, e.dep, name[:-3].lower())
-	else:
-		return NotHandled
+		msg += "package %s: dependency %s %s" % (e.pkg, e.dep, name[:-3].lower())
 
 	# Only need to output when using 1.8 or lower, the UI code handles it
 	# otherwise
@@ -944,12 +728,12 @@ python base_eventhandler() {
 
 	if name.startswith("BuildStarted"):
 		bb.data.setVar( 'BB_VERSION', bb.__version__, e.data )
-		statusvars = bb.data.getVar("BUILDCFG_VARS", e.data, 1).split()
+		statusvars = ['BB_VERSION', 'METADATA_BRANCH', 'METADATA_REVISION', 'TARGET_ARCH', 'TARGET_OS', 'MACHINE', 'DISTRO', 'DISTRO_VERSION','TARGET_FPU']
 		statuslines = ["%-17s = \"%s\"" % (i, bb.data.getVar(i, e.data, 1) or '') for i in statusvars]
-		statusmsg = "\n%s\n%s\n" % (bb.data.getVar("BUILDCFG_HEADER", e.data, 1), "\n".join(statuslines))
+		statusmsg = "\nOE Build Configuration:\n%s\n" % '\n'.join(statuslines)
 		print statusmsg
 
-		needed_vars = bb.data.getVar("BUILDCFG_NEEDEDVARS", e.data, 1).split()
+		needed_vars = [ "TARGET_ARCH", "TARGET_OS" ]
 		pesteruser = []
 		for v in needed_vars:
 			val = bb.data.getVar(v, e.data, 1)
@@ -970,6 +754,9 @@ python base_eventhandler() {
 				os.system('rm -f '+ dir)
 				os.system('touch ' + e.stampPrefix[fn] + '.needclean')
 
+        if name == "ConfigParsed":
+                generate_git_config(e)
+
 	if not data in e.__dict__:
 		return NotHandled
 
@@ -984,7 +771,7 @@ python base_eventhandler() {
 
 addtask configure after do_unpack do_patch
 do_configure[dirs] = "${S} ${B}"
-do_configure[deptask] = "do_populate_staging"
+do_configure[deptask] = "do_populate_sysroot"
 base_do_configure() {
 	:
 }
@@ -999,31 +786,144 @@ base_do_compile() {
 	fi
 }
 
-base_do_stage () {
+
+sysroot_stage_dir() {
+	src="$1"
+	dest="$2"
+	# This will remove empty directories so we can ignore them
+	rmdir "$src" 2> /dev/null || true
+	if [ -d "$src" ]; then
+		mkdir -p "$dest"
+		cp -fpPR "$src"/* "$dest"
+	fi
+}
+
+sysroot_stage_libdir() {
+	src="$1"
+	dest="$2"
+
+	olddir=`pwd`
+	cd $src
+	las=$(find . -name \*.la -type f)
+	cd $olddir
+	echo "Found la files: $las"		 
+	for i in $las
+	do
+		sed -e 's/^installed=yes$/installed=no/' \
+		    -e '/^dependency_libs=/s,${WORKDIR}[[:alnum:]/\._+-]*/\([[:alnum:]\._+-]*\),${STAGING_LIBDIR}/\1,g' \
+		    -e "/^dependency_libs=/s,\([[:space:]']\)${libdir},\1${STAGING_LIBDIR},g" \
+		    -i $src/$i
+	done
+	sysroot_stage_dir $src $dest
+}
+
+sysroot_stage_dirs() {
+	from="$1"
+	to="$2"
+
+	sysroot_stage_dir $from${includedir} $to${STAGING_INCDIR}
+	if [ "${BUILD_SYS}" = "${HOST_SYS}" ]; then
+		sysroot_stage_dir $from${bindir} $to${STAGING_DIR_HOST}${bindir}
+		sysroot_stage_dir $from${sbindir} $to${STAGING_DIR_HOST}${sbindir}
+		sysroot_stage_dir $from${base_bindir} $to${STAGING_DIR_HOST}${base_bindir}
+		sysroot_stage_dir $from${base_sbindir} $to${STAGING_DIR_HOST}${base_sbindir}
+		sysroot_stage_dir $from${libexecdir} $to${STAGING_DIR_HOST}${libexecdir}
+		sysroot_stage_dir $from${sysconfdir} $to${STAGING_DIR_HOST}${sysconfdir}
+	fi
+	if [ -d $from${libdir} ]
+	then
+		sysroot_stage_libdir $from/${libdir} $to${STAGING_LIBDIR}
+	fi
+	if [ -d $from${base_libdir} ]
+	then
+		sysroot_stage_libdir $from${base_libdir} $to${STAGING_DIR_HOST}${base_libdir}
+	fi
+	sysroot_stage_dir $from${datadir} $to${STAGING_DATADIR}
+}
+
+sysroot_stage_all() {
+	sysroot_stage_dirs ${D} ${SYSROOT_DESTDIR}
+}
+
+def is_legacy_staging(d):
+    stagefunc = bb.data.getVar('do_stage', d, True)
+    legacy = True
+    if stagefunc is None:
+        legacy = False
+    elif stagefunc.strip() == "use_do_install_for_stage":
+        legacy = False
+    elif stagefunc.strip() == "autotools_stage_all":
+        legacy = False
+    elif stagefunc.strip() == "do_stage_native" and bb.data.getVar('AUTOTOOLS_NATIVE_STAGE_INSTALL', d, 1) == "1":
+        legacy = False
+    elif bb.data.getVar('NATIVE_INSTALL_WORKS', d, 1) == "1":
+        legacy = False
+    return legacy
+
+do_populate_sysroot[dirs] = "${STAGING_DIR_TARGET}/${bindir} ${STAGING_DIR_TARGET}/${libdir} \
+			     ${STAGING_DIR_TARGET}/${includedir} \
+			     ${STAGING_BINDIR_NATIVE} ${STAGING_LIBDIR_NATIVE} \
+			     ${STAGING_INCDIR_NATIVE} \
+			     ${STAGING_DATADIR} \
+			     ${S} ${B}"
+
+# Could be compile but populate_sysroot and do_install shouldn't run at the same time
+addtask populate_sysroot after do_install
+
+PSTAGING_ACTIVE = "0"
+SYSROOT_PREPROCESS_FUNCS ?= ""
+SYSROOT_DESTDIR = "${WORKDIR}/sysroot-destdir/"
+SYSROOT_LOCK = "${STAGING_DIR}/staging.lock"
+
+python populate_sysroot_prehook () {
+	return
+}
+
+python populate_sysroot_posthook () {
+	return
+}
+
+packagedstaging_fastpath () {
 	:
 }
 
-#do_populate_staging[dirs] = "\
-#	${STAGING_DIR_TARGET}/${layout_bindir} \
-#	${STAGING_DIR_TARGET}/${layout_libdir} \
-#	${STAGING_DIR_TARGET}${layout_includedir} \
-#	${STAGING_DIR_BUILD}${layout_bindir} \
-#	${STAGING_DIR_BUILD}${layout_libdir} \
-#	${STAGING_DIR_BUILD}${layout_includedir} \
-#	${STAGING_DIR_HOST}${layout_datadir} \
-#	${S} ${B}"
-
-do_populate_staging[dirs] = "\
-	${STAGING_DIR}${layout_bindir} \
-	${STAGING_DIR}${layout_libdir} \
-	${STAGING_DIR}${layout_includedir} \
-	${S} ${B}"
-
-# Could be compile but populate_staging and do_install shouldn't run at the same time
-addtask populate_staging after do_install
-
-python do_populate_staging () {
+python do_populate_sysroot () {
+    #
+    # if do_stage exists, we're legacy. In that case run the do_stage,
+    # modify the SYSROOT_DESTDIR variable and then run the staging preprocess
+    # functions against staging directly.
+    #
+    # Otherwise setup a destdir, copy the results from do_install
+    # and run the staging preprocess against that
+    #
+    pstageactive = (bb.data.getVar("PSTAGING_ACTIVE", d, True) == "1")
+    lockfile = bb.data.getVar("SYSROOT_LOCK", d, True)
+    stagefunc = bb.data.getVar('do_stage', d, True)
+    legacy = is_legacy_staging(d)
+    if legacy:
+        bb.data.setVar("SYSROOT_DESTDIR", "", d)
+        bb.note("Legacy staging mode for %s" % bb.data.getVar("FILE", d, True))
+        lock = bb.utils.lockfile(lockfile)
+        bb.build.exec_func('populate_sysroot_prehook', d)
     bb.build.exec_func('do_stage', d)
+        for f in (bb.data.getVar('SYSROOT_PREPROCESS_FUNCS', d, True) or '').split():
+            bb.build.exec_func(f, d)
+        bb.build.exec_func('populate_sysroot_posthook', d)
+        bb.utils.unlockfile(lock)
+    else:
+        dest = bb.data.getVar('D', d, True)
+        sysrootdest = bb.data.expand('${SYSROOT_DESTDIR}${STAGING_DIR_TARGET}', d)
+        bb.mkdirhier(sysrootdest)
+
+        bb.build.exec_func("sysroot_stage_all", d)
+        #os.system('cp -pPR %s/* %s/' % (dest, sysrootdest))
+        for f in (bb.data.getVar('SYSROOT_PREPROCESS_FUNCS', d, True) or '').split():
+            bb.build.exec_func(f, d)
+        bb.build.exec_func("packagedstaging_fastpath", d)
+
+        lock = bb.utils.lockfile(lockfile)
+        os.system(bb.data.expand('cp -pPR ${SYSROOT_DESTDIR}${TMPDIR}/* ${TMPDIR}/', d))
+        bb.utils.unlockfile(lock)
 }
 
 addtask install after do_compile
@@ -1039,111 +939,9 @@ base_do_package() {
 	:
 }
 
-addtask build after do_populate_staging
+addtask build after do_populate_sysroot
 do_build = ""
 do_build[func] = "1"
-
-# Functions that update metadata based on files outputted
-# during the build process.
-
-def explode_deps(s):
-	r = []
-	l = s.split()
-	flag = False
-	for i in l:
-		if i[0] == '(':
-			flag = True
-			j = []
-		if flag:
-			j.append(i)
-			if i.endswith(')'):
-				flag = False
-				r[-1] += ' ' + ' '.join(j)
-		else:
-			r.append(i)
-	return r
-
-def packaged(pkg, d):
-	import os, bb
-	return os.access(get_subpkgedata_fn(pkg, d) + '.packaged', os.R_OK)
-
-def read_pkgdatafile(fn):
-	pkgdata = {}
-
-	def decode(str):
-		import codecs
-		c = codecs.getdecoder("string_escape")
-		return c(str)[0]
-
-	import os
-	if os.access(fn, os.R_OK):
-		import re
-		f = file(fn, 'r')
-		lines = f.readlines()
-		f.close()
-		r = re.compile("([^:]+):\s*(.*)")
-		for l in lines:
-			m = r.match(l)
-			if m:
-				pkgdata[m.group(1)] = decode(m.group(2))
-
-	return pkgdata
-
-def get_subpkgedata_fn(pkg, d):
-	import bb, os
-	archs = bb.data.expand("${PACKAGE_ARCHS}", d).split(" ")
-	archs.reverse()
-	pkgdata = bb.data.expand('${TMPDIR}/pkgdata/', d)
-	targetdir = bb.data.expand('${TARGET_VENDOR}-${TARGET_OS}/runtime/', d)
-	for arch in archs:
-		fn = pkgdata + arch + targetdir + pkg
-		if os.path.exists(fn):
-			return fn
-	return bb.data.expand('${PKGDATA_DIR}/runtime/%s' % pkg, d)
-
-def has_subpkgdata(pkg, d):
-	import bb, os
-	return os.access(get_subpkgedata_fn(pkg, d), os.R_OK)
-
-def read_subpkgdata(pkg, d):
-	import bb
-	return read_pkgdatafile(get_subpkgedata_fn(pkg, d))
-
-def has_pkgdata(pn, d):
-	import bb, os
-	fn = bb.data.expand('${PKGDATA_DIR}/%s' % pn, d)
-	return os.access(fn, os.R_OK)
-
-def read_pkgdata(pn, d):
-	import bb
-	fn = bb.data.expand('${PKGDATA_DIR}/%s' % pn, d)
-	return read_pkgdatafile(fn)
-
-python read_subpackage_metadata () {
-	import bb
-	data = read_pkgdata(bb.data.getVar('PN', d, 1), d)
-
-	for key in data.keys():
-		bb.data.setVar(key, data[key], d)
-
-	for pkg in bb.data.getVar('PACKAGES', d, 1).split():
-		sdata = read_subpkgdata(pkg, d)
-		for key in sdata.keys():
-			bb.data.setVar(key, sdata[key], d)
-}
-
-
-#
-# Collapse FOO_pkg variables into FOO
-#
-def read_subpkgdata_dict(pkg, d):
-	import bb
-	ret = {}
-	subd = read_pkgdatafile(get_subpkgedata_fn(pkg, d))
-	for var in subd:
-		newvar = var.replace("_" + pkg, "")
-		ret[newvar] = subd[var]
-	return ret
 
 # Make sure MACHINE isn't exported
 # (breaks binutils at least)
@@ -1160,7 +958,7 @@ DISTRO[unexport] = "1"
 
 
 def base_after_parse(d):
-    import bb, os, exceptions
+    import exceptions
 
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
     if not source_mirror_fetch:
@@ -1193,16 +991,38 @@ def base_after_parse(d):
     srcuri = bb.data.getVar('SRC_URI', d, 1)
     if "git://" in srcuri:
         depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " git-native:do_populate_staging"
+        depends = depends + " git-native:do_populate_sysroot"
         bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
-    # 'multimachine' handling
-    arch_prefix = bb.data.getVar('RECIPE_ARCH_PREFIX', d, 1)
+    # Mercurial packages should DEPEND on mercurial-native
+    elif "hg://" in srcuri:
+        depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
+        depends = depends + " mercurial-native:do_populate_sysroot"
+        bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
-    if (arch_prefix):
-        # Already machine specific or something - nothing further to do
+    # OSC packages should DEPEND on osc-native
+    elif "osc://" in srcuri:
+        depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
+        depends = depends + " osc-native:do_populate_sysroot"
+        bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+
+    # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
+    # on shasum-native.  We need to ensure that it is staged before we fetch.
+    if bb.data.getVar('PN', d, True) != "shasum-native":
+        try:
+            import hashlib
+        except ImportError:
+            depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
+            depends = depends + " shasum-native:do_populate_sysroot"
+            bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+
+    # 'multimachine' handling
+    mach_arch = bb.data.getVar('MACHINE_ARCH', d, 1)
+    pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
+
+    if (pkg_arch == mach_arch):
+        # Already machine specific - nothing further to do
         return
-    arch_prefix=''
 
     #
     # We always try to scan SRC_URI for urls with machine overrides
@@ -1222,57 +1042,30 @@ def base_after_parse(d):
                 local = bb.data.expand(bb.fetch.localpath(s, d), d)
                 for mp in paths:
                     if local.startswith(mp):
-                        arch_prefix += "${MACHINE}/"
-			break
-        paths = []
-        for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
-            path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${DISTRO}"), d)
-            if os.path.isdir(path):
-                paths.append(path)
-        if len(paths) != 0:
-            for s in srcuri.split():
-                if not s.startswith("file://"):
-                    continue
-                local = bb.data.expand(bb.fetch.localpath(s, d), d)
-                for dp in paths:
-                    if local.startswith(dp):
-                        arch_prefix += "${DISTRO}/"
+                        #bb.note("overriding PACKAGE_ARCH from %s to %s" % (pkg_arch, mach_arch))
+                        bb.data.setVar('PACKAGE_ARCH', "${MACHINE_ARCH}", d)
+                        bb.data.setVar('MULTIMACH_ARCH', mach_arch, d)
                         return
+
+    multiarch = pkg_arch
 
     packages = bb.data.getVar('PACKAGES', d, 1).split()
     for pkg in packages:
-        pkgarch_prefix = bb.data.getVar("PACKAGE_ARCH_PREFIX_%s" % pkg, d, 1)
+        pkgarch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
 
         # We could look for != PACKAGE_ARCH here but how to choose 
         # if multiple differences are present?
         # Look through PACKAGE_ARCHS for the priority order?
-        if pkgarch_prefix and pkgarch_prefix != '':
-            if arch_prefix == '':
-                arch_prefix = pkgarch_prefix
+        if pkgarch and pkgarch == mach_arch:
+            multiarch = mach_arch
                 break
-            elif pkgarch_prefix != arch_prefix:
-                bb.error("ARCH_PREFIX conflict! %s != %s"%(pkgarch_prefix, arch_prefix))
-                return
 
-    if len(arch_prefix) > 0:
-        bb.note("setting RECIPE_ARCH_PREFIX to %s" % (arch_prefix))
-        bb.data.setVar('RECIPE_ARCH_PREFIX', arch_prefix, d)
-
+    bb.data.setVar('MULTIMACH_ARCH', multiarch, d)
 
 python () {
-    import bb
-    from bb import __version__
     base_after_parse(d)
-
-    # Remove this for bitbake 1.8.12
-    try:
-        from distutils.version import LooseVersion
-    except ImportError:
-        def LooseVersion(v): print "WARNING: sanity.bbclass can't compare versions without python-distutils"; return 1
-    if (LooseVersion(__version__) >= LooseVersion('1.8.11')):
-        deps = bb.data.getVarFlag('do_rebuild', 'deps', d) or []
-        deps.append('do_' + bb.data.getVar('BB_DEFAULT_TASK', d, 1))
-        bb.data.setVarFlag('do_rebuild', 'deps', deps, d)
+    if is_legacy_staging(d):
+        bb.note("Legacy staging mode for %s" % bb.data.getVar("FILE", d, True))
 }
 
 def check_app_exists(app, d):
@@ -1282,18 +1075,6 @@ def check_app_exists(app, d):
 	path = data.getVar('PATH', d, 1)
 	return len(which(path, app)) != 0
 
-def check_gcc3(data):
-	# Primarly used by qemu to make sure we have a workable gcc-3.4.x.
-	# Start by checking for the program name as we build it, was not
-	# all host-provided gcc-3.4's will work.
-
-	gcc3_versions = 'gcc-3.4.6 gcc-3.4.4 gcc34 gcc-3.4 gcc-3.4.7 gcc-3.3 gcc33 gcc-3.3.6 gcc-3.2 gcc32'
-
-	for gcc3 in gcc3_versions.split():
-		if check_app_exists(gcc3, data):
-			return gcc3
-	
-	return False
 
 # Patch handling
 inherit patch
@@ -1302,7 +1083,7 @@ inherit patch
 # Move to autotools.bbclass?
 inherit siteinfo
 
-EXPORT_FUNCTIONS do_setscene do_clean do_mrproper do_distclean do_fetch do_unpack do_configure do_compile do_install do_package do_populate_pkgs do_stage do_rebuild do_fetchall
+EXPORT_FUNCTIONS do_setscene do_clean do_fetch do_unpack do_configure do_compile do_install do_package do_populate_pkgs do_rebuild do_fetchall
 
 MIRRORS[func] = "0"
 MIRRORS () {
@@ -1325,6 +1106,7 @@ ${DEBIAN_MIRROR}	ftp://ftp.es.debian.org/debian/pool
 ${DEBIAN_MIRROR}	ftp://ftp.se.debian.org/debian/pool
 ${DEBIAN_MIRROR}	ftp://ftp.tr.debian.org/debian/pool
 ${GNU_MIRROR}	ftp://mirrors.kernel.org/gnu
+${GNU_MIRROR}	ftp://ftp.matrix.com.br/pub/gnu
 ${GNU_MIRROR}	ftp://ftp.cs.ubc.ca/mirror2/gnu
 ${GNU_MIRROR}	ftp://sunsite.ust.hk/pub/gnu
 ${GNU_MIRROR}	ftp://ftp.ayamura.org/pub/gnu
