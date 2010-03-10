@@ -1,6 +1,16 @@
-# Native packages are built indirectly via dependency, no need for
-# them to be a direct target of 'world'
-EXCLUDE_FROM_WORLD = "1"
+#
+PACKAGE_DIR_CROSS		= ""
+PACKAGE_DIR_SYSROOT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
+PACKAGE_DIR_SYSROOT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
+#
+TARGET_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
+TARGET_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
+#
+STAGE_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
+STAGE_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
+#
+TMP_SUBPATH_ARCH		 = "native/${BUILD_ARCH}"
+TMP_SUBPATH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
 # No default packages
 PACKAGES = ""
@@ -8,10 +18,9 @@ PACKAGES = ""
 # When this class has packaging enabled, setting RPROVIDES becomes unnecessary.
 #RPROVIDES = "${PN}"
 
-BASE_PACKAGE_ARCH = "${BUILD_ARCH}"
-
 # Set host=build
 HOST_ARCH	= "${BUILD_ARCH}"
+HOST_ARCH_GNU	= "${BUILD_ARCH_GNU}"
 HOST_CPU	= "${BUILD_CPU}"
 HOST_VENDOR	= "${BUILD_VENDOR}"
 HOST_OS		= "${BUILD_OS}"
@@ -21,51 +30,13 @@ HOST_PREFIX	= "${BUILD_PREFIX}"
 
 # and target=build for architecture triplet build/build/build
 TARGET_ARCH	= "${BUILD_ARCH}"
+TARGET_ARCH_GNU	= "${BUILD_ARCH_GNU}"
 TARGET_CPU	= "${BUILD_CPU}"
 TARGET_VENDOR	= "${BUILD_VENDOR}"
 TARGET_OS	= "${BUILD_OS}"
 TARGET_CC_ARCH	= "${BUILD_CC_ARCH}"
 TARGET_EXEEXT	= "${BUILD_EXEEXT}"
 TARGET_PREFIX	= "${BUILD_PREFIX}"
-
-# Use build compiler/linker flags
-CPPFLAGS	= "${BUILD_CPPFLAGS}"
-CFLAGS		= "${BUILD_CFLAGS}"
-CXXFLAGS	= "${BUILD_CFLAGS}"
-LDFLAGS		= "${BUILD_LDFLAGS}"
-
-# Don't use site files for native builds
-export CONFIG_SITE = ""
-
-STAGING_BINDIR		 = "${STAGING_DIR}${layout_bindir}"
-STAGING_SBINDIR		 = "${STAGING_DIR}${layout_sbindir}"
-STAGING_LIBDIR		 = "${STAGING_DIR}${layout_libdir}"
-STAGING_INCDIR		 = "${STAGING_DIR}${layout_includedir}"
-STAGING_DATADIR		 = "${STAGING_DIR}${layout_datadir}"
-
-# No reason to have usr/ in staging
-#layout_prefix	= "${layout_base_prefix}"
-
-# Build and install to STAGING_DIR
-base_prefix	= "${STAGING_DIR}${layout_base_prefix}"
-prefix		= "${STAGING_DIR}${layout_prefix}"
-exec_prefix	= "${STAGING_DIR}${layout_exec_prefix}"
-base_bindir	= "${STAGING_DIR}${layout_base_bindir}"
-base_sbindir	= "${STAGING_DIR}${layout_base_sbindir}"
-base_libdir	= "${STAGING_DIR}${layout_base_libdir}"
-sysconfdir	= "${STAGING_DIR}${layout_sysconfdir}"
-localstatedir	= "${STAGING_DIR}${layout_localstatedir}"
-servicedir	= "${STAGING_DIR}${layout_servicedir}"
-sharedstatedir	= "${STAGING_DIR}${layout_sharedstatedir}"
-datadir		= "${STAGING_DIR}${layout_datadir}"
-infodir		= "${STAGING_DIR}${layout_infodir}"
-mandir		= "${STAGING_DIR}${layout_mandir}"
-docdir		= "${STAGING_DIR}${layout_docdir}"
-bindir		= "${STAGING_DIR}${layout_bindir}"
-sbindir		= "${STAGING_DIR}${layout_sbindir}"
-libdir		= "${STAGING_DIR}${layout_libdir}"
-libexecdir	= "${STAGING_DIR}${layout_libexecdir}"
-includedir	= "${STAGING_DIR}${layout_includedir}"
 
 do_stage () {
 	if [ "${AUTOTOOLS_NATIVE_STAGE_INSTALL}" != "1" ]
