@@ -71,9 +71,11 @@ def base_both_contain(variable1, variable2, checkvalue, d):
        else:
                return ""
 
-DEPENDS_prepend="${@base_dep_prepend(d)} "
-DEPENDS_virtclass-native_prepend="${@base_dep_prepend(d)} "
-DEPENDS_virtclass-nativesdk_prepend="${@base_dep_prepend(d)} "
+
+FETCHER_DEPENDS=""
+DEPENDS_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)}"
+DEPENDS_virtclass-native_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
+DEPENDS_virtclass-nativesdk_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
 
 def base_prune_suffix(var, suffixes, d):
     # See if var ends with any of the suffixes listed and 
@@ -1006,24 +1008,20 @@ def base_after_parse(d):
     if use_nls != None:
         bb.data.setVar('USE_NLS', use_nls, d)
 
+    fetcher_depends = ""
+
     # Git packages should DEPEND on git-native
     srcuri = bb.data.getVar('SRC_URI', d, 1)
     if "git://" in srcuri:
-        depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " git-native"
-        bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+        fetcher_depends += " git-native"
 
     # Mercurial packages should DEPEND on mercurial-native
     elif "hg://" in srcuri:
-        depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " mercurial-native"
-        bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+        fetcher_depends += " mercurial-native"
 
     # OSC packages should DEPEND on osc-native
     elif "osc://" in srcuri:
-        depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " osc-native"
-        bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+        fetcher_depends += " osc-native"
 
     # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
     # on shasum-native.  We need to ensure that it is staged before we fetch.
@@ -1031,9 +1029,9 @@ def base_after_parse(d):
         try:
             import hashlib
         except ImportError:
-            depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-            depends = depends + " shasum-native:do_populate_sysroot"
-            bb.data.setVarFlag('do_fetch', 'depends', depends, d)
+            fetcher_depends += " shasum-native"
+
+    bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
     # PACKAGE_ARCH handling
     pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
