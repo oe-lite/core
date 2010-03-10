@@ -11,22 +11,20 @@ def base_path_join(a, *p):
     return path
 
 def base_dep_prepend(d):
-	#
-	# Ideally this will check a flag so we will operate properly in
-	# the case where host == build == target, for now we don't work in
-	# that case though.
-	#
+	import bb
+        deps = ""
 
-	deps = ""
-    
-	# INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.  Whether or  not
-	# we need that built is the responsibility of the patch function / class, not
-	# the application.
-	if not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d):
-		if (bb.data.getVar('HOST_SYS', d, 1) !=
-	     	    bb.data.getVar('BUILD_SYS', d, 1)):
-			deps += " virtual/${TARGET_PREFIX}gcc virtual/libc "
-	return deps
+        # INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.
+        # Whether or not we need that built is the responsibility of
+        # the patch function / class, not the application.
+        #if not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d):
+        #    host_arch = bb.data.getVar('BUILD_ARCH', d, 1)
+        #    build_arch = bb.data.getVar('HOST_ARCH', d, 1)
+        #    if host_arch != build_arch:
+        #        deps += " virtual/${HOST_ARCH_ABI}-toolchain "
+
+        return deps
+
 
 def base_read_file(filename):
 	try:
@@ -957,8 +955,29 @@ TARGET_ARCH[unexport] = "1"
 DISTRO[unexport] = "1"
 
 
+def srcuri_machine_override(d, srcuri):
+    import bb
+    import os
+
+    paths = []
+    # FIXME: this should use FILESPATHPKG
+    for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
+        path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
+        if os.path.isdir(path):
+            paths.append(path)
+    if len(paths) != 0:
+        for s in srcuri.split():
+            if not s.startswith("file://"):
+                continue
+            local = bb.data.expand(bb.fetch.localpath(s, d), d)
+            for mp in paths:
+                if local.startswith(mp):
+                    return True
+    return False
+
+
 def base_after_parse(d):
-    import exceptions
+    import bb
 
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
     if not source_mirror_fetch:
@@ -991,19 +1010,19 @@ def base_after_parse(d):
     srcuri = bb.data.getVar('SRC_URI', d, 1)
     if "git://" in srcuri:
         depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " git-native:do_populate_sysroot"
+        depends = depends + " git-native"
         bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
     # Mercurial packages should DEPEND on mercurial-native
     elif "hg://" in srcuri:
         depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " mercurial-native:do_populate_sysroot"
+        depends = depends + " mercurial-native"
         bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
     # OSC packages should DEPEND on osc-native
     elif "osc://" in srcuri:
         depends = bb.data.getVarFlag('do_fetch', 'depends', d) or ""
-        depends = depends + " osc-native:do_populate_sysroot"
+        depends = depends + " osc-native"
         bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
     # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
@@ -1016,56 +1035,37 @@ def base_after_parse(d):
             depends = depends + " shasum-native:do_populate_sysroot"
             bb.data.setVarFlag('do_fetch', 'depends', depends, d)
 
-    # 'multimachine' handling
-    mach_arch = bb.data.getVar('MACHINE_ARCH', d, 1)
+    # PACKAGE_ARCH handling
     pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
+    pkg_arch_mach = bb.data.getVar('PACKAGE_ARCH_MACHINE', d, 1)
 
-    if (pkg_arch == mach_arch):
-        # Already machine specific - nothing further to do
-        return
-
-    #
-    # We always try to scan SRC_URI for urls with machine overrides
-    # unless the package sets SRC_URI_OVERRIDES_PACKAGE_ARCH=0
-    #
+    # Scan SRC_URI for urls with machine overrides unless the package
+    # sets SRC_URI_OVERRIDES_PACKAGE_ARCH=0
     override = bb.data.getVar('SRC_URI_OVERRIDES_PACKAGE_ARCH', d, 1)
-    if override != '0':
-        paths = []
-        for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
-            path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
-            if os.path.isdir(path):
-                paths.append(path)
-        if len(paths) != 0:
-            for s in srcuri.split():
-                if not s.startswith("file://"):
-                    continue
-                local = bb.data.expand(bb.fetch.localpath(s, d), d)
-                for mp in paths:
-                    if local.startswith(mp):
-                        #bb.note("overriding PACKAGE_ARCH from %s to %s" % (pkg_arch, mach_arch))
-                        bb.data.setVar('PACKAGE_ARCH', "${MACHINE_ARCH}", d)
-                        bb.data.setVar('MULTIMACH_ARCH', mach_arch, d)
-                        return
 
-    multiarch = pkg_arch
+    if pkg_arch != pkg_arch_mach and override != '0' and srcuri_machine_override(d, srcuri):
+        bb.note("overriding PACKAGE_ARCH from %s to %s"%(pkg_arch, pkg_arch_mach))
+        bb.data.setVar('PACKAGE_ARCH', "${PACKAGE_ARCH_MACHINE}", d)
+        pkg_arch = pkg_arch_mach
 
     packages = bb.data.getVar('PACKAGES', d, 1).split()
     for pkg in packages:
-        pkgarch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
+        pkg_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
 
-        # We could look for != PACKAGE_ARCH here but how to choose 
+        # We could look for != PACKAGE_ARCH here but how to choose
         # if multiple differences are present?
         # Look through PACKAGE_ARCHS for the priority order?
-        if pkgarch and pkgarch == mach_arch:
-            multiarch = mach_arch
-                break
+        if pkg_arch and pkg_arch == pkg_arch_mach:
+            # not setting PACKAGE_ARCH here!
+            pkg_arch = pkg_arch_mach
+            break
 
-    bb.data.setVar('MULTIMACH_ARCH', multiarch, d)
+    if pkg_arch == pkg_arch_mach:
+        bb.data.setVar('TMP_SUBPATH', "${TMP_SUBPATH_MACHINE}", d)
+
 
 python () {
     base_after_parse(d)
-    if is_legacy_staging(d):
-        bb.note("Legacy staging mode for %s" % bb.data.getVar("FILE", d, True))
 }
 
 def check_app_exists(app, d):
