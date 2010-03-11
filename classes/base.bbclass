@@ -629,7 +629,7 @@ def base_detect_branch(d):
 
 def base_get_scmbasepath(d):
 	path_to_bbfiles = bb.data.getVar( 'BBFILES', d, 1 ).split()
-	return path_to_bbfiles[0][:path_to_bbfiles[0].rindex( "packages" )]
+	return path_to_bbfiles[0][:path_to_bbfiles[0].rindex( "recipes" )]
 
 def base_get_metadata_monotone_branch(path, d):
 	monotone_branch = "<unknown>"
@@ -905,7 +905,7 @@ python do_populate_sysroot () {
         bb.note("Legacy staging mode for %s" % bb.data.getVar("FILE", d, True))
         lock = bb.utils.lockfile(lockfile)
         bb.build.exec_func('populate_sysroot_prehook', d)
-    bb.build.exec_func('do_stage', d)
+        bb.build.exec_func('do_stage', d)
         for f in (bb.data.getVar('SYSROOT_PREPROCESS_FUNCS', d, True) or '').split():
             bb.build.exec_func(f, d)
         bb.build.exec_func('populate_sysroot_posthook', d)
