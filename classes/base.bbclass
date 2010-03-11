@@ -999,11 +999,6 @@ def base_after_parse(d):
 
     pn = bb.data.getVar('PN', d, 1)
 
-    # OBSOLETE in bitbake 1.7.4
-    srcdate = bb.data.getVar('SRCDATE_%s' % pn, d, 1)
-    if srcdate != None:
-        bb.data.setVar('SRCDATE', srcdate, d)
-
     use_nls = bb.data.getVar('USE_NLS_%s' % pn, d, 1)
     if use_nls != None:
         bb.data.setVar('USE_NLS', use_nls, d)
