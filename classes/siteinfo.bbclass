@@ -16,9 +16,7 @@
 # If 'what' doesn't exist then an empty value is returned
 #
 def get_siteinfo_list(d):
-       import bb
-
-       target = bb.data.getVar('HOST_CPU', d, 1) + "-" + bb.data.getVar('HOST_OS', d, 1)
+       target = bb.data.getVar('HOST_ARCH', d, 1)
 
        targetinfo = {\
                "armeb-linux":             "endian-big bit-32 common-linux common-glibc arm-common",\
