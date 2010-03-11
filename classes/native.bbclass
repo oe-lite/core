@@ -38,17 +38,8 @@ TARGET_CC_ARCH		= "${BUILD_CC_ARCH}"
 TARGET_EXEEXT		= "${BUILD_EXEEXT}"
 TARGET_PREFIX		= "${BUILD_PREFIX}"
 
-do_stage () {
-	if [ "${AUTOTOOLS_NATIVE_STAGE_INSTALL}" != "1" ]
-	then
-		oe_runmake install
-	else
-		autotools_stage_all
-	fi
-}
-
 do_install () {
-	true
+	oe_runmake DESTDIR=${D} install
 }
 
 #PKG_CONFIG_PATH .= "${EXTRA_NATIVE_PKGCONFIG_PATH}"
