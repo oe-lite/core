@@ -17,10 +17,10 @@ PACKAGES = ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
-HOST_ARCH_GNU		= "${BUILD_ARCH_GNU}"
 HOST_CPU		= "${BUILD_CPU}"
-HOST_VENDOR		= "${BUILD_VENDOR}"
 HOST_OS			= "${BUILD_OS}"
+HOST_CPU_CROSS		= "${BUILD_CPU_CROSS}"
+HOST_CROSS		= "${BUILD_CROSS}"
 HOST_CC_ARCH		= "${BUILD_CC_ARCH}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"
 HOST_PREFIX		= "${BUILD_PREFIX}"
