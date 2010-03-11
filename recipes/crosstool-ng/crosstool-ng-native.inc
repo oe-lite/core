@@ -18,11 +18,3 @@ do_configure () {
 		oefatal "no configure script found"
 	fi
 }
-
-do_compile () {
-	make
-}
-
-do_install () {
-	make install
-}
