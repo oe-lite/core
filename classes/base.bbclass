@@ -1033,7 +1033,7 @@ def base_after_parse(d):
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
-    # PACKAGE_ARCH handling
+    # PACKAGE_ARCH override detection
     pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
     pkg_arch_mach = bb.data.getVar('PACKAGE_ARCH_MACHINE', d, 1)
 
@@ -1041,25 +1041,23 @@ def base_after_parse(d):
     # sets SRC_URI_OVERRIDES_PACKAGE_ARCH=0
     override = bb.data.getVar('SRC_URI_OVERRIDES_PACKAGE_ARCH', d, 1)
 
-    if pkg_arch != pkg_arch_mach and override != '0' and srcuri_machine_override(d, srcuri):
-        bb.note("overriding PACKAGE_ARCH from %s to %s"%(pkg_arch, pkg_arch_mach))
+    if (pkg_arch != pkg_arch_mach and override != '0' and
+        srcuri_machine_override(d, srcuri)):
+        bb.note("overriding PACKAGE_ARCH from %s to %s"%
+                (pkg_arch, pkg_arch_mach))
         bb.data.setVar('PACKAGE_ARCH', "${PACKAGE_ARCH_MACHINE}", d)
         pkg_arch = pkg_arch_mach
 
     packages = bb.data.getVar('PACKAGES', d, 1).split()
     for pkg in packages:
-        pkg_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
-
-        # We could look for != PACKAGE_ARCH here but how to choose
-        # if multiple differences are present?
-        # Look through PACKAGE_ARCHS for the priority order?
-        if pkg_arch and pkg_arch == pkg_arch_mach:
-            # not setting PACKAGE_ARCH here!
+        pkg_pkg_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
+        if pkg_pkg_arch and pkg_pkg_arch == pkg_arch_mach:
+            # not setting PACKAGE_ARCH here, just provoke change of TMP_SUBPATH
             pkg_arch = pkg_arch_mach
             break
 
     if pkg_arch == pkg_arch_mach:
-        bb.data.setVar('TMP_SUBPATH', "${TMP_SUBPATH_MACHINE}", d)
+        bb.data.setVar('TMP_SUBPATH', "${PACKAGE_ARCH_MACHINE}", d)
 
 
 python () {
