@@ -25,10 +25,27 @@ HOST_CC_ARCH		= "${BUILD_CC_ARCH}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"
 HOST_PREFIX		= "${BUILD_PREFIX}"
 
-do_stage () {
-	oe_runmake install
-}
+# Use the stage_* path variables
+base_prefix		= "${stage_base_prefix}"
+prefix			= "${stage_prefix}"
+exec_prefix		= "${stage_exec_prefix}"
+base_bindir		= "${stage_base_bindir}"
+base_sbindir		= "${stage_base_sbindir}"
+base_libdir		= "${stage_base_libdir}"
+datadir			= "${stage_datadir}"
+sysconfdir		= "${stage_syscondir}"
+servicedir		= "${stage_servicedir}"
+sharedstatedir		= "${stage_sharedstatedir}"
+localstatedir		= "${stage_localstatedir}"
+infodir			= "${stage_infodir}"
+mandir			= "${stage_mandir}"
+docdir			= "${stage_docdir}"
+bindir			= "${stage_bindir}"
+sbindir			= "${stage_sbindir}"
+libexecdir		= "${stage_libexecdir}"
+libdir			= "${stage_libdir}"
+includedir		= "${stage_includedir}"
 
 do_install () {
-	:
+	oe_runmake DESTDIR=${D} install
 }
