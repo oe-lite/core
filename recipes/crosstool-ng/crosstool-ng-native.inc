@@ -13,3 +13,13 @@ do_configure () {
 		oefatal "no configure script found"
 	fi
 }
+
+#do_stage_install_append () {
+#	mv ${STAGE_TEMP}${stage_bindir}/ct-ng \
+#	   ${STAGE_TEMP}${stage_bindir}/ct-ng.orig
+#	sed -e 's%${D}%$(NATIVE_DIR)%' \
+#	    < ${STAGE_TEMP}${stage_bindir}/ct-ng.orig \
+#	    > ${STAGE_TEMP}${stage_bindir}/ct-ng
+#	rm ${STAGE_TEMP}${stage_bindir}/ct-ng.orig
+#	chmod +x ${STAGE_TEMP}${stage_bindir}/ct-ng
+#}
