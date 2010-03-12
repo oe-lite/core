@@ -6,12 +6,7 @@ inherit native
 
 do_configure () {
 	if [ -x ${S}/configure ] ; then
-		cfgcmd="${S}/configure \
-		    --prefix=${prefix} \
-		    --bindir=${bindir} \
-		    --libdir=${libdir} \
-		    --docdir=${docdir} \
-		    --mandir=${mandir}"
+		cfgcmd="${S}/configure --prefix=${prefix} "
 		oenote "Running $cfgcmd..."
 		$cfgcmd || oefatal "configure failed"
 	else

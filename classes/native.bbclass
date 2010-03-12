@@ -59,8 +59,11 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
+# but build for temporary install destination
+stage_base_prefix	= "${D}"
+
 do_install () {
-	oe_runmake DESTDIR=${D} install
+	oe_runmake install
 }
 
 #PKG_CONFIG_PATH .= "${EXTRA_NATIVE_PKGCONFIG_PATH}"
