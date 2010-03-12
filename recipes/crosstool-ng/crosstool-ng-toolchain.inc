@@ -1,9 +1,9 @@
-INC_PR_append = ".0"
+PR = "r0"
 
 INHIBIT_DEFAULT_DEPS = 1
 
-S = "${WORKDIR}/${BPN}"
-B = "${WORKDIR}/build"
+S = "${WORKDIR}/build"
+B = "${S}"
 
 # Let Crosstool NG manage compiler and linker flags
 CPPFLAGS=""
@@ -34,30 +34,35 @@ libdir			= ""
 libexecdir		= ""
 includedir		= ""
 
-SRC_URI_append = " file://defconfig.${TARGET_ARCH}"
+SRC_URI = "file://defconfig.${TARGET_CROSS}"
 
-addtask build_tool after do_unpack before do_configure
-do_build_tool[dirs] = "${S}"
-do_build_tool () {
-	./configure --local
-	make
-	make install
-}
+# FIXME: we need to ensure that the right crosstool-ng-native version is
+# is installed in the stage
+#DEPENDS = "crosstool-ng-native-${PV}"
 
-addtask fetch_tarballs after do_build_tool before do_configure
-do_fetch_tarballs[dirs] = "${S}"
+# The ct-ng tools uses $NATIVE_DIR for staying relocateable
+export NATIVE_DIR
+
+# FIXME: CT_SAVE_TARBALLS_DIR seems to have been removed from newer
+# crosstool-ng versions, so we are not able to do the fetch_tarballs /
+# save_tarballs trick :-(
+
+addtask fetch_tarballs after do_patch before do_configure
+do_fetch_tarballs[dirs] = "${B}"
 do_fetch_tarballs () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
+	    -e 's%\(CT_SAVE_TARBALLS\)=.*%\1=n%' \
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${B}"%' \
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
-    	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
-	./ct-ng build
+    	    ${WORKDIR}/defconfig.${TARGET_CROSS} > .config
+	ct-ng oldconfig
+	ct-ng build
 }
 
 addtask save_tarballs after do_fetch_tarballs before do_configure
-do_save_tarballs[dirs] = "${S}"
+do_save_tarballs[dirs] = "${B}"
 python do_save_tarballs () {
 	import dircache, os, shutil, bb
 	urls = []
@@ -78,21 +83,22 @@ python do_save_tarballs () {
 			bb.utils.unlockfile(lf)
 }
 
-do_configure[dirs] = "${S}"
+do_configure[dirs] = "${B}"
 do_configure () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
 	    -e 's%\(CT_ONLY_DOWNLOAD\)=.*%\1=n%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${B}"%' \
+	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
 	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
 	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
-    	    ${WORKDIR}/defconfig.${TARGET_ARCH} > .config
-	./ct-ng oldconfig
+    	    ${WORKDIR}/defconfig.${TARGET_CROSS} > .config
+	ct-ng oldconfig
 }
 
-do_compile[dirs] = "${S}"
+do_compile[dirs] = "${B}"
 do_compile () {
-	./ct-ng build
+	ct-ng build
 }
+
