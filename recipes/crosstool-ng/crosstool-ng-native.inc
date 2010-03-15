@@ -21,12 +21,13 @@ FILES_${PN} += "${libdir}/ct-ng-${PV}"
 STAGE_PACKAGES += "${PN}-doc"
 
 #python package_stage_fixup_append () { }
-#do_stage_install_append () {
-#	mv ${STAGE_TEMP}${stage_bindir}/ct-ng \
-#	   ${STAGE_TEMP}${stage_bindir}/ct-ng.orig
-#	sed -e 's%${D}%$(NATIVE_DIR)%' \
-#	    < ${STAGE_TEMP}${stage_bindir}/ct-ng.orig \
-#	    > ${STAGE_TEMP}${stage_bindir}/ct-ng
-#	rm ${STAGE_TEMP}${stage_bindir}/ct-ng.orig
-#	chmod +x ${STAGE_TEMP}${stage_bindir}/ct-ng
-#}
+stage_package_fixup () {
+	pwd
+	mv ${PN}/${stage_bindir}/ct-ng \
+	   ${PN}${stage_bindir}/ct-ng.orig
+	sed -e 's%${D}%$(NATIVE_DIR)%' \
+	    < ${PN}${stage_bindir}/ct-ng.orig \
+	    > ${PN}${stage_bindir}/ct-ng
+	rm ${PN}${stage_bindir}/ct-ng.orig
+	chmod +x ${PN}${stage_bindir}/ct-ng
+}

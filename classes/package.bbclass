@@ -321,14 +321,11 @@ python package_populate () {
 	import bb, glob, errno, re, stat
 
 	workdir = bb.data.getVar('WORKDIR', d, True)
-	outdir = bb.data.getVar('DEPLOY_DIR', d, True)
-	dvar = bb.data.getVar('PKGD', d, True)
+	ddir = bb.data.getVar('D', d, True)
+	pkgd = bb.data.getVar('PKGD', d, True)
 	pn = bb.data.getVar('PN', d, True)
-	sysroot_packages = bb.data.getVar('PACKAGES', d, 1)
-	stage_packages = bb.data.getVar('STAGE_PACKAGES', d, 1)
-
-	bb.mkdirhier(outdir)
-	os.chdir(dvar)
+	sysroot_packages = bb.data.getVar('PACKAGES', d, True)
+	stage_packages = bb.data.getVar('STAGE_PACKAGES', d, True)
 
 	# Sanity check PACKAGES and STAGE_PACKAGES for duplicates -
 	# should be moved to sanity.bbclass once we have the
@@ -348,14 +345,11 @@ python package_populate () {
 	package_list = set(sysroot_pkglist).union(stage_pkglist)
 
 	# FIXME: delay strip to after populate, and handle both
-	# HOST_STRIP and TARGET_STRIP -> package_stage_fixup_strip()
+	# HOST_STRIP and TARGET_STRIP -> stage_package_fixup_strip()
 	# and package_sysroot_fixup_strip()
 	#if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
 	#	for f in (bb.data.getVar('PACKAGESTRIPFUNCS', d, True) or '').split():
 	#		bb.build.exec_func(f, d)
-
-	pkgd = bb.data.getVar('PKGD', d, 1)
-	os.system('rm -rf %s' % pkgd)
 
 	seen = []
 	main_is_empty = 1
@@ -411,12 +405,11 @@ python package_populate () {
 			if pkg == main_pkg and main_is_empty:
 				main_is_empty = 0
 		del localdata
-	os.chdir(workdir)
 
 	unshipped = []
-	for root, dirs, files in os.walk(dvar):
+	for root, dirs, files in os.walk(ddir):
 		for f in files:
-			path = os.path.join(root[len(dvar):], f)
+			path = os.path.join(root[len(ddir):], f)
 			if ('.' + path) not in seen:
 				unshipped.append(path)
 
@@ -435,7 +428,7 @@ python package_populate () {
 	for pkg in package_list:
 		dangling_links[pkg] = []
 		pkg_files[pkg] = []
-		inst_root = os.path.join(pkgd, pkg)
+		inst_root = os.path.join(ddir, pkg)
 		for root, dirs, files in os.walk(inst_root):
 			for f in files:
 				path = os.path.join(root, f)
@@ -474,6 +467,7 @@ python package_populate () {
 				bb.note("%s contains dangling symlink to %s" % (pkg, l))
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
 }
+package_populate[dirs] = "${D}"
 
 
 python emit_pkgdata() {
@@ -962,29 +956,30 @@ python package_depchains() {
 }
 
 
-python package_stage_cop () {
-	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, 1)
-	stage_packages = (bb.data.getVar('STAGE_PACKAGES', d, 1) or "").split()
-	package_copy(stage_packages, pkgd_stage)
-}
-
-#python package_sysroot_copy_xx () {
-#	pkgd_sysroot = bb.data.getVar('PKGD_SYSROOT', d, 1)
-#	sysroot_packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
-#	package_copy(sysroot_packages, pkgd_sysroot)
-#}
-
-def package_copy (packages, dstdir):
+def package_clone (packages, dstdir, d):
 	pkgd = bb.data.getVar('PKGD', d, 1)
-
-	bb.mkdirhier(dstdir)
-	os.system('rm -rf %s/*' % (dstdir))
 
 	for pkg in packages:
 		src = os.path.join(pkgd, pkg)
 		dst = os.path.join(dstdir, pkg)
 		bb.mkdirhier(dst)
 		os.system('cp -pPR %s/* %s/'%(src, dst))
+
+
+python stage_package_clone () {
+	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, True)
+	stage_packages = (bb.data.getVar('STAGE_PACKAGES', d, True) or "").split()
+	package_clone(stage_packages, pkgd_stage, d)
+}
+stage_package_clone[cleandirs] = '${PKGD_STAGE}'
+stage_package_clone[dirs] = '${PKGD_STAGE} ${PKGD}'
+
+
+python sysroot_package_clone () {
+	pkgd_sysroot = bb.data.getVar('PKGD_SYSROOT', d, True)
+	sysroot_packages = (bb.data.getVar('PACKAGES', d, True) or "").split()
+	package_clone(sysroot_packages, pkgd_sysroot)
+}
 
 
 PACKAGE_INSTALL_FUNCS = "\
@@ -1007,48 +1002,104 @@ python do_package_install () {
 	for f in (bb.data.getVar('PACKAGE_INSTALL_FUNCS', d, 1) or '').split():
 		bb.build.exec_func(f, d)
 }
+do_package_install[cleandirs] = "${PKGD}"
 do_package_install[dirs] = "${PKGD} ${D}"
-addtask package_install before do_build after do_install
+addtask package_install \
+	before do_build \
+	after do_install
 
 EXPORT_FUNCTIONS do_package_install
 
 
-PACKAGE_STAGE_FIXUP_FUNCS = "\
-#package_stage_copy \
-#package_stage_strip \
-#package_stage_rpath \
-#package_stage_shlibs \
-#package_stage_pkgconfig \
-"
-# FIXME: package_stage_copy should re-use perform_packagecopy from
+STAGE_PACKAGE_FIXUP_FUNCS = "\
+stage_package_clone \
+#stage_package_strip \
+#stage_package_rpath \
+#stage_package_shlibs \
+#stage_package_pkgconfig \
+stage_package_fixup"
+# FIXME: stage_package_clone should re-use perform_packagecopy from
 # openembedded package.bbclass
 
-# FIXME: package_stage_pkgconfig should be dynamically added to
+# FIXME: stage_package_pkgconfig should be dynamically added to
 # PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
 
-python do_package_stage_fixup () {
+python do_stage_package_fixup () {
 	stage_packages = (bb.data.getVar('STAGE_PACKAGES', d, 1) or "").split()
-	
-	for f in (bb.data.getVar('PACKAGE_STAGE_FIXUP_FUNCS', d, 1) or '').split():
+	if len(stage_packages) < 1:
+		bb.debug(1, "No stage packages")
+		return
+
+	for f in (bb.data.getVar('STAGE_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
+		if not bb.data.getVarFlag(f, 'dirs', d):
+			bb.data.setVarFlag(f, 'dirs', '${PKGD_STAGE}', d)
 		bb.build.exec_func(f, d)
-
 }
-do_package_stage_fixup[cleandirs] = "${PKGD}"
-addtask package_stage_fixup before do_package_stage after do_package_install
+do_stage_package_fixup[cleandirs] = "${PKGD_STAGE}"
+do_stage_package_fixup[dirs] = "${PKGD_STAGE} ${PKGD}"
+addtask stage_package_fixup \
+	before do_stage_package_build \
+	after do_package_install
 
-python do_package_stage_qa () {
-       bb.note("do_package_stage_qa not implemented yet")
+
+python do_stage_package_qa () {
+       bb.note("do_stage_package_qa not implemented yet")
 }
-do_package_stage_qa[dirs] = "${PKGD}"
-#addtask package_stage_qa before do_package_stage after do_package_stage_fixup
+do_stage_package_qa[dirs] = "${PKGD}"
+addtask stage_package_qa \
+	before do_stage_package_build \
+	after do_stage_package_fixup
 
-python do_package_stage () {
-       bb.note("do_package_stage not implemented yet")
+
+python do_stage_package_build () {
+       bb.note("do_stage_package_build not implemented yet")
 }
-do_package_stage[dirs] = "${PKGD}"
-addtask package_stage before do_build after do_package_stage_fixup
+do_stage_package_build[dirs] = "${PKGD}"
+addtask stage_package_build \
+	before do_build \
+	after do_stage_package_fixup
 
-EXPORT_FUNCTIONS do_package_stage_fixup do_package_stage_qa do_package_stage
+EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_build
+
+
+SYSROOT_PACKAGE_FIXUP_FUNCS = "\
+sysroot_package_clone \
+#sysroot_package_strip \
+#sysroot_package_rpath \
+#sysroot_package_shlibs \
+#sysroot_package_pkgconfig \
+"
+# FIXME: sysroot_package_clone should re-use perform_packagecopy from
+# openembedded package.bbclass
+
+# FIXME: sysroot_package_pkgconfig should be dynamically added to
+# PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
+
+python do_sysroot_package_fixup () {
+	sysroot_packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
+	if len(sysroot_packages) < 1:
+		bb.debug(1, "No sysroot packages")
+		return
+
+	for f in (bb.data.getVar('SYSROOT_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
+		bb.build.exec_func(f, d)
+}
+do_sysroot_package_fixup[cleandirs] = "${PKGD_SYSROOT}"
+addtask sysroot_package_fixup before do_sysroot_package_build after do_package_install
+
+python do_sysroot_package_qa () {
+       bb.note("do_sysroot_package_qa not implemented yet")
+}
+do_sysroot_package_qa[dirs] = "${PKGD}"
+addtask sysroot_package_qa before do_sysroot_package_build after do_sysroot_package_fixup
+
+python do_sysroot_package_build () {
+       bb.note("do_sysroot_package_build not implemented yet")
+}
+do_sysroot_package_build[dirs] = "${PKGD}"
+addtask sysroot_package_build before do_build after do_sysroot_package_fixup
+
+EXPORT_FUNCTIONS do_sysroot_package_fixup do_sysroot_package_qa do_sysroot_package_build
 
 #
 # Helper functions for the package writing classes
