@@ -307,6 +307,10 @@ oe_libinstall() {
 	__runcmd cd "$olddir"
 }
 
+inherit package
+
+# FIXME: move all package_stage stuff to package.bbclass
+
 def package_stagefile(file, d):
 
     if bb.data.getVar('PSTAGING_ACTIVE', d, True) == "1":
@@ -390,7 +394,11 @@ python base_do_rebuild() {
 }
 
 SCENEFUNCS += "base_scenefunction"
-											
+
+
+do_set_stage[recdeptask] = "do_package_build"
+
+
 python base_do_setscene () {
         for f in (bb.data.getVar('SCENEFUNCS', d, 1) or '').split():
                 bb.build.exec_func(f, d)
@@ -398,7 +406,7 @@ python base_do_setscene () {
 		bb.build.make_stamp("do_setscene", d)
 }
 do_setscene[selfstamp] = "1"
-addtask setscene before do_fetch
+#addtask setscene before do_fetch
 
 python base_scenefunction () {
 	stamp = bb.data.getVar('STAMP', d, 1) + ".needclean"
@@ -771,7 +779,7 @@ python base_eventhandler() {
 
 addtask configure after do_unpack do_patch
 do_configure[dirs] = "${S} ${B}"
-do_configure[deptask] = "do_populate_sysroot"
+#do_configure[deptask] = "do_populate_sysroot"
 base_do_configure() {
 	:
 }
@@ -868,7 +876,7 @@ do_populate_sysroot[dirs] = "${STAGING_DIR_TARGET}/${bindir} ${STAGING_DIR_TARGE
 			     ${S} ${B}"
 
 # Could be compile but populate_sysroot and do_install shouldn't run at the same time
-addtask populate_sysroot after do_install
+#addtask populate_sysroot after do_install
 
 PSTAGING_ACTIVE = "0"
 SYSROOT_PREPROCESS_FUNCS ?= ""
@@ -939,7 +947,8 @@ base_do_package() {
 	:
 }
 
-addtask build after do_populate_sysroot
+#addtask build after do_populate_sysroot
+addtask build after do_install
 do_build = ""
 do_build[func] = "1"
 

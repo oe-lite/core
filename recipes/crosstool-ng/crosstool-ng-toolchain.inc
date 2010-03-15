@@ -43,10 +43,6 @@ SRC_URI = "file://defconfig.${TARGET_CROSS}"
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
-# FIXME: CT_SAVE_TARBALLS_DIR seems to have been removed from newer
-# crosstool-ng versions, so we are not able to do the fetch_tarballs /
-# save_tarballs trick :-(
-
 addtask fetch_tarballs after do_patch before do_configure
 do_fetch_tarballs[dirs] = "${B}"
 do_fetch_tarballs () {

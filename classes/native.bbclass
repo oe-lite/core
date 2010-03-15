@@ -12,11 +12,9 @@ STAGE_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
 PACKAGE_ARCH_ARCH		 = "native/${BUILD_ARCH}"
 PACKAGE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
-# No default packages
+# Default to one stage package
 PACKAGES = ""
-
-# When this class has packaging enabled, setting RPROVIDES becomes unnecessary.
-#RPROVIDES = "${PN}"
+STAGE_PACKAGES = "${PN}"
 
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -60,7 +58,7 @@ libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
 # but build for temporary install destination
-stage_base_prefix	= "${D}"
+#stage_base_prefix	= "${D}"
 
 do_install () {
 	oe_runmake install

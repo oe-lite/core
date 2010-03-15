@@ -1,0 +1,15 @@
+Recipe type	Host package arch		Target package arch
+-------------------------------------------------------------------------------
+target		machine/MACHINE_ARCH		-
+native		native/BUILD_ARCH		-
+cross		cross/MACHINE_ARCH		machine/MACHINE_ARCH
+sdk-cross	cross/SDK_ARCH			sdk/SDK_ARCH
+sdk-native	sdk/SDK_ARCH			-
+canadian-cross	sdk/SDK_ARCH--MACHINE_ARCH	-
+
+The PACKAGES variable contains the list of host packages to build.
+
+The STAGE_PACKAGES variable contains the list of target packages to build.
+
+The FILES_* variables are specified in the same way for host and
+target packages.

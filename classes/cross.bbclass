@@ -1,19 +1,21 @@
 #
+PACKAGE_ARCH_ARCH		 = "cross/${TARGET_CROSS}"
+PACKAGE_ARCH_MACHINE		 = "cross/${TARGET}"
+#
 PACKAGE_DIR_CROSS		= ""
 PACKAGE_DIR_SYSROOT_ARCH	= ""
 PACKAGE_DIR_SYSROOT_MACHINE	= ""
 #
-TARGET_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_ARCH}"
-TARGET_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_MACHINE}"
+SYSROOT_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_ARCH}"
+SYSROOT_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_MACHINE}"
 #
-STAGE_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR}/cross/${MACHINE_ARCH_ABI}"
-STAGE_PACKAGE_OUTPUT_MACHINE	= ""
-#
-PACKAGE_ARCH_ARCH		 = "cross/${MACHINE_CROSS}"
-PACKAGE_ARCH_MACHINE		 = "cross/${MACHINE}"
+STAGE_PACKAGE_OUTPUT		= "${PACKAGE_DIR}/${PACKAGE_ARCH}"
 
-# No default packages
-PACKAGES = ""
+# Default to one stage package
+PACKAGES	= ""
+STAGE_PACKAGES	= "${BPN}"
+# and use prefixed PROVIDES
+PROVIDES	= "${TARGET_CROSS}/${BPN}"
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -47,5 +49,5 @@ libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
 do_install () {
-	oe_runmake DESTDIR=${D} install
+	oe_runmake install
 }

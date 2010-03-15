@@ -6,7 +6,7 @@ inherit native
 
 do_configure () {
 	if [ -x ${S}/configure ] ; then
-		cfgcmd="${S}/configure --prefix=${prefix} "
+		cfgcmd="${S}/configure --prefix=${D}${prefix} "
 		oenote "Running $cfgcmd..."
 		$cfgcmd || oefatal "configure failed"
 	else
@@ -14,6 +14,13 @@ do_configure () {
 	fi
 }
 
+FILES_${PN} += "${libdir}/ct-ng-${PV}"
+
+# Let's just throw the documentation in a seperate package, which we can then
+# choose to ignore
+STAGE_PACKAGES += "${PN}-doc"
+
+#python package_stage_fixup_append () { }
 #do_stage_install_append () {
 #	mv ${STAGE_TEMP}${stage_bindir}/ct-ng \
 #	   ${STAGE_TEMP}${stage_bindir}/ct-ng.orig
