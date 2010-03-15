@@ -20,9 +20,7 @@ FILES_${PN} += "${libdir}/ct-ng-${PV}"
 # choose to ignore
 STAGE_PACKAGES += "${PN}-doc"
 
-#python package_stage_fixup_append () { }
 stage_package_fixup () {
-	pwd
 	mv ${PN}/${stage_bindir}/ct-ng \
 	   ${PN}${stage_bindir}/ct-ng.orig
 	sed -e 's%${D}%$(NATIVE_DIR)%' \

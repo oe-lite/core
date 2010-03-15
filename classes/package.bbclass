@@ -992,6 +992,7 @@ package_populate \
 # FIXME: package_pkgconfig should be dynamically added to
 # PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
 
+
 python do_package_install () {
 	sysroot_packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
 	stage_packages = (bb.data.getVar('STAGE_PACKAGES', d, 1) or "").split()
@@ -1052,9 +1053,23 @@ addtask stage_package_qa \
 
 
 python do_stage_package_build () {
-       bb.note("do_stage_package_build not implemented yet")
+	import bb, os
+
+	packages = (bb.data.getVar('STAGE_PACKAGES', d, 1) or "").split()
+	if len(packages) < 1:
+		bb.debug(1, "No stage packages")
+		return
+
+	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, True)
+	for pkg in packages:
+		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('PACKAGE_ARCH_STAGE', d, True)
+		outdir = os.path.join(bb.data.getVar('PACKAGE_STAGE_DIR', d, True), pkg_arch)
+		pv = bb.data.getVar('EPV', d, True)
+		bb.mkdirhier(outdir)
+		os.chdir(os.path.join(pkgd_stage, pkg))
+		os.system('tar cf %s/%s-%s.tar ./'%(outdir, pkg, pv))
 }
-do_stage_package_build[dirs] = "${PKGD}"
+do_stage_package_build[dirs] = "${PKGD_STAGE}"
 addtask stage_package_build \
 	before do_build \
 	after do_stage_package_fixup
