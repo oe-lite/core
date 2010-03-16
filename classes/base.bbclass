@@ -396,17 +396,19 @@ python base_do_rebuild() {
 SCENEFUNCS += "base_scenefunction"
 
 
-do_set_stage[recdeptask] = "do_package_build"
+def set_stage_add(dep, d):
+    bb.note('adding dependency %s'%dep)
+    return
 
+python do_set_stage () {
+	import bb
 
-python base_do_setscene () {
-        for f in (bb.data.getVar('SCENEFUNCS', d, 1) or '').split():
-                bb.build.exec_func(f, d)
-	if not os.path.exists(bb.data.getVar('STAMP', d, 1) + ".do_setscene"):
-		bb.build.make_stamp("do_setscene", d)
+	depends = bb.utils.explode_deps(bb.data.getVar('DEPENDS', d, True))
+	for dep in depends:
+		set_stage_add(dep, d)
 }
-do_setscene[selfstamp] = "1"
-#addtask setscene before do_fetch
+addtask set_stage before do_fetch
+do_set_stage[recdeptask] = "do_stage_package_build"
 
 python base_scenefunction () {
 	stamp = bb.data.getVar('STAMP', d, 1) + ".needclean"

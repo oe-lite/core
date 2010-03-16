@@ -12,9 +12,9 @@ STAGE_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
 PACKAGE_ARCH_ARCH		 = "native/${BUILD_ARCH}"
 PACKAGE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
-# Default to one stage package
-PACKAGES = ""
-STAGE_PACKAGES = "${PN}"
+# Only stage packages
+PACKAGES	= ""
+RPROVIDES_${PN}	= ""
 
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"

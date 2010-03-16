@@ -36,9 +36,10 @@ includedir		= ""
 
 SRC_URI = "file://defconfig.${TARGET_CROSS}"
 
-# FIXME: we need to ensure that the right crosstool-ng-native version is
-# is installed in the stage
-#DEPENDS = "crosstool-ng-native-${PV}"
+# Depend on the right version of the ct-ng tool
+DEPENDS = "crosstool-ng-native-${PV}"
+
+PROVIDES_${PN} += "${TARGET_CROSS}/toolchain"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR

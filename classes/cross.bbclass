@@ -11,11 +11,9 @@ SYSROOT_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_MACHINE}"
 #
 STAGE_PACKAGE_OUTPUT		= "${PACKAGE_DIR}/${PACKAGE_ARCH}"
 
-# Default to one stage package
+# Default to only stage packages
 PACKAGES	= ""
-STAGE_PACKAGES	= "${BPN}"
-# and use prefixed PROVIDES
-PROVIDES	= "${TARGET_CROSS}/${BPN}"
+RPROVIDES_${PN}	= ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"

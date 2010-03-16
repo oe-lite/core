@@ -16,10 +16,6 @@ do_configure () {
 
 FILES_${PN} += "${libdir}/ct-ng-${PV}"
 
-# Let's just throw the documentation in a seperate package, which we can then
-# choose to ignore
-STAGE_PACKAGES += "${PN}-doc"
-
 stage_package_fixup () {
 	mv ${PN}/${stage_bindir}/ct-ng \
 	   ${PN}${stage_bindir}/ct-ng.orig

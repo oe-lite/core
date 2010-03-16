@@ -222,99 +222,8 @@ def write_package_md5sums (root, outfile, ignorepaths):
 
 
 #
-# Package data handling routines
-#
-
-def get_package_mapping (pkg, d):
-	import bb, os
-
-	data = read_subpkgdata(pkg, d)
-	key = "PKG_%s" % pkg
-
-	if key in data:
-		return data[key]
-
-	return pkg
-
-def runtime_mapping_rename (varname, d):
-	import bb, os
-
-	#bb.note("%s before: %s" % (varname, bb.data.getVar(varname, d, 1)))
-
-	new_depends = []
-	for depend in bb.utils.explode_deps(bb.data.getVar(varname, d, 1) or ""):
-		# Have to be careful with any version component of the depend
-		split_depend = depend.split(' (')
-		new_depend = get_package_mapping(split_depend[0].strip(), d)
-		if len(split_depend) > 1:
-			new_depends.append("%s (%s" % (new_depend, split_depend[1]))
-		else:
-			new_depends.append(new_depend)
-
-	bb.data.setVar(varname, " ".join(new_depends) or None, d)
-
-	#bb.note("%s after: %s" % (varname, bb.data.getVar(varname, d, 1)))
-
-
-#
 # Package functions suitable for inclusion in PACKAGE_*_FUNCS
 #
-
-
-python package_split_locales() {
-	import os
-
-	if (bb.data.getVar('PACKAGE_NO_LOCALE', d, 1) == '1'):
-		bb.debug(1, "package requested not splitting locales")
-		return
-
-	packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
-
-	datadir = bb.data.getVar('datadir', d, 1)
-	if not datadir:
-		bb.note("datadir not defined")
-		return
-
-	dvar = bb.data.getVar('D', d, 1)
-	if not dvar:
-		bb.error("D not defined")
-		return
-
-	pn = bb.data.getVar('PN', d, 1)
-	if not pn:
-		bb.error("PN not defined")
-		return
-
-	if pn + '-locale' in packages:
-		packages.remove(pn + '-locale')
-
-	localedir = os.path.join(dvar + datadir, 'locale')
-
-	if not os.path.isdir(localedir):
-		bb.debug(1, "No locale files in this package")
-		return
-
-	locales = os.listdir(localedir)
-
-	# This is *really* broken
-	mainpkg = packages[0]
-	# At least try and patch it up I guess...
-	if mainpkg.find('-dbg'):
-		mainpkg = mainpkg.replace('-dbg', '')
-	if mainpkg.find('-dev'):
-		mainpkg = mainpkg.replace('-dev', '')
-
-	for l in locales:
-		ln = legitimize_package_name(l)
-		pkg = pn + '-locale-' + ln
-		packages.append(pkg)
-		bb.data.setVar('FILES_' + pkg, os.path.join(datadir, 'locale', l), d)
-		bb.data.setVar('RDEPENDS_' + pkg, '%s virtual-locale-%s' % (mainpkg, ln), d)
-		bb.data.setVar('RPROVIDES_' + pkg, '%s-locale %s-translation' % (pn, ln), d)
-		bb.data.setVar('DESCRIPTION_' + pkg, '%s translation for %s' % (l, pn), d)
-
-	bb.data.setVar('PACKAGES', ' '.join(packages), d)
-}
 
 
 python package_populate () {
@@ -1115,22 +1024,3 @@ do_sysroot_package_build[dirs] = "${PKGD}"
 addtask sysroot_package_build before do_build after do_sysroot_package_fixup
 
 EXPORT_FUNCTIONS do_sysroot_package_fixup do_sysroot_package_qa do_sysroot_package_build
-
-#
-# Helper functions for the package writing classes
-#
-
-python package_mapping_rename_hook () {
-	"""
-	Rewrite variables to account for package renaming in things
-	like debian.bbclass or manual PKG variable name changes
-	"""
-	runtime_mapping_rename("RDEPENDS", d)
-	runtime_mapping_rename("RRECOMMENDS", d)
-	runtime_mapping_rename("RSUGGESTS", d)
-	runtime_mapping_rename("RPROVIDES", d)
-	runtime_mapping_rename("RREPLACES", d)
-	runtime_mapping_rename("RCONFLICTS", d)
-}
-
-EXPORT_FUNCTIONS mapping_rename_hook
