@@ -5,11 +5,26 @@ INHIBIT_DEFAULT_DEPS = 1
 S = "${WORKDIR}/build"
 B = "${S}"
 
-# Let Crosstool NG manage compiler and linker flags
-CPPFLAGS=""
-CFLAGS=""
-CXXFLAGS=""
-LDFLAGS=""
+# Let Crosstool NG manage compiler and linker flags etc.
+AWK		= ""
+STRIP		= ""
+CC		= ""
+CXX		= ""
+AR		= ""
+NM		= ""
+LD		= ""
+DLLTOOL		= ""
+AS		= ""
+OBJDUMP		= ""
+AR		= ""
+RANLIB		= ""
+YACC		= ""
+LEX		= ""
+
+CFLAGS		= ""
+CPPFLAGS	= ""
+CXXFLAGS	= ""
+LDFLAGS		= ""
 
 # Try to avoid messing up sys-root paths
 prefix			= ""
