@@ -871,8 +871,8 @@ def package_clone (packages, dstdir, d):
 	for pkg in packages:
 		src = os.path.join(pkgd, pkg)
 		dst = os.path.join(dstdir, pkg)
-		bb.mkdirhier(dst)
-		os.system('cp -pPR %s/* %s/'%(src, dst))
+		bb.mkdirhier(dstdir)
+		os.system('cp -pPR %s/ %s'%(src, dst))
 
 
 python stage_package_clone () {
@@ -972,7 +972,7 @@ python do_stage_package_build () {
 	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, True)
 	for pkg in packages:
 		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('PACKAGE_ARCH_STAGE', d, True)
-		outdir = os.path.join(bb.data.getVar('PACKAGE_STAGE_DIR', d, True), pkg_arch)
+		outdir = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg_arch)
 		pv = bb.data.getVar('EPV', d, True)
 		bb.mkdirhier(outdir)
 		os.chdir(os.path.join(pkgd_stage, pkg))
