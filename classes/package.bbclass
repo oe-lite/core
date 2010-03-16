@@ -872,6 +872,7 @@ def package_clone (packages, dstdir, d):
 		src = os.path.join(pkgd, pkg)
 		dst = os.path.join(dstdir, pkg)
 		bb.mkdirhier(dstdir)
+		# FIXME: rewrite to use python function instead of os.system
 		os.system('cp -pPR %s/ %s'%(src, dst))
 
 
@@ -974,14 +975,20 @@ python do_stage_package_build () {
 		# FIXME: add code to properly set PACKAGE_ARCH_* for
 		# packages that are promoted from PACKAGES to
 		# STAGE_PACKAGES and thus need different PACKAGE_ARCH
-		# than RECIPE_ARCH, and (maybe) also handle machine
-		# override of them
+		# than RECIPE_ARCH. they should not require machine
+		# override handling, as it is only needed for cross
+		# and sdk-cross which does not allow machine override
 		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('RECIPE_ARCH', d, True)
 		outdir = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg_arch)
 		pv = bb.data.getVar('EPV', d, True)
 		bb.mkdirhier(outdir)
-		os.chdir(os.path.join(pkgd_stage, pkg))
-		os.system('tar cf %s/%s-%s.tar ./'%(outdir, pkg, pv))
+		basedir = os.path.dirname(pkg_arch)
+		# FIXME: rewrite to use python functions instead of os.system
+		os.system('mv %s %s'%(pkg, basedir))
+		# FIXME: add error handling for tar command
+		os.system('tar cf %s/%s-%s.tar %s'%(outdir, pkg, pv, basedir))
+		# FIXME: rewrite to use python functions instead of os.system
+		os.system('mv %s %s'%(basedir, pkg))
 }
 do_stage_package_build[dirs] = "${PKGD_STAGE}"
 addtask stage_package_build \
