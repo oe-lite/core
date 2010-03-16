@@ -971,7 +971,12 @@ python do_stage_package_build () {
 
 	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, True)
 	for pkg in packages:
-		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('PACKAGE_ARCH_STAGE', d, True)
+		# FIXME: add code to properly set PACKAGE_ARCH_* for
+		# packages that are promoted from PACKAGES to
+		# STAGE_PACKAGES and thus need different PACKAGE_ARCH
+		# than RECIPE_ARCH, and (maybe) also handle machine
+		# override of them
+		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('RECIPE_ARCH', d, True)
 		outdir = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg_arch)
 		pv = bb.data.getVar('EPV', d, True)
 		bb.mkdirhier(outdir)

@@ -1039,31 +1039,28 @@ def base_after_parse(d):
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
-    # PACKAGE_ARCH override detection
-    pkg_arch = bb.data.getVar('PACKAGE_ARCH', d, 1)
-    pkg_arch_mach = bb.data.getVar('PACKAGE_ARCH_MACHINE', d, 1)
+    # RECIPE_ARCH override detection
+    recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
+    recipe_arch_mach = bb.data.getVar('RECIPE_ARCH_MACHINE', d, 1)
 
     # Scan SRC_URI for urls with machine overrides unless the package
-    # sets SRC_URI_OVERRIDES_PACKAGE_ARCH=0
-    override = bb.data.getVar('SRC_URI_OVERRIDES_PACKAGE_ARCH', d, 1)
+    # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
+    override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
 
-    if (pkg_arch != pkg_arch_mach and override != '0' and
+    if (recipe_arch != recipe_arch_mach and override != '0' and
         srcuri_machine_override(d, srcuri)):
-        bb.note("overriding PACKAGE_ARCH from %s to %s"%
-                (pkg_arch, pkg_arch_mach))
-        bb.data.setVar('PACKAGE_ARCH', "${PACKAGE_ARCH_MACHINE}", d)
-        pkg_arch = pkg_arch_mach
+        bb.note("overriding RECIPE_ARCH from %s to %s"%
+                (recipe_arch, recipe_arch_mach))
+        bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
+        recipe_arch = recipe_arch_mach
 
     packages = bb.data.getVar('PACKAGES', d, 1).split()
     for pkg in packages:
-        pkg_pkg_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
-        if pkg_pkg_arch and pkg_pkg_arch == pkg_arch_mach:
-            # not setting PACKAGE_ARCH here, just provoke change of TMP_SUBPATH
-            pkg_arch = pkg_arch_mach
+        recipe_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
+        if recipe_arch and recipe_arch == recipe_arch_mach:
+            if recipe_arch != recipe_arch_mach:
+                bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
             break
-
-    if pkg_arch == pkg_arch_mach:
-        bb.data.setVar('TMP_SUBPATH', "${PACKAGE_ARCH_MACHINE}", d)
 
 
 python () {
