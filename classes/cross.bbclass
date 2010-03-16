@@ -50,6 +50,28 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-do_install () {
+cross_do_install () {
 	oe_runmake install
+}
+
+do_install () {
+	cross_do_install
+}
+
+BBCLASS ?= 'cross'
+python __anonymous () {
+    bbclass = bb.data.getVar('BBCLASS', d, True)
+    if bbclass in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
+        pn = bb.data.getVar("PN", d, True)
+        sysroot_packages = bb.data.getVar('PACKAGES', d, True)
+        stage_packages = bb.data.getVar('STAGE_PACKAGES', d, True)
+        for package in set(sysroot_packages).union(stage_packages):
+            provides = bb.data.getVar('PROVIDES_%s'%package, d, True) or ''
+            for provide in provides.split():
+                if provide.find(pn) != -1:
+                    continue
+                if not provide.endswith('-'+bbclass):
+                    provides = provides.replace(provide, provide+'-'+bbclass)
+            bb.data.setVar('PROVIDES_%s'%package, provides, d)
+        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':bbclassextend-'+bbclass, d)
 }

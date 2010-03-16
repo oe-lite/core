@@ -1,3 +1,4 @@
+BBCLASS = 'sdk-cross'
 inherit cross
 
 #
