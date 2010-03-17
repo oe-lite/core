@@ -114,3 +114,29 @@ do_compile () {
 	ct-ng build
 }
 
+# Stub out do_install
+do_install () {
+	:
+}
+do_install_bbclassextend-cross () {
+	:
+}
+do_install_bbclassextend-sdk-cross () {
+	:
+}
+do_install_bbclassextend-canadian-cross () {
+	:
+}
+# And as do_compile actually installs into D, don't clean it on do_install
+do_install[cleandirs] = ""
+
+STAGE_PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc"
+
+# FIXME: fixup paths.conf and cross.bbclass to use variables here
+FILES_${PN} += "\
+/${TARGET_CROSS} \
+/bin \
+/libexec \
+/lib \
+/include \
+"
