@@ -888,7 +888,7 @@ stage_package_clone[dirs] = '${PKGD_STAGE} ${PKGD}'
 python sysroot_package_clone () {
 	pkgd_sysroot = bb.data.getVar('PKGD_SYSROOT', d, True)
 	sysroot_packages = (bb.data.getVar('PACKAGES', d, True) or "").split()
-	package_clone(sysroot_packages, pkgd_sysroot)
+	package_clone(sysroot_packages, pkgd_sysroot, d)
 }
 
 
