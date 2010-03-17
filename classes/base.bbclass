@@ -398,8 +398,17 @@ SCENEFUNCS += "base_scenefunction"
 
 def set_stage_add(dep, d):
     bb.note('adding build dependency %s to stage'%dep)
+
+    # FIXME: we should find a way to avoid building recipes needed for
+    # stage packages which is present (pre-baked) in deploy/stage dir.
+    # perhaps we can dynamically add stage_packages to ASSUME_PROVIDED
+    # in base_after_parse() based on the findings in deploy/stage
+    # based on exploded DEPENDS???
+
     # FIXME: extend 'dep' to a packagename, pv and pr
+    #(pkg, arch, pv, pr) = bb.providers.getStagePackageProvider(
     pkg = 'crosstool-ng-native'
+    arch = 'native/${BUILD_ARCH}'
     pv = '1.6.1'
     pr = 'r0'
     filename = '%s-%s-%s.tar'%(pkg, pv, pr)
@@ -413,6 +422,7 @@ def set_stage_add(dep, d):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
         return
 
+    # FIXME: do error handling on tar command
     os.system('tar xf %s'%found)
     return
 
