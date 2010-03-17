@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # crosstool-NG version: 1.6.1
-# Mon Mar 15 13:50:21 2010
+# Wed Mar 17 13:47:36 2010
 #
 
 #
@@ -224,15 +224,15 @@ CT_BINUTILS_FOR_TARGET_BFD=y
 # C compiler
 #
 CT_CC="gcc"
-CT_CC_VERSION="4.3.2"
+CT_CC_VERSION="4.4.3"
 CT_CC_gcc=y
-# CT_CC_V_4_4_3 is not set
+CT_CC_V_4_4_3=y
 # CT_CC_V_4_4_2 is not set
 # CT_CC_V_4_4_1 is not set
 # CT_CC_V_4_4_0 is not set
 # CT_CC_V_4_3_4 is not set
 # CT_CC_V_4_3_3 is not set
-CT_CC_V_4_3_2=y
+# CT_CC_V_4_3_2 is not set
 # CT_CC_V_4_3_1 is not set
 # CT_CC_V_4_2_4 is not set
 # CT_CC_V_4_2_3 is not set
@@ -243,7 +243,7 @@ CT_CC_V_4_3_2=y
 # CT_CC_V_4_0_4 is not set
 # CT_CC_V_3_4_6 is not set
 CT_CC_GCC_4_3_or_later=y
-# CT_CC_GCC_4_4_or_later is not set
+CT_CC_GCC_4_4_or_later=y
 CT_CC_CXA_ATEXIT=y
 CT_CC_SJLJ_EXCEPTIONS_CONFIGURE=y
 # CT_CC_SJLJ_EXCEPTIONS_USE is not set
