@@ -405,25 +405,16 @@ def set_stage_add(dep, d):
     # in base_after_parse() based on the findings in deploy/stage
     # based on exploded DEPENDS???
 
-    # FIXME: extend 'dep' to a packagename, pv and pr
-    #(pkg, arch, pv, pr) = bb.providers.getStagePackageProvider(
-    pkg = 'crosstool-ng-native'
-    arch = 'native/${BUILD_ARCH}'
-    pv = '1.6.1'
-    pr = 'r0'
-    filename = '%s-%s-%s.tar'%(pkg, pv, pr)
-    for path in bb.data.getVar('STAGE_PACKAGE_PATH', d, True).split():
-        bb.debug('searching for %s in %s'%(filename, path))
-        if os.path.isfile(os.path.join(path, filename)):
-            found = os.path.join(path, filename)
-            bb.note('found %s'%found)
-            break
-    if not found:
+    # Get complete specification of package that provides 'dep', in
+    # the form PACKAGE_ARCH/PACKAGE-PV-PR
+    pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
+    filename = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg + '.tar')
+    if not os.path.isfile(filename):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
         return
 
     # FIXME: do error handling on tar command
-    os.system('tar xf %s'%found)
+    os.system('tar xf %s'%filename)
     return
 
 python do_set_stage () {
@@ -437,12 +428,6 @@ do_set_stage[cleandirs] = "${STAGE_DIR}"
 do_set_stage[dirs] = "${STAGE_DIR}"
 addtask set_stage before do_fetch
 do_set_stage[recdeptask] = "do_stage_package_build"
-
-python base_scenefunction () {
-	stamp = bb.data.getVar('STAMP', d, 1) + ".needclean"
-	if os.path.exists(stamp):
-	        bb.build.exec_func("do_clean", d)
-}
 
 
 addtask fetch
@@ -994,8 +979,8 @@ def base_after_parse(d):
 
     if (recipe_arch != recipe_arch_mach and override != '0' and
         srcuri_machine_override(d, srcuri)):
-        bb.note("overriding RECIPE_ARCH from %s to %s"%
-                (recipe_arch, recipe_arch_mach))
+        bb.debug("overriding %s RECIPE_ARCH from %s to %s"%
+                (pn, recipe_arch, recipe_arch_mach))
         bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
         recipe_arch = recipe_arch_mach
 
@@ -1027,7 +1012,7 @@ inherit patch
 # Move to autotools.bbclass?
 inherit siteinfo
 
-EXPORT_FUNCTIONS do_setscene do_clean do_fetch do_unpack do_configure do_compile do_install do_package do_populate_pkgs do_rebuild do_fetchall
+EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install
 
 MIRRORS[func] = "0"
 MIRRORS () {
