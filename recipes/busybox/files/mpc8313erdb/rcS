@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# This is a minmal rcS file for target startup
+#
+
+VERBOSE=y
+
+# Start script or program.
+startup() {
+  # Handle verbosity
+  [ "$VERBOSE" = y ] && echo "INIT: Running $@..."
+
+  case "$1" in
+	*.sh)
+		# Source shell script for speed.
+		(
+			trap - INT QUIT TSTP
+			scriptname=$1
+			shift
+			. $scriptname
+		)
+		;;
+	*)
+		"$@"
+		;;
+  esac
+}
+
+# Make sure that /proc and /sys and /tmp is mounted.
+[ -d /proc ] || mkdir /proc
+[ -d /sys ] || mkdir /sys
+[ -d /tmp ] || mkdir /tmp
+[ -d /var/run ] || mkdir -p /var/run
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs tmpfs /tmp
+mount -t debugfs debugfs /sys/kernel/debug
+mount -t tmpfs tmpfs /var/run
+
+# Fire startup scripts
+. /etc/init.d/rc S
+
+# Switch status LED to blinking green
+echo none > /sys/class/leds/led1:amber:init/trigger
+echo 0 > /sys/class/leds/led1:amber:init/brightness
+echo heartbeat > /sys/class/leds/led2:green:run/trigger
+
+exit 0
