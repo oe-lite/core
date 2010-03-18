@@ -69,7 +69,7 @@ INITSCRIPT_PARAMS_${PN}-ntpd = "start 70 S ."
 INITSCRIPT_NAME_${PN}-shutdown = "shutdown.sh"
 INITSCRIPT_PARAMS_${PN}-shutdown = "stop 98 0 ."
 
-inherit cml1
+inherit cml1 update-rc.d
 
 export EXTRA_CFLAGS = "${CFLAGS}"
 EXTRA_OEMAKE += "V=1 ARCH=${TARGET_ARCH} CROSS_COMPILE=${TARGET_PREFIX}"
