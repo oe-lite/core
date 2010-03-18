@@ -1,7 +1,5 @@
 PR = "r0"
 
-INHIBIT_DEFAULT_DEPS = 1
-
 S = "${WORKDIR}/build"
 B = "${S}"
 
@@ -54,7 +52,11 @@ SRC_URI = "file://defconfig.${TARGET_CROSS}"
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
-PROVIDES_${PN} += "${TARGET_CROSS}/toolchain"
+INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
+INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
+
+PROVIDES_${PN}_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
