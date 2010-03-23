@@ -82,8 +82,8 @@ python __anonymous () {
                 continue
             for suffix in suffixes:
                 if dep.endswith(suffix):
-                    newdeps.append(dep.replace(suffix, '-native'))
-                    continue
+                    dep = dep.replace(suffix, '')
+                    break
             newdeps.append(dep + '-native')
         bb.data.setVar('DEPENDS_bbclassextend-native', ' '.join(newdeps), d)
 
