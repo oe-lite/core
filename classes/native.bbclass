@@ -65,10 +65,6 @@ includedir		= "${stage_includedir}"
 # but build for temporary install destination
 #stage_base_prefix	= "${D}"
 
-do_install () {
-	oe_runmake install
-}
-
 ORIG_DEPENDS := "${DEPENDS}"
 DEPENDS_bbclassextend-native ?= "${ORIG_DEPENDS}"
 
@@ -76,10 +72,11 @@ python __anonymous () {
     if 'native' in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
         pn = bb.data.getVar("PN", d, True)
         depends = bb.data.getVar("DEPENDS_bbclassextend-native", d, True)
-        suffixes = bb.data.getVar('SPECIAL_PKGSUFFIX', d, True)
+        deps = bb.utils.explode_deps(depends)
+        suffixes = bb.data.getVar('SPECIAL_PKGSUFFIX', d, True).split()
 
         newdeps = []
-        for dep in depends:
+        for dep in deps:
             if dep.endswith('-native'):
                 newdeps.append(dep)
                 continue
@@ -92,7 +89,7 @@ python __anonymous () {
 
         sysroot_packages = bb.data.getVar('PACKAGES', d, True)
         stage_packages = bb.data.getVar('STAGE_PACKAGES', d, True)
-        for package in set(sysroot_packages).union(stage_packages):
+        for package in set(sysroot_packages.split()).union(stage_packages.split()):
             provides = bb.data.getVar('PROVIDES_%s'%package, d, True) or ''
             for provide in provides.split():
                 if provide.find(pn) != -1:
