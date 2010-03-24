@@ -14,6 +14,7 @@ SRC_URI = " \
            file://issue.net \
            file://issue \
            file://dot.bashrc \
+           file://device_table-minimal.txt \
            file://dot.profile "
 
 # Basic filesystem directories (adheres to FHS)
@@ -63,6 +64,8 @@ dirs755 = "${bindir} \
 
 volatiles = "cache run log lock tmp"
 
+FILES_${PN} = "/"
+
 do_install () {
 
 	# Install directories
@@ -105,5 +108,8 @@ do_install () {
         install -m 0644 ${WORKDIR}/host.conf ${D}${sysconfdir}/host.conf
 
         ln -sf /proc/mounts ${D}${sysconfdir}/mtab
-}
 
+	# Install device node configuration
+	install -m 0755 -d ${D}${devtable}
+	install -m 0644 ${WORKDIR}/device_table-minimal.txt ${D}${devtable}/${PN}.txt
+}

@@ -10,7 +10,7 @@ HOMEPAGE = "http://www.busybox.net"
 LICENSE = "GPL"
 SECTION = "base"
 PRIORITY = "required"
-
+RDEPENDS = "base-files"
 PR = "r21${INC_PR}"
 
 SRC_URI_append = "\
