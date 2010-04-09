@@ -72,6 +72,9 @@ includedir		= "${stage_includedir}"
 
 # but build for temporary install destination
 #stage_base_prefix	= "${D}"
+base_do_install() {
+    oe_runmake install
+}
 
 ORIG_DEPENDS := "${DEPENDS}"
 DEPENDS_bbclassextend-native ?= "${ORIG_DEPENDS}"

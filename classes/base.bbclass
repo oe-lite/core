@@ -25,9 +25,9 @@ def base_dep_prepend(d):
             host_cross = bb.data.getVar('HOST_CROSS', d, 1)
             target_cross = bb.data.getVar('TARGET_CROSS', d, 1)
             if host_arch != build_arch:
-                deps += "${HOST_CROSS}-toolchain "
+                deps += " ${HOST_CROSS}-toolchain "
             if target_arch != build_arch and target_cross != host_cross:
-                deps += "${TARGET_CROSS}-toolchain "
+                deps += " ${TARGET_CROSS}-toolchain "
 
         return deps
 
@@ -418,6 +418,10 @@ def set_stage_add(dep, d):
     # Get complete specification of package that provides 'dep', in
     # the form PACKAGE_ARCH/PACKAGE-PV-PR
     pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
+    if not pkg:
+        bb.error('PKGPROVIDER_%s empty!'%dep)
+        return
+
     filename = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg + '.tar')
     if not os.path.isfile(filename):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
