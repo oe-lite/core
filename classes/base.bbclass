@@ -937,6 +937,18 @@ def base_after_parse(d):
     import bb
 
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
+
+    #FIXME: when -dev is working remove this hack
+    depends = bb.data.getVar("DEPENDS", d, True)
+    deps = bb.utils.explode_deps(depends)
+    newdeps = []
+    for dep in deps:
+        if dep.endswith('-dev') or dep.endswith('-toolchain') or dep.find('native') != -1:
+            continue
+        newdeps.append(dep + '-dev')
+    string = ' ' + ' '.join(newdeps)
+    bb.data.setVar('DEPENDS_append', string, d)
+    
     if not source_mirror_fetch:
         need_host = bb.data.getVar('COMPATIBLE_HOST', d, 1)
         if need_host:
