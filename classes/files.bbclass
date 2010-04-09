@@ -3,13 +3,21 @@ PACKAGES = "${PN}"
 FILES_${PN} = ""
 
 def set_install(rdep,d):
-    #pkg = bb.data.getVar('PKGPROVIDER_%s'%rdep, d, 0)
+    pkg = bb.data.getVar('PKGPROVIDER_%s'%rdep, d, 0)
     if rdep == 'libc':
         pkg = 'libc'
     elif rdep == 'base-files':
         pkg = 'base-files-0.1-r0'
     elif rdep == 'busybox':
         pkg = 'busybox-1.16.0-r21.1'
+    elif rdep == 'mtd-utils':
+        pkg = 'mtd-utils-1.3.1-r3'
+    elif rdep == 'lzo':
+        pkg = 'lzo-2.02-r1'
+    elif rdep == 'zlib':
+        pkg = 'zlib-1.2.4-r1'
+    elif rdep == 'util-linux-ng':
+        pkg = 'util-linux-ng-2.17.2-r1.1'
     elif rdep == 'test':
         pkg = 'test-1-r0'
     else:
@@ -34,7 +42,7 @@ python do_files_install() {
     #rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS', d, True))
     # Above does not work
     #bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, True)
-    rdepends = ['libc', 'base-files', 'busybox']
+    rdepends = ['libc', 'base-files', 'busybox', 'mtd-utils', 'zlib', 'lzo', 'util-linux-ng']
 
     for rdep in rdepends:
         set_install(rdep,d)
