@@ -1,5 +1,9 @@
 DESCRIPTION = "Tools for managing memory technology devices."
 SECTION = "base"
+
+#FIXME: Only mkfs.* and uuidd (UUID-generation daemon) depends on
+#       util-linux-ng zlib and lzo (and libm.so). Not needed on
+#       target.
 DEPENDS = "zlib lzo util-linux-ng"
 HOMEPAGE = "http://www.linux-mtd.infradead.org/"
 LICENSE = "GPLv2"
