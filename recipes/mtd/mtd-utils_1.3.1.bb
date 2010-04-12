@@ -13,7 +13,7 @@ SRC_URI = "git://git.infradead.org/mtd-utils.git;protocol=git;tag=v1.3.1"
 
 S = "${WORKDIR}/git/"
 
-EXTRA_OEMAKE = "'CC=${CC}' 'CFLAGS=${CFLAGS} -I${S}/include -DWITHOUT_XATTR'"
+EXTRA_OEMAKE = "'LDFLAGS=${LDFLAGS}' 'CFLAGS=${CFLAGS} -I${S}/include -DWITHOUT_XATTR'"
 
 do_install () {
 	oe_runmake install DESTDIR=${D}
