@@ -96,6 +96,8 @@ python __anonymous () {
                     dep = dep.replace(suffix, '')
                     break
             newdeps.append(dep + '-native')
+            #FIXME: Manual add of -dev
+            newdeps.append(dep + '-native-dev')
         bb.data.setVar('DEPENDS_bbclassextend-native', ' '.join(newdeps), d)
 
         sysroot_packages = bb.data.getVar('PACKAGES', d, True)
