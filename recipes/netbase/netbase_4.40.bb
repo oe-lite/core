@@ -4,10 +4,7 @@ SECTION = "base"
 LICENSE = "GPL"
 PR = "r4"
 
-inherit update-rc.d
-
-INITSCRIPT_NAME = "networking"
-INITSCRIPT_PARAMS = "start 20 S ."
+inherit
 
 SRC_URI = "${DEBIAN_MIRROR}/main/n/netbase/netbase_${PV}.tar.gz \
            file://init \
@@ -22,6 +19,7 @@ do_install () {
 		   ${D}${sysconfdir}/network/if-down.d \
 		   ${D}${sysconfdir}/network/if-post-down.d
 	install -m 0755 ${WORKDIR}/init ${D}${sysconfdir}/init.d/networking
+	ln -s ../init.d/networking ${D}${sysconfdir}/S20networking
 	install -m 0644 ${WORKDIR}/hosts ${D}${sysconfdir}/hosts
 	install -m 0644 etc-rpc ${D}${sysconfdir}/rpc
 	install -m 0644 etc-protocols ${D}${sysconfdir}/protocols

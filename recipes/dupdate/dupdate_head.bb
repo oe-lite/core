@@ -12,11 +12,6 @@ SRC_URI = "git://dev.doredevelopment.dk/srv/deif/git/dupdate.git;protocol=ssh"
 
 S = "${WORKDIR}/git"
 
-INITSCRIPT_PACKAGES = "${PN}"
-INITSCRIPT_NAME_${PN} = "${PN}.sh"
-INITSCRIPT_PARAMS_${PN} = "start 60 S ."
-inherit update-rc.d
-
 do_stage() {
 	install -d ${STAGING_BINDIR}
 	install -m 0755 ${S}/run_update.sh ${STAGING_BINDIR}/
@@ -29,6 +24,7 @@ do_install() {
 	install -p -m 755 ${S}/dboot ${D}/${sbindir}
 	install -d ${D}/${sysconfdir}/init.d/
 	install -p -m 755 ${S}/dupdate.sh ${D}/${sysconfdir}/init.d/
+	ln -s ../init.d/dupdate.sh ${D}${sysconfdir}/rcS.d/S60dupdate.sh
 
 	install -m 0755 ${S}/reboot_to_servicemode ${D}/${sbindir}
 }

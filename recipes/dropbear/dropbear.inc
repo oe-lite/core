@@ -13,11 +13,7 @@ SRC_URI = "http://matt.ucc.asn.au/dropbear/releases/dropbear-${PV}.tar.gz \
 	   file://allow-nopw.patch \
 	   file://init"
 
-inherit autotools update-rc.d
-
-INITSCRIPT_NAME = "dropbear"
-INITSCRIPT_PARAMS = "defaults 10"
-INITSCRIPT_PARAMS_deif = "start 25 S ."
+inherit autotools
 
 CFLAGS_prepend = " -I. "
 LD = "${CC}"
@@ -37,6 +33,7 @@ do_configure_prepend() {
 do_install() {
 	install -d ${D}${sysconfdir} \
 		   ${D}${sysconfdir}/init.d \
+	           ${D}${sysconfdir}/rcS.d \
 		   ${D}${sysconfdir}/default \
 		   ${D}${sysconfdir}/dropbear \
                    ${D}${bindir} \
@@ -56,6 +53,7 @@ do_install() {
 				  -e 's,/usr/bin,${bindir},g' \
 				  -e 's,/usr,${prefix},g' > ${D}${sysconfdir}/init.d/dropbear
 	chmod 755 ${D}${sysconfdir}/init.d/dropbear
+	ln -s ../init.d/dropbear ${D}${sysconfdir}/rcS.d/S25dropbear
 }
 
 pkg_postinst () {
