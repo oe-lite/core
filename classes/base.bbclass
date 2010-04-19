@@ -432,8 +432,9 @@ def set_stage_add(dep, d):
 python do_set_stage () {
     import bb
 
-    depends = bb.utils.explode_deps(bb.data.getVar('DEPENDS', d, True))
-    for dep in depends:
+    recdepends = bb.utils.explode_deps(bb.data.getVar('RECDEPENDS', d, True))
+    bb.note('set_stage: RECDEPENDS=%s'%recdepends)
+    for dep in recdepends:
         set_stage_add(dep, d)
 }
 do_set_stage[cleandirs] = "${STAGE_DIR}"
