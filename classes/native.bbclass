@@ -1,25 +1,11 @@
+RECIPE_TYPE			 = "native"
 #
 RECIPE_ARCH			 = "native/${BUILD_ARCH}"
 RECIPE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
-#
-PACKAGE_DIR_CROSS		= ""
-PACKAGE_DIR_SYSROOT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
-PACKAGE_DIR_SYSROOT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
-#
-TARGET_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
-TARGET_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
-#
-STAGE_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_NATIVE_ARCH}"
-STAGE_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_NATIVE_MACHINE}"
 
-STAGE_PACKAGE_PATH	 = "\
-${STAGE_PACKAGE_DIR}/native/${BUILD_ARCH} \
-${STAGE_PACKAGE_DIR}/native/${BUILD_ARCH}--${MACHINE} \
-"
-
-# Only stage packages
-PACKAGES	= ""
+# Native packages does not runtime provide anything
 RPROVIDES_${PN}	= ""
+RDEPENDS_${PN}-dev = ""
 
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -62,9 +48,6 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-# but build for temporary install destination
-#stage_base_prefix	= "${D}"
-
 do_install () {
 	oe_runmake install
 }
@@ -89,17 +72,6 @@ python __anonymous () {
                     continue
             newdeps.append(dep + '-native')
         bb.data.setVar('DEPENDS_bbclassextend-native', ' '.join(newdeps), d)
-
-        sysroot_packages = bb.data.getVar('PACKAGES', d, True)
-        stage_packages = bb.data.getVar('STAGE_PACKAGES', d, True)
-        for package in set(sysroot_packages).union(stage_packages):
-            provides = bb.data.getVar('PROVIDES_%s'%package, d, True) or ''
-            for provide in provides.split():
-                if provide.find(pn) != -1:
-                    continue
-                if not provide.endswith('-native'):
-                    provides = provides.replace(provide, provide + '-native')
-            bb.data.setVar('PROVIDES_%s'%package, provides, d)
-
-        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ":bbclassextend-native", d)
 }
+
+FIXUP_RPROVIDES = ''

@@ -1,23 +1,12 @@
+RECIPE_TYPE			 = "cross"
 #
-RECIPE_ARCH			= "cross/${TARGET_CROSS}"
-RECIPE_ARCH_MACHINE		= ""
-#
-PACKAGE_DIR_CROSS		= ""
-PACKAGE_DIR_SYSROOT_ARCH	= ""
-PACKAGE_DIR_SYSROOT_MACHINE	= ""
-#
-SYSROOT_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_ARCH}"
-SYSROOT_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_MACHINE}"
+RECIPE_ARCH			 = "cross/${TARGET_CROSS}"
+RECIPE_ARCH_MACHINE		 = ""
 
-STAGE_PACKAGE_PATH	 = "\
-${STAGE_PACKAGE_DIR}/machine/${MACHINE_CROSS} \
-${STAGE_PACKAGE_DIR}/cross/${TARGET_CROSS} \
-${STAGE_PACKAGE_DIR}/native/${BUILD_ARCH} \
-"
-
-# Default to only stage packages
-PACKAGES	= ""
-RPROVIDES_${PN}	= ""
+# Default packages is stage (cross) packages
+PACKAGES_append		+= "${@cross_sysroot_packages(d)}"
+SYSROOT_PACKAGES	?= ""
+RPROVIDES_${PN}		 = ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -51,27 +40,48 @@ libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
 cross_do_install () {
-	oe_runmake install
+    oe_runmake install
 }
 
 do_install () {
-	cross_do_install
+    cross_do_install
 }
 
-BBCLASS ?= 'cross'
+def cross_sysroot_packages (d):
+    packages = []
+    for package in bb.data.getVar('SYSROOT_PACKAGES', d, True).split():
+        packages += [package, package + '-sdk']
+    return ' '.join(packages)
+
+
 python __anonymous () {
-    bbclass = bb.data.getVar('BBCLASS', d, True)
-    if bbclass in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
-        pn = bb.data.getVar("PN", d, True)
-        sysroot_packages = bb.data.getVar('PACKAGES', d, True)
-        stage_packages = bb.data.getVar('STAGE_PACKAGES', d, True)
-        for package in set(sysroot_packages).union(stage_packages):
-            provides = bb.data.getVar('PROVIDES_%s'%package, d, True) or ''
-            for provide in provides.split():
-                if provide.find(pn) != -1:
-                    continue
-                if not provide.endswith('-'+bbclass):
-                    provides = provides.replace(provide, provide+'-'+bbclass)
-            bb.data.setVar('PROVIDES_%s'%package, provides, d)
-        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':bbclassextend-'+bbclass, d)
+    # Set PACKAGE_ARCH_* variables for sysroot packages
+    sysroot_packages = cross_sysroot_packages(d)
+    for pkg in sysroot_packages.split():
+        pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True)
+        if not pkg_arch:
+            if pkg.endswith('-sdk'):
+                sysroot = 'sdk'
+            else:
+                sysroot = 'machine'
+            bb.data.setVar('PACKAGE_ARCH_%s'%pkg, '%s/${TARGET_CROSS}'%(sysroot), d)
 }
+
+FIXUP_RPROVIDES = cross_fixup_rprovides
+def cross_fixup_rprovides(d):
+    for package in bb.data.getVar('SYSROOT_PACKAGES', d, True).split():
+    	rprovides = bb.data.getVar('RPROVIDES_%s'%(package), d, True)
+	if rprovides:
+            rprovides = rprovides.split()
+        else:
+            rprovides = []
+        if not package in rprovides:
+            rprovides = [package] + rprovides
+            bb.data.setVar('RPROVIDES_%s'%(package), ' '.join(rprovides), d)
+        sdkrprovides = []
+        for rprovide in rprovides:
+            if rprovide.startswith(package):
+                rprovide = rprovide.replace(package, package + '-sdk', 1)
+            sdkrprovides.append(rprovide)
+        bb.data.setVar('RPROVIDES_%s-sdk'%(package), ' '.join(sdkrprovides), d)
+            

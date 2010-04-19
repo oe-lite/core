@@ -1,9 +1,5 @@
-BBCLASS = 'sdk-cross'
 inherit cross
-
-#
-SYSROOT_PACKAGE_OUTPUT_ARCH	= "${PACKAGE_DIR_SDK_ARCH}"
-SYSROOT_PACKAGE_OUTPUT_MACHINE	= "${PACKAGE_DIR_SDK_MACHINE}"
+RECIPE_TYPE = "sdk-cross"
 
 # Set target=sdk to get architecture triplet build/build/sdk
 TARGET_ARCH		= "${SDK_ARCH}"

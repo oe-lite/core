@@ -1,5 +1,7 @@
 BB_DEFAULT_TASK ?= "build"
 
+RECIPE_TYPE = "machine"
+
 # like os.path.join but doesn't treat absolute RHS specially
 def base_path_join(a, *p):
     path = a
@@ -418,7 +420,7 @@ def set_stage_add(dep, d):
     # Get complete specification of package that provides 'dep', in
     # the form PACKAGE_ARCH/PACKAGE-PV-PR
     pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
-    filename = os.path.join(bb.data.getVar('STAGE_PACKAGE_DIR', d, True), pkg + '.tar')
+    filename = os.path.join(bb.data.getVar('STAGE_DEPLOY_DIR', d, True), pkg + '.tar')
     if not os.path.isfile(filename):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
         return
@@ -929,6 +931,18 @@ def srcuri_machine_override(d, srcuri):
     return False
 
 
+FIXUP_RPROVIDES = base_fixup_rprovides
+def base_fixup_rprovides(d):
+    for package in bb.data.getVar('PACKAGES', d, True).split():
+    	rprovides = bb.data.getVar('RPROVIDES_%s'%(package), d, True)
+	if rprovides:
+            rprovides = rprovides.split()
+        else:
+            rprovides = []
+        if not package in rprovides:
+            bb.data.setVar('RPROVIDES_%s'%(package), ' '.join([package] + rprovides), d)
+
+
 def base_after_parse(d):
     import bb
 
@@ -979,6 +993,75 @@ def base_after_parse(d):
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
+    # FIXME: this is unfortunately called before variable overrides is
+    # applied, so it doesn't really work :-(
+    recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
+    packages = bb.data.getVar('PACKAGES', d, True)
+
+    # FIXME: move this to the task function(s) where it is used, so it
+    # is checked after overrides has been applied.
+    # STAGE_PACKAGES is only valid for cross and sdk-cross recipes
+    #if not recipe_type in ('cross', 'sdk-cross') and sysroot_packages:
+    #    bb.note("SYSROOT_PACKAGES='%s' ignored for %s recipe %s"%(stage_packages, recipe_type, pn))
+    #    sysroot_packages = ''
+    #    bb.data.setVar('SYSROOT_PACKAGES', '', d)
+
+    #packages = set(packages.split())
+    #sysroot_packages = set(sysroot_packages.split())
+    
+    # Allow PACKAGES as alias for SYSROOT_PACKAGES in machine, sdk and
+    # canadian-cross recipes
+    #if recipe_type in ('machine', 'sdk', 'canadian-cross'):
+    #    sysroot_packages = packages.union(sysroot_packages)
+    
+    # Allow PACKAGES as alias for STAGE_PACKAGES in native, cross and
+    # sdk-cross recipes
+    #if recipe_type in ('native', 'cross', 'sdk-cross'):
+    #    stage_packages = packages.union(stage_packages)
+
+    # PACKAGES is the union of SYSROOT_PACKAGES and STAGE_PACKAGES
+    #packages = sysroot_packages.union(stage_packages)
+    #bb.note("PACKAGES='%s'"%(packages))
+    #bb.note("STAGE_PACKAGES='%s'"%(stage_packages))
+    #bb.note("SYSROOT_PACKAGES='%s'"%(sysroot_packages))
+
+    # And feed back the PACKAGES variables
+    #bb.data.setVar('PACKAGES', ' '.join(packages), d)
+    #bb.data.setVar('STAGE_PACKAGES', ' '.join(stage_packages), d)
+    #bb.data.setVar('SYSROOT_PACKAGES', ' '.join(sysroot_packages), d)
+
+    # Special handling of BBCLASSEXTEND recipes
+    if recipe_type in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
+        # Fixup PROVIDES_* variables
+        # FIXME: if PACKAGES has overrides, this will break as
+        # overrides has not been applied at this point in time!
+        for pkg in packages.split():
+            provides = bb.data.getVar('PROVIDES_%s'%pkg, d, True) or ''
+            for provide in provides.split():
+                # FIXME: is this really a robust solution????
+                if provide.find(pn) != -1:
+                    continue
+                if not provide.endswith('-' + recipe_type):
+                    provides = provides.replace(provide, provide + '-' + recipe_type)
+            bb.data.setVar('PROVIDES_%s'%pkg, provides, d)
+        # Add bbclassextend-RECIPE_TYPE to OVERRIDES
+        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':bbclassextend-'+recipe_type, d)
+
+    # FIXME: move to insane.bbclass
+    provides = bb.data.getVar('PROVIDES', d, True)
+    if provides:
+        bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
+
+    # FIXME: move to insane.bbclass
+    rprovides = bb.data.getVar('RPROVIDES', d, True)
+    if rprovides:
+        bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
+
+    # Fixup package RPROVIDES, which is recipe type dependant
+    fixup_rprovides = bb.data.getVar('FIXUP_RPROVIDES', d, False)
+    if fixup_rprovides is not '':
+        eval(fixup_rprovides)(d)
+
     # RECIPE_ARCH override detection
     recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
     recipe_arch_mach = bb.data.getVar('RECIPE_ARCH_MACHINE', d, 1)
@@ -986,19 +1069,22 @@ def base_after_parse(d):
     # Scan SRC_URI for urls with machine overrides unless the package
     # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
     override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
-
     if (recipe_arch != recipe_arch_mach and override != '0' and
         srcuri_machine_override(d, srcuri)):
-        bb.debug("overriding %s RECIPE_ARCH from %s to %s"%
-                (pn, recipe_arch, recipe_arch_mach))
+        bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
+                 (pn, recipe_arch, recipe_arch_mach))
         bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
         recipe_arch = recipe_arch_mach
 
-    packages = bb.data.getVar('PACKAGES', d, 1).split()
+    # Detect manual machine "override" in PACKAGE_ARCH_* variables
+    # FIXME: if PACKAGES has overrides, this will break as
+    # overrides has not been applied at this point in time!
     for pkg in packages:
-        recipe_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
-        if recipe_arch and recipe_arch == recipe_arch_mach:
+        package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
+        if package_arch and package_arch == recipe_arch_mach:
             if recipe_arch != recipe_arch_mach:
+            	bb.debug("PACKAGE_ARCH_%s overrides RECIPE_ARCH from %s to %s"%
+                	 (pkg, recipe_arch, recipe_arch_mach))
                 bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
             break
 

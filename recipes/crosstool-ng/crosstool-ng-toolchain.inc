@@ -55,8 +55,10 @@ DEPENDS = "crosstool-ng-native-${PV}"
 INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
 INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
 
-PROVIDES_${PN}_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
-PROVIDES_${PN}_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
+
+DEPENDS_${PN} += "${PN}-sysroot"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
@@ -132,13 +134,47 @@ do_install_bbclassextend-canadian-cross () {
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
-STAGE_PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc"
+PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
+SYSROOT_PACKAGES= "${PN}-sysroot-locale ${PN}-sysroot"
 
-# FIXME: fixup paths.conf and cross.bbclass to use variables here
-FILES_${PN} += "\
-/${TARGET_CROSS} \
-/bin \
-/libexec \
-/lib \
-/include \
+FILES_${PN}-sysroot = "\
+${base_prefix}/${TARGET_CROSS}/sys-root \
+${base_prefix}/${TARGET_CROSS}/include \
+${base_prefix}/lib/gcc/${TARGET_CROSS} \
 "
+
+FILES_${PN}-sysroot-locale = "\
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
+"
+
+# Move the machine sysroot packages into proper target layout
+# and then mend the crosstool-ng-toolchain package so it will
+# get back in place on stage
+packages_install_sysroot_mangle () {
+	for pkg in ${SYSROOT_PACKAGES} ; do
+		# Fixup the layout of the sysroot packages
+		if [ -d $pkg/lib/gcc/${TARGET_CROSS} ] ; then
+			mkdir -p $pkg/${TARGET_CROSS}/sys-root/usr/lib/gcc
+			mv $pkg/lib/gcc/${TARGET_CROSS} $pkg/${TARGET_CROSS}/sys-root/usr/lib/gcc
+			rmdir $pkg/lib/gcc
+		fi
+		if [ -d $pkg/${TARGET_CROSS}/sys-root ] ; then
+			mv $pkg/${TARGET_CROSS}/sys-root/* $pkg/
+			rmdir $pkg/${TARGET_CROSS}/sys-root
+		fi
+		if [ -d $pkg/${TARGET_CROSS}/include ] ; then
+			mkdir -p $pkg/usr/include
+			mv $pkg/${TARGET_CROSS}/include/* $pkg/usr/include/
+			rmdir $pkg/${TARGET_CROSS}/include
+		fi
+		if [ -d $pkg/${TARGET_CROSS} ] ; then
+			rmdir $pkg/${TARGET_CROSS}
+		fi
+		# Clone all sdk sysroot package
+		cp -a $pkg/* $pkg-sdk/
+	done
+}
+packages_install_sysroot_mangle[dirs] = "${PKGD}"
+PACKAGE_INSTALL_FUNCS += "packages_install_sysroot_mangle"
+
+FILES_${PN} += "${bindir} /${TARGET_CROSS}/bin ${TARGET_CROSS}/lib ${FILES_${PN}-dev}"
