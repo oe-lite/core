@@ -27,5 +27,3 @@ do_install_append_deif () {
 /sbin/depmod
 EOT
 }
-RPROVIDES += "update-modules"
-PROVIDES += "update-modules"
