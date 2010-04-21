@@ -55,10 +55,14 @@ DEPENDS = "crosstool-ng-native-${PV}"
 INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
 INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
 
+DEPENDS_${PN} += "${PN}-sysroot"
 PROVIDES_${PN}_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
 PROVIDES_${PN}_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
 
-DEPENDS_${PN} += "${PN}-sysroot"
+PROVIDES_${PN}-sysroot_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain-sysroot"
+PROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain-sysroot"
+RPROVIDES_${PN}-sysroot_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain-sysroot"
+RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain-sysroot"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
