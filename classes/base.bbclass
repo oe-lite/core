@@ -999,38 +999,6 @@ def base_after_parse(d):
     recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
     packages = bb.data.getVar('PACKAGES', d, True)
 
-    # FIXME: move this to the task function(s) where it is used, so it
-    # is checked after overrides has been applied.
-    # STAGE_PACKAGES is only valid for cross and sdk-cross recipes
-    #if not recipe_type in ('cross', 'sdk-cross') and sysroot_packages:
-    #    bb.note("SYSROOT_PACKAGES='%s' ignored for %s recipe %s"%(stage_packages, recipe_type, pn))
-    #    sysroot_packages = ''
-    #    bb.data.setVar('SYSROOT_PACKAGES', '', d)
-
-    #packages = set(packages.split())
-    #sysroot_packages = set(sysroot_packages.split())
-    
-    # Allow PACKAGES as alias for SYSROOT_PACKAGES in machine, sdk and
-    # canadian-cross recipes
-    #if recipe_type in ('machine', 'sdk', 'canadian-cross'):
-    #    sysroot_packages = packages.union(sysroot_packages)
-    
-    # Allow PACKAGES as alias for STAGE_PACKAGES in native, cross and
-    # sdk-cross recipes
-    #if recipe_type in ('native', 'cross', 'sdk-cross'):
-    #    stage_packages = packages.union(stage_packages)
-
-    # PACKAGES is the union of SYSROOT_PACKAGES and STAGE_PACKAGES
-    #packages = sysroot_packages.union(stage_packages)
-    #bb.note("PACKAGES='%s'"%(packages))
-    #bb.note("STAGE_PACKAGES='%s'"%(stage_packages))
-    #bb.note("SYSROOT_PACKAGES='%s'"%(sysroot_packages))
-
-    # And feed back the PACKAGES variables
-    #bb.data.setVar('PACKAGES', ' '.join(packages), d)
-    #bb.data.setVar('STAGE_PACKAGES', ' '.join(stage_packages), d)
-    #bb.data.setVar('SYSROOT_PACKAGES', ' '.join(sysroot_packages), d)
-
     # Special handling of BBCLASSEXTEND recipes
     if recipe_type in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
         # Fixup PROVIDES_* variables
@@ -1172,4 +1140,3 @@ ftp://.*/.*     http://sources.openembedded.org/
 https?$://.*/.* http://sources.openembedded.org/
 
 }
-
