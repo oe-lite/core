@@ -15,8 +15,6 @@ do_compile () {
         oe_runmake tools
 }
 
-STAGE_PACKAGES = "${PN}"
-
 U_BOOT_TOOLS ?= "mkimage"
 
 do_install () {
