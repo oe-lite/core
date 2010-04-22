@@ -405,7 +405,7 @@ SCENEFUNCS += "base_scenefunction"
 
 
 def set_stage_add(dep, d):
-    bb.note('adding build dependency %s to stage'%dep)
+    bb.debug(2, 'adding build dependency %s to stage'%dep)
 
     # FIXME: we should find a way to avoid building recipes needed for
     # stage packages which is present (pre-baked) in deploy/stage dir.
@@ -424,6 +424,8 @@ def set_stage_add(dep, d):
     if not os.path.isfile(filename):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
         return
+
+    bb.note('unpacking %s to %s'%(filename, os.getcwd()))
 
     # FIXME: do error handling on tar command
     os.system('tar xf %s'%filename)
