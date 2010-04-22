@@ -21,7 +21,11 @@ def get_siteinfo_list(d):
        targetinfo = {\
               "powerpc-unknown-linux-gnu": "endian-big bit-32 common-linux common-glibc powerpc-common",\
               "x86_64-unknown-linux-gnu":  "endian-little bit-64 common-linux common-glibc",\
-              "x86_64-pc-linux-gnu":  "endian-little bit-64 common-linux common-glibc",\
+              "x86_64-pc-linux-gnu":       "endian-little bit-64 common-linux common-glibc",\
+              "i386-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
+              "i486-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
+              "i586-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
+              "i686-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
               }
        if target in targetinfo:
                info = targetinfo[target].split()

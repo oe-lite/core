@@ -7,6 +7,8 @@ B = "${S}"
 AWK		= ""
 STRIP		= ""
 CC		= ""
+CPP		= ""
+OBJCOPY		= ""
 CXX		= ""
 AR		= ""
 NM		= ""
@@ -47,10 +49,15 @@ libdir			= ""
 libexecdir		= ""
 includedir		= ""
 
-SRC_URI = "file://defconfig.${TARGET_CROSS}"
+DEFCONFIG = "defconfig.${TARGET_CROSS}"
+DEFCONFIG_bbclassextend-canadian-cross = "defconfig.${HOST_CROSS}--${TARGET_CROSS}"
+
+SRC_URI = "file://${DEFCONFIG}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
+
+DEPENDS_append_bbclassextend-canadian-cross = " ${HOST_CROSS}-toolchain ${TARGET_CROSS}-toolchain"
 
 INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
 INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
@@ -75,7 +82,7 @@ do_fetch_tarballs () {
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
-    	    ${WORKDIR}/defconfig.${TARGET_CROSS} > .config
+    	    ${WORKDIR}/${DEFCONFIG} > .config
 	ct-ng oldconfig
 	ct-ng build
 }
@@ -112,7 +119,7 @@ do_configure () {
 	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
 	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
-    	    ${WORKDIR}/defconfig.${TARGET_CROSS} > .config
+    	    ${WORKDIR}/${DEFCONFIG} > .config
 	ct-ng oldconfig
 }
 
@@ -140,7 +147,10 @@ do_install[cleandirs] = ""
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
 SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-extra ${PN}-sysroot-locale ${PN}-sysroot"
 
-DEPENDS_${PN} += "${PN}-sysroot-dev"
+SYSROOT_DEPENDS = "${PN}-sysroot-dev"
+SYSROOT_DEPENDS_bbclassextend-canadian-cross = ""
+
+DEPENDS_${PN} += "${SYSROOT_DEPENDS}"
 DEPENDS_${PN}-sysroot-dev = "${PN}-sysroot"
 
 RDEPENDS_${PN}-sysroot-extra	= "${PN}-sysroot"
@@ -154,6 +164,18 @@ ${libexecdir}/gcc/${TARGET_CROSS} \
 ${datadir}/aclocal \
 ${base_prefix}/${TARGET_CROSS}/bin \
 ${base_prefix}/${TARGET_CROSS}/lib \
+"
+
+FILES_${PN}_append_bbclassextend-canadian-cross = "\
+${FILES_${PN}-sysroot} \
+${FILES_${PN}-sysroot-dev} \
+${FILES_${PN}-sysroot-extra} \
+"
+FILES_${PN}-doc_append_bbclassextend-canadian-cross = "\
+${FILES_${PN}-sysroot-doc} \
+"
+FILES_${PN}-locale_append_bbclassextend-canadian-cross = "\
+${FILES_${PN}-sysroot-locale} \
 "
 
 FILES_${PN}-sysroot-dev = "\
