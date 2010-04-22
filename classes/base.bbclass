@@ -407,10 +407,6 @@ SCENEFUNCS += "base_scenefunction"
 def set_stage_add(dep, d):
     bb.note('adding build dependency %s to stage'%dep)
 
-    # FIXME: Need a crosstool machine package
-    if dep == 'powerpc-unknown-linux-gnu-toolchain':
-        os.system('ln -s cross/powerpc-unknown-linux-gnu/sys-root machine')
-
     # FIXME: we should find a way to avoid building recipes needed for
     # stage packages which is present (pre-baked) in deploy/stage dir.
     # perhaps we can dynamically add stage_packages to ASSUME_PROVIDED
@@ -436,8 +432,8 @@ def set_stage_add(dep, d):
 python do_set_stage () {
     import bb
 
-    recdepends = bb.data.getVar('RECDEPENDS', d, True)
-    bb.note('set_stage: RECDEPENDS=%s'%recdepends)
+    recdepends = bb.data.getVar('RECDEPENDS', d, True).split()
+    bb.debug('set_stage: RECDEPENDS=%s'%recdepends)
     for dep in recdepends:
         set_stage_add(dep, d)
 }

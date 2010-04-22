@@ -55,7 +55,6 @@ DEPENDS = "crosstool-ng-native-${PV}"
 INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
 INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
 
-DEPENDS_${PN} += "${PN}-sysroot"
 PROVIDES_${PN}_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
 PROVIDES_${PN}_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
 
@@ -139,17 +138,62 @@ do_install_bbclassextend-canadian-cross () {
 do_install[cleandirs] = ""
 
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
-SYSROOT_PACKAGES= "${PN}-sysroot-locale ${PN}-sysroot"
+SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-extra ${PN}-sysroot-locale ${PN}-sysroot"
 
-FILES_${PN}-sysroot = "\
-${base_prefix}/${TARGET_CROSS}/sys-root \
+DEPENDS_${PN} += "${PN}-sysroot-dev"
+DEPENDS_${PN}-sysroot-dev = "${PN}-sysroot"
+
+RDEPENDS_${PN}-sysroot-extra	= "${PN}-sysroot"
+RDEPENDS_${PN}-sysroot-locale	= "${PN}-sysroot"
+RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
+
+FILES_${PN} = "\
+${bindir} \
+${libdir}/gcc/${TARGET_CROSS} \
+${libexecdir}/gcc/${TARGET_CROSS} \
+${datadir}/aclocal \
+${base_prefix}/${TARGET_CROSS}/bin \
+${base_prefix}/${TARGET_CROSS}/lib \
+"
+
+FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_CROSS}/include \
-${base_prefix}/lib/gcc/${TARGET_CROSS} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_includedir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}*.o \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/*.a \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}*.a \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/lib/*.la \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/usr/lib/*.la \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/lib/ldscripts \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/gconv \
+"
+
+FILES_${PN}-sysroot-doc = "\
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_infodir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_mandir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_docdir} \
+"
+
+FILES_${PN}-sysroot-extra = "\
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_bindir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_sbindir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libexecdir} \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_sysconfdir} \
 "
 
 FILES_${PN}-sysroot-locale = "\
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
 "
+
+FILES_${PN}-sysroot = "\
+${base_prefix}/${TARGET_CROSS}/sys-root \
+"
+
+# Remaining / ignored files
+#/include
+#/lib (- /lib/gcc/${TARGET_CROSS})
+#/${TARGET_CROSS}/debug-root
+
 
 # Move the machine sysroot packages into proper target layout
 # and then mend the crosstool-ng-toolchain package so it will
@@ -157,11 +201,6 @@ ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
 packages_install_sysroot_mangle () {
 	for pkg in ${SYSROOT_PACKAGES} ; do
 		# Fixup the layout of the sysroot packages
-		if [ -d $pkg/lib/gcc/${TARGET_CROSS} ] ; then
-			mkdir -p $pkg/${TARGET_CROSS}/sys-root/usr/lib/gcc
-			mv $pkg/lib/gcc/${TARGET_CROSS} $pkg/${TARGET_CROSS}/sys-root/usr/lib/gcc
-			rmdir $pkg/lib/gcc
-		fi
 		if [ -d $pkg/${TARGET_CROSS}/sys-root ] ; then
 			mv $pkg/${TARGET_CROSS}/sys-root/* $pkg/
 			rmdir $pkg/${TARGET_CROSS}/sys-root
@@ -177,8 +216,10 @@ packages_install_sysroot_mangle () {
 		# Clone all sdk sysroot package
 		cp -a $pkg/* $pkg-sdk/
 	done
+
+	mkdir -p ${PN}/lib
+	ln -s ../../machine ${PN}/${TARGET_CROSS}/sys-root
+	ln -s ./sys-root/usr/include ${PN}/${TARGET_CROSS}/include
 }
 packages_install_sysroot_mangle[dirs] = "${PKGD}"
 PACKAGE_INSTALL_FUNCS += "packages_install_sysroot_mangle"
-
-FILES_${PN} += "${bindir} /${TARGET_CROSS}/bin ${TARGET_CROSS}/lib ${FILES_${PN}-dev}"
