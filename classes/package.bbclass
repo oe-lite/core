@@ -1009,7 +1009,7 @@ target_package_clone \
 python do_target_package_fixup () {
 	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
 	if not packages:
-		bb.debug(1, "No target packages")
+		bb.note("No target packages")
 		return
 
 	for f in (bb.data.getVar('TARGET_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
@@ -1028,7 +1028,6 @@ python do_target_package_build () {
 	import bb, os
 
 	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
-	bb.note("RPACKAGES=%s"%packages)
 	if not packages:
 		bb.note("No target packages")
 		return
@@ -1036,7 +1035,6 @@ python do_target_package_build () {
 	pkgd_target = bb.data.getVar('PKGD_TARGET', d, True)
 	deploy_dir = bb.data.getVar('TARGET_DEPLOY_DIR', d, True)
 	for pkg in packages:
-		bb.note("pkg=%s"%pkg)
 		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('RECIPE_ARCH', d, True)
 		outdir = os.path.join(deploy_dir, pkg_arch)
 		pv = bb.data.getVar('EPV', d, True)
