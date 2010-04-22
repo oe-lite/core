@@ -27,9 +27,9 @@ def base_dep_prepend(d):
             host_cross = bb.data.getVar('HOST_CROSS', d, 1)
             target_cross = bb.data.getVar('TARGET_CROSS', d, 1)
             if host_arch != build_arch:
-                deps += "${HOST_CROSS}-toolchain "
+                deps += " ${HOST_CROSS}-toolchain "
             if target_arch != build_arch and target_cross != host_cross:
-                deps += "${TARGET_CROSS}-toolchain "
+                deps += " ${TARGET_CROSS}-toolchain "
 
         return deps
 
@@ -420,6 +420,10 @@ def set_stage_add(dep, d):
     # Get complete specification of package that provides 'dep', in
     # the form PACKAGE_ARCH/PACKAGE-PV-PR
     pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
+    if not pkg:
+        bb.error('PKGPROVIDER_%s not defined!'%dep)
+        return
+
     filename = os.path.join(bb.data.getVar('STAGE_DEPLOY_DIR', d, True), pkg + '.tar')
     if not os.path.isfile(filename):
         bb.error('could not find %s to satisfy %s'%(filename, dep))
@@ -432,7 +436,7 @@ def set_stage_add(dep, d):
 python do_set_stage () {
     import bb
 
-    recdepends = bb.utils.explode_deps(bb.data.getVar('RECDEPENDS', d, True))
+    recdepends = bb.data.getVar('RECDEPENDS', d, True)
     bb.note('set_stage: RECDEPENDS=%s'%recdepends)
     for dep in recdepends:
         set_stage_add(dep, d)
@@ -948,6 +952,7 @@ def base_after_parse(d):
     import bb
 
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
+
     if not source_mirror_fetch:
         need_host = bb.data.getVar('COMPATIBLE_HOST', d, 1)
         if need_host:
@@ -1038,6 +1043,7 @@ def base_after_parse(d):
     # Scan SRC_URI for urls with machine overrides unless the package
     # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
     override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
+
     if (recipe_arch != recipe_arch_mach and override != '0' and
         srcuri_machine_override(d, srcuri)):
         bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
