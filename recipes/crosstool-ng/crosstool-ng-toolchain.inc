@@ -159,12 +159,12 @@ ${base_prefix}/${TARGET_CROSS}/lib \
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_CROSS}/include \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_includedir} \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}*.o \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/*.o \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/*.a \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}*.a \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/lib/*.la \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/usr/lib/*.la \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/lib/ldscripts \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/*.a \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/*.la \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/*.la \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_libdir}/gconv \
 "
 
@@ -183,6 +183,7 @@ ${base_prefix}/${TARGET_CROSS}/sys-root${machine_sysconfdir} \
 
 FILES_${PN}-sysroot-locale = "\
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
+${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/i18n \
 "
 
 FILES_${PN}-sysroot = "\

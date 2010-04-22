@@ -4,8 +4,9 @@ RECIPE_ARCH			 = "cross/${TARGET_CROSS}"
 RECIPE_ARCH_MACHINE		 = ""
 
 # Default packages is stage (cross) packages
-PACKAGES_append		+= "${@cross_sysroot_packages(d)}"
 SYSROOT_PACKAGES	?= ""
+RPACKAGES		 = "${@cross_rpackages(d)}"
+PACKAGES_append		+= "${RPACKAGES}"
 RPROVIDES_${PN}		 = ""
 
 # Set host=build to get architecture triplet build/build/target
@@ -47,17 +48,16 @@ do_install () {
     cross_do_install
 }
 
-def cross_sysroot_packages (d):
+def cross_rpackages (d):
     packages = []
     for package in bb.data.getVar('SYSROOT_PACKAGES', d, True).split():
         packages += [package, package + '-sdk']
     return ' '.join(packages)
 
 
+# Set PACKAGE_ARCH_* variables for runtime packages
 python __anonymous () {
-    # Set PACKAGE_ARCH_* variables for sysroot packages
-    sysroot_packages = cross_sysroot_packages(d)
-    for pkg in sysroot_packages.split():
+    for pkg in bb.data.getVar('RPACKAGES', d, True).split():
         pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True)
         if not pkg_arch:
             if pkg.endswith('-sdk'):
@@ -84,4 +84,3 @@ def cross_fixup_rprovides(d):
                 rprovide = rprovide.replace(package, package + '-sdk', 1)
             sdkrprovides.append(rprovide)
         bb.data.setVar('RPROVIDES_%s-sdk'%(package), ' '.join(sdkrprovides), d)
-            

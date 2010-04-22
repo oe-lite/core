@@ -234,9 +234,10 @@ python package_populate () {
 	pkgd = bb.data.getVar('PKGD', d, True)
 	pn = bb.data.getVar('PN', d, True)
 	packages = bb.data.getVar('PACKAGES', d, True)
-
-	# Sanity check PACKAGES for duplicates - should be moved to
-	# sanity.bbclass once we have the infrastucture
+	rpackages = bb.data.getVar('RPACKAGES', d, True)
+	
+	# Sanity check PACKAGES for duplicates.
+	# move to sanity.bbclass once we have the infrastucture
 	package_list = []
 	for pkg in packages.split():
 		if pkg in package_list:
@@ -244,27 +245,17 @@ python package_populate () {
 		else:
 			package_list.append(pkg)
 
-	# Sanity check SYSROOT_PACKAGES for duplicates and check that
-        # they are in PACKAGES also.
-	recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
-	if recipe_type in ('cross', 'sdk-cross'):
-		sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or ''
-		sysroot_package_list = []
-		for pkg in sysroot_packages.split():
-			if pkg in sysroot_package_list:
-				bb.error("%s is listed in PACKAGES multiple times" % pkg)
+	# Sanity check RPACKAGES for duplicates.
+	# move to sanity.bbclass once we have the infrastucture
+	if rpackages:
+		rpackage_list = []
+		for pkg in rpackages.split():
+			if pkg in rpackage_list:
+				bb.error("%s is listed in RPACKAGES multiple times" % pkg)
 			else:
-				sysroot_package_list.append(pkg)
+				rpackage_list.append(pkg)
 			if not pkg in package_list:
-				bb.error("%s is listed in SYSROOT_PACKAGES but not PACKAGES" % pkg)
-
-	# FIXME: delay strip to after populate, and handle both
-	# HOST_STRIP and TARGET_STRIP -> stage_package_fixup_strip()
-	# and package_sysroot_fixup_strip()
-	#if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
-	#	for f in (bb.data.getVar('PACKAGESTRIPFUNCS', d, True) or '').split():
-	#		bb.build.exec_func(f, d)
-
+				bb.error("%s is in RPACKAGES but not PACKAGES" % pkg)
 	seen = []
 	main_is_empty = 1
 	main_pkg = bb.data.getVar('PN', d, 1)
@@ -890,13 +881,13 @@ stage_package_clone[cleandirs] = '${PKGD_STAGE}'
 stage_package_clone[dirs] = '${PKGD_STAGE} ${PKGD}'
 
 
-python sysroot_package_clone () {
-	pkgd_sysroot = bb.data.getVar('PKGD_SYSROOT', d, True)
-	sysroot_packages = []
-	for pkg in (bb.data.getVar('SYSROOT_PACKAGES', d, True) or "").split():
-		sysroot_packages += [pkg, pkg + '-sdk']
-	package_clone(sysroot_packages, pkgd_sysroot, d)
+python target_package_clone () {
+	pkgd_target = bb.data.getVar('PKGD_TARGET', d, True)
+	packages = (bb.data.getVar('RPACKAGES', d, True) or "").split()
+	package_clone(packages, pkgd_target, d)
 }
+target_package_clone[cleandirs] = '${PKGD_TARGET}'
+target_package_clone[dirs] = '${PKGD_TARGET} ${PKGD}'
 
 
 PACKAGE_INSTALL_FUNCS = "\
@@ -1002,66 +993,63 @@ addtask stage_package_build \
 EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_build
 
 
-SYSROOT_PACKAGE_FIXUP_FUNCS = "\
-sysroot_package_clone \
-#sysroot_package_strip \
-#sysroot_package_rpath \
-#sysroot_package_shlibs \
-#sysroot_package_pkgconfig \
+TARGET_PACKAGE_FIXUP_FUNCS = "\
+target_package_clone \
+#target_package_strip \
+#target_package_rpath \
+#target_package_shlibs \
+#target_package_pkgconfig \
 "
-# FIXME: sysroot_package_clone should re-use perform_packagecopy from
+# FIXME: target_package_clone should re-use perform_packagecopy from
 # openembedded package.bbclass
 
-# FIXME: sysroot_package_pkgconfig should be dynamically added to
+# FIXME: target_package_pkgconfig should be dynamically added to
 # PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
 
-python do_sysroot_package_fixup () {
-	sysroot_packages = (bb.data.getVar('SYSROOT_PACKAGES', d, 1) or "").split()
-	if len(sysroot_packages) < 1:
-		bb.debug(1, "No sysroot packages")
+python do_target_package_fixup () {
+	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
+	if not packages:
+		bb.debug(1, "No target packages")
 		return
 
-	for f in (bb.data.getVar('SYSROOT_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
+	for f in (bb.data.getVar('TARGET_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
 		bb.build.exec_func(f, d)
 }
-do_sysroot_package_fixup[cleandirs] = "${PKGD_SYSROOT}"
-addtask sysroot_package_fixup before do_sysroot_package_build after do_package_install
+do_target_package_fixup[cleandirs] = "${PKGD_TARGET}"
+addtask target_package_fixup before do_target_package_build after do_package_install
 
-python do_sysroot_package_qa () {
-       bb.note("do_sysroot_package_qa not implemented yet")
+python do_target_package_qa () {
+       bb.note("do_target_package_qa not implemented yet")
 }
-do_sysroot_package_qa[dirs] = "${PKGD}"
-addtask sysroot_package_qa before do_sysroot_package_build after do_sysroot_package_fixup
+do_target_package_qa[dirs] = "${PKGD}"
+addtask target_package_qa before do_target_package_build after do_target_package_fixup
 
-python do_sysroot_package_build () {
+python do_target_package_build () {
 	import bb, os
 
-	sysroot_packages = (bb.data.getVar('SYSROOT_PACKAGES', d, 1) or "").split()
-	if len(sysroot_packages) < 1:
-		bb.debug(1, "No sysroot packages")
+	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
+	bb.note("RPACKAGES=%s"%packages)
+	if not packages:
+		bb.note("No target packages")
 		return
 
-	# FIXME: add sysroot_packages handling here.  should be
-        # cloned, and even double cloned in the form of -sdk variants
-
-	pkgd_sysroot = bb.data.getVar('PKGD_SYSROOT', d, True)
-	deploy_dir = bb.data.getVar('PACKAGES_DEPLOY_DIR', d, True)
-	for pkg in sysroot_packages:
+	pkgd_target = bb.data.getVar('PKGD_TARGET', d, True)
+	deploy_dir = bb.data.getVar('TARGET_DEPLOY_DIR', d, True)
+	for pkg in packages:
+		bb.note("pkg=%s"%pkg)
 		pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('RECIPE_ARCH', d, True)
 		outdir = os.path.join(deploy_dir, pkg_arch)
 		pv = bb.data.getVar('EPV', d, True)
 		bb.mkdirhier(outdir)
 		basedir = os.path.dirname(pkg_arch)
-		# FIXME: rewrite to use python functions instead of os.system
-		os.system('mv %s %s'%(pkg, basedir))
+		os.chdir(pkg)
 		# FIXME: add error handling for tar command
-		os.system('tar cf %s/%s-%s.tar %s'%(outdir, pkg, pv, basedir))
-		# FIXME: rewrite to use python functions instead of os.system
-		os.system('mv %s %s'%(basedir, pkg))
+		os.system('tar cf %s/%s-%s.tar .'%(outdir, pkg, pv))
+		os.chdir('..')
 }
-do_sysroot_package_build[dirs] = "${PKGD_SYSROOT}"
-addtask sysroot_package_build \
+do_target_package_build[dirs] = "${PKGD_TARGET}"
+addtask target_package_build \
 	before do_build \
-	after do_sysroot_package_fixup
+	after do_target_package_fixup
 
-EXPORT_FUNCTIONS do_sysroot_package_fixup do_sysroot_package_qa do_sysroot_package_build
+EXPORT_FUNCTIONS do_target_package_fixup do_target_package_qa do_target_package_build
