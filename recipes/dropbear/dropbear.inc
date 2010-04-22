@@ -3,8 +3,8 @@ HOMEPAGE = "http://matt.ucc.asn.au/dropbear/dropbear.html"
 SECTION = "console/network"
 LICENSE = "MIT"
 DEPENDS = "zlib"
-PROVIDES = "ssh sshd"
-RPROVIDES = "ssh sshd"
+
+RPROVIDES_${PN} = "ssh sshd"
 
 SRC_URI = "http://matt.ucc.asn.au/dropbear/releases/dropbear-${PV}.tar.gz \
 	   file://urandom-xauth-changes-to-options.h.patch;patch=1 \
