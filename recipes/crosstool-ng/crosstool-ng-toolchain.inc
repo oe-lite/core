@@ -1,4 +1,4 @@
-PR = "r1"
+PR = "r2"
 
 S = "${WORKDIR}/build"
 B = "${S}"
@@ -50,7 +50,6 @@ libexecdir		= ""
 includedir		= ""
 
 DEFCONFIG = "defconfig.${TARGET_CROSS}"
-#DEFCONFIG_bbclassextend-canadian-cross = "defconfig.${HOST_CROSS}--${TARGET_CROSS}"
 
 SRC_URI = "file://${DEFCONFIG}"
 
@@ -127,10 +126,11 @@ do_configure () {
 }
 
 do_configure_prepend_bbclassextend-canadian-cross () {
-	sed -e 's%\(CT_CROSS\)=.*%\1=n%' \
+	sed -e 's%.*\(CT_EXPERIMENTAL\).*%\1=y%' \
+	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
 	    -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="canadian"%' \
-	    -e 's%\(CT_HOST\)=.*%\1="${HOST_ARCH}"%' \
+	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
 	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
 	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
