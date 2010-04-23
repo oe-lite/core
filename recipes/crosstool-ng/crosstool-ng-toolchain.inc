@@ -1,4 +1,4 @@
-PR = "r0"
+PR = "r1"
 
 S = "${WORKDIR}/build"
 B = "${S}"
@@ -50,7 +50,7 @@ libexecdir		= ""
 includedir		= ""
 
 DEFCONFIG = "defconfig.${TARGET_CROSS}"
-DEFCONFIG_bbclassextend-canadian-cross = "defconfig.${HOST_CROSS}--${TARGET_CROSS}"
+#DEFCONFIG_bbclassextend-canadian-cross = "defconfig.${HOST_CROSS}--${TARGET_CROSS}"
 
 SRC_URI = "file://${DEFCONFIG}"
 
@@ -119,8 +119,28 @@ do_configure () {
 	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
 	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
+	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=4%' \
+	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
     	    ${WORKDIR}/${DEFCONFIG} > .config
+	# FIXME: CT_COMP_LIBS_TARGET is not really needed for canadian-cross
 	ct-ng oldconfig
+}
+
+do_configure_prepend_bbclassextend-canadian-cross () {
+	sed -e 's%\(CT_CROSS\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="canadian"%' \
+	    -e 's%\(CT_HOST\)=.*%\1="${HOST_ARCH}"%' \
+	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
+	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
+	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
+    	    ${WORKDIR}/${DEFCONFIG} > ${WORKDIR}/${DEFCONFIG}.tmp
+	cat >> ${WORKDIR}/${DEFCONFIG}.tmp <<EOT
+CT_HOST="${HOST_ARCH}"
+CT_HOST_PREFIX="${HOST_PREFIX}"
+CT_TARGET_PREFIX="${TARGET_PREFIX}"
+EOT
+	cp ${WORKDIR}/${DEFCONFIG}.tmp ${WORKDIR}/${DEFCONFIG}
 }
 
 do_compile[dirs] = "${B}"
@@ -245,4 +265,5 @@ packages_install_sysroot_mangle () {
 	ln -s ./sys-root/usr/include ${PN}/${TARGET_CROSS}/include
 }
 packages_install_sysroot_mangle[dirs] = "${PKGD}"
-PACKAGE_INSTALL_FUNCS += "packages_install_sysroot_mangle"
+PACKAGE_INSTALL_FUNCS_append_bbclassextend-cross = " packages_install_sysroot_mangle"
+PACKAGE_INSTALL_FUNCS_append_bbclassextend-sdk-cross = " packages_install_sysroot_mangle"
