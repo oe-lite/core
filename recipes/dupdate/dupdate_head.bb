@@ -19,7 +19,7 @@ do_stage() {
 }
 
 do_install() {
-	install -d ${D}/${sbindir}
+	install -d ${D}/${sbindir} ${D}${sysconfdir}/rcS.d/
 	install -p -m 755 ${S}/dupdate ${D}/${sbindir}
 	install -p -m 755 ${S}/dboot ${D}/${sbindir}
 	install -d ${D}/${sysconfdir}/init.d/

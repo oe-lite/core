@@ -11,7 +11,7 @@ LICENSE = "GPL"
 SECTION = "base"
 PRIORITY = "required"
 RDEPENDS = "base-files"
-PR = "r21${INC_PR}"
+PR = "r22${INC_PR}"
 
 SRC_URI_append = "\
 	file://busybox-cron \

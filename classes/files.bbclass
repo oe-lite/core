@@ -3,49 +3,30 @@ PACKAGES = "${PN}"
 FILES_${PN} = ""
 
 def set_install(rdep,d):
-    pkg = bb.data.getVar('PKGPROVIDER_%s'%rdep, d, 0)
-    if rdep == 'libc':
-        pkg = 'libc'
-    elif rdep == 'base-files':
-        pkg = 'base-files-0.1-r0'
-    elif rdep == 'busybox':
-        pkg = 'busybox-1.16.0-r21.1'
-    elif rdep == 'mtd-utils':
-        pkg = 'mtd-utils-1.3.1-r3'
-    elif rdep == 'lzo':
-        pkg = 'lzo-2.02-r1'
-    elif rdep == 'zlib':
-        pkg = 'zlib-1.2.4-r1'
-    elif rdep == 'util-linux-ng':
-        pkg = 'util-linux-ng-2.17.2-r1.1'
-    elif rdep == 'test':
-        pkg = 'test-1-r0'
-    else:
-        bb.note('No PKG %s' + rdep)
-    
+    pkg = bb.data.getVar('PKGRPROVIDER_%s'%rdep, d, 0)
     if pkg:
-        filename = os.path.join(bb.data.getVar('PACKAGE_DIR_SYSROOT_MACHINE', d, True), pkg + '.tar')
+        filename = os.path.join(bb.data.getVar('TARGET_DEPLOY_DIR', d, True),
+                          pkg + '.tar')
+
         if not os.path.isfile(filename):
             bb.error('could not find %s to satisfy %s'%(filename, rdep))
-            return
+            return False
+
         bb.note('Got tar package %s, unpack in %s'%(filename,os.getcwd()))
 
-        # Unpack machine packages into files
-        os.system('tar -x --transform \'s#^machine##g\' -f %s'%filename)
+        os.system('tar -x -f %s'%filename)
     else:
         bb.note('Error getting PKGPROVIDER_%s'%rdep)
-    return
+        return False
+
+    return True
 
 python do_files_install() {
-    # FIXME: Do not explode RDEPENDS on files packages (they already
-    # contain exploded RDEPS)
-    #rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS', d, True))
-    # Above does not work
-    #bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, True)
-    rdepends = ['libc', 'base-files', 'busybox', 'mtd-utils', 'zlib', 'lzo', 'util-linux-ng']
-
-    for rdep in rdepends:
-        set_install(rdep,d)
+    recrdeps = bb.data.getVar('RECRDEPENDS', d, 0)
+    
+    for rdep in recrdeps.split():
+        if not set_install(rdep,d):
+            return False
 }
 EXPORT_FUNCTIONS do_files_install
 #FIXME: When to run!
