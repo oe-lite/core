@@ -179,9 +179,9 @@ RDEPENDS_${PN}-sysroot-locale	= "${PN}-sysroot"
 RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
 
 FILES_${PN} = "\
-${bindir} \
-${libdir}/gcc/${TARGET_CROSS} \
-${libexecdir}/gcc/${TARGET_CROSS} \
+${base_bindir} \
+${base_libdir}/gcc/${TARGET_CROSS} \
+${base_libexecdir}/gcc/${TARGET_CROSS} \
 ${datadir}/aclocal \
 ${base_prefix}/${TARGET_CROSS}/bin \
 ${base_prefix}/${TARGET_CROSS}/lib \
@@ -223,18 +223,22 @@ ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/i18n \
 "
 
 FILES_${PN}-sysroot = "\
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc.so.6 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc-2.9.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt.so.1 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt-2.9.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread.so.0 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread-2.9.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld.so.1 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld-2.9.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm.so.6 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm-2.9.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl.so.2 \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl-2.9.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt-*.so \
 "
 
 FILES_${PN}-sysroot-extra = "\
