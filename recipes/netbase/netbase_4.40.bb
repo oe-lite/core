@@ -11,13 +11,14 @@ SRC_URI = "${DEBIAN_MIRROR}/main/n/netbase/netbase_${PV}.tar.gz \
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d \
+	           ${D}${sysconfdir}/rcS.d \
 		   ${D}${sbindir} \
 		   ${D}${sysconfdir}/network/if-pre-up.d \
 		   ${D}${sysconfdir}/network/if-up.d \
 		   ${D}${sysconfdir}/network/if-down.d \
 		   ${D}${sysconfdir}/network/if-post-down.d
 	install -m 0755 ${WORKDIR}/init ${D}${sysconfdir}/init.d/networking
-	ln -s ../init.d/networking ${D}${sysconfdir}/S20networking
+	ln -s ../init.d/networking ${D}${sysconfdir}/rcS.d/S20networking
 	install -m 0644 ${WORKDIR}/hosts ${D}${sysconfdir}/hosts
 	install -m 0644 etc-rpc ${D}${sysconfdir}/rpc
 	install -m 0644 etc-protocols ${D}${sysconfdir}/protocols
