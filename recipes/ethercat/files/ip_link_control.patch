@@ -1,0 +1,30 @@
+--- etherlabmaster/script/init.d/ethercat.in.orig	2010-02-19 12:42:32.175736975 +0100
++++ etherlabmaster/script/init.d/ethercat.in	2010-02-19 12:53:18.835736996 +0100
+@@ -164,6 +164,13 @@
+         MASTER_INDEX=$(expr ${MASTER_INDEX} + 1)
+     done
+ 
++    # Set link state UP on selected devices
++    if [ -n "${LINK_DEVICES}" ]; then
++        for LINK_DEVICE in ${LINK_DEVICES}; do
++            ip link set ${LINK_DEVICE} up
++        done
++    fi
++
+     # load master module
+     if ! ${MODPROBE} ${MODPROBE_FLAGS} ec_master ${MASTER_ARGS} \
+             main_devices=${DEVICES} backup_devices=${BACKUPS}; then
+@@ -210,6 +217,13 @@
+ 
+     sleep 1
+ 
++    # Set link state DOWN on selected devices
++    if [ -n "${LINK_DEVICES}" ]; then
++        for LINK_DEVICE in ${LINK_DEVICES}; do
++            ip link set ${LINK_DEVICE} up
++        done
++    fi
++
+     # reload previous modules
+     for MODULE in ${DEVICE_MODULES}; do
+         if [ ${MODULE} != "generic" ]; then
