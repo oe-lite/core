@@ -17,7 +17,7 @@ S = "${WORKDIR}/etherlabmaster"
 DEPENDS += "virtual/kernel"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-inherit autotools module update-rc.d
+inherit autotools module
 
 EXTRA_OECONF_mpc8313erdb = " \
 	--with-linux-dir=${STAGING_DIR}/${MULTIMACH_HOST_SYS}/kernel \
@@ -52,6 +52,7 @@ do_install () {
 	rm -f ${D}/etc/sysconfig/ethercat
 	rmdir ${D}/etc/sysconfig
 	install -m 0644 ${WORKDIR}/ethercat.conf ${D}${sysconfdir}/
+	ln -s ../init.d/ethercat ${D}${sysconfdir}/rcS.d/S05ethercat
 }
 
 PACKAGES += "${PN}-lib"
@@ -61,9 +62,3 @@ FILES_${PN}-lib = "${libdir}/*.so.*"
 FILES_${PN}-dev += "${libdir}/*.so ${libdir}/*.so ${prefix}/modules/*.symvers"
 
 RDEPENDS_${PN}-dev = "${PN}-lib"
-
-INITSCRIPT_PACKAGES = "${PN}"
-INITSCRIPT_NAME_${PN} = "ethercat"
-CONFFILES_${PN} = "${sysconfdir}/ethercat.conf"
-INITSCRIPT_PARAMS = "start 5 S ."
-INITSCRIPT_PARAMS_awc500pcm = ""
