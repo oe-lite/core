@@ -73,7 +73,7 @@ python __anonymous () {
 
         newdeps = []
         for dep in depends:
-            if dep.endswith('-native'):
+            if dep.find('-native'):
                 newdeps.append(dep)
                 continue
             for suffix in suffixes:
