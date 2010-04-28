@@ -1,6 +1,4 @@
-DEPENDS += "makedevs-native"
-PACKAGES = "${PN}"
-FILES_${PN} = ""
+DEPENDS_prepend += "makedevs-native"
 
 def set_install(rdep,d):
     pkg = bb.data.getVar('PKGRPROVIDER_%s'%rdep, d, 0)
@@ -47,31 +45,68 @@ PACKAGES="${PN}"
 FILES_${PN} = "."
 python do_files_package() {
     import subprocess
-    packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
-
+    packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
     if len(packages) < 1:
         bb.debug(1, "No packages")
         return
-    
-    outdir = bb.data.getVar('PACKAGE_DIR_SYSROOT_MACHINE' , d, True)
-    
+
+    epv = bb.data.getVar('EPV', d, True)
+    deploy_dir = bb.data.getVar('TARGET_DEPLOY_DIR', d, True)
+
     #FIXME: support packages
-    for pkg in packages:
-        bb.note("")
-        # FIXME: check package arch
-        pv = bb.data.getVar('EPV', d, True)
-        bb.mkdirhier(outdir)
-        # FIXME: add error handling for tar command
-        filesdir = os.path.basename(bb.data.getVar('FILES_DIR', d, 1))
-        os.system('tar cf %s/%s-%s.tar %s'%(outdir, pkg, pv, filesdir))
-        bb.note('Created %s/%s-%s.tar %s'%(outdir, pkg, pv, filesdir))
+    pkg = packages[0]
+    pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, True) or bb.data.getVar('RECIPE_ARCH', d, True)
+    outdir = os.path.join(deploy_dir, pkg_arch)
+    bb.mkdirhier(outdir)
+    basedir = os.path.dirname(pkg_arch)
+    # FIXME: add error handling for tar command
+    files_dir = os.path.basename(bb.data.getVar('FILES_DIR', d, 1))
+    os.system('tar cvf %s/%s-%s.tar .'%(outdir, pkg, epv))
 }
 EXPORT_FUNCTIONS do_files_package
 addtask files_package before do_install after do_files_fixup
-do_files_package[dirs] = "${WORKDIR}"
+do_files_package[dirs] = "${FILES_DIR}"
 
 makedevs_files() {
     for devtable in ${1}/${devtable}/*; do
         makedevs -r ${1} -D $devtable
     done
+}
+
+# No need for standard
+do_fetch() {
+    :
+}
+do_unpack() {
+    :
+}
+do_patch() {
+    :
+}
+do_configure() {
+    :
+}
+do_install() {
+    :
+}
+do_target_package_fixup() {
+    :
+}
+do_stage_package_fixup() {
+    :
+}
+do_target_package_qa() {
+    :
+}
+do_target_package_build() {
+    :
+}
+do_stage_package_qa() {
+    :
+}
+do_stage_package_build(){
+    :
+}
+do_build() {
+    :
 }
