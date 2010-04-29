@@ -17,6 +17,9 @@ valid_archs = "alpha cris ia64 \
 def map_kernel_arch(a, d):
 	import bb, re
 
+	triplet = re.split('-', a)
+	a = triplet[0]
+
 	valid_archs = bb.data.getVar('valid_archs', d, 1).split()
 
 	if   re.match('(i.86|athlon)$', a):	return 'i386'
