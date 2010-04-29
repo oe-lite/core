@@ -977,15 +977,15 @@ def base_after_parse(d):
     # Git packages should DEPEND on git-native
     srcuri = bb.data.getVar('SRC_URI', d, 1)
     if "git://" in srcuri:
-        fetcher_depends += " git-native"
+        fetcher_depends += " git-native "
 
     # Mercurial packages should DEPEND on mercurial-native
     elif "hg://" in srcuri:
-        fetcher_depends += " mercurial-native"
+        fetcher_depends += " mercurial-native "
 
     # OSC packages should DEPEND on osc-native
     elif "osc://" in srcuri:
-        fetcher_depends += " osc-native"
+        fetcher_depends += " osc-native "
 
     # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
     # on shasum-native.  We need to ensure that it is staged before we fetch.
