@@ -1,4 +1,4 @@
-inherit linux-kernel-base module_strip
+inherit linux-kernel-base
 
 DEPENDS += "${TARGET_CROSS}-toolchain update-modules"
 #virtual/${TARGET_PREFIX}depmod-${@get_kernelmajorversion('${PV}')} virtual/${TARGET_PREFIX}gcc${KERNEL_CCSUFFIX} 
@@ -86,91 +86,91 @@ kernel_do_compile() {
 kernel_do_stage() {
 	if [ -e include/generated ] ; then
 		# linux/autoconf.h and others, was moved to generated/autoconf.h as of 2.6.33
-		mkdir -p ${STAGING_KERNEL_DIR}/include/generated
-		cp -fR include/generated/* ${STAGING_KERNEL_DIR}/include/generated/
+		mkdir -p ${KERNEL_STAGE}/include/generated
+		cp -fR include/generated/* ${KERNEL_STAGE}/include/generated/
 	fi
 
 	if [ -e include/asm ] ; then
 		# This link is generated only in kernel before 2.6.33-rc1, don't stage it for newer kernels
 		ASMDIR=`readlink include/asm`
 
-		mkdir -p ${STAGING_KERNEL_DIR}/include/$ASMDIR
-		cp -fR include/$ASMDIR/* ${STAGING_KERNEL_DIR}/include/$ASMDIR/
+		mkdir -p ${KERNEL_STAGE}/include/$ASMDIR
+		cp -fR include/$ASMDIR/* ${KERNEL_STAGE}/include/$ASMDIR/
 	fi
 	
 	# Kernel 2.6.27 moved headers from includes/asm-${ARCH} to arch/${ARCH}/include/asm
 	if [ -e arch/${ARCH}/include/asm/ ] ; then
 		if [ -e include/asm ] ; then
-			cp -fR arch/${ARCH}/include/asm/* ${STAGING_KERNEL_DIR}/include/$ASMDIR/
+			cp -fR arch/${ARCH}/include/asm/* ${KERNEL_STAGE}/include/$ASMDIR/
 		fi
-		install -d ${STAGING_KERNEL_DIR}/arch/${ARCH}/include
-		cp -fR arch/${ARCH}/* ${STAGING_KERNEL_DIR}/arch/${ARCH}/
+		install -d ${KERNEL_STAGE}/arch/${ARCH}/include
+		cp -fR arch/${ARCH}/* ${KERNEL_STAGE}/arch/${ARCH}/
 	
 	# Check for arch/x86 on i386
 	elif [ -d arch/x86/include/asm/ ]; then
 		if [ -e include/asm ] ; then
-			cp -fR arch/x86/include/asm/* ${STAGING_KERNEL_DIR}/include/asm-x86/
+			cp -fR arch/x86/include/asm/* ${KERNEL_STAGE}/include/asm-x86/
 		fi
-		install -d ${STAGING_KERNEL_DIR}/arch/x86/include
-		cp -fR arch/x86/* ${STAGING_KERNEL_DIR}/arch/x86/
+		install -d ${KERNEL_STAGE}/arch/x86/include
+		cp -fR arch/x86/* ${KERNEL_STAGE}/arch/x86/
 	fi
 
-	rm -f ${STAGING_KERNEL_DIR}/include/asm
-	ln -sf $ASMDIR ${STAGING_KERNEL_DIR}/include/asm
+	rm -f ${KERNEL_STAGE}/include/asm
+	ln -sf $ASMDIR ${KERNEL_STAGE}/include/asm
 
-	mkdir -p ${STAGING_KERNEL_DIR}/include/asm-generic
-	cp -fR include/asm-generic/* ${STAGING_KERNEL_DIR}/include/asm-generic/
+	mkdir -p ${KERNEL_STAGE}/include/asm-generic
+	cp -fR include/asm-generic/* ${KERNEL_STAGE}/include/asm-generic/
 
-	mkdir -p ${STAGING_KERNEL_DIR}/include/linux
-	cp -fR include/linux/* ${STAGING_KERNEL_DIR}/include/linux/
+	mkdir -p ${KERNEL_STAGE}/include/linux
+	cp -fR include/linux/* ${KERNEL_STAGE}/include/linux/
 
-	mkdir -p ${STAGING_KERNEL_DIR}/include/net
-	cp -fR include/net/* ${STAGING_KERNEL_DIR}/include/net/
+	mkdir -p ${KERNEL_STAGE}/include/net
+	cp -fR include/net/* ${KERNEL_STAGE}/include/net/
 
-	mkdir -p ${STAGING_KERNEL_DIR}/include/pcmcia
-	cp -fR include/pcmcia/* ${STAGING_KERNEL_DIR}/include/pcmcia/
+	mkdir -p ${KERNEL_STAGE}/include/pcmcia
+	cp -fR include/pcmcia/* ${KERNEL_STAGE}/include/pcmcia/
 
 	for entry in drivers/crypto drivers/media include/media include/acpi include/sound include/video include/scsi include/trace; do
 		if [ -d $entry ]; then
-			mkdir -p ${STAGING_KERNEL_DIR}/$entry
-			cp -fR $entry/* ${STAGING_KERNEL_DIR}/$entry/
+			mkdir -p ${KERNEL_STAGE}/$entry
+			cp -fR $entry/* ${KERNEL_STAGE}/$entry/
 		fi
 	done
 
 	if [ -d drivers/sound ]; then
 		# 2.4 alsa needs some headers from this directory
-		mkdir -p ${STAGING_KERNEL_DIR}/include/drivers/sound
-		cp -fR drivers/sound/*.h ${STAGING_KERNEL_DIR}/include/drivers/sound/
+		mkdir -p ${KERNEL_STAGE}/include/drivers/sound
+		cp -fR drivers/sound/*.h ${KERNEL_STAGE}/include/drivers/sound/
 	fi
 
-	install -m 0644 .config ${STAGING_KERNEL_DIR}/config-${KERNEL_VERSION}
-	ln -sf config-${KERNEL_VERSION} ${STAGING_KERNEL_DIR}/.config
-	ln -sf config-${KERNEL_VERSION} ${STAGING_KERNEL_DIR}/kernel-config
-	[ -e Module.symvers ] && install -m 0644 Module.symvers ${STAGING_KERNEL_DIR}/Module.symvers
-	echo "${KERNEL_VERSION}" >${STAGING_KERNEL_DIR}/kernel-abiversion
-	echo "${S}" >${STAGING_KERNEL_DIR}/kernel-source
-	echo "${KERNEL_CCSUFFIX}" >${STAGING_KERNEL_DIR}/kernel-ccsuffix
-	echo "${KERNEL_LDSUFFIX}" >${STAGING_KERNEL_DIR}/kernel-ldsuffix
-	[ -e Rules.make ] && install -m 0644 Rules.make ${STAGING_KERNEL_DIR}/
-	[ -e Makefile ] && install -m 0644 Makefile ${STAGING_KERNEL_DIR}/
+	install -m 0644 .config ${KERNEL_STAGE}/config-${KERNEL_VERSION}
+	ln -sf config-${KERNEL_VERSION} ${KERNEL_STAGE}/.config
+	ln -sf config-${KERNEL_VERSION} ${KERNEL_STAGE}/kernel-config
+	[ -e Module.symvers ] && install -m 0644 Module.symvers ${KERNEL_STAGE}/Module.symvers
+	echo "${KERNEL_VERSION}" >${KERNEL_STAGE}/kernel-abiversion
+	echo "${S}" >${KERNEL_STAGE}/kernel-source
+	echo "${KERNEL_CCSUFFIX}" >${KERNEL_STAGE}/kernel-ccsuffix
+	echo "${KERNEL_LDSUFFIX}" >${KERNEL_STAGE}/kernel-ldsuffix
+	[ -e Rules.make ] && install -m 0644 Rules.make ${KERNEL_STAGE}/
+	[ -e Makefile ] && install -m 0644 Makefile ${KERNEL_STAGE}/
 	
 	# Check if arch/${ARCH}/Makefile exists and install it
 	if [ -e arch/${ARCH}/Makefile ]; then
-		install -d ${STAGING_KERNEL_DIR}/arch/${ARCH}
-		install -m 0644 arch/${ARCH}/Makefile* ${STAGING_KERNEL_DIR}/arch/${ARCH}
+		install -d ${KERNEL_STAGE}/arch/${ARCH}
+		install -m 0644 arch/${ARCH}/Makefile* ${KERNEL_STAGE}/arch/${ARCH}
 	# Otherwise check arch/x86/Makefile for i386 and x86_64 on kernels >= 2.6.24
 	elif [ -e arch/x86/Makefile ]; then
-		install -d ${STAGING_KERNEL_DIR}/arch/x86
-		install -m 0644 arch/x86/Makefile* ${STAGING_KERNEL_DIR}/arch/x86
+		install -d ${KERNEL_STAGE}/arch/x86
+		install -m 0644 arch/x86/Makefile* ${KERNEL_STAGE}/arch/x86
 	fi
-	cp -fR include/config* ${STAGING_KERNEL_DIR}/include/	
+	cp -fR include/config* ${KERNEL_STAGE}/include/	
 	# Install kernel images and system.map to staging
-	[ -e vmlinux ] && install -m 0644 vmlinux ${STAGING_KERNEL_DIR}/	
-	install -m 0644 ${KERNEL_OUTPUT} ${STAGING_KERNEL_DIR}/${KERNEL_IMAGETYPE}
-	install -m 0644 System.map ${STAGING_KERNEL_DIR}/System.map-${KERNEL_VERSION}
-	[ -e Module.symvers ] && install -m 0644 Module.symvers ${STAGING_KERNEL_DIR}/
+	[ -e vmlinux ] && install -m 0644 vmlinux ${KERNEL_STAGE}/	
+	install -m 0644 ${KERNEL_OUTPUT} ${KERNEL_STAGE}/${KERNEL_IMAGETYPE}
+	install -m 0644 System.map ${KERNEL_STAGE}/System.map-${KERNEL_VERSION}
+	[ -e Module.symvers ] && install -m 0644 Module.symvers ${KERNEL_STAGE}/
 
-	cp -fR scripts ${STAGING_KERNEL_DIR}/
+	cp -fR scripts ${KERNEL_STAGE}/
 }
 
 kernel_do_install() {
@@ -187,7 +187,7 @@ kernel_do_install() {
 	install -m 0644 System.map ${D}/boot/System.map-${KERNEL_VERSION}
 	install -m 0644 .config ${D}/boot/config-${KERNEL_VERSION}
 	install -m 0644 vmlinux ${D}/boot/vmlinux-${KERNEL_VERSION}
-	[-e Module.symvers ] && install -m 0644 Module.symvers ${D}/boot/Module.symvers-${KERNEL_VERSION}
+	[ -e Module.symvers ] && install -m 0644 Module.symvers ${D}/boot/Module.symvers-${KERNEL_VERSION}
 	install -d ${D}/etc/modutils
 	if [ "${KERNEL_MAJOR_VERSION}" = "2.6" ]; then
 		install -d ${D}/etc/modprobe.d
@@ -198,8 +198,8 @@ kernel_do_install() {
                 oe_runmake SUBDIRS="scripts/genksyms"
         fi
 
-        install -d ${STAGING_KERNEL_DIR}
-        cp -fR scripts ${STAGING_KERNEL_DIR}/
+        install -d ${KERNEL_STAGE}
+        cp -fR scripts ${KERNEL_STAGE}/
 }
 
 kernel_do_configure() {
@@ -217,14 +217,6 @@ do_menuconfig() {
 }
 do_menuconfig[nostamp] = "1"
 addtask menuconfig after do_patch
-
-pkg_postinst_kernel () {
-	cd /${KERNEL_IMAGEDEST}; update-alternatives --install /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE}-${KERNEL_VERSION} ${KERNEL_PRIORITY} || true
-}
-
-pkg_postrm_kernel () {
-	cd /${KERNEL_IMAGEDEST}; update-alternatives --remove ${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE}-${KERNEL_VERSION} || true
-}
 
 inherit cml1
 
@@ -246,41 +238,6 @@ PKG_kernel-base = "kernel-${KERNEL_VERSION}"
 ALLOW_EMPTY_kernel = "1"
 ALLOW_EMPTY_kernel-base = "1"
 ALLOW_EMPTY_kernel-image = "1"
-
-# Userspace workarounds for kernel modules issues
-# This is shame, fix the kernel instead!
-DEPENDS_kernel-module-dtl1-cs = "bluez-dtl1-workaround"
-RDEPENDS_kernel-module-dtl1-cs = "bluez-dtl1-workaround"
-
-pkg_postinst_kernel-image () {
-if [ ! -e "$D/lib/modules/${KERNEL_VERSION}" ]; then
-	mkdir -p $D/lib/modules/${KERNEL_VERSION}
-fi
-if [ -n "$D" ]; then
-	${HOST_PREFIX}depmod-${KERNEL_MAJOR_VERSION} -A -b $D -F ${STAGING_KERNEL_DIR}/System.map-${KERNEL_VERSION} ${KERNEL_VERSION}
-else
-	depmod -a
-fi
-}
-
-pkg_postinst_modules () {
-if [ -n "$D" ]; then
-	${HOST_PREFIX}depmod-${KERNEL_MAJOR_VERSION} -A -b $D -F ${STAGING_KERNEL_DIR}/System.map-${KERNEL_VERSION} ${KERNEL_VERSION}
-else
-	depmod -a
-	update-modules || true
-fi
-}
-
-pkg_postrm_modules () {
-update-modules || true
-}
-
-autoload_postinst_fragment() {
-if [ x"$D" = "x" ]; then
-	modprobe %s || true
-fi
-}
 
 # autoload defaults (alphabetically sorted)
 module_autoload_hidp = "hidp"
