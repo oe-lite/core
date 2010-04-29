@@ -17,28 +17,28 @@ INITSCRIPT_PARAMS_${PN}-modules = "start 11 S ."
 
 FILES_${PN}-modules = "${sysconfdir}/init.d/kernel-modules"
 
-RDEPENDS_${PN}-modules = "\
-	kernel-module-physmap-of \
-	kernel-module-gen-probe \
-	kernel-module-jedec-probe \
-	kernel-module-cfi-probe \
-	kernel-module-cfi-cmdset-0002 \
-	kernel-module-cfi-util \
-	kernel-module-mtdchar \
-	kernel-module-spi-mpc8xxx \
-	kernel-module-mmc-core \
-	kernel-module-mmc-spi \
-	kernel-module-of-mmc-spi \
-	kernel-module-mmc-block \
-	kernel-module-rtc-ds1307 \
-	kernel-module-rtc-lib \
-	kernel-module-rtc-generic \
-	kernel-module-rtc-core \
-	kernel-module-ext3 \
-	kernel-module-jbd \
-	kernel-module-mbcache \
-	kernel-module-cifs \
-"
+#RDEPENDS_${PN}-modules = "\
+#	kernel-module-physmap-of \
+#	kernel-module-gen-probe \
+#	kernel-module-jedec-probe \
+#	kernel-module-cfi-probe \
+#	kernel-module-cfi-cmdset-0002 \
+#	kernel-module-cfi-util \
+#	kernel-module-mtdchar \
+#	kernel-module-spi-mpc8xxx \
+#	kernel-module-mmc-core \
+#	kernel-module-mmc-spi \
+#	kernel-module-of-mmc-spi \
+#	kernel-module-mmc-block \
+#	kernel-module-rtc-ds1307 \
+#	kernel-module-rtc-lib \
+#	kernel-module-rtc-generic \
+#	kernel-module-rtc-core \
+#	kernel-module-ext3 \
+#	kernel-module-jbd \
+#	kernel-module-mbcache \
+#	kernel-module-cifs \
+#"
 
 do_stage_append() {
 	install -m 0644 arch/${ARCH}/boot/${MACHINE}.dtb \
