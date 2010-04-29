@@ -140,6 +140,10 @@ def runstrip(file, d):
         return 0
 
     strip = bb.data.getVar("STRIP", d, True)
+    if not len(strip) >0:
+	    bb.error("runstrip: STRIP var empty")
+	    return 0
+
     objcopy = bb.data.getVar("OBJCOPY", d, True)
 
     newmode = None
@@ -169,6 +173,7 @@ def runstrip(file, d):
 
     if ret:
         bb.error("runstrip: '%s' strip command failed" % stripcmd)
+	return 0
 
     return 1
 
@@ -998,6 +1003,8 @@ target_package_strip \
 "
 python target_package_strip () {
     import stat
+    nr_file = 0
+    nr_strip = 0
     def isexec(path):
         try:
             s = os.stat(path)
@@ -1011,7 +1018,11 @@ python target_package_strip () {
         for f in files:
                 file = os.path.join(root, f)
                 if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
-                    runstrip(file, d)
+                    nr_strip += runstrip(file, d)
+                    nr_file += 1
+
+    bb.note("target_package_strip: stripped %d/%d files in %s"
+	    %(nr_strip,nr_file,dvar))
 }
 
 # FIXME: target_package_clone should re-use perform_packagecopy from
