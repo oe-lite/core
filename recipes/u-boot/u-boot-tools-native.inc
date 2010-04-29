@@ -1,7 +1,7 @@
 DESCRIPTION = "Das U-Boot bootloader native tools"
 LICENSE = "GPL"
 SECTION = "bootloader"
-
+PROVIDES_${PN} = "u-boot-mkimage-native"
 PR = "r0"
 
 SRC_URI = "ftp://ftp.denx.de/pub/u-boot/u-boot-${PV}.tar.bz2"
