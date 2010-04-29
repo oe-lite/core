@@ -37,8 +37,7 @@ SRC_URI_append = "\
 
 PACKAGES =+ "${PN}-inetd ${PN}-syslogd ${PN}-crond ${PN}-httpd ${PN}-udhcpd ${PN}-hwclock ${PN}-mdev ${PN}-ntpd ${PN}-shutdown"
 
-DEPENDS_${PN} = "${TARGET_CROSS}-toolchain"
-RDEPENDS_${PN} = "${TARGET_CROSS}-toolchain-sysroot base-files"
+RDEPENDS = "base-files"
 
 FILES_${PN}-inetd = "${sysconfdir}/init.d/inetd.sh ${sysconfdir}/inetd.conf"
 FILES_${PN}-crond = "${sysconfdir}/init.d/busybox-crond"

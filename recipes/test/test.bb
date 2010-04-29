@@ -17,5 +17,3 @@ RDEPENDS = "\
 
 #	linux-deif-modules \
 #	ethercat \
-
-DEPENDS  = ${RDEPENDS}
