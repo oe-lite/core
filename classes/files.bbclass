@@ -27,11 +27,10 @@ python do_files_install() {
             return False
 }
 EXPORT_FUNCTIONS do_files_install
-#FIXME: When to run!
 addtask files_install before do_files_fixup after do_compile
 do_files_install[cleandirs] = "${FILES_DIR}"
 do_files_install[dirs] = "${FILES_DIR}"
-do_files_install[recrdeptask] = "do_files_install"#? FIXME:
+do_files_install[recrdeptask] = "do_files_install"
 
 python do_files_fixup() {
     bb.note('NI')
