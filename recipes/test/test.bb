@@ -1,5 +1,7 @@
 inherit files
 
+#INHIBIT_DEFAULT_DEPS = 1
+
 RDEPENDS = "\
 	busybox busybox-hwclock busybox-mdev busybox-syslogd \
 	busybox-inetd \
