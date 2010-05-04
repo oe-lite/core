@@ -15,7 +15,6 @@ RDEPENDS = "\
 	performance-test-suite \
 	dupdate \
         net-tools-mii \
+	linux-deif-modules \
+	ethercat \
 	"
-
-#	linux-deif-modules \
-#	ethercat \

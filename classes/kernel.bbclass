@@ -20,9 +20,6 @@ python __anonymous () {
 
 inherit kernel-arch
 
-PACKAGES_DYNAMIC += "kernel-module-*"
-PACKAGES_DYNAMIC += "kernel-image-*"
-
 export OS = "${TARGET_OS}"
 export CROSS_COMPILE = "${TARGET_PREFIX}"
 
@@ -83,94 +80,93 @@ kernel_do_compile() {
 	fi
 }
 
-kernel_do_stage() {
+kernel_headers() {
 	if [ -e include/generated ] ; then
 		# linux/autoconf.h and others, was moved to generated/autoconf.h as of 2.6.33
-		mkdir -p ${KERNEL_STAGE}/include/generated
-		cp -fR include/generated/* ${KERNEL_STAGE}/include/generated/
+		mkdir -p ${D}/kernel/include/generated
+		cp -fR include/generated/* ${D}/kernel/include/generated/
 	fi
 
 	if [ -e include/asm ] ; then
 		# This link is generated only in kernel before 2.6.33-rc1, don't stage it for newer kernels
 		ASMDIR=`readlink include/asm`
 
-		mkdir -p ${KERNEL_STAGE}/include/$ASMDIR
-		cp -fR include/$ASMDIR/* ${KERNEL_STAGE}/include/$ASMDIR/
+		mkdir -p ${D}/kernel/include/$ASMDIR
+		cp -fR include/$ASMDIR/* ${D}/kernel/include/$ASMDIR/
 	fi
 	
 	# Kernel 2.6.27 moved headers from includes/asm-${ARCH} to arch/${ARCH}/include/asm
 	if [ -e arch/${ARCH}/include/asm/ ] ; then
 		if [ -e include/asm ] ; then
-			cp -fR arch/${ARCH}/include/asm/* ${KERNEL_STAGE}/include/$ASMDIR/
+			cp -fR arch/${ARCH}/include/asm/* ${D}/kernel/include/$ASMDIR/
 		fi
-		install -d ${KERNEL_STAGE}/arch/${ARCH}/include
-		cp -fR arch/${ARCH}/* ${KERNEL_STAGE}/arch/${ARCH}/
+		install -d ${D}/kernel/arch/${ARCH}/include
+		cp -fR arch/${ARCH}/* ${D}/kernel/arch/${ARCH}/
 	
 	# Check for arch/x86 on i386
 	elif [ -d arch/x86/include/asm/ ]; then
 		if [ -e include/asm ] ; then
-			cp -fR arch/x86/include/asm/* ${KERNEL_STAGE}/include/asm-x86/
+			cp -fR arch/x86/include/asm/* ${D}/kernel/include/asm-x86/
 		fi
-		install -d ${KERNEL_STAGE}/arch/x86/include
-		cp -fR arch/x86/* ${KERNEL_STAGE}/arch/x86/
+		install -d ${D}/kernel/arch/x86/include
+		cp -fR arch/x86/* ${D}/kernel/arch/x86/
 	fi
 
-	rm -f ${KERNEL_STAGE}/include/asm
-	ln -sf $ASMDIR ${KERNEL_STAGE}/include/asm
+	rm -f ${D}/kernel/include/asm
+	ln -sf $ASMDIR ${D}/kernel/include/asm
 
-	mkdir -p ${KERNEL_STAGE}/include/asm-generic
-	cp -fR include/asm-generic/* ${KERNEL_STAGE}/include/asm-generic/
+	mkdir -p ${D}/kernel/include/asm-generic
+	cp -fR include/asm-generic/* ${D}/kernel/include/asm-generic/
 
-	mkdir -p ${KERNEL_STAGE}/include/linux
-	cp -fR include/linux/* ${KERNEL_STAGE}/include/linux/
+	mkdir -p ${D}/kernel/include/linux
+	cp -fR include/linux/* ${D}/kernel/include/linux/
 
-	mkdir -p ${KERNEL_STAGE}/include/net
-	cp -fR include/net/* ${KERNEL_STAGE}/include/net/
+	mkdir -p ${D}/kernel/include/net
+	cp -fR include/net/* ${D}/kernel/include/net/
 
-	mkdir -p ${KERNEL_STAGE}/include/pcmcia
-	cp -fR include/pcmcia/* ${KERNEL_STAGE}/include/pcmcia/
+	mkdir -p ${D}/kernel/include/pcmcia
+	cp -fR include/pcmcia/* ${D}/kernel/include/pcmcia/
 
 	for entry in drivers/crypto drivers/media include/media include/acpi include/sound include/video include/scsi include/trace; do
 		if [ -d $entry ]; then
-			mkdir -p ${KERNEL_STAGE}/$entry
-			cp -fR $entry/* ${KERNEL_STAGE}/$entry/
+			mkdir -p ${D}/kernel/$entry
+			cp -fR $entry/* ${D}/kernel/$entry/
 		fi
 	done
 
 	if [ -d drivers/sound ]; then
 		# 2.4 alsa needs some headers from this directory
-		mkdir -p ${KERNEL_STAGE}/include/drivers/sound
-		cp -fR drivers/sound/*.h ${KERNEL_STAGE}/include/drivers/sound/
+		mkdir -p ${D}/kernel/include/drivers/sound
+		cp -fR drivers/sound/*.h ${D}/kernel/include/drivers/sound/
 	fi
 
-	install -m 0644 .config ${KERNEL_STAGE}/config-${KERNEL_VERSION}
-	ln -sf config-${KERNEL_VERSION} ${KERNEL_STAGE}/.config
-	ln -sf config-${KERNEL_VERSION} ${KERNEL_STAGE}/kernel-config
-	[ -e Module.symvers ] && install -m 0644 Module.symvers ${KERNEL_STAGE}/Module.symvers
-	echo "${KERNEL_VERSION}" >${KERNEL_STAGE}/kernel-abiversion
-	echo "${S}" >${KERNEL_STAGE}/kernel-source
-	echo "${KERNEL_CCSUFFIX}" >${KERNEL_STAGE}/kernel-ccsuffix
-	echo "${KERNEL_LDSUFFIX}" >${KERNEL_STAGE}/kernel-ldsuffix
-	[ -e Rules.make ] && install -m 0644 Rules.make ${KERNEL_STAGE}/
-	[ -e Makefile ] && install -m 0644 Makefile ${KERNEL_STAGE}/
+	install -m 0644 .config ${D}/kernel/config-${KERNEL_VERSION}
+	ln -sf config-${KERNEL_VERSION} ${D}/kernel/.config
+	ln -sf config-${KERNEL_VERSION} ${D}/kernel/kernel-config
+	[ -e Module.symvers ] && install -m 0644 Module.symvers ${D}/kernel/Module.symvers
+	echo "${KERNEL_VERSION}" >${D}/kernel/kernel-abiversion
+	echo "${KERNEL_CCSUFFIX}" >${D}/kernel/kernel-ccsuffix
+	echo "${KERNEL_LDSUFFIX}" >${D}/kernel/kernel-ldsuffix
+	[ -e Rules.make ] && install -m 0644 Rules.make ${D}/kernel/
+	[ -e Makefile ] && install -m 0644 Makefile ${D}/kernel/
 	
 	# Check if arch/${ARCH}/Makefile exists and install it
 	if [ -e arch/${ARCH}/Makefile ]; then
-		install -d ${KERNEL_STAGE}/arch/${ARCH}
-		install -m 0644 arch/${ARCH}/Makefile* ${KERNEL_STAGE}/arch/${ARCH}
+		install -d ${D}/kernel/arch/${ARCH}
+		install -m 0644 arch/${ARCH}/Makefile* ${D}/kernel/arch/${ARCH}
 	# Otherwise check arch/x86/Makefile for i386 and x86_64 on kernels >= 2.6.24
 	elif [ -e arch/x86/Makefile ]; then
-		install -d ${KERNEL_STAGE}/arch/x86
-		install -m 0644 arch/x86/Makefile* ${KERNEL_STAGE}/arch/x86
+		install -d ${D}/kernel/arch/x86
+		install -m 0644 arch/x86/Makefile* ${D}/kernel/arch/x86
 	fi
-	cp -fR include/config* ${KERNEL_STAGE}/include/	
+	cp -fR include/config* ${D}/kernel/include/	
 	# Install kernel images and system.map to staging
-	[ -e vmlinux ] && install -m 0644 vmlinux ${KERNEL_STAGE}/	
-	install -m 0644 ${KERNEL_OUTPUT} ${KERNEL_STAGE}/${KERNEL_IMAGETYPE}
-	install -m 0644 System.map ${KERNEL_STAGE}/System.map-${KERNEL_VERSION}
-	[ -e Module.symvers ] && install -m 0644 Module.symvers ${KERNEL_STAGE}/
+	[ -e vmlinux ] && install -m 0644 vmlinux ${D}/kernel/	
+	install -m 0644 ${KERNEL_OUTPUT} ${D}/kernel/${KERNEL_IMAGETYPE}
+	install -m 0644 System.map ${D}/kernel/System.map-${KERNEL_VERSION}
+	[ -e Module.symvers ] && install -m 0644 Module.symvers ${D}/kernel/
 
-	cp -fR scripts ${KERNEL_STAGE}/
+	cp -fR scripts ${D}/kernel/
 }
 
 kernel_do_install() {
@@ -198,8 +194,10 @@ kernel_do_install() {
                 oe_runmake SUBDIRS="scripts/genksyms"
         fi
 
-        install -d ${KERNEL_STAGE}
-        cp -fR scripts ${KERNEL_STAGE}/
+ 
+        install -d ${D}/kernel
+        cp -fR scripts ${D}/kernel/
+        kernel_headers
 }
 
 kernel_do_configure() {
@@ -224,11 +222,35 @@ EXPORT_FUNCTIONS do_compile do_install do_stage do_configure
 
 # kernel-base becomes kernel-${KERNEL_VERSION}
 # kernel-image becomes kernel-image-${KERNEL_VERISON}
-PACKAGES = "kernel kernel-base kernel-image kernel-dev kernel-vmlinux"
+PACKAGES = "kernel kernel-base kernel-image kernel-dev kernel-vmlinux kernel-headers"
 FILES = ""
 FILES_kernel-image = "/boot/${KERNEL_IMAGETYPE}*"
 FILES_kernel-dev = "/boot/System.map* /boot/Module.symvers* /boot/config*"
 FILES_kernel-vmlinux = "/boot/vmlinux*"
+FILES_kernel-headers = "/kernel"
+
+# FIXME: No PACKAGES_DYNAMIC support so create modules packages manualy
+PACKAGES += "\
+kernel-module-i2c \
+kernel-module-mmc-test \
+kernel-module-mmc \
+kernel-module-mtd-test \
+kernel-module-mtd \
+kernel-module-rtc \
+kernel-module-spi \
+kernel-module-fs \
+kernel-module-extra \
+"
+FILES_kernel-module-i2c = "${base_libdir}/modules/${PV}/kernel/drivers/i2c"
+FILES_kernel-module-mmc = "${base_libdir}/modules/${PV}/kernel/drivers/mmc"
+FILES_kernel-module-mmc-test = "${base_libdir}/modules/${PV}/kernel/drivers/mmc/card/mmc_test.ko"
+FILES_kernel-module-mtd = "${base_libdir}/modules/${PV}/kernel/drivers/mtd"
+FILES_kernel-module-mtd-test = "${base_libdir}/modules/${PV}/kernel/drivers/mtd/tests"
+FILES_kernel-module-rtc = "${base_libdir}/modules/${PV}/kernel/drivers/rtc"
+FILES_kernel-module-spi = "${base_libdir}/modules/${PV}/kernel/drivers/spi"
+FILES_kernel-module-fs = "${base_libdir}/modules/${PV}/kernel/fs"
+FILES_kernel-module-extra = "${base_libdir}/modules/${PV}/kernel"
+
 RDEPENDS_kernel = "kernel-base"
 # Allow machines to override this dependency if kernel image files are 
 # not wanted in images as standard
@@ -258,7 +280,7 @@ module_conf_l2cap = "alias bt-proto-0 l2cap"
 module_conf_sco = "alias bt-proto-2 sco"
 module_conf_rfcomm = "alias bt-proto-3 rfcomm"
 
-python populate_packages_prepend () {
+python package_populate_prepend_fixme () {
 	def extract_modinfo(file):
 		import os, re
 		tmpfile = os.tmpnam()
@@ -392,6 +414,7 @@ python populate_packages_prepend () {
 		rdepends.extend(get_dependencies(file, pattern, format))
 		bb.data.setVar('RDEPENDS_' + pkg, ' '.join(rdepends), d)
 
+	import re, os, bb
 	module_deps = parse_depmod()
 	module_regex = '^(.*)\.k?o$'
 	module_pattern = 'kernel-module-%s'
@@ -400,7 +423,6 @@ python populate_packages_prepend () {
 	postrm = bb.data.getVar('pkg_postrm_modules', d, 1)
 	do_split_packages(d, root='/lib/modules', file_regex=module_regex, output_pattern=module_pattern, description='%s kernel module', postinst=postinst, postrm=postrm, recursive=True, hook=frob_metadata, extra_depends='update-modules kernel-%s' % bb.data.getVar("KERNEL_VERSION", d, 1))
 
-	import re, os
 	metapkg = "kernel-modules"
 	bb.data.setVar('ALLOW_EMPTY_' + metapkg, "1", d)
 	bb.data.setVar('FILES_' + metapkg, "", d)

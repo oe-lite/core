@@ -1014,12 +1014,13 @@ python target_package_strip () {
 
     dvar = bb.data.getVar('PKGD', d, True)
     os.chdir(dvar)
-    for root, dirs, files in os.walk(dvar):
-        for f in files:
-                file = os.path.join(root, f)
-                if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
-                    nr_strip += runstrip(file, d)
-                    nr_file += 1
+    if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
+	for root, dirs, files in os.walk(dvar):
+            for f in files:
+                    file = os.path.join(root, f)
+                    if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+                        nr_strip += runstrip(file, d)
+                        nr_file += 1
 
     bb.note("target_package_strip: stripped %d/%d files in %s"
 	    %(nr_strip,nr_file,dvar))

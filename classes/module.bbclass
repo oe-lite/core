@@ -1,12 +1,11 @@
-RDEPENDS += "kernel-image update-modules"
-DEPENDS += "virtual/kernel"
+DEPENDS += "kernel-headers"
 
 inherit module-base
 
 module_do_compile() {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-	oe_runmake KERNEL_PATH=${STAGING_KERNEL_DIR}   \
-		   KERNEL_SRC=${STAGING_KERNEL_DIR}    \
+	oe_runmake KERNEL_PATH=${KERNEL_STAGE}   \
+		   KERNEL_SRC=${KERNEL_STAGE}    \
 		   KERNEL_VERSION=${KERNEL_VERSION}    \
 		   CC="${KERNEL_CC}" LD="${KERNEL_LD}" \
 		   AR="${KERNEL_AR}" \

@@ -6,39 +6,26 @@ do_compile_append() {
 
 do_install_append () {
 	install -d ${D}${sysconfdir}/init.d
+	install -d ${D}${sysconfdir}/rcS.d/
 	install -m 0755 ${WORKDIR}/kernel-modules ${D}${sysconfdir}/init.d/
+	ln -s ../init.d/kernel-modules ${D}${sysconfdir}/rcS.d/S11kernel-modules
 }
 
 SRC_URI += "file://kernel-modules"
-INITSCRIPT_PACKAGES = "${PN}-modules"
-PACKAGES += "${INITSCRIPT_PACKAGES}"
-INITSCRIPT_NAME_${PN}-modules = "kernel-modules"
-INITSCRIPT_PARAMS_${PN}-modules = "start 11 S ."
+FILES_${PN}-modules = "${sysconfdir}/init.d/kernel-modules ${sysconfdir}/rcS.d/S11kernel-modules"
 
-FILES_${PN}-modules = "${sysconfdir}/init.d/kernel-modules"
+PACKAGES += "${PN}-modules"
 
-#RDEPENDS_${PN}-modules = "\
-#	kernel-module-physmap-of \
-#	kernel-module-gen-probe \
-#	kernel-module-jedec-probe \
-#	kernel-module-cfi-probe \
-#	kernel-module-cfi-cmdset-0002 \
-#	kernel-module-cfi-util \
-#	kernel-module-mtdchar \
-#	kernel-module-spi-mpc8xxx \
-#	kernel-module-mmc-core \
-#	kernel-module-mmc-spi \
-#	kernel-module-of-mmc-spi \
-#	kernel-module-mmc-block \
-#	kernel-module-rtc-ds1307 \
-#	kernel-module-rtc-lib \
-#	kernel-module-rtc-generic \
-#	kernel-module-rtc-core \
-#	kernel-module-ext3 \
-#	kernel-module-jbd \
-#	kernel-module-mbcache \
-#	kernel-module-cifs \
-#"
+RDEPENDS_${PN}-modules = "\
+kernel-module-i2c \
+kernel-module-mmc \
+kernel-module-mmc-test \
+kernel-module-mtd \
+kernel-module-mtd-test \
+kernel-module-rtc \
+kernel-module-spi \
+kernel-module-fs \
+"
 
 do_stage_append() {
 	install -m 0644 arch/${ARCH}/boot/${MACHINE}.dtb \
