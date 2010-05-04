@@ -5,7 +5,7 @@ B = "${S}"
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
-STRIP		= ""
+STRIP		= "${D}/bin/${TARGET_CROSS}-strip"
 CC		= ""
 CPP		= ""
 OBJCOPY		= ""
