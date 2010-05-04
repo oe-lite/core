@@ -14,13 +14,12 @@ SRC_URI = "hg://etherlabmaster.hg.sourceforge.net:8000/hgroot/etherlabmaster;pro
 "
 S = "${WORKDIR}/etherlabmaster"
 
-DEPENDS += "virtual/kernel"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit autotools module
 
 EXTRA_OECONF_mpc8313erdb = " \
-	--with-linux-dir=${STAGING_DIR}/${MULTIMACH_HOST_SYS}/kernel \
+	--with-linux-dir=${KERNEL_STAGE} \
 	--enable-generic \
 	--disable-8139too --disable-e100 --disable-e1000 --disable-r8169 \
 	--enable-eoe \
@@ -32,6 +31,11 @@ EXTRA_OECONF_mpc8313erdb = " \
 EXTRA_OECONF_awc500pcm = ${EXTRA_OECONF_mpc8313erdb}
 
 MAKE_TARGETS = "modules"
+
+do_configure_prepend () {
+    ./bootstrap
+}
+
 do_compile () {
 	oe_runmake all || die "make failed"
 
@@ -51,6 +55,7 @@ do_install () {
 
 	rm -f ${D}/etc/sysconfig/ethercat
 	rmdir ${D}/etc/sysconfig
+	install -d ${D}${sysconfdir}/rcS.d/
 	install -m 0644 ${WORKDIR}/ethercat.conf ${D}${sysconfdir}/
 	ln -s ../init.d/ethercat ${D}${sysconfdir}/rcS.d/S05ethercat
 }
