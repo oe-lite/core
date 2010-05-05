@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # crosstool-NG version: 1.6.1
-# Mon Mar 15 13:50:21 2010
+# Wed May  5 10:15:47 2010
 #
 
 #
@@ -12,16 +12,15 @@
 # crosstool-NG behavior
 #
 # CT_OBSOLETE is not set
-# CT_EXPERIMENTAL is not set
+CT_EXPERIMENTAL=y
 # CT_DEBUG_CT is not set
 
 #
 # Paths
 #
-CT_LOCAL_TARBALLS_DIR="/data/staff/home/mgl/test/git/bakery/tmp/ingredients"
-CT_SAVE_TARBALLS=y
+CT_LOCAL_TARBALLS_DIR=""
 CT_WORK_DIR="${CT_TOP_DIR}/targets"
-CT_PREFIX_DIR="/data/staff/home/mgl/test/git/bakery/tmp/work/cross/powerpc-unknown-linux-gnu/crosstool-ng-toolchain-cross-1.6.1-r0/image"
+CT_PREFIX_DIR=""
 CT_INSTALL_DIR="${CT_PREFIX_DIR}"
 CT_REMOVE_DOCS=y
 # CT_INSTALL_DIR_RO is not set
@@ -78,7 +77,7 @@ CT_LOG_EXTRA=y
 # CT_LOG_ALL is not set
 CT_LOG_LEVEL_MAX="EXTRA"
 # CT_LOG_SEE_TOOLS_WARN is not set
-CT_LOG_PROGRESS_BAR=y
+# CT_LOG_PROGRESS_BAR is not set
 CT_LOG_TO_FILE=y
 CT_LOG_FILE_COMPRESS=y
 
@@ -89,7 +88,7 @@ CT_ARCH="powerpc"
 # CT_ARCH_SUPPORTS_BOTH_MMU is not set
 # CT_ARCH_SUPPORTS_BOTH_ENDIAN is not set
 CT_ARCH_SUPPORTS_32=y
-# CT_ARCH_SUPPORTS_64 is not set
+CT_ARCH_SUPPORTS_64=y
 # CT_ARCH_SUPPORT_ARCH is not set
 CT_ARCH_SUPPORT_ABI=y
 CT_ARCH_SUPPORT_CPU=y
@@ -152,17 +151,30 @@ CT_TARGET_ALIAS=""
 # Toolchain type
 #
 # CT_NATIVE is not set
-CT_CROSS=y
+# CT_CROSS is not set
 # CT_CROSS_NATIVE is not set
-# CT_CANADIAN is not set
-CT_TOOLCHAIN_TYPE="cross"
+CT_CANADIAN=y
+CT_TOOLCHAIN_TYPE="canadian"
 
 #
 # Build system
 #
-CT_BUILD="x86_64-linux-gnu"
+CT_BUILD=""
 CT_BUILD_PREFIX=""
 CT_BUILD_SUFFIX=""
+
+#
+# Host system
+#
+CT_HOST=""
+CT_HOST_PREFIX=""
+CT_HOST_SUFFIX=""
+
+#
+# Target system
+#
+CT_TARGET_PREFIX=""
+CT_TARGET_SUFFIX=""
 
 #
 # Operating System
@@ -170,12 +182,12 @@ CT_BUILD_SUFFIX=""
 # CT_BARE_METAL is not set
 CT_KERNEL_SUPPORTS_SHARED_LIBS=y
 CT_KERNEL="linux"
-CT_KERNEL_VERSION="2.6.32.7"
+CT_KERNEL_VERSION="2.6.31.12"
 # CT_KERNEL_bare_metal is not set
 CT_KERNEL_linux=y
 CT_KERNEL_LINUX_INSTALL=y
 CT_KERNEL_LINUX_INSTALL_CHECK=y
-CT_KERNEL_V_2_6_32_7=y
+# CT_KERNEL_V_2_6_32_7 is not set
 # CT_KERNEL_V_2_6_32_6 is not set
 # CT_KERNEL_V_2_6_32_5 is not set
 # CT_KERNEL_V_2_6_32_4 is not set
@@ -183,7 +195,7 @@ CT_KERNEL_V_2_6_32_7=y
 # CT_KERNEL_V_2_6_32_2 is not set
 # CT_KERNEL_V_2_6_32_1 is not set
 # CT_KERNEL_V_2_6_32 is not set
-# CT_KERNEL_V_2_6_31_12 is not set
+CT_KERNEL_V_2_6_31_12=y
 # CT_KERNEL_V_2_6_30_10 is not set
 # CT_KERNEL_V_2_6_29_6 is not set
 # CT_KERNEL_V_2_6_28_10 is not set
@@ -266,6 +278,10 @@ CT_CC_SUPPORT_OBJCXX=y
 CT_CC_LANG_CXX=y
 # CT_CC_LANG_FORTRAN is not set
 # CT_CC_LANG_JAVA is not set
+# CT_CC_LANG_ADA is not set
+# CT_CC_LANG_OBJC is not set
+# CT_CC_LANG_OBJCXX is not set
+CT_CC_LANG_OTHERS=""
 
 #
 # C-library
@@ -302,7 +318,7 @@ CT_LIBC_ADDONS_LIST=""
 # CT_LIBC_GLIBC_KERNEL_VERSION_NONE is not set
 CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=y
 # CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set
-CT_LIBC_GLIBC_MIN_KERNEL="2.6.32.7"
+CT_LIBC_GLIBC_MIN_KERNEL="2.6.31.12"
 CT_LIBC_SUPPORT_NPTL=y
 CT_LIBC_SUPPORT_LINUXTHREADS=y
 CT_THREADS="nptl"
@@ -320,10 +336,6 @@ CT_THREADS_NPTL=y
 # CT_DEBUG_dmalloc is not set
 # CT_DEBUG_duma is not set
 # CT_DEBUG_gdb is not set
-# CT_GDB_V_7_0_1 is not set
-# CT_GDB_V_7_0 is not set
-# CT_GDB_V_6_8 is not set
-# CT_GDB_V_snapshot is not set
 # CT_DEBUG_ltrace is not set
 # CT_DEBUG_strace is not set
 
@@ -331,10 +343,7 @@ CT_THREADS_NPTL=y
 # Tools facilities
 #
 # CT_TOOL_libelf is not set
-CT_TOOL_sstrip=y
-CT_SSTRIP_BUILDROOT=y
-# CT_SSTRIP_ELFKICKERS is not set
-CT_SSTRIP_FROM="buildroot"
+# CT_TOOL_sstrip is not set
 
 #
 # Companion libraries
@@ -346,19 +355,28 @@ CT_GMP_V_4_3_1=y
 # CT_GMP_V_4_2_4 is not set
 # CT_GMP_V_4_2_2 is not set
 CT_GMP_VERSION="4.3.1"
-# CT_MPFR_V_2_4_2 is not set
-CT_MPFR_V_2_4_1=y
+CT_MPFR_V_2_4_2=y
+# CT_MPFR_V_2_4_1 is not set
 # CT_MPFR_V_2_4_0 is not set
 # CT_MPFR_V_2_3_2 is not set
 # CT_MPFR_V_2_3_1 is not set
-CT_MPFR_VERSION="2.4.1"
+CT_MPFR_VERSION="2.4.2"
 # CT_PPL_CLOOG_MPC is not set
 
 #
 # Companion libraries common options
 #
 # CT_COMP_LIBS_CHECK is not set
-CT_COMP_LIBS_TARGET=y
+# CT_COMP_LIBS_TARGET is not set
 CT_TOOLS_WRAPPER_SCRIPT=y
 # CT_TOOLS_WRAPPER_EXEC is not set
 CT_TOOLS_WRAPPER="script"
+
+#
+# Companion tools
+#
+
+#
+# READ HELP before you say 'Y' below !!!
+#
+# CT_COMP_TOOLS is not set
