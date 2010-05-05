@@ -1,9 +1,10 @@
-DEPENDS_prepend += "mtd-utils-native"
-
 inherit files
 inherit images
 
-IMAGE_FILE = "${IMAGE_DEPLOY_DIR}/${PN}-${EPV}.ubifs"
+DEPENDS_prepend += "mtd-utils-native"
+
+IMAGE_FILE = "${PN}-${EPV}.ubifs"
+FILES_${PN} = "/${IMAGE_FILE}"
 
 create_image() {
 	mkfs.ubifs -r $1 -o $2 \
