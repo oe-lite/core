@@ -2,7 +2,7 @@ DESCRIPTION = "Update daemon watching a dir for Deif updates."
 LICENSE = "GPLv2"
 SECTION = "console/utils"
 DEPENDS = "mtd-utils"
-RDEPENDS = "mtd-utils"
+RDEPENDS_${PN} = "mtd-utils"
 
 # upgrade: change SRCREV and bump PR
 PR = "r5"
@@ -19,7 +19,7 @@ do_stage() {
 }
 
 do_install() {
-	install -d ${D}/${sbindir}
+	install -d ${D}/${sbindir} ${D}${sysconfdir}/rcS.d/
 	install -p -m 755 ${S}/dupdate ${D}/${sbindir}
 	install -p -m 755 ${S}/dboot ${D}/${sbindir}
 	install -d ${D}/${sysconfdir}/init.d/

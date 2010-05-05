@@ -1,6 +1,6 @@
 DESCRIPTION = "Pregenerated dropbear rsa host key"
 SECTION = "console/network"
-RDEPENDS = "dropbear"
+RDEPENDS_${PN} = "dropbear"
 
 PR="r1"
 

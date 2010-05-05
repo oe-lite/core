@@ -4,7 +4,9 @@ SECTION = "base"
 #FIXME: Only mkfs.* and uuidd (UUID-generation daemon) depends on
 #       util-linux-ng zlib and lzo (and libm.so). Not needed on
 #       target.
-DEPENDS = "zlib lzo util-linux-ng"
+DEPENDS = "zlib-dev lzo-dev util-linux-ng-dev"
+DEPENDS_bbclassextend-native = "zlib-native-dev util-linux-ng-native-dev lzo-native-dev"
+
 HOMEPAGE = "http://www.linux-mtd.infradead.org/"
 LICENSE = "GPLv2"
 PR = "r3"
@@ -21,7 +23,6 @@ do_install () {
 	for f in ${S}/include/mtd/*.h; do
 		install -m 0644 $f ${D}${includedir}/mtd/
 	done
-
 }
 
 PARALLEL_MAKE = ""

@@ -5,7 +5,7 @@ B = "${S}"
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
-STRIP		= ""
+STRIP		= "${D}/bin/${TARGET_CROSS}-strip"
 CC		= ""
 CPP		= ""
 CXX		= ""
@@ -28,6 +28,7 @@ CFLAGS		= ""
 CPPFLAGS	= ""
 CXXFLAGS	= ""
 LDFLAGS		= ""
+LD_LIBRARY_PATH = ""
 
 # Try to avoid messing up sys-root paths
 prefix			= ""
@@ -209,9 +210,9 @@ do_install_bbclassextend-canadian-cross () {
 do_install[cleandirs] = ""
 
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
-SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-extra ${PN}-sysroot-locale ${PN}-sysroot"
+SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-extra"
 
-SYSROOT_DEPENDS = "${PN}-sysroot-dev"
+SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-extra"
 SYSROOT_DEPENDS_bbclassextend-canadian-cross = ""
 
 DEPENDS_${PN} += "${SYSROOT_DEPENDS}"
@@ -222,10 +223,10 @@ RDEPENDS_${PN}-sysroot-locale	= "${PN}-sysroot"
 RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
 
 FILES_${PN} = "\
-${bindir} \
-${libdir}/*.so.* \
-${libdir}/gcc/${TARGET_CROSS} \
-${libexecdir}/gcc/${TARGET_CROSS} \
+${base_bindir} \
+${base_libdir}/*.so.* \
+${base_libdir}/gcc/${TARGET_CROSS} \
+${base_libexecdir}/gcc/${TARGET_CROSS} \
 ${datadir}/aclocal \
 ${base_prefix}/${TARGET_CROSS}/bin \
 ${base_prefix}/${TARGET_CROSS}/lib \
@@ -261,19 +262,31 @@ ${base_prefix}/${TARGET_CROSS}/sys-root${machine_mandir} \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_docdir} \
 "
 
-FILES_${PN}-sysroot-extra = "\
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_bindir} \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_base_sbindir} \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_libexecdir} \
-${base_prefix}/${TARGET_CROSS}/sys-root${machine_sysconfdir} \
-"
-
 FILES_${PN}-sysroot-locale = "\
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/i18n \
 "
 
 FILES_${PN}-sysroot = "\
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt-*.so \
+"
+
+FILES_${PN}-sysroot-extra = "\
 ${base_prefix}/${TARGET_CROSS}/sys-root \
 "
 

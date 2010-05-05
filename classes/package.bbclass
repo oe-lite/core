@@ -115,48 +115,48 @@ def do_split_packages(d, root, file_regex, output_pattern, description, postinst
 
 PACKAGE_DEPENDS += "file-native"
 
-def runstrip(file, d, strip, objcopy):
-    # Function to strip a single file, called from package_populate below.
+def runstrip(file, d):
+    # Function to strip a single file, called from populate_packages below
+    # A working 'file' (one which works on the target architecture)
+    # is necessary for this stuff to work, hence the addition to do_package[depends]
 
-    # Depends on file-native and ${HOST_CROSS}-toolchain and/or
-    # ${TARGET_CROSS}-toolchain.
+    import commands, stat
 
-    # FIXME: make sure that file-native is allways in DEPENDS when
-    # runstrip is called
-
-    import bb, os, commands, stat
-
-    pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, 1)
+    pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
 
     ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
 
     if ret:
-	bb.error("runstrip: 'file %s' failed (forced strip)" % file)
+        bb.error("runstrip: 'file %s' failed (forced strip)" % file)
 
     if "not stripped" not in result:
-	bb.debug(1, "runstrip: skip %s" % file)
-	return 0
+        bb.debug(1, "runstrip: skip %s" % file)
+        return 0
 
     # If the file is in a .debug directory it was already stripped,
     # don't do it again...
     if os.path.dirname(file).endswith(".debug"):
-	bb.debug(2, "Already ran strip on %s" % file)
-	return 0
+        bb.note("Already ran strip")
+        return 0
 
-    strip = bb.data.getVar("STRIP", d, 1)
-    objcopy = bb.data.getVar("OBJCOPY", d, 1)
+    strip = bb.data.getVar("STRIP", d, True)
+    if not len(strip) >0:
+	    bb.error("runstrip: STRIP var empty")
+	    return 0
+
+    objcopy = bb.data.getVar("OBJCOPY", d, True)
 
     newmode = None
     if not os.access(file, os.W_OK):
-	origmode = os.stat(file)[stat.ST_MODE]
-	newmode = origmode | stat.S_IWRITE
-	os.chmod(file, newmode)
+        origmode = os.stat(file)[stat.ST_MODE]
+        newmode = origmode | stat.S_IWRITE
+        os.chmod(file, newmode)
 
     extraflags = ""
     if ".so" in file and "shared" in result:
-	extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
+        extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
     elif "shared" in result or "executable" in result:
-	extraflags = "--remove-section=.comment --remove-section=.note"
+        extraflags = "--remove-section=.comment --remove-section=.note"
 
     bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
     debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
@@ -169,10 +169,11 @@ def runstrip(file, d, strip, objcopy):
     os.system("%s'%s' --add-gnu-debuglink='%s' '%s'" % (pathprefix, objcopy, debugfile, file))
 
     if newmode:
-	os.chmod(file, origmode)
+        os.chmod(file, origmode)
 
     if ret:
-	bb.error("runstrip: '%s' strip command failed" % stripcmd)
+        bb.error("runstrip: '%s' strip command failed" % stripcmd)
+	return 0
 
     return 1
 
@@ -995,11 +996,36 @@ EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_bui
 
 TARGET_PACKAGE_FIXUP_FUNCS = "\
 target_package_clone \
-#target_package_strip \
+target_package_strip \
 #target_package_rpath \
 #target_package_shlibs \
 #target_package_pkgconfig \
 "
+python target_package_strip () {
+    import stat
+    nr_file = 0
+    nr_strip = 0
+    def isexec(path):
+        try:
+            s = os.stat(path)
+        except (os.error, AttributeError):
+            return 0
+        return (s[stat.ST_MODE] & stat.S_IEXEC)
+
+    dvar = bb.data.getVar('PKGD', d, True)
+    os.chdir(dvar)
+    if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
+	for root, dirs, files in os.walk(dvar):
+            for f in files:
+                    file = os.path.join(root, f)
+                    if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+                        nr_strip += runstrip(file, d)
+                        nr_file += 1
+
+    bb.note("target_package_strip: stripped %d/%d files in %s"
+	    %(nr_strip,nr_file,dvar))
+}
+
 # FIXME: target_package_clone should re-use perform_packagecopy from
 # openembedded package.bbclass
 

@@ -10,8 +10,7 @@ HOMEPAGE = "http://www.busybox.net"
 LICENSE = "GPL"
 SECTION = "base"
 PRIORITY = "required"
-RDEPENDS = "base-files"
-PR = "r21${INC_PR}"
+PR = "r22${INC_PR}"
 
 SRC_URI_append = "\
 	file://busybox-cron \
@@ -38,8 +37,7 @@ SRC_URI_append = "\
 
 PACKAGES =+ "${PN}-inetd ${PN}-syslogd ${PN}-crond ${PN}-httpd ${PN}-udhcpd ${PN}-hwclock ${PN}-mdev ${PN}-ntpd ${PN}-shutdown"
 
-DEPENDS_${PN} = "${TARGET_CROSS}-toolchain"
-RDEPENDS_${PN} = "${TARGET_CROSS}-toolchain-sysroot"
+RDEPENDS_${PN} = "base-files ${TARGET_CROSS}-toolchain-sysroot"
 
 FILES_${PN}-inetd = "${sysconfdir}/init.d/inetd.sh ${sysconfdir}/inetd.conf"
 FILES_${PN}-crond = "${sysconfdir}/init.d/busybox-crond"

@@ -35,6 +35,7 @@ TARGET_CPPFLAGS		= "${BUILD_CPPFLAGS}"
 TARGET_CFLAGS		= "${BUILD_CFLAGS}"
 TARGET_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 TARGET_LDFLAGS		= "${BUILD_LDFLAGS}"
+CROSS                   = ""
 
 # Use the stage_* path variables
 base_prefix		= "${stage_base_prefix}"
@@ -55,7 +56,7 @@ bindir			= "${stage_bindir}"
 sbindir			= "${stage_sbindir}"
 libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
-includedir		= "${stage_includedir}"
+includedir		= "${stage_base_includedir}"
 
 base_do_install() {
     oe_runmake install
@@ -72,7 +73,7 @@ python __anonymous () {
 
         newdeps = []
         for dep in depends:
-            if dep.endswith('-native'):
+            if dep.find('-native'):
                 newdeps.append(dep)
                 continue
             for suffix in suffixes:

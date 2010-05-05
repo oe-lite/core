@@ -8,8 +8,6 @@ PR = "r1"
 SRC_URI = "http://www.zlib.net/zlib-${PV}.tar.bz2 \
 "
 
-DEPENDS = "libtool-cross"
-
 inherit autotools_stage
 
 BBCLASSEXTEND = "native"
