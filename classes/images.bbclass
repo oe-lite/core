@@ -1,3 +1,11 @@
+DEPENDS_prepend += "makedevs-native"
+
+makedevs_files() {
+    for devtable in ${1}/${devtable}/*; do
+        makedevs -r ${1} -D $devtable
+    done
+}
+
 fakeroot do_image_build() {
     set -x
     makedevs_files ${FILES_DIR}

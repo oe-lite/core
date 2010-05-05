@@ -1,5 +1,3 @@
-DEPENDS_prepend += "makedevs-native"
-
 def set_install(rdep,d):
     pkg = bb.data.getVar('PKGRPROVIDER_%s'%rdep, d, 0)
     if pkg:
@@ -65,12 +63,6 @@ python do_files_package() {
 EXPORT_FUNCTIONS do_files_package
 addtask files_package before do_install after do_files_fixup
 do_files_package[dirs] = "${FILES_DIR}"
-
-makedevs_files() {
-    for devtable in ${1}/${devtable}/*; do
-        makedevs -r ${1} -D $devtable
-    done
-}
 
 # No need for standard
 do_fetch() {
