@@ -4,19 +4,9 @@ DEPENDS += "${TARGET_CROSS}-toolchain update-modules"
 #virtual/${TARGET_PREFIX}depmod-${@get_kernelmajorversion('${PV}')} virtual/${TARGET_PREFIX}gcc${KERNEL_CCSUFFIX} 
 # we include gcc above, we dont need virtual/libc
 INHIBIT_DEFAULT_DEPS = "1"
+INHIBIT_PACKAGE_STRIP = "1"
 
 KERNEL_IMAGETYPE ?= "zImage"
-
-python __anonymous () {
-
-    import bb
-    
-    kerneltype = bb.data.getVar('KERNEL_IMAGETYPE', d, 1) or ''
-    if kerneltype == 'uImage':
-    	depends = bb.data.getVar("DEPENDS", d, 1)
-    	depends = "%s u-boot-mkimage-native" % depends
-    	bb.data.setVar("DEPENDS", depends, d)
-}
 
 inherit kernel-arch
 
@@ -40,6 +30,8 @@ KERNEL_LD = "${LD}${KERNEL_LDSUFFIX} ${HOST_LD_KERNEL_ARCH}"
 # Where built kernel lies in the kernel tree
 KERNEL_OUTPUT ?= "arch/${ARCH}/boot/${KERNEL_IMAGETYPE}"
 KERNEL_IMAGEDEST = "boot"
+
+
 
 #
 # configuration
@@ -240,34 +232,33 @@ KERNEL_IMAGE_SYMLINK_NAME ?= "${KERNEL_IMAGETYPE}-${MACHINE}"
 INHIBIT_KERNEL_UIMAGE_OVERRIDE ?= "0"
 
 do_deploy() {
-	install -d ${DEPLOY_DIR_IMAGE}
-	install -m 0644 arch/${ARCH}/boot/${KERNEL_IMAGETYPE} ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGE_BASE_NAME}.bin
-	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGE_BASE_NAME}.bin
+	install -d ${IMAGE_DEPLOY_DIR}
+	install -m 0644 arch/${ARCH}/boot/${KERNEL_IMAGETYPE} ${IMAGE_DEPLOY_DIR}/${KERNEL_IMAGE_BASE_NAME}.bin
+	package_stagefile_shell ${IMAGE_DEPLOY_DIR}/${KERNEL_IMAGE_BASE_NAME}.bin
 	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
-		tar -cvzf ${DEPLOY_DIR_IMAGE}/modules-${KERNEL_VERSION}-${PR}-${MACHINE}.tgz -C ${D} lib
+		tar -cvzf ${IMAGE_DEPLOY_DIR}/modules-${KERNEL_VERSION}-${PR}-${MACHINE}.tgz -C ${D} lib
 	fi
-
 	if test "x${KERNEL_IMAGETYPE}" = "xuImage" -a "${INHIBIT_KERNEL_UIMAGE_OVERRIDE}" != "1"; then
 		if test -e arch/${ARCH}/boot/compressed/vmlinux ; then
 			${OBJCOPY} -O binary -R .note -R .comment -S arch/${ARCH}/boot/compressed/vmlinux linux.bin
-			uboot-mkimage -A ${ARCH} -O linux -T kernel -C none -a ${UBOOT_ENTRYPOINT} -e ${UBOOT_ENTRYPOINT} -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin ${DEPLOY_DIR_IMAGE}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
+			uboot-mkimage -A ${ARCH} -O linux -T kernel -C none -a ${UBOOT_ENTRYPOINT} -e ${UBOOT_ENTRYPOINT} -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin ${IMAGE_DEPLOY_DIR}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
 			rm -f linux.bin
 		else
 			${OBJCOPY} -O binary -R .note -R .comment -S vmlinux linux.bin
 			rm -f linux.bin.gz
 			gzip -9 linux.bin
-			uboot-mkimage -A ${ARCH} -O linux -T kernel -C gzip -a ${UBOOT_ENTRYPOINT} -e ${UBOOT_ENTRYPOINT} -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin.gz ${DEPLOY_DIR_IMAGE}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
+			uboot-mkimage -A ${ARCH} -O linux -T kernel -C gzip -a ${UBOOT_ENTRYPOINT} -e ${UBOOT_ENTRYPOINT} -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin.gz ${IMAGE_DEPLOY_DIR}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
 			rm -f linux.bin.gz
 		fi
-	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
+	package_stagefile_shell ${IMAGE_DEPLOY_DIR}/uImage-${PV}-${PR}-${MACHINE}-${DATETIME}.bin
 	fi
 
-	cd ${DEPLOY_DIR_IMAGE}
+	cd ${IMAGE_DEPLOY_DIR}
 	rm -f ${KERNEL_IMAGE_SYMLINK_NAME}.bin
 	ln -sf ${KERNEL_IMAGE_BASE_NAME}.bin ${KERNEL_IMAGE_SYMLINK_NAME}.bin
-	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGE_SYMLINK_NAME}.bin
+	package_stagefile_shell ${IMAGE_DEPLOY_DIR}/${KERNEL_IMAGE_SYMLINK_NAME}.bin
 }
 
 do_deploy[dirs] = "${S}"
 
-addtask deploy before do_package after do_install
+addtask deploy before do_package_install after do_install
