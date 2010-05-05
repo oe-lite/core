@@ -1,11 +1,13 @@
+inherit ubifs_images
+
 # remember to bump deif-<name>-image INC_PR also!
-PR = "r6.${INC_PR}"
+PR = "r1.${INC_PR}"
 
 # Incremental PR - bump this when kernel (linux-deif) is changed to
 # rebuild with new kernel modules.
 INC_PR = "1"
 
-IMAGE_INSTALL = "\
+RDEPENDS = "\
 	busybox busybox-hwclock busybox-mdev busybox-syslogd \
 	busybox-inetd \
 	busybox-ntpd \
@@ -15,19 +17,14 @@ IMAGE_INSTALL = "\
 	dropbear \
 	memtester \
 	linux-deif-modules \
-	gdbserver \
 	netbase \
 	performance-test-suite \
 	dupdate \
-	deif-u-boot-setenv \
-	linux-perf-tool \
-	ethercat \
         net-tools-mii \
+	ethercat \
 	"
 
-export IMAGE_BASENAME = "${PN}"
-IMAGE_LINGUAS = ""
 
-inherit poky-image
-
-IMAGE_FSTYPES += "ubi"
+#	gdbserver \
+#	linux-perf-tool \
+#	deif-u-boot-setenv \

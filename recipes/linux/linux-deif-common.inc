@@ -4,13 +4,12 @@ AUTHOR = "Esben Haabendal <eha@doredevelopment.dk>"
 HOMEPAGE = "https://dev.doredevelopment.dk/deif/wiki/Linux"
 LICENSE = "GPL"
 
-DEPENDS = "u-boot-mkimage-native"
 KERNEL_IMAGETYPE = "uImage"
 KERNEL_IMAGETYPE_mpc8313erdb = "uImage.lzma"
 INHIBIT_KERNEL_UIMAGE_OVERRIDE = "1"
-
+DEPENDS += "u-boot-mkimage-native"
 inherit kernel
-PROVIDES_${PN} += "kernel"
+#PROVIDES_${PN} += "kernel"
 KERNEL_MAJOR_VERSION = "2.6"
 KERNEL_VERSION = "${PV}-${PR}"
 

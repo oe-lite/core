@@ -1,11 +1,12 @@
+inherit cpio_images
 # remember to bump deif-os-kernel INC_PR also!
-PR = "r8.${INC_PR}"
+PR = "r1.${INC_PR}"
 
 # Incremental PR - bump this when kernel (linux-deif) is changed to
 # rebuild with new kernel modules.
-INC_PR = "2"
+INC_PR = "1"
 
-IMAGE_INSTALL = "\
+RDEPENDS = "\
 	initramfs-live-boot \
 	busybox-os-initramfs \
 	busybox-os-initramfs-hwclock \
@@ -18,16 +19,10 @@ IMAGE_INSTALL = "\
 	dropbear dropbear-host-key \
 	netbase \
 	dupdate \
-	deif-u-boot-setenv \
 	performance-test-suite \
-        ethtool \
-	linux-perf-tool \
 	"
 
+#	ethtool \
+#	deif-u-boot-setenv \
+#	linux-perf-tool \
 
-export IMAGE_BASENAME = "${PN}"
-IMAGE_LINGUAS = ""
-
-inherit poky-image
-
-IMAGE_FSTYPES += "cpio"
