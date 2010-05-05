@@ -14,7 +14,30 @@ do_install_append () {
 SRC_URI += "file://kernel-modules"
 FILES_${PN}-modules = "${sysconfdir}/init.d/kernel-modules ${sysconfdir}/rcS.d/S11kernel-modules"
 
-PACKAGES += "${PN}-modules"
+PACKAGES += "${PN} ${PN}-modules"
+
+# kernel modules
+PACKAGES += "\
+kernel-module-i2c \
+kernel-module-mmc-test \
+kernel-module-mmc \
+kernel-module-mtd-test \
+kernel-module-mtd \
+kernel-module-rtc \
+kernel-module-spi \
+kernel-module-fs \
+kernel-module-extra \
+"
+FILES_kernel-module-i2c = "${base_libdir}/modules/${PV}/kernel/drivers/i2c"
+FILES_kernel-module-mmc = "${base_libdir}/modules/${PV}/kernel/drivers/mmc"
+FILES_kernel-module-mmc-test = "${base_libdir}/modules/${PV}/kernel/drivers/mmc/card/mmc_test.ko"
+FILES_kernel-module-mtd = "${base_libdir}/modules/${PV}/kernel/drivers/mtd"
+FILES_kernel-module-mtd-test = "${base_libdir}/modules/${PV}/kernel/drivers/mtd/tests"
+FILES_kernel-module-rtc = "${base_libdir}/modules/${PV}/kernel/drivers/rtc"
+FILES_kernel-module-spi = "${base_libdir}/modules/${PV}/kernel/drivers/spi"
+FILES_kernel-module-fs = "${base_libdir}/modules/${PV}/kernel/fs"
+FILES_kernel-module-extra = "${base_libdir}/modules/${PV}/kernel"
+# END kernel modules
 
 RDEPENDS_${PN}-modules = "\
 kernel-module-i2c \
@@ -26,6 +49,7 @@ kernel-module-rtc \
 kernel-module-spi \
 kernel-module-fs \
 "
+#PROVIDES_${PN} += "${PN}"
 
 do_stage_append() {
 	install -m 0644 arch/${ARCH}/boot/${MACHINE}.dtb \
