@@ -141,10 +141,13 @@ def runstrip(file, d):
 
     strip = bb.data.getVar("STRIP", d, True)
     if not len(strip) >0:
-	    bb.error("runstrip: STRIP var empty")
+	    bb.debug(1,"runstrip: STRIP var empty")
 	    return 0
 
     objcopy = bb.data.getVar("OBJCOPY", d, True)
+    if not len(objcopy) >0:
+	    bb.debug(1,"runstrip: OBJCOPY var empty")
+	    return 0
 
     newmode = None
     if not os.access(file, os.W_OK):
