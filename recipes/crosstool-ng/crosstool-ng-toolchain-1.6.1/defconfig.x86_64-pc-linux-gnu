@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # crosstool-NG version: 1.6.1
-# Wed May  5 10:15:47 2010
+# Wed May  5 10:22:07 2010
 #
 
 #
@@ -57,8 +57,8 @@ CT_PATCH_ORDER="bundled"
 #
 # Build behavior
 #
-CT_PARALLEL_JOBS=1
-CT_LOAD=0
+CT_PARALLEL_JOBS=12
+CT_LOAD=10
 CT_USE_PIPES=y
 # CT_CONFIG_SHELL_SH is not set
 # CT_CONFIG_SHELL_ASH is not set
@@ -84,13 +84,13 @@ CT_LOG_FILE_COMPRESS=y
 #
 # Target options
 #
-CT_ARCH="powerpc"
+CT_ARCH="x86"
 # CT_ARCH_SUPPORTS_BOTH_MMU is not set
 # CT_ARCH_SUPPORTS_BOTH_ENDIAN is not set
 CT_ARCH_SUPPORTS_32=y
 CT_ARCH_SUPPORTS_64=y
-# CT_ARCH_SUPPORT_ARCH is not set
-CT_ARCH_SUPPORT_ABI=y
+CT_ARCH_SUPPORT_ARCH=y
+# CT_ARCH_SUPPORT_ABI is not set
 CT_ARCH_SUPPORT_CPU=y
 CT_ARCH_SUPPORT_TUNE=y
 # CT_ARCH_SUPPORT_FPU is not set
@@ -99,14 +99,14 @@ CT_ARCH_SUPPORT_TUNE=y
 # CT_ARCH_DEFAULT_LE is not set
 CT_ARCH_DEFAULT_32=y
 # CT_ARCH_DEFAULT_64 is not set
-CT_ARCH_ABI=""
+CT_ARCH_ARCH=""
 CT_ARCH_CPU=""
 CT_ARCH_TUNE=""
-CT_ARCH_32=y
-# CT_ARCH_64 is not set
-CT_ARCH_BITNESS=32
-CT_ARCH_FLOAT_HW=y
-# CT_ARCH_FLOAT_SW is not set
+# CT_ARCH_32 is not set
+CT_ARCH_64=y
+CT_ARCH_BITNESS=64
+# CT_ARCH_FLOAT_HW is not set
+CT_ARCH_FLOAT_SW=y
 CT_TARGET_CFLAGS=""
 CT_TARGET_LDFLAGS=""
 
@@ -119,11 +119,10 @@ CT_TARGET_LDFLAGS=""
 # CT_ARCH_ia64 is not set
 # CT_ARCH_m68k is not set
 # CT_ARCH_mips is not set
-CT_ARCH_powerpc=y
+# CT_ARCH_powerpc is not set
 # CT_ARCH_s390 is not set
 # CT_ARCH_sh is not set
-# CT_ARCH_x86 is not set
-# CT_ARCH_POWERPC_SPE is not set
+CT_ARCH_x86=y
 CT_ARCH_USE_MMU=y
 
 #
@@ -335,7 +334,20 @@ CT_THREADS_NPTL=y
 #
 # CT_DEBUG_dmalloc is not set
 # CT_DEBUG_duma is not set
-# CT_DEBUG_gdb is not set
+CT_DEBUG_gdb=y
+CT_GDB_CROSS=y
+# CT_GDB_CROSS_STATIC is not set
+# CT_GDB_CROSS_INSIGHT is not set
+CT_GDB_NATIVE=y
+# CT_GDB_NATIVE_STATIC is not set
+CT_GDB_NATIVE_USE_GMP_MPFR=y
+CT_GDB_GDBSERVER=y
+# CT_GDB_GDBSERVER_STATIC is not set
+CT_GDB_V_7_0_1=y
+# CT_GDB_V_7_0 is not set
+# CT_GDB_V_6_8 is not set
+# CT_GDB_V_snapshot is not set
+CT_GDB_VERSION="7.0.1"
 # CT_DEBUG_ltrace is not set
 # CT_DEBUG_strace is not set
 

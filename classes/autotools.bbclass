@@ -19,7 +19,7 @@ def autotools_dep_prepend(d):
                         and not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d, 1):
                     deps += 'libtool-cross '
 
-	return deps + 'gnu-config-native '
+	return deps
 
 EXTRA_OEMAKE = ""
 
@@ -37,12 +37,13 @@ def autotools_set_crosscompiling(d):
 
 # EXTRA_OECONF_append = "${@autotools_set_crosscompiling(d)}"
 
+# Arch tuple arguments for configure
+OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS}"
+
 oe_runconf () {
 	if [ -x ${S}/configure ] ; then
 		cfgcmd="${S}/configure \
-		    --build=${BUILD_ARCH} \
-		    --host=${HOST_ARCH} \
-		    --target=${TARGET_ARCH} \
+		    ${OECONF_ARCHTUPLE} \
 		    --prefix=${prefix} \
 		    --exec_prefix=${exec_prefix} \
 		    --bindir=${bindir} \

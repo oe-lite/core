@@ -2,6 +2,8 @@ BB_DEFAULT_TASK ?= "build"
 
 RECIPE_TYPE = "machine"
 
+inherit base_arch
+
 # like os.path.join but doesn't treat absolute RHS specially
 def base_path_join(a, *p):
     path = a
@@ -766,12 +768,12 @@ python base_eventhandler() {
 
 	if name.startswith("BuildStarted"):
 		bb.data.setVar( 'BB_VERSION', bb.__version__, e.data )
-		statusvars = ['BB_VERSION', 'METADATA_BRANCH', 'METADATA_REVISION', 'TARGET_ARCH', 'TARGET_OS', 'MACHINE', 'DISTRO', 'DISTRO_VERSION','TARGET_FPU']
+		statusvars = ['BB_VERSION', 'METADATA_BRANCH', 'METADATA_REVISION', 'MACHINE', 'MACHINE_CPU', 'MACHINE_OS', 'SDK_CPU', 'SDK_OS', 'DISTRO', 'DISTRO_VERSION']
 		statuslines = ["%-17s = \"%s\"" % (i, bb.data.getVar(i, e.data, 1) or '') for i in statusvars]
 		statusmsg = "\nOE Build Configuration:\n%s\n" % '\n'.join(statuslines)
 		print statusmsg
 
-		needed_vars = [ "TARGET_ARCH", "TARGET_OS" ]
+		needed_vars = [ "MACHINE_CPU", "MACHINE_OS" ]
 		pesteruser = []
 		for v in needed_vars:
 			val = bb.data.getVar(v, e.data, 1)
