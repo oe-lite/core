@@ -19,7 +19,7 @@ def autotools_dep_prepend(d):
                         and not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d, 1):
                     deps += 'libtool-cross '
 
-	return deps + 'gnu-config-native '
+	return deps
 
 EXTRA_OEMAKE = ""
 
