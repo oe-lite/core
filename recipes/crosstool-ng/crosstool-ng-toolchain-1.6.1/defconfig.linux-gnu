@@ -1,179 +1,6 @@
 #
-# Automatically generated make config: don't edit
-# crosstool-NG version: 1.6.1
-# Wed May  5 10:22:07 2010
+# crosstool-NG version: 1.6.1 -- linux-gnu configuration
 #
-
-#
-# Paths and misc options
-#
-
-#
-# crosstool-NG behavior
-#
-# CT_OBSOLETE is not set
-CT_EXPERIMENTAL=y
-# CT_DEBUG_CT is not set
-
-#
-# Paths
-#
-CT_LOCAL_TARBALLS_DIR=""
-CT_WORK_DIR="${CT_TOP_DIR}/targets"
-CT_PREFIX_DIR=""
-CT_INSTALL_DIR="${CT_PREFIX_DIR}"
-CT_REMOVE_DOCS=y
-# CT_INSTALL_DIR_RO is not set
-
-#
-# Downloading
-#
-# CT_FORBID_DOWNLOAD is not set
-# CT_FORCE_DOWNLOAD is not set
-CT_USE_MIRROR=y
-# CT_PREFER_MIRROR is not set
-CT_MIRROR_BASE_URL="http://ymorin.is-a-geek.org/mirrors/"
-CT_CONNECT_TIMEOUT=10
-CT_DOWNLOAD_MAX_CHUNKS=5
-# CT_ONLY_DOWNLOAD is not set
-
-#
-# Extracting
-#
-# CT_FORCE_EXTRACT is not set
-CT_OVERIDE_CONFIG_GUESS_SUB=y
-# CT_ONLY_EXTRACT is not set
-CT_PATCH_BUNDLED=y
-# CT_PATCH_LOCAL is not set
-# CT_PATCH_BUNDLED_LOCAL is not set
-# CT_PATCH_LOCAL_BUNDLED is not set
-# CT_PATCH_BUNDLED_FALLBACK_LOCAL is not set
-# CT_PATCH_LOCAL_FALLBACK_BUNDLED is not set
-# CT_PATCH_NONE is not set
-CT_PATCH_ORDER="bundled"
-# CT_PATCH_SINGLE is not set
-# CT_PATCH_USE_LOCAL is not set
-
-#
-# Build behavior
-#
-CT_PARALLEL_JOBS=12
-CT_LOAD=10
-CT_USE_PIPES=y
-# CT_CONFIG_SHELL_SH is not set
-# CT_CONFIG_SHELL_ASH is not set
-CT_CONFIG_SHELL_BASH=y
-# CT_CONFIG_SHELL_CUSTOM is not set
-CT_CONFIG_SHELL="bash"
-
-#
-# Logging
-#
-# CT_LOG_ERROR is not set
-# CT_LOG_WARN is not set
-# CT_LOG_INFO is not set
-CT_LOG_EXTRA=y
-# CT_LOG_DEBUG is not set
-# CT_LOG_ALL is not set
-CT_LOG_LEVEL_MAX="EXTRA"
-# CT_LOG_SEE_TOOLS_WARN is not set
-# CT_LOG_PROGRESS_BAR is not set
-CT_LOG_TO_FILE=y
-CT_LOG_FILE_COMPRESS=y
-
-#
-# Target options
-#
-CT_ARCH="x86"
-# CT_ARCH_SUPPORTS_BOTH_MMU is not set
-# CT_ARCH_SUPPORTS_BOTH_ENDIAN is not set
-CT_ARCH_SUPPORTS_32=y
-CT_ARCH_SUPPORTS_64=y
-CT_ARCH_SUPPORT_ARCH=y
-# CT_ARCH_SUPPORT_ABI is not set
-CT_ARCH_SUPPORT_CPU=y
-CT_ARCH_SUPPORT_TUNE=y
-# CT_ARCH_SUPPORT_FPU is not set
-# CT_ARCH_DEFAULT_HAS_MMU is not set
-# CT_ARCH_DEFAULT_BE is not set
-# CT_ARCH_DEFAULT_LE is not set
-CT_ARCH_DEFAULT_32=y
-# CT_ARCH_DEFAULT_64 is not set
-CT_ARCH_ARCH=""
-CT_ARCH_CPU=""
-CT_ARCH_TUNE=""
-# CT_ARCH_32 is not set
-CT_ARCH_64=y
-CT_ARCH_BITNESS=64
-# CT_ARCH_FLOAT_HW is not set
-CT_ARCH_FLOAT_SW=y
-CT_TARGET_CFLAGS=""
-CT_TARGET_LDFLAGS=""
-
-#
-# General target options
-#
-# CT_ARCH_alpha is not set
-# CT_ARCH_arm is not set
-# CT_ARCH_avr32 is not set
-# CT_ARCH_ia64 is not set
-# CT_ARCH_m68k is not set
-# CT_ARCH_mips is not set
-# CT_ARCH_powerpc is not set
-# CT_ARCH_s390 is not set
-# CT_ARCH_sh is not set
-CT_ARCH_x86=y
-CT_ARCH_USE_MMU=y
-
-#
-# Target optimisations
-#
-
-#
-# Toolchain options
-#
-
-#
-# General toolchain options
-#
-CT_USE_SYSROOT=y
-CT_SYSROOT_DIR_PREFIX=""
-
-#
-# Tuple completion and aliasing
-#
-CT_TARGET_VENDOR=""
-CT_TARGET_ALIAS_SED_EXPR=""
-CT_TARGET_ALIAS=""
-
-#
-# Toolchain type
-#
-# CT_NATIVE is not set
-# CT_CROSS is not set
-# CT_CROSS_NATIVE is not set
-CT_CANADIAN=y
-CT_TOOLCHAIN_TYPE="canadian"
-
-#
-# Build system
-#
-CT_BUILD=""
-CT_BUILD_PREFIX=""
-CT_BUILD_SUFFIX=""
-
-#
-# Host system
-#
-CT_HOST=""
-CT_HOST_PREFIX=""
-CT_HOST_SUFFIX=""
-
-#
-# Target system
-#
-CT_TARGET_PREFIX=""
-CT_TARGET_SUFFIX=""
 
 #
 # Operating System
@@ -181,7 +8,7 @@ CT_TARGET_SUFFIX=""
 # CT_BARE_METAL is not set
 CT_KERNEL_SUPPORTS_SHARED_LIBS=y
 CT_KERNEL="linux"
-CT_KERNEL_VERSION="2.6.31.12"
+CT_KERNEL_VERSION=""
 # CT_KERNEL_bare_metal is not set
 CT_KERNEL_linux=y
 CT_KERNEL_LINUX_INSTALL=y
@@ -194,7 +21,7 @@ CT_KERNEL_LINUX_INSTALL_CHECK=y
 # CT_KERNEL_V_2_6_32_2 is not set
 # CT_KERNEL_V_2_6_32_1 is not set
 # CT_KERNEL_V_2_6_32 is not set
-CT_KERNEL_V_2_6_31_12=y
+# CT_KERNEL_V_2_6_31_12 is not set
 # CT_KERNEL_V_2_6_30_10 is not set
 # CT_KERNEL_V_2_6_29_6 is not set
 # CT_KERNEL_V_2_6_28_10 is not set
@@ -220,12 +47,12 @@ CT_ARCH_BINFMT_ELF=y
 # GNU binutils
 #
 # CT_BINUTILS_V_2_20 is not set
-CT_BINUTILS_V_2_19_1=y
+# CT_BINUTILS_V_2_19_1 is not set
 # CT_BINUTILS_V_2_19 is not set
 # CT_BINUTILS_V_2_18 is not set
 # CT_BINUTILS_V_2_17 is not set
 # CT_BINUTILS_V_2_16_1 is not set
-CT_BINUTILS_VERSION="2.19.1"
+CT_BINUTILS_VERSION=""
 CT_BINUTILS_EXTRA_CONFIG=""
 CT_BINUTILS_FOR_TARGET=y
 CT_BINUTILS_FOR_TARGET_IBERTY=y
@@ -235,7 +62,7 @@ CT_BINUTILS_FOR_TARGET_BFD=y
 # C compiler
 #
 CT_CC="gcc"
-CT_CC_VERSION="4.3.2"
+CT_CC_VERSION=""
 CT_CC_gcc=y
 # CT_CC_V_4_4_3 is not set
 # CT_CC_V_4_4_2 is not set
@@ -243,7 +70,7 @@ CT_CC_gcc=y
 # CT_CC_V_4_4_0 is not set
 # CT_CC_V_4_3_4 is not set
 # CT_CC_V_4_3_3 is not set
-CT_CC_V_4_3_2=y
+# CT_CC_V_4_3_2 is not set
 # CT_CC_V_4_3_1 is not set
 # CT_CC_V_4_2_4 is not set
 # CT_CC_V_4_2_3 is not set
@@ -253,7 +80,7 @@ CT_CC_V_4_3_2=y
 # CT_CC_V_4_1_2 is not set
 # CT_CC_V_4_0_4 is not set
 # CT_CC_V_3_4_6 is not set
-CT_CC_GCC_4_3_or_later=y
+# CT_CC_GCC_4_3_or_later is not set
 # CT_CC_GCC_4_4_or_later is not set
 CT_CC_CXA_ATEXIT=y
 CT_CC_SJLJ_EXCEPTIONS_CONFIGURE=y
@@ -286,7 +113,7 @@ CT_CC_LANG_OTHERS=""
 # C-library
 #
 CT_LIBC="glibc"
-CT_LIBC_VERSION="2.9"
+CT_LIBC_VERSION=""
 # CT_LIBC_eglibc is not set
 CT_LIBC_glibc=y
 # CT_LIBC_newlib is not set
@@ -296,7 +123,7 @@ CT_LIBC_GLIBC_TARBALL=y
 # CT_LIBC_GLIBC_V_2_11_1 is not set
 # CT_LIBC_GLIBC_V_2_11 is not set
 # CT_LIBC_V_2_10_1 is not set
-CT_LIBC_V_2_9=y
+# CT_LIBC_V_2_9 is not set
 # CT_LIBC_V_2_8 is not set
 # CT_LIBC_V_2_7 is not set
 # CT_LIBC_V_2_6_1 is not set
@@ -317,7 +144,7 @@ CT_LIBC_ADDONS_LIST=""
 # CT_LIBC_GLIBC_KERNEL_VERSION_NONE is not set
 CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=y
 # CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set
-CT_LIBC_GLIBC_MIN_KERNEL="2.6.31.12"
+CT_LIBC_GLIBC_MIN_KERNEL=""
 CT_LIBC_SUPPORT_NPTL=y
 CT_LIBC_SUPPORT_LINUXTHREADS=y
 CT_THREADS="nptl"
@@ -343,11 +170,11 @@ CT_GDB_NATIVE=y
 CT_GDB_NATIVE_USE_GMP_MPFR=y
 CT_GDB_GDBSERVER=y
 # CT_GDB_GDBSERVER_STATIC is not set
-CT_GDB_V_7_0_1=y
+# CT_GDB_V_7_0_1 is not set
 # CT_GDB_V_7_0 is not set
 # CT_GDB_V_6_8 is not set
 # CT_GDB_V_snapshot is not set
-CT_GDB_VERSION="7.0.1"
+CT_GDB_VERSION=""
 # CT_DEBUG_ltrace is not set
 # CT_DEBUG_strace is not set
 
@@ -362,24 +189,24 @@ CT_GDB_VERSION="7.0.1"
 #
 CT_WRAPPER_NEEDED=y
 CT_GMP_MPFR=y
-CT_GMP_V_4_3_1=y
+# CT_GMP_V_4_3_1 is not set
 # CT_GMP_V_4_3_0 is not set
 # CT_GMP_V_4_2_4 is not set
 # CT_GMP_V_4_2_2 is not set
-CT_GMP_VERSION="4.3.1"
-CT_MPFR_V_2_4_2=y
+CT_GMP_VERSION=""
+# CT_MPFR_V_2_4_2 is not set
 # CT_MPFR_V_2_4_1 is not set
 # CT_MPFR_V_2_4_0 is not set
 # CT_MPFR_V_2_3_2 is not set
 # CT_MPFR_V_2_3_1 is not set
-CT_MPFR_VERSION="2.4.2"
+CT_MPFR_VERSION=""
 # CT_PPL_CLOOG_MPC is not set
 
 #
 # Companion libraries common options
 #
 # CT_COMP_LIBS_CHECK is not set
-# CT_COMP_LIBS_TARGET is not set
+CT_COMP_LIBS_TARGET=y
 CT_TOOLS_WRAPPER_SCRIPT=y
 # CT_TOOLS_WRAPPER_EXEC is not set
 CT_TOOLS_WRAPPER="script"

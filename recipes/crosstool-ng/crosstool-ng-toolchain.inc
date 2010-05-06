@@ -53,11 +53,11 @@ libdir			= ""
 libexecdir		= ""
 includedir		= ""
 
-# NOTE: the defconfig's must be configured as canadian so we have the
-# CT_HOST_* and CT_TARGET_* variables
-DEFCONFIG = "defconfig.${TARGET_CROSS}"
+DEFCONFIG_COMMON	= "defconfig.common"
+DEFCONFIG_CPU		= "defconfig.${@base_arch_cpu('${TARGET_CROSS}')}-${@base_arch_vendor('${TARGET_CROSS}')}"
+DEFCONFIG_OS		= "defconfig.${@base_arch_os('${TARGET_CROSS}')}"
 
-SRC_URI = "file://${DEFCONFIG}"
+SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
@@ -78,24 +78,38 @@ RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolc
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
-addtask fetch_tarballs after do_patch before do_configure
-do_fetch_tarballs[dirs] = "${B}"
-do_fetch_tarballs () {
+addtask mangle after do_patch before do_configure
+do_mangle[dirs] = "${WORKDIR}"
+do_mangle () {
+	cat ${DEFCONFIG_COMMON} ${DEFCONFIG_CPU} ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
-	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
-	    -e 's%\(CT_SAVE_TARBALLS\)=.*%\1=n%' \
-	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
-	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
-	    -e 's%\(CT_BUILD\)=.*%\1=""%' \
+	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=${CT_PARALLEL_JOBS}%' \
+	    -e 's%\(CT_LOAD\)=.*%\1=${CT_LOAD}%' \
+	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_CROSS}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
 	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${@base_arch_vendor('${TARGET_CROSS}')}"%' \
+	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
+    	    -e 's%# \(${CT_KERNEL_VERSION}\) is not set%\1=y%' \
+	    -e 's%# \(${CT_BINUTILS_VERSION}\) is not set%\1=y%' \
+	    -e 's%# \(${CT_CC_VERSION}\) is not set%\1=y%' \
+	    -e 's%# \(${CT_LIBC_VERSION}\) is not set%\1=y%' \
+    	    -e 's%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%' \
+	    -e 's%# \(${CT_GDB_VERSION}\) is not set%\1=y%' \
+	    -e 's%# \(${CT_GMP_VERSION}\) is not set%\1=y%' \
+	    -e 's%# \(${CT_MPFR_VERSION}\) is not set%\1=y%' \
+    	> defconfig
+}
+
+addtask fetch_tarballs after do_mangle before do_configure
+do_fetch_tarballs[dirs] = "${B}"
+do_fetch_tarballs () {
+	sed -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
+	    -e 's%\(CT_SAVE_TARBALLS\)=.*%\1=n%' \
+	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
 	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
-	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
-	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
-    	    ${WORKDIR}/${DEFCONFIG} > .config
+    	< ${WORKDIR}/defconfig > .config
 	ct-ng oldconfig
 	ct-ng build
 }
@@ -123,72 +137,41 @@ python do_save_tarballs () {
 }
 
 DOT_CONFIG_MANGLING = "\
-	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
-	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
-	    -e 's%.*\(CT_CROSS_NATIVE\).*%\1=y%' \
-	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross-native"%' \
+	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
 	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
 	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
-	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=n%' \
 	    -e 's%\(CT_BINUTILS_FOR_TARGET\)=.*%\1=n%' \
+	    -e 's%\(CT_COMP_LIBS_TARGET\)=.*%\1=n%' \
+	    -e 's%\(CT_DEBUG_gdb\)=.*%\1=n%' \
 "
 
 DOT_CONFIG_MANGLING_bbclassextend-cross = "\
-	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
-	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
-	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
-	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
-	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
+	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
+	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
 DOT_CONFIG_MANGLING_bbclassextend-sdk-cross = "\
-	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
-	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
-	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
-	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
-	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
+	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
+	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
 DOT_CONFIG_MANGLING_bbclassextend-canadian-cross = "\
-	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
-	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
-	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
-	    -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="canadian"%' \
+	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
 	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
 	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
-	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=n%' \
+	    -e 's%\(CT_BINUTILS_FOR_TARGET\)=.*%\1=n%' \
+	    -e 's%\(CT_COMP_LIBS_TARGET\)=.*%\1=n%' \
+	    -e 's%\(CT_GDB_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_GDB_GDBSERVER\)=.*%\1=n%' \
 "
 
 do_configure[dirs] = "${B}"
 do_configure () {
-	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
-	    -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
-	    -e 's%\(CT_ONLY_DOWNLOAD\)=.*%\1=n%' \
-	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
-	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
-	    -e 's%\(CT_BUILD\)=.*%\1=""%' \
-	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
-	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=12%' \
-	    -e 's%\(CT_LOAD\)=.*%\1=10%' \
-	    -e 's%.*\(CT_EXPERIMENTAL\).*%\1=y%' \
-	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${@base_arch_vendor('${TARGET_CROSS}')}"%' \
-	    -e 's%\(CT_TARGET_ALIAS_SED_EXPR\)=.*%\1=""%' \
-	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
-	    -e 's%.*\(CT_TOOLS_WRAPPER_SCRIPT\).*%\1=y%' \
-	    -e 's%\(CT_TOOLS_WRAPPER_EXEC\)=.*%\1=n%' \
-    	    ${WORKDIR}/${DEFCONFIG} | \
-	${DOT_CONFIG_MANGLING} > .config
+	${DOT_CONFIG_MANGLING} <${WORKDIR}/defconfig > .config
 	ct-ng oldconfig
 }
 
