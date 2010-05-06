@@ -9,7 +9,6 @@ KERNEL_IMAGETYPE_mpc8313erdb = "uImage.lzma"
 INHIBIT_KERNEL_UIMAGE_OVERRIDE = "1"
 DEPENDS += "u-boot-mkimage-native"
 inherit kernel
-#PROVIDES_${PN} += "kernel"
 KERNEL_MAJOR_VERSION = "2.6"
 KERNEL_VERSION = "${PV}-${PR}"
 

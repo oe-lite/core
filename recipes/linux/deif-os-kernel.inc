@@ -28,11 +28,12 @@ EOT
 }
 
 # This recipe only build image files and dtb
-PACKAGES =+ "${PN} ${PN}-dtb"
+PROVIDES = ""
+PACKAGES = "${PN} ${PN}-dtb ${PN}-empty"
 FILES_${PN} = "/${KERNEL_IMAGE_SYMLINK_NAME}.bin"
 FILES_${PN}-dtb = "/${DTBFILE_SYMLINK_NAME}.dtb"
+FILES_${PN}-empty = "/"
 
-PROVIDES_${PN} = "${PN} ${PN}-dtb"
 
 # trick kernel_do_install() into not installing modules
 do_install_prepend () {
