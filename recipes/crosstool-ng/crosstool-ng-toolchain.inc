@@ -1,4 +1,4 @@
-PR = "r2"
+PR = "r3"
 
 S = "${WORKDIR}/build"
 B = "${S}"
@@ -8,11 +8,14 @@ AWK		= ""
 STRIP		= "${D}/bin/${TARGET_CROSS}-strip"
 CC		= ""
 CPP		= ""
+CXX		= ""
+F77		= ""
 OBJCOPY		= ""
 CXX		= ""
 AR		= ""
 NM		= ""
 LD		= ""
+CCLD		= ""
 DLLTOOL		= ""
 AS		= ""
 OBJDUMP		= ""
@@ -50,6 +53,8 @@ libdir			= ""
 libexecdir		= ""
 includedir		= ""
 
+# NOTE: the defconfig's must be configured as canadian so we have the
+# CT_HOST_* and CT_TARGET_* variables
 DEFCONFIG = "defconfig.${TARGET_CROSS}"
 
 SRC_URI = "file://${DEFCONFIG}"
@@ -62,13 +67,13 @@ DEPENDS_append_bbclassextend-canadian-cross = " ${HOST_CROSS}-toolchain ${TARGET
 INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
 INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
 
-PROVIDES_${PN}_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain"
-PROVIDES_${PN}_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}_append_bbclassextend-cross		+= "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
+RPROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
 
-PROVIDES_${PN}-sysroot_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain-sysroot"
-PROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain-sysroot"
-RPROVIDES_${PN}-sysroot_append_bbclassextend-cross += "${TARGET_CROSS}-toolchain-sysroot"
-RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross += "${TARGET_CROSS}-toolchain-sysroot"
+PROVIDES_${PN}_append_bbclassextend-sdk-cross		+= "${TARGET_CROSS}-toolchain"
+PROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
+RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
@@ -82,6 +87,14 @@ do_fetch_tarballs () {
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
+	    -e 's%\(CT_BUILD\)=.*%\1=""%' \
+	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
+	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
+	    -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
+	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
     	    ${WORKDIR}/${DEFCONFIG} > .config
 	ct-ng oldconfig
 	ct-ng build
@@ -109,6 +122,53 @@ python do_save_tarballs () {
 			bb.utils.unlockfile(lf)
 }
 
+DOT_CONFIG_MANGLING = "\
+	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CROSS_NATIVE\).*%\1=y%' \
+	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross-native"%' \
+	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
+	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
+	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
+	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
+	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
+	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=n%' \
+	    -e 's%\(CT_BINUTILS_FOR_TARGET\)=.*%\1=n%' \
+"
+
+DOT_CONFIG_MANGLING_bbclassextend-cross = "\
+	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
+	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
+	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
+"
+
+DOT_CONFIG_MANGLING_bbclassextend-sdk-cross = "\
+	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
+	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_CANADIAN\)=.*%\1=n%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="cross"%' \
+	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
+"
+
+DOT_CONFIG_MANGLING_bbclassextend-canadian-cross = "\
+	sed -e 's%\(CT_NATIVE\)=.*%\1=n%' \
+	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
+	    -e 's%\(CT_CROSS_NATIVE\)=.*%\1=n%' \
+	    -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
+	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="canadian"%' \
+	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
+	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
+	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
+	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
+	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
+	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=n%' \
+"
+
 do_configure[dirs] = "${B}"
 do_configure () {
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
@@ -116,32 +176,16 @@ do_configure () {
 	    -e 's%\(CT_ONLY_DOWNLOAD\)=.*%\1=n%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_INSTALL_DIR_RO\)=.*%\1=n%' \
-	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
-	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
+	    -e 's%\(CT_BUILD\)=.*%\1=""%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
-	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=4%' \
-	    -e 's%.*\(CT_COMP_LIBS_TARGET\).*%\1=y%' \
-    	    ${WORKDIR}/${DEFCONFIG} > .config
-	# FIXME: CT_COMP_LIBS_TARGET is not really needed for canadian-cross
+	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
+	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=12%' \
+	    -e 's%\(CT_LOAD\)=.*%\1=10%' \
+	    -e 's%.*\(CT_EXPERIMENTAL\).*%\1=y%' \
+	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
+    	    ${WORKDIR}/${DEFCONFIG} | \
+	${DOT_CONFIG_MANGLING} > .config
 	ct-ng oldconfig
-}
-
-do_configure_prepend_bbclassextend-canadian-cross () {
-	sed -e 's%.*\(CT_EXPERIMENTAL\).*%\1=y%' \
-	    -e 's%\(CT_CROSS\)=.*%\1=n%' \
-	    -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
-	    -e 's%.*\(CT_TOOLCHAIN_TYPE\).*%\1="canadian"%' \
-	    -e 's%\(CT_HOST\)=.*%\1="${HOST_CROSS}"%' \
-	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
-	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
-	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_CROSS}"%' \
-    	    ${WORKDIR}/${DEFCONFIG} > ${WORKDIR}/${DEFCONFIG}.tmp
-	cat >> ${WORKDIR}/${DEFCONFIG}.tmp <<EOT
-CT_HOST="${HOST_ARCH}"
-CT_HOST_PREFIX="${HOST_PREFIX}"
-CT_TARGET_PREFIX="${TARGET_PREFIX}"
-EOT
-	cp ${WORKDIR}/${DEFCONFIG}.tmp ${WORKDIR}/${DEFCONFIG}
 }
 
 do_compile[dirs] = "${B}"
@@ -180,6 +224,7 @@ RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
 
 FILES_${PN} = "\
 ${base_bindir} \
+${base_libdir}/*.so.* \
 ${base_libdir}/gcc/${TARGET_CROSS} \
 ${base_libexecdir}/gcc/${TARGET_CROSS} \
 ${datadir}/aclocal \
