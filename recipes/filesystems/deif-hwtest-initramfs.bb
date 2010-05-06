@@ -1,11 +1,12 @@
+inherit cpio_images
 # remember to bump deif-hwtest-image INC_PR also!
-PR = "r8.${INC_PR}"
+PR = "r1.${INC_PR}"
 
 # Incremental PR - bump this when kernel (linux-deif) is changed to
 # rebuild with new kernel modules.
-INC_PR = "13"
+INC_PR = "1"
 
-IMAGE_INSTALL = "\
+RDEPENDS = "\
 	busybox-hwtest-initramfs \
 	busybox-hwtest-initramfs-hwclock \
 	busybox-hwtest-initramfs-mdev \
@@ -31,10 +32,3 @@ IMAGE_INSTALL = "\
         ethtool \
         net-tools-mii \
 	"
-
-export IMAGE_BASENAME = "${PN}"
-IMAGE_LINGUAS = ""
-
-inherit poky-image
-
-IMAGE_FSTYPES += "cpio"
