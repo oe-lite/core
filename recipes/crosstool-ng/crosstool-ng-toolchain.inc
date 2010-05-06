@@ -210,7 +210,7 @@ do_install_bbclassextend-canadian-cross () {
 do_install[cleandirs] = ""
 
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
-SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-extra"
+SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-base ${PN}-sysroot-extra"
 
 SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-extra"
 SYSROOT_DEPENDS_bbclassextend-canadian-cross = ""
@@ -267,23 +267,40 @@ ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/locale \
 ${base_prefix}/${TARGET_CROSS}/sys-root${machine_datadir}/i18n \
 "
 
+# libc can depend on libnss_files libnss_dns
+# dropbear libc libcrypt libutil
+# ethercat libstdc++ libm libgcc_s
+# performance-test-suite librt libm
+# libnss_dns libresolv
+
 FILES_${PN}-sysroot = "\
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc.so.* \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libc-*.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt.so.* \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt-*.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread.so.* \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread-*.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld.so.* \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld-*.so \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm.so.* \
-${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm-*.so \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl.so.* \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libdl-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libcrypt-*.so \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil.so.* \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libutil-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libnss_dns-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libnss_dns.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libnss_files-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libnss_files.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libresolv-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libresolv.so.* \
+"
+
+FILES_${PN}-sysroot-base = "\
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libpthread-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm.so.* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libm-*.so \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt.so.* \
 ${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/librt-*.so \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libstdc++.so* \
+${base_prefix}/${TARGET_CROSS}/sys-root/${machine_base_libdir}/libgcc_s.so* \
 "
 
 FILES_${PN}-sysroot-extra = "\
