@@ -51,18 +51,18 @@ def base_arch_exeext(d, arch):
     return ''
 
 
-def base_arch_bcpu(arch):
+def base_arch_cpu(arch):
     archtuple = base_arch_split(arch)
     if not archtuple:
         return 'INVALID'
     return archtuple[0]
 
 
-def base_arch_cpu(arch):
+def base_arch_vendor(arch):
     archtuple = base_arch_split(arch)
     if not archtuple:
         return 'INVALID'
-    return '%s-%s'%(archtuple[0], archtuple[1])
+    return archtuple[1]
 
 
 def base_arch_os(arch):

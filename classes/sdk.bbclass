@@ -5,9 +5,6 @@ RECIPE_ARCH_MACHINE		 = "sdk/${SDK_ARCH}--${MACHINE}"
 
 # Set host=sdk
 HOST_ARCH		= "${SDK_ARCH}"
-HOST_BCPU		= "${SDK_BCPU}"
-HOST_CPU		= "${SDK_CPU}"
-HOST_OS			= "${SDK_OS}"
 HOST_CROSS		= "${SDK_CROSS}"
 HOST_CROSS_CFLAGS	= "${SDK_CROSS_CFLAGS}"
 HOST_EXEEXT		= "${SDK_EXEEXT}"
@@ -19,9 +16,6 @@ HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 
 # and target=sdk for architecture triplet build/sdk/sdk
 TARGET_ARCH		= "${SDK_ARCH}"
-TARGET_BCPU		= "${SDK_BCPU}"
-TARGET_CPU		= "${SDK_CPU}"
-TARGET_OS		= "${SDK_OS}"
 TARGET_CROSS		= "${SDK_CROSS}"
 TARGET_CROSS_CFLAGS	= "${SDK_CROSS_CFLAGS}"
 TARGET_EXEEXT		= "${SDK_EXEEXT}"

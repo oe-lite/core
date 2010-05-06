@@ -11,9 +11,6 @@ RPROVIDES_${PN}		 = ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
-HOST_BCPU		= "${BUILD_BCPU}"
-HOST_CPU		= "${BUILD_CPU}"
-HOST_OS			= "${BUILD_OS}"
 HOST_CROSS		= "${BUILD_CROSS}"
 HOST_CROSS_CFLAGS	= "${BUILD_CROSS_CFLAGS}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"

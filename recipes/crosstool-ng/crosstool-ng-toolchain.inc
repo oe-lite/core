@@ -182,6 +182,8 @@ do_configure () {
 	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=12%' \
 	    -e 's%\(CT_LOAD\)=.*%\1=10%' \
 	    -e 's%.*\(CT_EXPERIMENTAL\).*%\1=y%' \
+	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${@base_arch_vendor('${TARGET_CROSS}')}"%' \
+	    -e 's%\(CT_TARGET_ALIAS_SED_EXPR\)=.*%\1=""%' \
 	    -e 's%\(CT_TARGET_ALIAS\)=.*%\1=""%' \
 	    -e 's%.*\(CT_TOOLS_WRAPPER_SCRIPT\).*%\1=y%' \
 	    -e 's%\(CT_TOOLS_WRAPPER_EXEC\)=.*%\1=n%' \
