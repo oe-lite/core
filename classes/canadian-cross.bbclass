@@ -5,11 +5,11 @@ RECIPE_ARCH_MACHINE		 = "canadian/${SDK_ARCH}--${MACHINE}"
 
 # Set host=sdk for architecture triplet build/sdk/target
 HOST_ARCH		= "${SDK_ARCH}"
+HOST_BCPU		= "${SDK_BCPU}"
 HOST_CPU		= "${SDK_CPU}"
 HOST_OS			= "${SDK_OS}"
-HOST_CPU_CROSS		= "${SDK_CPU_CROSS}"
 HOST_CROSS		= "${SDK_CROSS}"
-HOST_CC_ARCH		= "${SDK_CC_ARCH}"
+HOST_CROSS_CFLAGS	= "${SDK_CROSS_CFLAGS}"
 HOST_EXEEXT		= "${SDK_EXEEXT}"
 HOST_PREFIX		= "${SDK_PREFIX}"
 HOST_CPPFLAGS		= "${SDK_CPPFLAGS}"
