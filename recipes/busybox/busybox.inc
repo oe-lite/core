@@ -33,19 +33,20 @@ SRC_URI_append = "\
 	file://resolv.conf \
 	file://ntpd.sh \
 	file://shutdown.sh \
+	file://groups \
 	"
 
 PACKAGES =+ "${PN}-inetd ${PN}-syslogd ${PN}-crond ${PN}-httpd ${PN}-udhcpd ${PN}-hwclock ${PN}-mdev ${PN}-ntpd ${PN}-shutdown"
 
 RDEPENDS_${PN} = "base-files ${TARGET_CROSS}-toolchain-sysroot"
 
-FILES_${PN}-inetd = "${sysconfdir}/init.d/inetd.sh ${sysconfdir}/inetd.conf"
+FILES_${PN}-inetd = "${sysconfdir}/init.d/inetd.sh ${sysconfdir}/inetd.conf ${sysconfdir}/rcS.d/S26inetd.sh"
 FILES_${PN}-crond = "${sysconfdir}/init.d/busybox-crond"
-FILES_${PN}-syslogd = "${sysconfdir}/init.d/syslogd.sh"
+FILES_${PN}-syslogd = "${sysconfdir}/init.d/syslogd.sh ${sysconfdir}/rcS.d/S21syslogd.sh"
 FILES_${PN}-httpd = "${sysconfdir}/init.d/busybox-httpd /srv/www"
 FILES_${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
-FILES_${PN}-hwclock = "${sysconfdir}/init.d/hwclock"
-FILES_${PN}-mdev = "${sysconfdir}/init.d/busybox-mdev ${sysconfdir}/mdev.conf"
+FILES_${PN}-hwclock = "${sysconfdir}/init.d/hwclock ${sysconfdir}/rcS.d/S15hwclock.sh ${sysconfdir}/rc0.d/K15hwclock.sh"
+FILES_${PN}-mdev = "${sysconfdir}/init.d/busybox-mdev ${sysconfdir}/mdev.conf ${sysconfdir}/rcS.d/S10busybox-mdev"
 FILES_${PN}-ntpd = "${sysconfdir}/init.d/ntpd.sh"
 FILES_${PN}-shutdown = "${sysconfdir}/init.d/shutdown.sh"
 
@@ -155,6 +156,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/default
 	install -m 755 ${WORKDIR}/rcS-default ${D}${sysconfdir}/default/rcS
 	install -m 644 ${WORKDIR}/resolv.conf ${D}${sysconfdir}/
+	install -m 0755 ${WORKDIR}/groups ${D}${bindir}/
 }
 
 pkg_postinst_${PN} () {

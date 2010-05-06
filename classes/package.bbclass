@@ -313,7 +313,7 @@ python package_populate () {
 		del localdata
 
 	unshipped = []
-	for root, dirs, files in os.walk(ddir):
+	for root, dirs, files in os.walk(ddir + '/'):
 		for f in files:
 			path = os.path.join(root[len(ddir):], f)
 			if ('.' + path) not in seen:

@@ -1,8 +1,7 @@
 require busybox.inc
-INC_PR = ".1"
+INC_PR = ".2"
 
 SRC_URI = "http://www.busybox.net/downloads/busybox-${PV}.tar.bz2 \
-	   file://tftpd-fix-file-creation-with-bogus-mode.patch;patch=1 \
 	  "
 
 # deif defconfig depends on mtd-utils to build
@@ -27,3 +26,5 @@ do_install_append_deif () {
 /sbin/depmod
 EOT
 }
+RPROVIDES_${PN} += "update-modules"
+PROVIDES_${PN} += "update-modules"
