@@ -26,15 +26,8 @@ startup() {
   esac
 }
 
-# Make sure that /proc and /sys and /tmp is mounted.
-[ -d /proc ] || mkdir /proc
-[ -d /sys ] || mkdir /sys
-[ -d /tmp ] || mkdir /tmp
-[ -d /var/run ] || mkdir -p /var/run
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t tmpfs tmpfs /tmp
-mount -t tmpfs tmpfs /var/run
+# Mount filesystems in fstab
+mount -a
 
 # Turn on service LED
 #echo 255 > /sys/class/leds/led7:green:service/brightness
