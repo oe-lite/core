@@ -13,3 +13,6 @@ HOST_CPPFLAGS		= "${SDK_CPPFLAGS}"
 HOST_CFLAGS		= "${SDK_CFLAGS}"
 HOST_CXXFLAGS		= "${SDK_CXXFLAGS}"
 HOST_LDFLAGS		= "${SDK_LDFLAGS}"
+
+# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
+OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS} --target=${TARGET_CROSS}"

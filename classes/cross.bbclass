@@ -20,6 +20,9 @@ HOST_CFLAGS		= "${BUILD_CFLAGS}"
 HOST_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 
+# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
+OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS} --target=${TARGET_CROSS}"
+
 # Use the stage_* path variables
 base_prefix		= "${stage_base_prefix}"
 prefix			= "${stage_prefix}"

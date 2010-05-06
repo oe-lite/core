@@ -103,14 +103,10 @@ def base_arch_config_guess(d):
     import bb, os
     script = base_arch_find_script(d, 'config.guess')
     try:
-        guess = os.popen(script).readline().strip()
+        return os.popen(script).readline().strip()
     except OSError, e:
         bb.fatal('config.guess failed: '+e)
         return None
-    (guess_cpu, guess_vendor, guess_opsys) = base_arch_split(guess)
-    if guess_vendor == 'unknown':
-        guess = base_arch_config_sub(d, '%s-%s'%(guess_cpu, guess_opsys))
-    return guess
 
 
 def base_arch_config_sub(d, arch):

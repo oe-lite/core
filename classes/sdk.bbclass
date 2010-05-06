@@ -25,7 +25,6 @@ TARGET_CFLAGS		= "${SDK_CFLAGS}"
 TARGET_CXXFLAGS		= "${SDK_CXXFLAGS}"
 TARGET_LDFLAGS		= "${SDK_LDFLAGS}"
 
-
 do_install () {
 	:
 }
