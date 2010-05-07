@@ -16,14 +16,7 @@ RDEPENDS = "\
 	memtester \
 	mempattern \
 	linux-deif-modules \
-	kernel-module-mtd-speedtest \
-	kernel-module-mtd-stresstest \
-	kernel-module-mtd-readtest \
-	kernel-module-mtd-pagetest \
-	kernel-module-mtd-oobtest \
-	kernel-module-mtd-subpagetest \
-	kernel-module-mtd-torturetest \
-	kernel-module-mtd-pattern \
+	kernel-module-mtd-test \
 	kernel-module-mmc-test \
 	netbase \
 	dupdate \

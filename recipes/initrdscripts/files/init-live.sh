@@ -5,9 +5,6 @@ SERVICE_MODE=0
 ROOT_MOUNT=/rootfs
 
 early_setup() {
-    mkdir /proc
-    mkdir /sys
-    mkdir /tmp
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
     mount -t tmpfs tmpfs /tmp
@@ -20,9 +17,6 @@ undo_setup() {
     umount /tmp
     umount /sys
     umount /proc
-    rm -r /proc
-    rm -r /sys
-    rm -r /tmp
 }
 
 read_args() {
