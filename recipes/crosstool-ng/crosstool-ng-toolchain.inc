@@ -70,10 +70,14 @@ INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
 PROVIDES_${PN}_append_bbclassextend-cross		+= "${TARGET_CROSS}-toolchain"
 PROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
 RPROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
+PROVIDES_${PN}-sysroot-base_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot-base"
+RPROVIDES_${PN}-sysroot-base_append_bbclassextend-cross	+= "${TARGET_CROSS}-toolchain-sysroot-base"
 
 PROVIDES_${PN}_append_bbclassextend-sdk-cross		+= "${TARGET_CROSS}-toolchain"
 PROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
 RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot"
+PROVIDES_${PN}-sysroot-base_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot-base"
+RPROVIDES_${PN}-sysroot-base_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolchain-sysroot-base"
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
@@ -199,13 +203,14 @@ do_install[cleandirs] = ""
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
 SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-base ${PN}-sysroot-extra"
 
-SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-extra"
+SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-base ${PN}-sysroot-extra"
 SYSROOT_DEPENDS_bbclassextend-canadian-cross = ""
 
 DEPENDS_${PN} += "${SYSROOT_DEPENDS}"
 DEPENDS_${PN}-sysroot-dev = "${PN}-sysroot"
 
-RDEPENDS_${PN}-sysroot-extra	= "${PN}-sysroot"
+RDEPENDS_${PN}-sysroot-extra	= "${PN}-sysroot-base"
+RDEPENDS_${PN}-sysroot-base	= "${PN}-sysroot"
 RDEPENDS_${PN}-sysroot-locale	= "${PN}-sysroot"
 RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
 
@@ -221,6 +226,7 @@ ${base_prefix}/${TARGET_CROSS}/lib \
 
 FILES_${PN}_append_bbclassextend-canadian-cross = "\
 ${FILES_${PN}-sysroot} \
+${FILES_${PN}-sysroot-base} \
 ${FILES_${PN}-sysroot-dev} \
 ${FILES_${PN}-sysroot-extra} \
 "
