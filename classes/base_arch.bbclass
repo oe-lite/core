@@ -32,13 +32,19 @@ def base_arch_cross_cflags(d, arch):
     elif cpu == 'powerpc':
         cflags = ''
         if vendor == 'e300c1':
-            return '-march=603e -mhard-float'
+            return '-mcpu=603e -mhard-float'
         if vendor == 'e300c2':
-            return '-march=%s -msoft-float'%vendor
+            gcc=bb.data.getVar('CT_CC_VERSION',d,True).split('.')
+	    if int(gcc[0]) < 4 or (int(gcc[0]) == 4 and int(gcc[1]) < 4):
+                vendor = '603e'
+            return '-mcpu=%s -msoft-float'%vendor
         if vendor == 'e300c3':
-            return '-march=%s -mhard-float'%vendor
+            gcc=bb.data.getVar('CT_CC_VERSION',d,True).split('.')
+	    if int(gcc[0]) < 4 or (int(gcc[0]) == 4 and int(gcc[1]) < 4):
+                vendor = '603e'
+            return '-mcpu=%s -mhard-float'%vendor
         if vendor == 'e300c4':
-            return '-march=603e -mhard-float'
+            return '-mcpu=603e -mhard-float'
     return ''
 
 

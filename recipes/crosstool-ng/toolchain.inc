@@ -1,5 +1,15 @@
 PR = "r3"
 
+FILESPATH=${@base_set_filespath([\
+	"${FILE_DIRNAME}/${PF}",\
+	"${FILE_DIRNAME}/${P}",\
+	"${FILE_DIRNAME}/${PN}",\
+	"${FILE_DIRNAME}/crosstool-ng-${PV}",\
+	"${FILE_DIRNAME}/crosstool-ng",\
+	"${FILE_DIRNAME}/files",\
+], d)}
+
+
 S = "${WORKDIR}/build"
 B = "${S}"
 
@@ -78,9 +88,28 @@ RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_CROSS}-toolc
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
+_CT_KERNEL_VERSION	= "CT_KERNEL_V_"
+_CT_BINUTILS_VERSION	= "CT_BINUTILS_V_"
+_CT_CC_VERSION		= "CT_CC_V_"
+_CT_LIBC_VERSION	= "CT_LIBC_V_"
+_CT_GDB_VERSION		= "CT_GDB_V_"
+_CT_GMP_VERSION		= "CT_GMP_V_"
+_CT_MPFR_VERSION	= "CT_MPFR_V_"
+
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${WORKDIR}"
 do_mangle () {
+
+	ct_kernel_version=${_CT_KERNEL_VERSION}`echo ${CT_KERNEL_VERSION}|tr . _`
+	ct_binutils_version=${_CT_BINUTILS_VERSION}`echo ${CT_BINUTILS_VERSION}|tr . _`
+	ct_cc_version=${_CT_CC_VERSION}`echo ${CT_CC_VERSION}|tr . _`
+	ct_libc_version=${_CT_LIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`
+	ct_gdb_version=${_CT_GDB_VERSION}`echo ${CT_GDB_VERSION}|tr . _`
+	ct_gmp_version=${_CT_GMP_VERSION}`echo ${CT_GMP_VERSION}|tr . _`
+	ct_mpfr_version=${_CT_MPFR_VERSION}`echo ${CT_MPFR_VERSION}|tr . _`
+	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version
+	echo ct_kernel_version=$ct_kernel_version
+
 	cat ${DEFCONFIG_COMMON} ${DEFCONFIG_CPU} ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
@@ -91,14 +120,14 @@ do_mangle () {
 	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
 	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${@base_arch_vendor('${TARGET_CROSS}')}"%' \
 	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
-    	    -e 's%# \(${CT_KERNEL_VERSION}\) is not set%\1=y%' \
-	    -e 's%# \(${CT_BINUTILS_VERSION}\) is not set%\1=y%' \
-	    -e 's%# \(${CT_CC_VERSION}\) is not set%\1=y%' \
-	    -e 's%# \(${CT_LIBC_VERSION}\) is not set%\1=y%' \
-    	    -e 's%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%' \
-	    -e 's%# \(${CT_GDB_VERSION}\) is not set%\1=y%' \
-	    -e 's%# \(${CT_GMP_VERSION}\) is not set%\1=y%' \
-	    -e 's%# \(${CT_MPFR_VERSION}\) is not set%\1=y%' \
+    	    -e "s%# \($ct_kernel_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_binutils_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_cc_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_libc_version\) is not set%\1=y%" \
+    	    -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%" \
+	    -e "s%# \($ct_gdb_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_gmp_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_mpfr_version\) is not set%\1=y%" \
     	> defconfig
 }
 
@@ -310,6 +339,7 @@ packages_install_sysroot_mangle () {
 			mv $pkg/${TARGET_CROSS}/sys-root/* $pkg/
 			rmdir $pkg/${TARGET_CROSS}/sys-root
 		fi
+		rm $pkg/${TARGET_CROSS}/include || true
 		if [ -d $pkg/${TARGET_CROSS}/include ] ; then
 			mkdir -p $pkg/usr/include
 			mv $pkg/${TARGET_CROSS}/include/* $pkg/usr/include/
