@@ -16,7 +16,7 @@
 # If 'what' doesn't exist then an empty value is returned
 #
 def get_siteinfo_list(d):
-       target = bb.data.getVar('HOST_CROSS', d, 1)
+       target = bb.data.getVar('HOST_ARCH', d, 1)
 
        targetinfo = {\
               "powerpc-unknown-linux-gnu": "endian-big bit-32 common-linux common-glibc powerpc-common",\

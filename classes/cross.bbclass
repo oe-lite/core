@@ -1,6 +1,6 @@
 RECIPE_TYPE			 = "cross"
 #
-RECIPE_ARCH			 = "cross/${TARGET_CROSS}"
+RECIPE_ARCH			 = "cross/${TARGET_ARCH}"
 RECIPE_ARCH_MACHINE		 = ""
 
 # Default packages is stage (cross) packages
@@ -11,17 +11,19 @@ RPROVIDES_${PN}		 = ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
-HOST_CROSS		= "${BUILD_CROSS}"
-HOST_CROSS_CFLAGS	= "${BUILD_CROSS_CFLAGS}"
+HOST_CPUTYPE		= "${BUILD_CPUTYPE}"
+HOST_FPU		= "${BUILD_FPU}"
+HOST_CFLAGS		= "${BUILD_CFLAGS}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"
 HOST_PREFIX		= "${BUILD_PREFIX}"
 HOST_CPPFLAGS		= "${BUILD_CPPFLAGS}"
+HOST_OPTIMIZATION	= "${BUILD_OPTIMIZATION}"
 HOST_CFLAGS		= "${BUILD_CFLAGS}"
 HOST_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 
 # Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
-OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS} --target=${TARGET_CROSS}"
+OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH} --target=${TARGET_ARCH}"
 
 # Use the stage_* path variables
 base_prefix		= "${stage_base_prefix}"
@@ -69,7 +71,7 @@ python __anonymous () {
                 sysroot = 'sdk'
             else:
                 sysroot = 'machine'
-            bb.data.setVar('PACKAGE_ARCH_%s'%pkg, '%s/${TARGET_CROSS}'%(sysroot), d)
+            bb.data.setVar('PACKAGE_ARCH_%s'%pkg, '%s/${TARGET_ARCH}'%(sysroot), d)
 }
 
 FIXUP_RPROVIDES = cross_fixup_rprovides

@@ -1,6 +1,6 @@
 inherit linux-kernel-base
 
-DEPENDS += "${TARGET_CROSS}-toolchain update-modules"
+DEPENDS += "${TARGET_ARCH}-toolchain update-modules"
 #virtual/${TARGET_PREFIX}depmod-${@get_kernelmajorversion('${PV}')} virtual/${TARGET_PREFIX}gcc${KERNEL_CCSUFFIX} 
 # we include gcc above, we dont need virtual/libc
 INHIBIT_DEFAULT_DEPS = "1"

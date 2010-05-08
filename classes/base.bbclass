@@ -26,12 +26,10 @@ def base_dep_prepend(d):
             build_arch = bb.data.getVar('BUILD_ARCH', d, 1)
             host_arch = bb.data.getVar('HOST_ARCH', d, 1)
             target_arch = bb.data.getVar('TARGET_ARCH', d, 1)
-            host_cross = bb.data.getVar('HOST_CROSS', d, 1)
-            target_cross = bb.data.getVar('TARGET_CROSS', d, 1)
             if host_arch != build_arch:
-                deps += " ${HOST_CROSS}-toolchain "
-            if target_arch != build_arch and target_cross != host_cross:
-                deps += " ${TARGET_CROSS}-toolchain "
+                deps += " ${HOST_ARCH}-toolchain "
+            if target_arch != host_arch and target_arch != build_arch:
+                deps += " ${TARGET_ARCH}-toolchain "
 
         return deps
 

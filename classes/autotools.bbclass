@@ -38,7 +38,7 @@ def autotools_set_crosscompiling(d):
 # EXTRA_OECONF_append = "${@autotools_set_crosscompiling(d)}"
 
 # Arch tuple arguments for configure
-OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS}"
+OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH}"
 
 oe_runconf () {
 	if [ -x ${S}/configure ] ; then
