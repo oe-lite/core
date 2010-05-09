@@ -141,6 +141,38 @@ def base_arch_cflags(d, arch):
     return 'UNSUPPORTED_CPUFAMILY'
 
 
+def base_arch_endianness(d, arch):
+    import bb
+    if type(arch) is str:
+        arch = arch.split('-')
+
+    if arch[0] in ('i386', 'i486', 'i586', 'i686', 'i786', 'x86_64',
+                   'arm', 'bfin', 'ia64', 'mipsel', 'sh3', 'sh4'):
+        return 'le'
+
+    if arch[0] in ('powerpc', 'powerpc64', 'armeb', 'avr32', 'mips', 'sparc'):
+        return 'be'
+
+    return 'UNKNOWN_ENDIANNESS'
+
+
+
+def base_arch_wordsize(d, arch):
+    import bb
+    if type(arch) is str:
+        arch = arch.split('-')
+
+    if arch[0] in ('i386', 'i486', 'i586', 'i686', 'i786', 'powerpc',
+                   'arm', 'bfin', 'mipsel', 'sh3', 'sh4', 'armeb',
+                   'avr32', 'mips', 'sparc'):
+        return '32'
+
+    if arch[0] in ('x86_64', 'powerpc64', 'ia64'):
+        return '64'
+
+    return 'UNKNOWN_WORDSIZE'
+
+
 def base_arch_exeext(d, arch):
     import bb
     gnu_arch = base_arch_config_sub(d, arch)

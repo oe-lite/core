@@ -1,110 +1,96 @@
-# This class exists to provide information about the targets that
-# may be needed by other classes and/or recipes. If you add a new
-# target this will probably need to be updated.
+# BitBake class to handle CONFIG_SITE variable for GNU Autoconf configure scripts.
+# Leverage base_arch.bbclass as much as possible.
+
+# Recipes that need to query architecture specific knowledge, such as
+# endianness or word size should use functions provided by
+# base_arch.bbclass, as this class is only related to actual
+# CONFIG_SITE handling.
+
+# Export CONFIG_SITE to the enviroment. Autoconf generated configure
+# scripts will make use of this to determine where to load in
+# variables from. This is a space seperate list of shell scripts
+# processed in the order listed.
+export CONFIG_SITE = "${HOST_CONFIG_SITE}"
+
+BUILD_CONFIG_SITE	= "${@siteinfo_search(d,'${BUILD_SITEFILES}')}"
+HOST_CONFIG_SITE	= "${@siteinfo_search(d,'${HOST_SITEFILES}')}"
+TARGET_CONFIG_SITE	= "${@siteinfo_search(d,'${TARGET_SITEFILES}')}"
+
+BUILD_SITEFILES		= "common\
+ ${@'${BUILD_OS}'.split('-')[0]}\
+ ${BUILD_OS}\
+ ${BUILD_CPU}\
+ ${BUILD_CPU}-${BUILD_VENDOR}\
+ ${BUILD_CPU}-${BUILD_OS}\
+ bit-${BUILD_WORDSIZE}\
+ endian-${BUILD_ENDIAN}\
+"
+
+HOST_SITEFILES		= "common\
+ ${@'${HOST_OS}'.split('-')[0]}\
+ ${HOST_OS}\
+ ${HOST_CPU}\
+ ${HOST_CPU}-${HOST_VENDOR}\
+ ${HOST_CPU}-${HOST_OS}\
+ bit-${HOST_WORDSIZE}\
+ endian-${HOST_ENDIAN}\
+"
+
+TARGET_SITEFILES		= "common\
+ ${@'${TARGET_OS}'.split('-')[0]}\
+ ${TARGET_OS}\
+ ${TARGET_CPU}\
+ ${TARGET_CPU}-${TARGET_VENDOR}\
+ ${TARGET_CPU}-${TARGET_OS}\
+ bit-${TARGET_WORDSIZE}\
+ endian-${TARGET_ENDIAN}\
+"
 
 #
-# Returns information about 'what' for the named target 'target'
-# where 'target' == "<arch>-<os>"
+# Return list of sitefiles found by searching for sitefiles in the
+# following directories:
 #
-# 'what' can be one of
-# * target: Returns the target name ("<arch>-<os>")
-# * endianess: Return "be" for big endian targets, "le" for little endian
-# * bits: Returns the bit size of the target, either "32" or "64"
-# * libc: Returns the name of the c library used by the target
+# 1) ${BBPATH}/site
+# 2) ${FILE_DIRNAME}/site
+# 3) ${FILE_DIRNAME}/site-${PV}
 #
-# It is an error for the target not to exist.
-# If 'what' doesn't exist then an empty value is returned
+# The app and version specific sitefiles can thus override the app
+# specific and site wide sitefiles, and the app specific sitefiles can
+# override the site wide sitefiles.
 #
-def get_siteinfo_list(d):
-       target = bb.data.getVar('HOST_ARCH', d, 1)
-
-       targetinfo = {\
-              "powerpc-unknown-linux-gnu": "endian-big bit-32 common-linux common-glibc powerpc-common",\
-              "powerpc-fpu-linux-gnu": "endian-big bit-32 common-linux common-glibc powerpc-common",\
-              "powerpc-nofpu-linux-gnu": "endian-big bit-32 common-linux common-glibc powerpc-common",\
-              "x86_64-unknown-linux-gnu":  "endian-little bit-64 common-linux common-glibc",\
-              "x86_64-pc-linux-gnu":       "endian-little bit-64 common-linux common-glibc",\
-              "i386-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
-              "i486-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
-              "i586-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
-              "i686-pc-mingw32":           "endian-little bit-32 common-mingw ix86-common",\
-              }
-       if target in targetinfo:
-               info = targetinfo[target].split()
-               info.append(target)
-               info.append("common")
-               return info
-       else:
-               bb.error("Information not available for target '%s'" % target)
-
-
+# TODO: could be extended with searching in stage dir, so build
+# dependencies could provide sitefiles instead of piling everything
+# into common files.  When building for MACHINE_ARCH, search for
+# sitefiles in stage/machine/usr/share/config.site/* and each build
+# dependency should then install their files into it's own config.site
+# subdir.
 #
-# Define which site files to use. We check for several site files and
-# use each one that is found, based on the list returned by get_siteinfo_list()
+# TODO: could also be extended to search in site-${PN} and site-${P}
+# if needed, but will obviosly require even more file stat'ing, so
+# let's wait until the need for this is demonstrated
 #
-# Search for the files in the following directories:
-# 1) ${BBPATH}/site (in reverse) - app specific, then site wide
-# 2) ${FILE_DIRNAME}/site-${PV}         - app version specific
-#
-def siteinfo_get_files(d):
-       import bb, os
+def siteinfo_search(d, sitefiles):
+    import bb, os
+    found = []
+    sitefiles = sitefiles.split()
+    bbpath = bb.data.getVar('BBPATH', d, True) or ''
+    file_dirname = bb.data.getVar('FILE_DIRNAME', d, True)
+    pv = bb.data.getVar('PV', d, True)
 
-       sitefiles = ""
+    def siteinfo_search_dir(path, found):
+        for filename in sitefiles:
+            filepath = os.path.join(path, 'site', filename)
+            if filepath not in found and os.path.exists(filepath):
+                found.append(filepath)
 
-       # Determine which site files to look for
-       sites = get_siteinfo_list(d)
-       sites.append("common");
+    # 1) ${BBPATH}/site
+    for path in bbpath.split(':'):
+        siteinfo_search_dir(path, found)
 
-       # Check along bbpath for site files and append in reverse order so
-       # the application specific sites files are last and system site
-       # files first.
-       path_bb = bb.data.getVar('BBPATH', d, 1)
-       for p in (path_bb or "").split(':'):
-               tmp = ""
-               for i in sites:
-                       fname = os.path.join(p, 'site', i)
-                       if os.path.exists(fname):
-                               tmp += fname + " "
-               sitefiles = tmp + sitefiles;
+    # 2) ${FILE_DIRNAME}/site
+    siteinfo_search_dir(os.path.join(file_dirname, 'site'), found)
 
-       # Now check for the applications version specific site files
-       path_pkgv = os.path.join(bb.data.getVar('FILE_DIRNAME', d, 1), "site-" + bb.data.getVar('PV', d, 1))
-       for i in sites:
-               fname = os.path.join(path_pkgv, i)
-               if os.path.exists(fname):
-                       sitefiles += fname + " "
+    # 3) ${FILE_DIRNAME}/site-${PV}
+    siteinfo_search_dir(os.path.join(file_dirname, 'site-' + pv), found)
 
-       bb.debug(1, "SITE files " + sitefiles);
-       return sitefiles
-
-#
-# Export CONFIG_SITE to the enviroment. The autotools will make use
-# of this to determine where to load in variables from. This is a
-# space seperate list of shell scripts processed in the order listed.
-#
-export CONFIG_SITE = "${@siteinfo_get_files(d)}"
-
-
-def siteinfo_get_endianess(d):
-       info = get_siteinfo_list(d)
-       if 'endian-little' in info:
-              return "le"
-       elif 'endian-big' in info:
-              return "be"
-       bb.error("Site info could not determine endianess for target")
-
-def siteinfo_get_bits(d):
-       info = get_siteinfo_list(d)
-       if 'bit-32' in info:
-              return "32"
-       elif 'bit-64' in info:
-              return "64"
-       bb.error("Site info could not determine bit size for target")
-
-#
-# Make some information available via variables
-#
-SITEINFO_ENDIANESS  = "${@siteinfo_get_endianess(d)}"
-SITEINFO_BITS       = "${@siteinfo_get_bits(d)}"
-
-
+    return ' '.join(found)
