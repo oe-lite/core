@@ -1,5 +1,9 @@
 DEPENDS_prepend += "makedevs-native"
 
+IMAGE_FILE = "${PN}-${EPV}-${MACHINE}-${DATETIME}${IMAGE_EXT}"
+IMAGE_SYMLINK_FILE = "${PN}-${MACHINE}${IMAGE_EXT}"
+FILES_${PN} = "/${IMAGE_FILE}"
+
 makedevs_files() {
     if [ -d ${1}/${devtable} ]; then
         find ${1}/${devtable}/ -type f -print0 | xargs -r0 -n1 makedevs -r ${1} -D
@@ -19,6 +23,7 @@ do_image_build[dirs] = "${IMAGE_DEPLOY_DIR} ${FILES_DIR}"
 
 do_image_deploy() {
     cp -f ${D}/${IMAGE_FILE}  ${IMAGE_DEPLOY_DIR}
+    ln -fs ${IMAGE_DEPLOY_DIR}/${IMAGE_FILE} ${IMAGE_DEPLOY_DIR}/${IMAGE_SYMLINK_FILE}
 }
 EXPORT_FUNCTIONS do_image_deploy
 addtask image_deploy before do_package_install after do_image_build

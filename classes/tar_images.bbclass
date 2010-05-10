@@ -4,8 +4,6 @@ inherit images
 IMAGE_EXT = '.tar'
 
 create_image() {
-	cd $1 \
-	&& sha256sum * > sha256sum.txt \
-	&& tar chf $2 . \
+	tar -C $1 -f $2 . \
 	|| return 1
 }
