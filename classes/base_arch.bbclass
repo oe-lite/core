@@ -36,7 +36,7 @@ def base_arch_cross_cflags(d, arch):
         if vendor == 'e300c2':
             return '-march=%s -msoft-float'%vendor
         if vendor == 'e300c3':
-            return '-march=%s -mhard-float'%vendor
+            return '-mhard-float'
         if vendor == 'e300c4':
             return '-march=603e -mhard-float'
     return ''
