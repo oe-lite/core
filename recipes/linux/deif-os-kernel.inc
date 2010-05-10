@@ -46,9 +46,9 @@ do_install_prepend () {
 do_install_append () {
 	mv ${S}/.config.bak ${S}/.config
 	install -m 0644 ${S}/arch/${ARCH}/boot/${KERNEL_IMAGETYPE} \
-		${D}/${KERNEL_IMAGE_SYMLINK_NAME}.bin
+		${D}/${KERNEL_IMAGE_BASE_NAME}.bin
 	install -m 0644 ${S}/arch/${ARCH}/boot/${MACHINE}.dtb \
-		${D}/${DTBFILE_SYMLINK_NAME}.bin
+		${D}/${DTBFILE_BASE_NAME}.bin
 }
 
 
