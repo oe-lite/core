@@ -10,11 +10,8 @@ RDEPENDS_${PN}-dev 	= ""
 
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"
-HOST_CPU		= "${BUILD_CPU}"
-HOST_OS			= "${BUILD_OS}"
-HOST_CPU_CROSS		= "${BUILD_CPU_CROSS}"
 HOST_CROSS		= "${BUILD_CROSS}"
-HOST_CC_ARCH		= "${BUILD_CC_ARCH}"
+HOST_CROSS_CFLAGS	= "${BUILD_CROSS_CFLAGS}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"
 HOST_PREFIX		= "${BUILD_PREFIX}"
 HOST_CPPFLAGS		= "${BUILD_CPPFLAGS}"
@@ -24,18 +21,17 @@ HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 
 # and target=build for architecture triplet build/build/build
 TARGET_ARCH		= "${BUILD_ARCH}"
-TARGET_CPU		= "${BUILD_CPU}"
-TARGET_OS		= "${BUILD_OS}"
-TARGET_CPU_CROSS	= "${BUILD_CPU_CROSS}"
 TARGET_CROSS		= "${BUILD_CROSS}"
-TARGET_CC_ARCH		= "${BUILD_CC_ARCH}"
+TARGET_CROSS_CFLAGS	= "${BUILD_CROSS_CFLAGS}"
 TARGET_EXEEXT		= "${BUILD_EXEEXT}"
 TARGET_PREFIX		= "${BUILD_PREFIX}"
 TARGET_CPPFLAGS		= "${BUILD_CPPFLAGS}"
 TARGET_CFLAGS		= "${BUILD_CFLAGS}"
 TARGET_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 TARGET_LDFLAGS		= "${BUILD_LDFLAGS}"
-CROSS                   = ""
+
+# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
+OECONF_ARCHTUPLE = "--build=${BUILD_CROSS}"
 
 # Use the stage_* path variables
 base_prefix		= "${stage_base_prefix}"

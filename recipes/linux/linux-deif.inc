@@ -10,7 +10,7 @@ do_install_append () {
 SRC_URI += "file://kernel-modules"
 FILES_${PN}-modules = "${sysconfdir}/init.d/kernel-modules ${sysconfdir}/rcS.d/S11kernel-modules"
 
-PACKAGES += "${PN} ${PN}-modules"
+PACKAGES += "${PN}-modules ${PN}"
 
 # kernel modules
 PACKAGES += "\
@@ -38,9 +38,7 @@ FILES_kernel-module-extra = "${base_libdir}/modules/${PV}/kernel"
 RDEPENDS_${PN}-modules = "\
 kernel-module-i2c \
 kernel-module-mmc \
-kernel-module-mmc-test \
 kernel-module-mtd \
-kernel-module-mtd-test \
 kernel-module-rtc \
 kernel-module-spi \
 kernel-module-fs \

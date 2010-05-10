@@ -11,13 +11,17 @@ RPROVIDES_${PN}		 = ""
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
-HOST_CPU		= "${BUILD_CPU}"
-HOST_OS			= "${BUILD_OS}"
-HOST_CPU_CROSS		= "${BUILD_CPU_CROSS}"
 HOST_CROSS		= "${BUILD_CROSS}"
-HOST_CC_ARCH		= "${BUILD_CC_ARCH}"
+HOST_CROSS_CFLAGS	= "${BUILD_CROSS_CFLAGS}"
 HOST_EXEEXT		= "${BUILD_EXEEXT}"
 HOST_PREFIX		= "${BUILD_PREFIX}"
+HOST_CPPFLAGS		= "${BUILD_CPPFLAGS}"
+HOST_CFLAGS		= "${BUILD_CFLAGS}"
+HOST_CXXFLAGS		= "${BUILD_CXXFLAGS}"
+HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
+
+# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
+OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS} --target=${TARGET_CROSS}"
 
 # Use the stage_* path variables
 base_prefix		= "${stage_base_prefix}"

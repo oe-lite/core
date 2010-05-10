@@ -1,7 +1,7 @@
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
 
-PATH="/usr/local/bin:/usr/bin:/bin"
+PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
 EDITOR="/bin/vi"		# Needed for packages like cron
 test -z "$TERM" && TERM="vt100"	# Basic terminal capab. For screen etc.
 
@@ -9,15 +9,6 @@ if [ ! -e /etc/localtime ]; then
 	TZ="UTC"		# Time Zone. Look at http://theory.uwinnipeg.ca/gnu/glibc/libc_303.html 
 				# for an explanation of how to set this to your local timezone.
 	export TZ
-fi
-
-if [ "`id -u`" -eq 0 ]; then
-   PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
-fi
-
-if [ "$PS1" ]; then
-# Works for bash and ash (no other shells known to be in use here)
-   PS1='\u@\h:\w\$ '
 fi
 
 if [ -d /etc/profile.d ]; then
@@ -29,7 +20,6 @@ if [ -d /etc/profile.d ]; then
   unset i
 fi
 
-export PATH PS1 OPIEDIR QPEDIR QTDIR EDITOR TERM
+export PATH EDITOR TERM
 
 umask 022
-

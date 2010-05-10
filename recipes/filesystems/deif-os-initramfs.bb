@@ -19,10 +19,4 @@ RDEPENDS = "\
 	dropbear dropbear-host-key \
 	netbase \
 	dupdate \
-	performance-test-suite \
 	"
-
-#	ethtool \
-#	deif-u-boot-setenv \
-#	linux-perf-tool \
-

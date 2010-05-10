@@ -141,10 +141,13 @@ def runstrip(file, d):
 
     strip = bb.data.getVar("STRIP", d, True)
     if not len(strip) >0:
-	    bb.error("runstrip: STRIP var empty")
+	    bb.debug(1,"runstrip: STRIP var empty")
 	    return 0
 
     objcopy = bb.data.getVar("OBJCOPY", d, True)
+    if not len(objcopy) >0:
+	    bb.debug(1,"runstrip: OBJCOPY var empty")
+	    return 0
 
     newmode = None
     if not os.access(file, os.W_OK):
@@ -1012,7 +1015,7 @@ python target_package_strip () {
             return 0
         return (s[stat.ST_MODE] & stat.S_IEXEC)
 
-    dvar = bb.data.getVar('PKGD', d, True)
+    dvar = bb.data.getVar('PKGD_TARGET', d, True)
     os.chdir(dvar)
     if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
 	for root, dirs, files in os.walk(dvar):

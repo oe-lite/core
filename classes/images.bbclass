@@ -1,9 +1,9 @@
 DEPENDS_prepend += "makedevs-native"
 
 makedevs_files() {
-    for devtable in ${1}/${devtable}/*; do
-        makedevs -r ${1} -D $devtable
-    done
+    if [ -d ${1}/${devtable} ]; then
+        find ${1}/${devtable}/ -type f -print0 | xargs -r0 -n1 makedevs -r ${1} -D
+    fi
 }
 
 fakeroot do_image_build() {

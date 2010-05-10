@@ -15,12 +15,13 @@ SRC_URI = " \
            file://issue \
            file://dot.bashrc \
            file://device_table-minimal.txt \
+           file://nsswitch.conf \
            file://dot.profile "
 
 # Basic filesystem directories (adheres to FHS)
 dirs1777 = "/tmp \
-	   ${localstatedir}/volatile/lock \
-	   ${localstatedir}/volatile/tmp"
+	   ${localstatedir}/lock \
+	   ${localstatedir}/tmp"
 dirs2775 = "/home \
 	    ${localstatedir}/local"
 dirs755 = "${bindir} \
@@ -42,15 +43,14 @@ dirs755 = "${bindir} \
 	   ${localstatedir}/lib \
 	   ${localstatedir}/lib/misc \
 	   ${localstatedir}/spool \
-	   ${localstatedir}/volatile \
-	   ${localstatedir}/volatile/cache \
-	   ${localstatedir}/volatile/lock/subsys \
-	   ${localstatedir}/volatile/log \
-	   ${localstatedir}/volatile/run \
+	   ${localstatedir}/cache \
+	   ${localstatedir}/log \
+	   ${localstatedir}/run \
 	   /sys \
 	   /boot \
 	   /dev \
 	   /dev/pts \
+	   /dev/shm \
 	   /mnt \
 	   /proc \
 	   /root \
@@ -61,8 +61,6 @@ dirs755 = "${bindir} \
 	   /media/net \
 	   /media/ram \
 	   /media/hdd "
-
-volatiles = "cache run log lock tmp"
 
 FILES_${PN} = "/"
 
@@ -78,11 +76,6 @@ do_install () {
 	done
 	for d in ${dirs2775}; do
 		install -m 2755 -d ${D}$d
-	done
-	for d in ${volatiles}; do
-                if [ -d ${D}${localstatedir}/volatile/$d ]; then
-                        ln -sf volatile/$d ${D}/${localstatedir}/$d
-                fi
 	done
 
 	# Install files
@@ -106,6 +99,7 @@ do_install () {
         install -m 0755 ${WORKDIR}/dot.bashrc ${D}${sysconfdir}/skel/.bashrc
         install -m 0644 ${WORKDIR}/motd ${D}${sysconfdir}/motd
         install -m 0644 ${WORKDIR}/host.conf ${D}${sysconfdir}/host.conf
+        install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/
 
         ln -sf /proc/mounts ${D}${sysconfdir}/mtab
 

@@ -32,8 +32,9 @@ PROVIDES = ""
 PACKAGES = "${PN} ${PN}-dtb ${PN}-empty"
 FILES_${PN} = "/${KERNEL_IMAGE_SYMLINK_NAME}.bin"
 FILES_${PN}-dtb = "/${DTBFILE_SYMLINK_NAME}.dtb"
-FILES_${PN}-empty = "/"
+RDEPENDS_${PN}-dtb = "${PN}"
 
+FILES_${PN}-empty = "/"
 
 # trick kernel_do_install() into not installing modules
 do_install_prepend () {
