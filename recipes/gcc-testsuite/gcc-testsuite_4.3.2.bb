@@ -30,22 +30,24 @@ do_configure () {
 	echo "set_board_info username ${DG_TARGET_USERNAME}" >> board.exp
 }
 
-DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${TARGET_SYS}"
+DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${MACHINE_CROSS} GXX_UNDER_TEST=${MACHINE_CROSS}-g++ GCC_UNDER_TEST=${MACHINE_CROSS}-gcc"
 
 do_compile () {
 	# Exclude board config when running gcc compile tests
 	if [ "${DG_TOOLNAME}" == "gcc" ]
 	then
+	        ! echo ${DG_RUN_CMD} ${DG_C_TESTS} > /dev/tty
 		! ${DG_RUN_CMD} ${DG_C_TESTS} > /dev/tty
 	fi
 	# Include board config for g++ runtime tests
 	if [ "$DG_TOOLNAME" == "g++" ]
 	then
+	        ! echo ${DG_RUN_CMD} --target_board board ${DG_CXX_TESTS} > /dev/tty
 		! ${DG_RUN_CMD} --target_board board ${DG_CXX_TESTS} > /dev/tty
 	fi
 }
 
 do_install () {
-	cp ${DG_TOOLNAME}.log ${TMPDIR}/${TARGET_SYS}-${DG_TOOLNAME}-testsuite.log
-	cp ${DG_TOOLNAME}.sum ${TMPDIR}/${TARGET_SYS}-${DG_TOOLNAME}-testsuite.sum
+	cp ${DG_TOOLNAME}.log ${TMPDIR}/${MACHINE_CROSS}-${DG_TOOLNAME}-testsuite.log
+	cp ${DG_TOOLNAME}.sum ${TMPDIR}/${MACHINE_CROSS}-${DG_TOOLNAME}-testsuite.sum
 }
