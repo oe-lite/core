@@ -123,6 +123,11 @@ def base_arch_fpu(d, arch):
     return 0
 
 
+# FIXME
+def base_arch_fputype(d, arch):
+    return 'NOT_IMPLEMENTED_FPUTYPE_YET'
+
+
 def base_arch_cflags(d, arch):
     import bb
     gnu_arch = base_arch_config_sub(d, arch)
