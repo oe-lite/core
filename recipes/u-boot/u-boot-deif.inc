@@ -12,10 +12,6 @@ UBOOT_MACHINE_HEADER_awc500pcm = "awc500pcm.h"
 SRC_URI = "git://dev.doredevelopment.dk/srv/deif/git/u-boot.git;protocol=ssh;tag=${GIT_TAG} "
 
 S = "${WORKDIR}/git"
-PACKAGE_ARCH = "${MACHINE_ARCH}"
-
-UBOOT_IMAGE = "${PN}-${MACHINE}-${PV}-${PR}-${DATETIME}.bin"
-UBOOT_SYMLINK = "${PN}-${MACHINE}.bin"
 
 do_configure_append() {
 	rm -f ${S}/tools/setlocalversion

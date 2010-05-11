@@ -23,7 +23,7 @@ do_image_build[dirs] = "${IMAGE_DEPLOY_DIR} ${FILES_DIR}"
 
 do_image_deploy() {
     cp -f ${D}/${IMAGE_FILE}  ${IMAGE_DEPLOY_DIR}
-    ln -fs ${IMAGE_DEPLOY_DIR}/${IMAGE_FILE} ${IMAGE_DEPLOY_DIR}/${IMAGE_SYMLINK_FILE}
+    ln -fs ${IMAGE_FILE} ${IMAGE_DEPLOY_DIR}/${IMAGE_SYMLINK_FILE}
 }
 EXPORT_FUNCTIONS do_image_deploy
 addtask image_deploy before do_package_install after do_image_build
