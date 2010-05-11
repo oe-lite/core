@@ -156,7 +156,6 @@ def base_arch_endianness(d, arch):
     return 'UNKNOWN_ENDIANNESS'
 
 
-
 def base_arch_wordsize(d, arch):
     import bb
     if type(arch) is str:
@@ -171,6 +170,22 @@ def base_arch_wordsize(d, arch):
         return '64'
 
     return 'UNKNOWN_WORDSIZE'
+
+
+def base_arch_elf(d, arch):
+    import bb
+    gnu_arch = base_arch_config_sub(d, arch)
+
+    if gnu_arch[0] == 'powerpc':
+        return 'PowerPC or cisco 4500'
+
+    if gnu_arch[0] == 'x86_64':
+        return 'x86-64'
+
+    if gnu_arch[0] == 'i386':
+        return 'Intel 80386'
+
+    return 'UNKNOWN_ELF'
 
 
 def base_arch_exeext(d, arch):
