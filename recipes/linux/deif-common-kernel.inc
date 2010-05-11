@@ -19,7 +19,7 @@ EOT
 
 # This recipe only build image files and dtb
 PROVIDES = ""
-PACKAGES = "${PN} ${PN}-dtb ${PN}-empty"
+PACKAGES = "${PN}-dbg ${PN} ${PN}-dtb ${PN}-empty"
 FILES_${PN} = "/${KERNEL_IMAGE_BASE_NAME}.bin"
 FILES_${PN}-dtb = "/${DTBFILE_BASE_NAME}.dtb"
 RDEPENDS_${PN}-dtb = "${PN}"

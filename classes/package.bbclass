@@ -249,6 +249,29 @@ python package_populate () {
 		else:
 			package_list.append(pkg)
 
+	nr_file = 0
+	nr_strip = 0
+	def isexec(path):
+		try:
+		        s = os.stat(path)
+                except (os.error, AttributeError):
+		        return 0
+                return (s[stat.ST_MODE] & stat.S_IEXEC)
+
+
+	os.chdir(ddir)
+	if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
+		for root, dirs, files in os.walk(ddir):
+		        for f in files:
+		                file = os.path.join(root, f)
+				if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+                        		nr_strip += runstrip(file, d)
+                        		nr_file += 1
+
+	bb.note("stripped %d/%d files in %s"
+		%(nr_strip,nr_file,ddir))
+
+
 	# Sanity check RPACKAGES for duplicates.
 	# move to sanity.bbclass once we have the infrastucture
 	if rpackages:
@@ -999,7 +1022,7 @@ EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_bui
 
 TARGET_PACKAGE_FIXUP_FUNCS = "\
 target_package_clone \
-target_package_strip \
+#target_package_strip \
 #target_package_rpath \
 #target_package_shlibs \
 #target_package_pkgconfig \

@@ -200,7 +200,7 @@ do_install_bbclassextend-canadian-cross () {
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
-PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
+PACKAGES	= "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
 SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-base ${PN}-sysroot-extra"
 
 SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-base ${PN}-sysroot-extra"
