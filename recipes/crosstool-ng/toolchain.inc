@@ -40,6 +40,8 @@ CXXFLAGS	= ""
 LDFLAGS		= ""
 LD_LIBRARY_PATH = ""
 
+CONFIG_SITE	= ""
+
 # Try to avoid messing up sys-root paths
 prefix			= ""
 sysroot_prefix		= ""
@@ -106,7 +108,24 @@ _CT_PPL_VERSION		= "CT_PPL_V_"
 _CT_CLOOG_VERSION	= "CT_CLOOG_V_"
 _CT_MPC_VERSION		= "CT_MPC_V_"
 
-TARGET_FPU ?= 0
+CT_ARCH_ARCH		= ""
+CT_ARCH_CPU		= ""
+CT_ARCH_TUNE		= ""
+
+CT_ARCH_ARCH_i386	= "${TARGET_CPUTYPE}"
+CT_ARCH_ARCH_i486	= "${TARGET_CPUTYPE}"
+CT_ARCH_ARCH_i586	= "${TARGET_CPUTYPE}"
+CT_ARCH_ARCH_i686	= "${TARGET_CPUTYPE}"
+CT_ARCH_ARCH_i786	= "${TARGET_CPUTYPE}"
+
+CT_ARCH_ARCH_x86_64	= "${TARGET_CPUTYPE}"
+
+CT_ARCH_CPU_powerpc	= "${TARGET_CPUTYPE}"
+
+# FIXME: need to do something to support both -march and -mcpu, and at
+# the same time handle the fact that config.sub does not suppot armv6,
+# armv7 and more.
+CT_ARCH_CPU_arm		= "${TARGET_CPUTYPE}"
 
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${WORKDIR}"
@@ -136,8 +155,9 @@ do_mangle () {
 	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${TARGET_VENDOR}"%' \
 	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
 	    -e 's%\(CT_TARGET_CFLAGS\)=.*%\1="${TARGET_OPTIMIZATION}"%' \
-	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${TARGET_CPUTYPE}"%' \
-	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${TARGET_CPUTYPE}"%' \
+	    -e 's%\(CT_ARCH_ARCH\)=.*%\1="${CT_ARCH_ARCH}"%' \
+	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${CT_ARCH_CPU}"%' \
+	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1="${@['n','y'][${TARGET_FPU}]}"%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1="${@['y','n'][${TARGET_FPU}]}"%' \
     	    -e "s%# \($ct_kernel_version\) is not set%\1=y%" \
