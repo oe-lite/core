@@ -19,9 +19,9 @@ RDEPENDS = "\
 	kernel-module-mtd-test \
 	kernel-module-mmc-test \
 	netbase \
-	dupdate \
-	deif-u-boot-setenv \
+	performance-test-suite \
 	ethercat \
-        ethtool \
         net-tools-mii \
 	"
+
+#	deif-u-boot-setenv \
