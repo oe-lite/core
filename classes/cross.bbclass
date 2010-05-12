@@ -1,7 +1,10 @@
-RECIPE_TYPE			 = "cross"
+RECIPE_TYPE		= "cross"
 #
-RECIPE_ARCH			 = "cross/${TARGET_ARCH}"
-RECIPE_ARCH_MACHINE		 = ""
+RECIPE_ARCH		= "cross/${TARGET_ARCH}"
+RECIPE_ARCH_MACHINE	= ""
+
+# No default build dependencies (for now)
+DEFAULT_DEPENDS		= ""
 
 # Default packages is stage (cross) packages
 SYSROOT_PACKAGES	?= ""

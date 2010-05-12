@@ -8,6 +8,9 @@ RPACKAGES		= ""
 RPROVIDES_${PN}		= ""
 RDEPENDS_${PN}-dev 	= ""
 
+# No default build dependencies (for now)
+DEFAULT_DEPENDS		= ""
+
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"
 HOST_CPUTYPE		= "${BUILD_CPUTYPE}"

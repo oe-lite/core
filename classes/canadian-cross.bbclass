@@ -3,6 +3,10 @@ RECIPE_TYPE			 = "canadian-cross"
 RECIPE_ARCH			 = "canadian/${SDK_ARCH}--${MACHINE_ARCH}"
 RECIPE_ARCH_MACHINE		 = "canadian/${SDK_ARCH}--${MACHINE}"
 
+# Get both sdk and machine cross toolchains and sysroots
+DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-sdk-dev"
+DEFAULT_DEPENDS = "${TARGET_ARCH}-toolchain ${TARGET_ARCH}-machine-dev"
+
 # Set host=sdk for architecture triplet build/sdk/target
 HOST_ARCH		= "${SDK_ARCH}"
 HOST_CPUTYPE		= "${SDK_CPUTYPE}"

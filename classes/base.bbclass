@@ -14,25 +14,8 @@ def base_path_join(a, *p):
             path += '/' + b
     return path
 
-def base_dep_prepend(d):
-	import bb
-        deps = ""
-
-        # INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.
-        # Whether or not we need that built is the responsibility of
-        # the patch function / class, not the application.
-	inhibit_default_deps = bb.data.getVar('INHIBIT_DEFAULT_DEPS', d)
-        if not inhibit_default_deps or inhibit_default_deps == '0':
-            build_arch = bb.data.getVar('BUILD_ARCH', d, 1)
-            host_arch = bb.data.getVar('HOST_ARCH', d, 1)
-            target_arch = bb.data.getVar('TARGET_ARCH', d, 1)
-            if host_arch != build_arch:
-                deps += " ${HOST_ARCH}-toolchain "
-            if target_arch != host_arch and target_arch != build_arch:
-                deps += " ${TARGET_ARCH}-toolchain "
-
-        return deps
-
+DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-machine-dev"
+DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
 def base_read_file(filename):
 	try:
@@ -80,10 +63,8 @@ def base_both_contain(variable1, variable2, checkvalue, d):
                return ""
 
 
-FETCHER_DEPENDS=""
-DEPENDS_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)}"
-DEPENDS_virtclass-native_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
-DEPENDS_virtclass-nativesdk_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
+FETCHER_DEPENDS = ""
+DEPENDS_prepend += "${FETCHER_DEPENDS}"
 
 def base_prune_suffix(var, suffixes, d):
     # See if var ends with any of the suffixes listed and 

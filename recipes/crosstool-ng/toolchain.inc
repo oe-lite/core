@@ -81,11 +81,6 @@ SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
-DEPENDS_append_bbclassextend-canadian-cross = " ${HOST_ARCH}-toolchain ${TARGET_ARCH}-toolchain"
-
-INHIBIT_DEFAULT_DEPS_bbclassextend-cross = 1
-INHIBIT_DEFAULT_DEPS_bbclassextend-sdk-cross = 1
-
 PROVIDES_${PN}_append_bbclassextend-cross		+= "${TARGET_ARCH}-toolchain"
 PROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
 RPROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
