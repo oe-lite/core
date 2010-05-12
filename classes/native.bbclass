@@ -65,38 +65,4 @@ base_do_install() {
     oe_runmake install
 }
 
-ORIG_DEPENDS := "${DEPENDS}"
-DEPENDS_bbclassextend-native ?= "${ORIG_DEPENDS}"
-
-python __anonymous () {
-    if 'native' in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
-        pn = bb.data.getVar("PN", d, True)
-        depends = bb.utils.explode_deps(bb.data.getVar("DEPENDS_bbclassextend-native", d, True))
-        suffixes = bb.data.getVar('SPECIAL_PKGSUFFIX', d, True).split()
-
-        newdeps = []
-        for dep in depends:
-            if dep.find('-native'):
-                newdeps.append(dep)
-                continue
-            for suffix in suffixes:
-                if dep.endswith(suffix):
-                    dep = dep.replace(suffix, '')
-                    break
-            newdeps.append(dep + '-native')
-        bb.data.setVar('DEPENDS_bbclassextend-native', ' '.join(newdeps), d)
-
-        packages = bb.data.getVar('PACKAGES', d, True)
-        for package in packages.split():
-            provides = bb.data.getVar('PROVIDES_%s'%package, d, True) or ''
-            for provide in provides.split():
-                if provide.find(pn) != -1:
-                    continue
-                if not provide.endswith('-native'):
-                    provides = provides.replace(provide, provide + '-native')
-            bb.data.setVar('PROVIDES_%s'%package, provides, d)
-
-        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ":bbclassextend-native", d)
-}
-
-FIXUP_RPROVIDES = ''
+FIXUP_PROVIDES = ''

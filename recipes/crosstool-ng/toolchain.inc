@@ -81,14 +81,6 @@ SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
-PROVIDES_${PN}_append_bbclassextend-cross		+= "${TARGET_ARCH}-toolchain"
-PROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
-RPROVIDES_${PN}-sysroot_append_bbclassextend-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
-
-PROVIDES_${PN}_append_bbclassextend-sdk-cross		+= "${TARGET_ARCH}-toolchain"
-PROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
-RPROVIDES_${PN}-sysroot_append_bbclassextend-sdk-cross	+= "${TARGET_ARCH}-toolchain-sysroot"
-
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
@@ -217,17 +209,17 @@ DOT_CONFIG_MANGLING = "\
 	    -e 's%\(CT_DEBUG_gdb\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_bbclassextend-cross = "\
+DOT_CONFIG_MANGLING_recipe-cross = "\
 	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
 	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_bbclassextend-sdk-cross = "\
+DOT_CONFIG_MANGLING_recipe-sdk-cross = "\
 	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
 	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_bbclassextend-canadian-cross = "\
+DOT_CONFIG_MANGLING_recipe-canadian-cross = "\
 	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%\(CT_HOST\)=.*%\1="${HOST_ARCH}"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
@@ -254,49 +246,107 @@ do_compile () {
 do_install () {
 	:
 }
-do_install_bbclassextend-cross () {
+do_install_recipe-cross () {
 	:
 }
-do_install_bbclassextend-sdk-cross () {
+do_install_recipe-sdk-cross () {
 	:
 }
-do_install_bbclassextend-canadian-cross () {
+do_install_recipe-canadian-cross () {
 	:
 }
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
+# FIXME: let's rename toolchain to gcc4.4.3-glibc2.9 so we get package
+# names like gcc4.4.3-glibc2.9-doc gcc4.4.3-glibc2.9-sysroot-libc
+# (gcc4.4.3-glibc2.9-sysroot-libc-machine
+# gcc4.4.3-glibc2.9-sysroot-libc-sdk) and be able to build all available toolchain versions without messing with distro.
+
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
-SYSROOT_PACKAGES= "${PN}-sysroot-dev ${PN}-sysroot-doc ${PN}-sysroot-locale ${PN}-sysroot ${PN}-sysroot-base ${PN}-sysroot-extra"
+SYSROOT_PACKAGES = "\
+	${PN}-sysroot-dev \
+	${PN}-sysroot-doc \
+	${PN}-sysroot-locale \
+	${PN}-sysroot-libc \
+	${PN}-sysroot-libdl \
+	${PN}-sysroot-libnss-files \
+	${PN}-sysroot-libnss-dns \
+	${PN}-sysroot-libresolv \
+	${PN}-sysroot-libutil \
+	${PN}-sysroot-libcrypt \
+	${PN}-sysroot-libpthread \
+	${PN}-sysroot-libm \
+	${PN}-sysroot-librt \
+	${PN}-sysroot-libstdc++ \
+	${PN}-sysroot-libgcc \
+	${PN}-sysroot-garbage \
 
-SYSROOT_DEPENDS = "${PN}-sysroot-dev ${PN}-sysroot-extra"
-SYSROOT_DEPENDS_bbclassextend-canadian-cross = ""
+"
 
-DEPENDS_${PN} += "${SYSROOT_DEPENDS}"
-DEPENDS_${PN}-sysroot-dev = "${PN}-sysroot"
+PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}-toolchain"
+PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}-toolchain"
 
-RDEPENDS_${PN}-sysroot-extra	= "${PN}-sysroot"
-RDEPENDS_${PN}-sysroot-locale	= "${PN}-sysroot"
-RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot"
+PROVIDES_${PN}-sysroot-dev		= "${TARGET_ARCH}-sysroot-dev"
+PROVIDES_${PN}-sysroot-doc		= "${TARGET_ARCH}-sysroot-doc"
+PROVIDES_${PN}-sysroot-local		= "${TARGET_ARCH}-sysroot-locale"
+PROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
+PROVIDES_${PN}-sysroot-libc		= "${TARGET_ARCH}-sysroot-libc"
+PROVIDES_${PN}-sysroot-libdl		= "${TARGET_ARCH}-sysroot-libdl"
+PROVIDES_${PN}-sysroot-libnss-files	= "${TARGET_ARCH}-sysroot-libnss-files"
+PROVIDES_${PN}-sysroot-libnss-dns	= "${TARGET_ARCH}-sysroot-libnss-dns"
+PROVIDES_${PN}-sysroot-libresolv	= "${TARGET_ARCH}-sysroot-libresolv"
+PROVIDES_${PN}-sysroot-libutil		= "${TARGET_ARCH}-sysroot-libutil"
+PROVIDES_${PN}-sysroot-libcrypt		= "${TARGET_ARCH}-sysroot-libcrypt"
+PROVIDES_${PN}-sysroot-libpthread	= "${TARGET_ARCH}-sysroot-libpthread"
+PROVIDES_${PN}-sysroot-libm		= "${TARGET_ARCH}-sysroot-libm"
+PROVIDES_${PN}-sysroot-librt		= "${TARGET_ARCH}-sysroot-librt"
+PROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
+PROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
+
+RPROVIDES_${PN}-sysroot-libc		= "${TARGET_ARCH}-sysroot-libc"
+RPROVIDES_${PN}-sysroot-libdl		= "${TARGET_ARCH}-sysroot-libdl"
+RPROVIDES_${PN}-sysroot-libnss-files	= "${TARGET_ARCH}-sysroot-libnss-files"
+RPROVIDES_${PN}-sysroot-libnss-dns	= "${TARGET_ARCH}-sysroot-libnss-dns"
+RPROVIDES_${PN}-sysroot-libresolv	= "${TARGET_ARCH}-sysroot-libresolv"
+RPROVIDES_${PN}-sysroot-libutil		= "${TARGET_ARCH}-sysroot-libutil"
+RPROVIDES_${PN}-sysroot-libcrypt	= "${TARGET_ARCH}-sysroot-libcrypt"
+RPROVIDES_${PN}-sysroot-libpthread	= "${TARGET_ARCH}-sysroot-libpthread"
+RPROVIDES_${PN}-sysroot-libm		= "${TARGET_ARCH}-sysroot-libm"
+RPROVIDES_${PN}-sysroot-librt		= "${TARGET_ARCH}-sysroot-librt"
+RPROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
+RPROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
+RPROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
+
+DEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc"
+RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc"
 
 FILES_${PN} = "\
 ${base_bindir} \
 ${base_libdir}/*.so.* \
 ${base_libdir}/gcc/${TARGET_ARCH} \
+${base_libdir}/libiberty.a \
 ${base_libexecdir}/gcc/${TARGET_ARCH} \
 ${datadir}/aclocal \
 ${base_prefix}/${TARGET_ARCH}/bin \
 ${base_prefix}/${TARGET_ARCH}/lib \
 "
 
-FILES_${PN}_append_bbclassextend-canadian-cross = "\
+FILES_${PN}_append_recipe-canadian-cross = "\
 ${FILES_${PN}-sysroot} \
+${FILES_${PN}-sysroot-base} \
 ${FILES_${PN}-sysroot-dev} \
-${FILES_${PN}-sysroot-extra} \
+${FILES_${PN}-sysroot-garbage} \
 "
-FILES_${PN}-doc_append_bbclassextend-canadian-cross = "\
+
+FILES_${PN}-doc += "\
+${base_prefix}/build.log* \
+"
+
+FILES_${PN}-doc_append_recipe-canadian-cross = "\
 ${FILES_${PN}-sysroot-doc} \
 "
+
 FILES_${PN}-locale_append_bbclassextend-canadian-cross = "\
 ${FILES_${PN}-sysroot-locale} \
 "
@@ -330,37 +380,67 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${machine_datadir}/i18n \
 # performance-test-suite librt libm
 # libnss_dns libresolv
 
-FILES_${PN}-sysroot = "\
+FILES_${PN}-sysroot-libc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libc.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libc-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libdl.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libdl-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/ld.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/ld-*.so \
+"
+
+FILES_${PN}-sysroot-libdl = "\
+${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libdl.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libdl-*.so \
+"
+
+FILES_${PN}-sysroot-libcrypt = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libcrypt.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libcrypt-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libutil.so.* \
+"
+
+FILES_${PN}-sysroot-libutil = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libutil-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_dns-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_dns.so.* \
+"
+
+FILES_${PN}-sysroot-libnss-files = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_files-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_files.so.* \
+"
+
+FILES_${PN}-sysroot-libnss-dns = "\
+${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_dns-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libnss_dns.so.* \
+"
+
+FILES_${PN}-sysroot-libresolv = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libresolv-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libresolv.so.* \
 "
 
-FILES_${PN}-sysroot-base = "\
+FILES_${PN}-sysroot-libpthread = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libpthread.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libpthread-*.so \
+"
+
+FILES_${PN}-sysroot-libm = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libm.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libm-*.so \
+"
+
+FILES_${PN}-sysroot-librt = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/librt.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/librt-*.so \
+"
+
+FILES_${PN}-sysroot-libstdc++ = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libstdc++.so* \
+"
+
+FILES_${PN}-sysroot-libgcc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/${machine_base_libdir}/libgcc_s.so* \
 "
 
-FILES_${PN}-sysroot-extra = "\
+FILES_${PN}-sysroot-garbage = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root \
 "
 

@@ -237,29 +237,32 @@ python package_populate () {
 	ddir = bb.data.getVar('D', d, True)
 	pkgd = bb.data.getVar('PKGD', d, True)
 	pn = bb.data.getVar('PN', d, True)
-	packages = bb.data.getVar('PACKAGES', d, True)
+	packages = bb.data.getVar('PACKAGES', d, True).split()
 	rpackages = bb.data.getVar('RPACKAGES', d, True)
+	if rpackages:
+		rpackages = rpackages.split()
+	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
+	if sysroot_packages:
+		sysroot_packages = sysroot_packages.split()
+		machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
+		sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
 	
 	# Sanity check PACKAGES for duplicates.
 	# move to sanity.bbclass once we have the infrastucture
 	package_list = []
-	for pkg in packages.split():
+	for pkg in packages:
 		if pkg in package_list:
 			bb.error("%s is listed in PACKAGES multiple times" % pkg)
-		else:
-			package_list.append(pkg)
-
-	# Sanity check RPACKAGES for duplicates.
-	# move to sanity.bbclass once we have the infrastucture
-	if rpackages:
-		rpackage_list = []
-		for pkg in rpackages.split():
-			if pkg in rpackage_list:
-				bb.error("%s is listed in RPACKAGES multiple times" % pkg)
-			else:
-				rpackage_list.append(pkg)
-			if not pkg in package_list:
-				bb.error("%s is in RPACKAGES but not PACKAGES" % pkg)
+			continue
+		# Don't split to machine and sdk packages directly
+		if sysroot_packages:
+			if pkg in machine_packages or pkg in sdk_packages:
+				continue
+		package_list.append(pkg)
+	
+	# Split to (temporary) sysroot packages
+	package_list += sysroot_packages
+	
 	seen = []
 	main_is_empty = 1
 	main_pkg = bb.data.getVar('PN', d, 1)
@@ -352,13 +355,10 @@ python package_populate () {
 					if target[0] != '/':
 						target = os.path.join(root[len(inst_root):], target)
 					dangling_links[pkg].append(os.path.normpath(target))
-
+	
 	for pkg in package_list:
-		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or bb.data.getVar('RDEPENDS', d, 0) or "")
-
-		remstr = "${PN} (= ${EXTENDPV})"
-		if main_is_empty and remstr in rdepends:
-			rdepends.remove(remstr)
+		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or "")
+	
 		for l in dangling_links[pkg]:
 			found = False
 			bb.debug(1, "%s contains dangling link %s" % (pkg, l))
@@ -375,6 +375,24 @@ python package_populate () {
 			if found == False:
 				bb.note("%s contains dangling symlink to %s" % (pkg, l))
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
+
+	# and copy/move from the temporary sysroot packages to machine
+	# and sdk sysroot packages
+	import shutil
+	for sysroot_pkg in sysroot_packages:
+		mach_pkg = sysroot_pkg.replace('sysroot', 'machine')
+		sdk_pkg = sysroot_pkg.replace('sysroot', 'sdk')
+		sysroot_d = os.path.join(pkgd, sysroot_pkg)
+		mach_d = os.path.join(pkgd, mach_pkg)
+		sdk_d = os.path.join(pkgd, sdk_pkg)
+		if mach_pkg in machine_packages:
+			if sdk_pkg in sdk_packages:
+				shutil.copytree(sysroot_d, sdk_d, True)
+			shutil.move(sysroot_d, mach_d)
+		elif sdk_d in sdk_packages:
+			shutil.move(sysroot_d, sdk_d)
+		else:
+			bb.fatal('Where to put this sysroot package: %s'%sysroot_pkg)
 }
 package_populate[dirs] = "${D}"
 
@@ -744,7 +762,7 @@ python package_do_pkgconfig () {
 python read_shlibdeps () {
 	packages = bb.data.getVar('PACKAGES', d, 1).split()
 	for pkg in packages:
-		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or bb.data.getVar('RDEPENDS', d, 0) or "")
+		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or "")
 		for extension in ".shlibdeps", ".pcdeps", ".clilibdeps":
 			depsfile = bb.data.expand("${PKGD}/" + pkg + extension, d)
 			if os.access(depsfile, os.R_OK):

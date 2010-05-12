@@ -6,11 +6,11 @@ SECTION = "libs"
 PR = "r0"
 
 DEPENDS = "ncurses-native"
-DEPENDS_bbclassextend-native = ""
+DEPENDS_recipe-native = ""
 PACKAGES_prepend = "${PN}-tools "
 PACKAGES_append = " ${PN}-terminfo"
 FILES_${PN}_append = " ${datadir}/tabset"
-#RPROVIDES_${PN} = "libncurses5"
+RPROVIDES_${PN} = "libncurses5${RE}"
 
 inherit autotools
 
