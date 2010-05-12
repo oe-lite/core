@@ -1015,7 +1015,7 @@ python target_package_strip () {
             return 0
         return (s[stat.ST_MODE] & stat.S_IEXEC)
 
-    dvar = bb.data.getVar('PKGD', d, True)
+    dvar = bb.data.getVar('PKGD_TARGET', d, True)
     os.chdir(dvar)
     if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
 	for root, dirs, files in os.walk(dvar):

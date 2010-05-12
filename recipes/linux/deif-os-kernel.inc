@@ -32,8 +32,9 @@ PROVIDES = ""
 PACKAGES = "${PN} ${PN}-dtb ${PN}-empty"
 FILES_${PN} = "/${KERNEL_IMAGE_SYMLINK_NAME}.bin"
 FILES_${PN}-dtb = "/${DTBFILE_SYMLINK_NAME}.dtb"
-FILES_${PN}-empty = "/"
+RDEPENDS_${PN}-dtb = "${PN}"
 
+FILES_${PN}-empty = "/"
 
 # trick kernel_do_install() into not installing modules
 do_install_prepend () {
@@ -45,9 +46,9 @@ do_install_prepend () {
 do_install_append () {
 	mv ${S}/.config.bak ${S}/.config
 	install -m 0644 ${S}/arch/${ARCH}/boot/${KERNEL_IMAGETYPE} \
-		${D}/${KERNEL_IMAGE_SYMLINK_NAME}.bin
+		${D}/${KERNEL_IMAGE_BASE_NAME}.bin
 	install -m 0644 ${S}/arch/${ARCH}/boot/${MACHINE}.dtb \
-		${D}/${DTBFILE_SYMLINK_NAME}.bin
+		${D}/${DTBFILE_BASE_NAME}.bin
 }
 
 

@@ -42,6 +42,8 @@ do_install() {
 
 	install -m 0755 dropbearmulti ${D}${sbindir}/
 	ln -s ${sbindir}/dropbearmulti ${D}${bindir}/dbclient
+	ln -s ${sbindir}/dropbearmulti ${D}${sbindir}/scp
+	ln -s ${sbindir}/dropbearmulti ${D}${sbindir}/ssh
 	
 	for i in ${SBINCOMMANDS}
 	do
@@ -56,18 +58,18 @@ do_install() {
 	ln -s ../init.d/dropbear ${D}${sysconfdir}/rcS.d/S25dropbear
 }
 
-pkg_postinst () {
-	update-alternatives --install ${bindir}/scp scp ${sbindir}/dropbearmulti 20
-	update-alternatives --install ${bindir}/ssh ssh ${sbindir}/dropbearmulti 20
-}
+# pkg_postinst () {
+# 	update-alternatives --install ${bindir}/scp scp ${sbindir}/dropbearmulti 20
+# 	update-alternatives --install ${bindir}/ssh ssh ${sbindir}/dropbearmulti 20
+# }
 
-pkg_postrm_append () {
-  if [ -f "${sysconfdir}/dropbear/dropbear_rsa_host_key" ]; then
-        rm ${sysconfdir}/dropbear/dropbear_rsa_host_key
-  fi
-  if [ -f "${sysconfdir}/dropbear/dropbear_dss_host_key" ]; then
-        rm ${sysconfdir}/dropbear/dropbear_dss_host_key
-  fi
-  update-alternatives --remove ssh ${bindir}/dropbearmulti
-  update-alternatives --remove scp ${bindir}/dropbearmulti
-}
+# pkg_postrm_append () {
+#   if [ -f "${sysconfdir}/dropbear/dropbear_rsa_host_key" ]; then
+#         rm ${sysconfdir}/dropbear/dropbear_rsa_host_key
+#   fi
+#   if [ -f "${sysconfdir}/dropbear/dropbear_dss_host_key" ]; then
+#         rm ${sysconfdir}/dropbear/dropbear_dss_host_key
+#   fi
+#   update-alternatives --remove ssh ${bindir}/dropbearmulti
+#   update-alternatives --remove scp ${bindir}/dropbearmulti
+# }

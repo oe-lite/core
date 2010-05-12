@@ -1,9 +1,9 @@
 inherit files
 inherit images
 
-IMAGE_EXT = '.cpio'
+IMAGE_EXT = '.tar'
 
 create_image() {
-	cd $1 && find . | cpio -o -H newc > $2 \
+	tar -C $1 -f $2 . \
 	|| return 1
 }

@@ -12,19 +12,21 @@ SRC_URI = "git://dev.doredevelopment.dk/srv/deif/git/dupdate.git;protocol=ssh"
 
 S = "${WORKDIR}/git"
 
-do_stage() {
-	install -d ${STAGING_BINDIR}
-	install -m 0755 ${S}/run_update.sh ${STAGING_BINDIR}/
-	install -m 0755 ${S}/format_nand.sh ${STAGING_BINDIR}/
-}
+PACKAGES += "${PN}-update ${PN}-format"
+FILES_${PN}-update = "/run_update.sh"
+FILES_${PN}-format = "/format_nand.sh"
 
 do_install() {
 	install -d ${D}/${sbindir} ${D}${sysconfdir}/rcS.d/
 	install -p -m 755 ${S}/dupdate ${D}/${sbindir}
 	install -p -m 755 ${S}/dboot ${D}/${sbindir}
+	install -m 0755 ${S}/reboot_to_servicemode ${D}/${sbindir}
+
 	install -d ${D}/${sysconfdir}/init.d/
 	install -p -m 755 ${S}/dupdate.sh ${D}/${sysconfdir}/init.d/
 	ln -s ../init.d/dupdate.sh ${D}${sysconfdir}/rcS.d/S60dupdate.sh
 
-	install -m 0755 ${S}/reboot_to_servicemode ${D}/${sbindir}
+	# Not related to dupdate
+	install -m 0755 ${S}/run_update.sh ${D}/
+	install -m 0755 ${S}/format_nand.sh ${D}/
 }
