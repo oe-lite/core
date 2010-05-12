@@ -6,6 +6,8 @@ SECTION = "base"
 #       target.
 DEPENDS = "zlib-dev lzo-dev util-linux-ng-dev"
 DEPENDS_bbclassextend-native = "zlib-native-dev util-linux-ng-native-dev lzo-native-dev"
+PACKAGES =+ "${PN}-mkfs"
+FILES_${PN}-mkfs = "${sbindir}/mkfs.*"
 
 HOMEPAGE = "http://www.linux-mtd.infradead.org/"
 LICENSE = "GPLv2"

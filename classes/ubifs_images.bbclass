@@ -1,7 +1,7 @@
 inherit files
 inherit images
 
-DEPENDS_prepend += "mtd-utils-native"
+DEPENDS_prepend += "mtd-utils-native-mkfs"
 
 IMAGE_EXT = '.ubifs'
 
