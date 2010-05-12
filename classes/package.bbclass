@@ -156,19 +156,19 @@ python package_populate () {
 	seen = []
 	main_is_empty = 1
 	main_pkg = bb.data.getVar('PN', d, 1)
-
+	
 	for pkg in package_list:
 		localdata = bb.data.createCopy(d)
 		root = os.path.join(pkgd, pkg)
 		bb.mkdirhier(root)
-
+	
 		bb.data.setVar('PKG', pkg, localdata)
 		overrides = bb.data.getVar('OVERRIDES', localdata, True)
 		if not overrides:
 			raise bb.build.FuncFailed('OVERRIDES not defined')
 		bb.data.setVar('OVERRIDES', overrides + ':' + pkg, localdata)
 		bb.data.update_data(localdata)
-
+	
 		filesvar = bb.data.getVar('FILES', localdata, True) or ""
 		files = filesvar.split()
 		for file in files:
@@ -207,24 +207,24 @@ python package_populate () {
 			if pkg == main_pkg and main_is_empty:
 				main_is_empty = 0
 		del localdata
-
+	
 	unshipped = []
 	for root, dirs, files in os.walk(ddir + '/'):
 		for f in files:
 			path = os.path.join(root[len(ddir):], f)
 			if ('.' + path) not in seen:
 				unshipped.append(path)
-
+	
 	if unshipped != []:
 		bb.note("the following files were installed but not shipped in any package:")
 		for f in unshipped:
 			bb.note("  " + f)
-
+	
 	for pkg in package_list:
 		pkgname = bb.data.getVar('PKG_%s' % pkg, d, 1)
 		if pkgname is None:
 			bb.data.setVar('PKG_%s' % pkg, pkg, d)
-
+	
 	dangling_links = {}
 	pkg_files = {}
 	for pkg in package_list:
@@ -699,7 +699,7 @@ python package_depchains() {
 }
 
 
-def package_clone (packages, dstdir, d):
+def package_clone(packages, dstdir, d):
 	pkgd = bb.data.getVar('PKGD', d, 1)
 
 	for pkg in packages:
