@@ -2,8 +2,8 @@ require linux-deif-common.inc
 
 KERNEL_IMAGE_BASE_NAME = "${PN}-${EPV}-${MACHINE}-${DATETIME}"
 KERNEL_IMAGE_SYMLINK_NAME = "${PN}-${MACHINE}"
-DTBFILE_BASE_NAME = "${MACHINE}-${PV}-${PR}-${DATETIME}"
-DTBFILE_SYMLINK_NAME = "${MACHINE}"
+DTBFILE_BASE_NAME = "${DTB}-${EPV}-${MACHINE}-${DATETIME}"
+DTBFILE_SYMLINK_NAME = "${DTB}-${MACHINE}"
 
 do_compile_append() {
 	oe_runmake ${MACHINE}.dtb M=arch/${ARCH}/boot CC="${KERNEL_CC}" LD="${KERNEL_LD}"
@@ -22,7 +22,7 @@ PROVIDES = ""
 PACKAGES = "${PN}-dbg ${PN} ${PN}-dtb ${PN}-empty"
 FILES_${PN} = "/${KERNEL_IMAGE_BASE_NAME}.bin"
 FILES_${PN}-dtb = "/${DTBFILE_BASE_NAME}.dtb"
-RDEPENDS_${PN}-dtb = "${PN}"
+RDEPENDS_${PN} = "${PN}-dtb"
 
 FILES_${PN}-empty = "/"
 

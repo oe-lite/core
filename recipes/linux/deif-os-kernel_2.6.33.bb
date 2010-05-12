@@ -10,3 +10,4 @@ INC_PR = "1"
 PR_append = ".${INC_PR}"
 
 DEPENDS += "deif-os-initramfs"
+DTB = "deif-os-dtb"

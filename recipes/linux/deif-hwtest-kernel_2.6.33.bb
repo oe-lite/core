@@ -10,3 +10,4 @@ INC_PR = "2"
 PR_append = ".${INC_PR}"
 
 DEPENDS += "deif-hwtest-initramfs"
+DTB = "deif-hwtest-dtb"
