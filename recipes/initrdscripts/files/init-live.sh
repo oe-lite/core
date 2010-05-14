@@ -80,9 +80,9 @@ service_mode() {
     if [ "$SERVICE_MODE" -eq "1" ];
     then
 	:
-    elif read -p "Press Enter to activate service mode" -t 3;
-    then
-	:
+#    elif read -p "Press Enter to activate service mode" -t 3;
+#    then
+#	:
     else
 	return
     fi
