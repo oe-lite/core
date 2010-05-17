@@ -47,7 +47,7 @@ FILES_${PN}-httpd = "${sysconfdir}/init.d/busybox-httpd /srv/www"
 FILES_${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
 FILES_${PN}-hwclock = "${sysconfdir}/init.d/hwclock ${sysconfdir}/rcS.d/S15hwclock.sh ${sysconfdir}/rc0.d/K15hwclock.sh"
 FILES_${PN}-mdev = "${sysconfdir}/init.d/busybox-mdev ${sysconfdir}/mdev.conf ${sysconfdir}/rcS.d/S10busybox-mdev"
-FILES_${PN}-ntpd = "${sysconfdir}/init.d/ntpd.sh"
+FILES_${PN}-ntpd = "${sysconfdir}/init.d/ntpd.sh ${sysconfdir}/rcS.d/S70ntpd.sh ${sysconfdir}/rc0.d/K98shutdown.sh"
 FILES_${PN}-shutdown = "${sysconfdir}/init.d/shutdown.sh"
 
 FILES_${PN} += "${datadir}/udhcpc"
@@ -145,9 +145,11 @@ do_install () {
 	fi
 	if grep "CONFIG_NTPD=y" ${WORKDIR}/defconfig; then
 		install -m 0755 ${WORKDIR}/ntpd.sh ${D}${sysconfdir}/init.d/
+		ln -s ../init.d/ntpd.sh ${D}${sysconfdir}/rcS.d/S70ntpd.sh
 	fi
 
 	install -m 0755 ${WORKDIR}/shutdown.sh ${D}${sysconfdir}/init.d/
+	ln -s ../init.d/shutdown.sh ${D}${sysconfdir}/rc0.d/K98shutdown.sh
 	install -m 0644 ${S}/busybox.links ${D}${sysconfdir}
 
 	install -m 644 ${WORKDIR}/inittab ${D}${sysconfdir}/
