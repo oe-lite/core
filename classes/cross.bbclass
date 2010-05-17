@@ -52,6 +52,9 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
+# But let's get rid of the stupid /usr thingy
+stage_prefix		= "${stage_base_prefix}"
+
 cross_do_install () {
     oe_runmake install
 }
@@ -158,3 +161,5 @@ def cross_fixup_provides(d):
             if rdepends and not bb.data.getVar('RDEPENDS_%s'%sdk_pkg, d, False):
                 sdk_rdepends = rdepends.replace('sysroot', 'sdk')
                 bb.data.setVar('RDEPENDS_%s'%sdk_pkg, sdk_rdepends, d)
+
+PACKAGE_INSTALL_FUNCS_append += "package_install_sysroot_split"

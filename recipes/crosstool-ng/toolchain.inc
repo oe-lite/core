@@ -81,6 +81,8 @@ SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
+DEPENDS_append_recipe-canadian-cross += "${HOST_ARCH}-sdk-libstdc++"
+
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
@@ -264,6 +266,8 @@ do_install[cleandirs] = ""
 # gcc4.4.3-glibc2.9-sysroot-libc-sdk) and be able to build all available toolchain versions without messing with distro.
 
 PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
+MACHINE_PACKAGES = "${PN}-machine-gdbserver"
+RPACKAGES_append += "${MACHINE_PACKAGES}"
 SYSROOT_PACKAGES = "\
 	${PN}-sysroot-dev \
 	${PN}-sysroot-doc \
@@ -281,7 +285,6 @@ SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libstdc++ \
 	${PN}-sysroot-libgcc \
 	${PN}-sysroot-garbage \
-
 "
 
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}-toolchain"
@@ -318,8 +321,18 @@ RPROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
 RPROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
 RPROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
 
-DEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc"
-RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc"
+DEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+
+# 1. The install/ dir maintains it's crosstool-ng layout, and all
+# FILES_* variables must therefore use crosstool-ng layout paths.
+
+# 2. A fixup function should then be used to move files around inside
+# the packages directories to get proper cross and sysroot package
+# paths.
+
+# 3. Afterwards, the sysroot packages are forked into both sdk and
+# machine packages.
 
 FILES_${PN} = "\
 ${base_bindir} \
@@ -351,6 +364,11 @@ FILES_${PN}-locale_append_bbclassextend-canadian-cross = "\
 ${FILES_${PN}-sysroot-locale} \
 "
 
+FILES_${PN}-machine-gdbserver = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/gdbserver \
+${base_prefix}/${TARGET_ARCH}/debug-root${machine_mandir}/man1/gdbserver.1 \
+"
+
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_includedir} \
@@ -359,6 +377,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/gconv \
 "
@@ -453,30 +472,42 @@ ${base_prefix}/${TARGET_ARCH}/sys-root \
 # Move the machine sysroot packages into proper target layout
 # and then mend the crosstool-ng-toolchain package so it will
 # get back in place on stage
-packages_install_sysroot_mangle () {
-	for pkg in ${SYSROOT_PACKAGES} ; do
-		# Fixup the layout of the sysroot packages
-		if [ -d $pkg/${TARGET_ARCH}/sys-root ] ; then
-			mv $pkg/${TARGET_ARCH}/sys-root/* $pkg/
-			rmdir $pkg/${TARGET_ARCH}/sys-root
-		fi
-		rm $pkg/${TARGET_ARCH}/include || true
-		if [ -d $pkg/${TARGET_ARCH}/include ] ; then
-			mkdir -p $pkg/usr/include
-			mv $pkg/${TARGET_ARCH}/include/* $pkg/usr/include/
-			rmdir $pkg/${TARGET_ARCH}/include
-		fi
+package_install_sysroot_mangle () {
+	# Fixup the layout of the sysroot packages
+	for pkg in ${SYSROOT_PACKAGES} ${MACHINE_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
-			rmdir $pkg/${TARGET_ARCH}
+			(
+			cd $pkg/${TARGET_ARCH}
+			if [ -d debug-root ] ; then
+				mv debug-root/* ../
+				rmdir debug-root
+			fi
+			if [ -d sys-root ] ; then
+				mv sys-root/* ../
+				rmdir sys-root
+			fi
+			rm -f include
+			if [ -d include ] ; then
+				mkdir -p ../${machine_includedir}
+				mv include/* ../${machine_includedir}
+				rmdir include
+			fi
+			rm -f lib
+			if [ -d lib ] ; then
+				mkdir -p ../${machine_libdir}
+				mv lib/* ../${machine_libdir}
+				rmdir lib
+			fi
+			cd ..
+			rmdir ${TARGET_ARCH}
+			)
 		fi
-		# Clone all sdk sysroot package
-		cp -a $pkg/* $pkg-sdk/
 	done
 
-	mkdir -p ${PN}/lib
-	ln -s ../../machine ${PN}/${TARGET_ARCH}/sys-root
-	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
+	#mkdir -p ${PN}/lib
+	#ln -s ../../machine ${PN}/${TARGET_ARCH}/sys-root
+	#ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
 }
-packages_install_sysroot_mangle[dirs] = "${PKGD}"
-PACKAGE_INSTALL_FUNCS_append_bbclassextend-cross = " packages_install_sysroot_mangle"
-PACKAGE_INSTALL_FUNCS_append_bbclassextend-sdk-cross = " packages_install_sysroot_mangle"
+package_install_sysroot_mangle[dirs] = "${PKGD}"
+PACKAGE_INSTALL_FUNCS_append-recipe-cross = " package_install_sysroot_mangle"
+PACKAGE_INSTALL_FUNCS_append_recipe-sdk-cross = " package_install_sysroot_mangle"

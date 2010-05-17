@@ -120,7 +120,7 @@ def write_package_md5sums (root, outfile, ignorepaths):
 #
 
 
-python package_populate () {
+python package_install_split () {
 	import bb, glob, errno, re, stat
 
 	workdir = bb.data.getVar('WORKDIR', d, True)
@@ -265,9 +265,20 @@ python package_populate () {
 			if found == False:
 				bb.note("%s contains dangling symlink to %s" % (pkg, l))
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
+}
+package_install_split[dirs] = "${D}"
 
-	# and copy/move from the temporary sysroot packages to machine
-	# and sdk sysroot packages
+
+# Helper function for do_package_install for cross and sdk-cross recipes.
+# Added to PACKAGE_INSTALL_FIXUP_FUNCS when needed.
+python package_install_sysroot_split () {
+	pkgd = bb.data.getVar('PKGD', d, True)
+	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
+	if not sysroot_packages:
+		return
+	sysroot_packages = sysroot_packages.split()
+	machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
+	sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
 	import shutil
 	for sysroot_pkg in sysroot_packages:
 		mach_pkg = sysroot_pkg.replace('sysroot', 'machine')
@@ -282,9 +293,8 @@ python package_populate () {
 		elif sdk_d in sdk_packages:
 			shutil.move(sysroot_d, sdk_d)
 		else:
-			bb.fatal('Where to put this sysroot package: %s'%sysroot_pkg)
+			bb.fatal('Don\'t know how to split sysroot package: %s'%sysroot_pkg)
 }
-package_populate[dirs] = "${D}"
 
 
 ldconfig_postinst_fragment() {
@@ -730,7 +740,7 @@ target_package_clone[dirs] = '${PKGD_TARGET} ${PKGD}'
 
 PACKAGE_INSTALL_FUNCS = "\
 # package_split_locales\
- package_populate\
+ package_install_split\
 # package_shlibs\
 # package_pkgconfig\
 # package_depchains\
