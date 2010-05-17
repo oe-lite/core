@@ -265,7 +265,7 @@ do_install[cleandirs] = ""
 # (gcc4.4.3-glibc2.9-sysroot-libc-machine
 # gcc4.4.3-glibc2.9-sysroot-libc-sdk) and be able to build all available toolchain versions without messing with distro.
 
-PACKAGES	= "${PN} ${PN}-dbg ${PN}-doc ${PN}-locale"
+PACKAGES	= "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
 MACHINE_PACKAGES = "${PN}-machine-gdbserver"
 RPACKAGES_append += "${MACHINE_PACKAGES}"
 SYSROOT_PACKAGES = "\

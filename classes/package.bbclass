@@ -5,71 +5,6 @@
 
 PACKAGE_DEPENDS += "file-native"
 
-def runstrip(file, d):
-    # Function to strip a single file, called from populate_packages below
-    # A working 'file' (one which works on the target architecture)
-    # is necessary for this stuff to work, hence the addition to do_package[depends]
-
-    import commands, stat
-
-    pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
-
-    ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
-
-    if ret:
-        bb.error("runstrip: 'file %s' failed (forced strip)" % file)
-
-    if "not stripped" not in result:
-        bb.debug(1, "runstrip: skip %s" % file)
-        return 0
-
-    # If the file is in a .debug directory it was already stripped,
-    # don't do it again...
-    if os.path.dirname(file).endswith(".debug"):
-        bb.note("Already ran strip")
-        return 0
-
-    strip = bb.data.getVar("STRIP", d, True)
-    if not len(strip) >0:
-	    bb.debug(1,"runstrip: STRIP var empty")
-	    return 0
-
-    objcopy = bb.data.getVar("OBJCOPY", d, True)
-    if not len(objcopy) >0:
-	    bb.debug(1,"runstrip: OBJCOPY var empty")
-	    return 0
-
-    newmode = None
-    if not os.access(file, os.W_OK):
-        origmode = os.stat(file)[stat.ST_MODE]
-        newmode = origmode | stat.S_IWRITE
-        os.chmod(file, newmode)
-
-    extraflags = ""
-    if ".so" in file and "shared" in result:
-        extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
-    elif "shared" in result or "executable" in result:
-        extraflags = "--remove-section=.comment --remove-section=.note"
-
-    bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
-    debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
-
-    stripcmd = "'%s' %s '%s'" % (strip, extraflags, file)
-    bb.debug(1, "runstrip: %s" % stripcmd)
-
-    os.system("%s'%s' --only-keep-debug '%s' '%s'" % (pathprefix, objcopy, file, debugfile))
-    ret = os.system("%s%s" % (pathprefix, stripcmd))
-    os.system("%s'%s' --add-gnu-debuglink='%s' '%s'" % (pathprefix, objcopy, debugfile, file))
-
-    if newmode:
-        os.chmod(file, origmode)
-
-    if ret:
-        bb.error("runstrip: '%s' strip command failed" % stripcmd)
-	return 0
-
-    return 1
-
 def write_package_md5sums (root, outfile, ignorepaths):
     # For each regular file under root, writes an md5sum to outfile.
     # With thanks to patch.bbclass.
@@ -769,7 +704,6 @@ EXPORT_FUNCTIONS do_package_install
 
 STAGE_PACKAGE_FIXUP_FUNCS = "\
 stage_package_clone \
-#stage_package_strip \
 #stage_package_rpath \
 #stage_package_shlibs \
 #stage_package_pkgconfig \
@@ -843,36 +777,10 @@ EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_bui
 
 TARGET_PACKAGE_FIXUP_FUNCS = "\
 target_package_clone \
-target_package_strip \
 #target_package_rpath \
 #target_package_shlibs \
 #target_package_pkgconfig \
 "
-python target_package_strip () {
-    import stat
-    nr_file = 0
-    nr_strip = 0
-    def isexec(path):
-        try:
-            s = os.stat(path)
-        except (os.error, AttributeError):
-            return 0
-        return (s[stat.ST_MODE] & stat.S_IEXEC)
-
-    dvar = bb.data.getVar('PKGD_TARGET', d, True)
-    os.chdir(dvar)
-    if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
-	for root, dirs, files in os.walk(dvar):
-            for f in files:
-                    file = os.path.join(root, f)
-                    if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
-                        nr_strip += runstrip(file, d)
-                        nr_file += 1
-
-    bb.note("target_package_strip: stripped %d/%d files in %s"
-	    %(nr_strip,nr_file,dvar))
-}
-
 # FIXME: target_package_clone should re-use perform_packagecopy from
 # openembedded package.bbclass
 

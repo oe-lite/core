@@ -5,6 +5,8 @@ SECTION = "base"
 #       util-linux-ng zlib and lzo (and libm.so). Not needed on
 #       target.
 DEPENDS = "zlib${RE}-dev lzo${RE}-dev util-linux-ng${RE}-dev"
+PACKAGES =+ "${PN}-mkfs"
+FILES_${PN}-mkfs = "${sbindir}/mkfs.*"
 
 HOMEPAGE = "http://www.linux-mtd.infradead.org/"
 LICENSE = "GPLv2"

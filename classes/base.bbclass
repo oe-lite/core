@@ -876,6 +876,111 @@ base_do_package() {
 	:
 }
 
+INSTALL_FIXUP_FUNCS = "\
+install_strip \
+#install_refactor \
+install_fixup"
+
+python do_install_fixup () {
+	for f in (bb.data.getVar('INSTALL_FIXUP_FUNCS', d, 1) or '').split():
+		bb.build.exec_func(f, d)
+}
+do_install_fixup[dirs] = "${D}"
+addtask install_fixup after do_install before do_package_install
+
+python install_strip () {
+    import stat
+    def isexec(path):
+        try:
+            s = os.stat(path)
+        except (os.error, AttributeError):
+            return 0
+        return (s[stat.ST_MODE] & stat.S_IEXEC)
+
+    if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
+	for root, dirs, files in os.walk(os.getcwd()):
+            for f in files:
+                    file = os.path.join(root, f)
+                    if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+                        runstrip(file, d)
+
+}
+install_strip[dirs] = "${D}"
+
+def runstrip(file, d):
+    # Function to strip a single file, called from populate_packages below
+    # A working 'file' (one which works on the target architecture)
+    # is necessary for this stuff to work, hence the addition to do_package[depends]
+
+    import commands, stat
+
+    pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
+
+    ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
+
+    if ret:
+        bb.fatal("runstrip() 'file %s' failed" % file)
+
+    if "not stripped" not in result:
+        bb.debug(1, "runstrip() skip %s" % file)
+        return
+
+    # If the file is in a .debug directory it was already stripped,
+    # don't do it again...
+    if os.path.dirname(file).endswith(".debug"):
+        bb.note("Already ran strip")
+        return
+
+    strip = bb.data.getVar("STRIP", d, True)
+    if not len(strip) >0:
+	    bb.note("runstrip() STRIP var empty")
+	    return
+
+    objcopy = bb.data.getVar("OBJCOPY", d, True)
+    if not len(objcopy) >0:
+	    bb.note("runstrip() OBJCOPY var empty")
+	    return
+
+    newmode = None
+    if not os.access(file, os.W_OK):
+        origmode = os.stat(file)[stat.ST_MODE]
+        newmode = origmode | stat.S_IWRITE
+        os.chmod(file, newmode)
+
+    extraflags = ""
+    if ".so" in file and "shared" in result:
+        extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
+    elif "shared" in result or "executable" in result:
+        extraflags = "--remove-section=.comment --remove-section=.note"
+
+    bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
+    debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
+
+    stripcmd = "'%s' %s '%s'"                       % (strip, extraflags, file)
+    objcpcmd = "'%s' --only-keep-debug '%s' '%s'"   % (objcopy, file, debugfile)
+    objlncmd = "'%s' --add-gnu-debuglink='%s' '%s'" % (objcopy, debugfile, file)
+
+    bb.debug(1, "runstrip() %s" % objcpcmd)
+    bb.debug(1, "runstrip() %s" % stripcmd)
+    bb.debug(1, "runstrip() %s" % objlncmd)
+
+    ret, result = commands.getstatusoutput("%s%s" % (pathprefix, objcpcmd))
+    if ret:
+        bb.note("runstrip() '%s' %s" % (objcpcmd,result))
+
+    ret, result = commands.getstatusoutput("%s%s" % (pathprefix, stripcmd))
+    if ret:
+        bb.note("runstrip() '%s' %s" % (stripcmd,result))
+
+    ret, result = commands.getstatusoutput("%s%s" % (pathprefix, objlncmd))
+    if ret:
+        bb.note("runstrip() '%s' %s" % (objlncmd,result))
+
+    if newmode:
+        os.chmod(file, origmode)
+
+
+
 #addtask build after do_populate_sysroot
 addtask build after do_install
 do_build = ""
