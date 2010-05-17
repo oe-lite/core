@@ -360,7 +360,7 @@ FILES_${PN}-doc_append_recipe-canadian-cross = "\
 ${FILES_${PN}-sysroot-doc} \
 "
 
-FILES_${PN}-locale_append_bbclassextend-canadian-cross = "\
+FILES_${PN}-locale_append_recipe-canadian-cross = "\
 ${FILES_${PN}-sysroot-locale} \
 "
 
