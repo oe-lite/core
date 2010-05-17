@@ -86,6 +86,11 @@ DEPENDS_append_recipe-canadian-cross += "${HOST_ARCH}-sdk-libstdc++"
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
 
+# default crosstool-ng build configuration (to be overridden in
+# site.conf or local.conf)
+CT_PARALLEL_JOBS	= "1"
+CT_LOAD			= "0"
+
 _CT_KERNEL_VERSION	= "CT_KERNEL_V_"
 _CT_BINUTILS_VERSION	= "CT_BINUTILS_V_"
 _CT_CC_VERSION		= "CT_CC_V_"
@@ -323,6 +328,10 @@ RPROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
 
 DEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+
+DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
+DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
+DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
 
 # 1. The install/ dir maintains it's crosstool-ng layout, and all
 # FILES_* variables must therefore use crosstool-ng layout paths.

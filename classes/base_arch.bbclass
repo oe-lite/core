@@ -38,7 +38,7 @@ def base_arch_gcc_cputype(d, arch, gnu_arch=None, gcc=None):
     if gnu_arch == None:
         gnu_arch = base_arch_config_sub(d, arch)
     if gcc == None:
-        gcc=map(int,bb.data.getVar('CT_CC_VERSION',d,True).split('.'))
+        gcc=map(int,bb.data.getVar('GCC_VERSION',d,True).split('.'))
     real_cputype = base_arch_real_cputype(d, arch, gnu_arch)
     arch = arch.split('-')
 
@@ -131,7 +131,7 @@ def base_arch_fputype(d, arch):
 def base_arch_cflags(d, arch):
     import bb
     gnu_arch = base_arch_config_sub(d, arch)
-    gcc=map(int,bb.data.getVar('CT_CC_VERSION',d,True).split('.'))
+    gcc=map(int,bb.data.getVar('GCC_VERSION',d,True).split('.'))
     cputype = base_arch_gcc_cputype(d,arch,gnu_arch,gcc)
 
     if gnu_arch[0] in ('i386','i486','i586','i686','i786'):
