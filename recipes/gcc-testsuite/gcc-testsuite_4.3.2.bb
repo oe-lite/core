@@ -30,7 +30,7 @@ do_configure () {
 	echo "set_board_info username ${DG_TARGET_USERNAME}" >> board.exp
 }
 
-DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${MACHINE_CROSS} GXX_UNDER_TEST=${MACHINE_CROSS}-g++ GCC_UNDER_TEST=${MACHINE_CROSS}-gcc"
+DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${MACHINE_ARCH} GXX_UNDER_TEST=${MACHINE_ARCH}-g++ GCC_UNDER_TEST=${MACHINE_ARCH}-gcc"
 
 do_compile () {
 	# Exclude board config when running gcc compile tests
@@ -48,6 +48,6 @@ do_compile () {
 }
 
 do_install () {
-	cp ${DG_TOOLNAME}.log ${TMPDIR}/${MACHINE_CROSS}-${DG_TOOLNAME}-testsuite.log
-	cp ${DG_TOOLNAME}.sum ${TMPDIR}/${MACHINE_CROSS}-${DG_TOOLNAME}-testsuite.sum
+	cp ${DG_TOOLNAME}.log ${TMPDIR}/${MACHINE_ARCH}-${DG_TOOLNAME}-testsuite.log
+	cp ${DG_TOOLNAME}.sum ${TMPDIR}/${MACHINE_ARCH}-${DG_TOOLNAME}-testsuite.sum
 }
