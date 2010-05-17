@@ -1,6 +1,7 @@
 BB_DEFAULT_TASK ?= "build"
 
 RECIPE_TYPE = "machine"
+RE = ""
 
 inherit base_arch
 
@@ -14,27 +15,8 @@ def base_path_join(a, *p):
             path += '/' + b
     return path
 
-def base_dep_prepend(d):
-	import bb
-        deps = ""
-
-        # INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.
-        # Whether or not we need that built is the responsibility of
-        # the patch function / class, not the application.
-	inhibit_default_deps = bb.data.getVar('INHIBIT_DEFAULT_DEPS', d)
-        if not inhibit_default_deps or inhibit_default_deps == '0':
-            build_arch = bb.data.getVar('BUILD_ARCH', d, 1)
-            host_arch = bb.data.getVar('HOST_ARCH', d, 1)
-            target_arch = bb.data.getVar('TARGET_ARCH', d, 1)
-            host_cross = bb.data.getVar('HOST_CROSS', d, 1)
-            target_cross = bb.data.getVar('TARGET_CROSS', d, 1)
-            if host_arch != build_arch:
-                deps += " ${HOST_CROSS}-toolchain "
-            if target_arch != build_arch and target_cross != host_cross:
-                deps += " ${TARGET_CROSS}-toolchain "
-
-        return deps
-
+DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-machine-dev"
+DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
 def base_read_file(filename):
 	try:
@@ -82,10 +64,8 @@ def base_both_contain(variable1, variable2, checkvalue, d):
                return ""
 
 
-FETCHER_DEPENDS=""
-DEPENDS_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)}"
-DEPENDS_virtclass-native_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
-DEPENDS_virtclass-nativesdk_prepend="${FETCHER_DEPENDS}${@base_dep_prepend(d)} "
+FETCHER_DEPENDS = ""
+DEPENDS_prepend += "${FETCHER_DEPENDS}"
 
 def base_prune_suffix(var, suffixes, d):
     # See if var ends with any of the suffixes listed and 
@@ -1041,8 +1021,8 @@ def srcuri_machine_override(d, srcuri):
     return False
 
 
-FIXUP_RPROVIDES = base_fixup_rprovides
-def base_fixup_rprovides(d):
+FIXUP_PROVIDES = base_fixup_provides
+def base_fixup_provides(d):
     for package in bb.data.getVar('PACKAGES', d, True).split():
     	rprovides = bb.data.getVar('RPROVIDES_%s'%(package), d, True)
 	if rprovides:
@@ -1104,27 +1084,15 @@ def base_after_parse(d):
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
-    # FIXME: this is unfortunately called before variable overrides is
-    # applied, so it doesn't really work :-(
-    recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
-    packages = bb.data.getVar('PACKAGES', d, True)
-
     # Special handling of BBCLASSEXTEND recipes
+    # FIXME: let's rename BBCLASSEXTEND to RECIPE_EXTEND as it makes much
+    # more sense
+    recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
     if recipe_type in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
-        # Fixup PROVIDES_* variables
-        # FIXME: if PACKAGES has overrides, this will break as
-        # overrides has not been applied at this point in time!
-        for pkg in packages.split():
-            provides = bb.data.getVar('PROVIDES_%s'%pkg, d, True) or ''
-            for provide in provides.split():
-                # FIXME: is this really a robust solution????
-                if provide.find(pn) != -1:
-                    continue
-                if not provide.endswith('-' + recipe_type):
-                    provides = provides.replace(provide, provide + '-' + recipe_type)
-            bb.data.setVar('PROVIDES_%s'%pkg, provides, d)
-        # Add bbclassextend-RECIPE_TYPE to OVERRIDES
-        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':bbclassextend-'+recipe_type, d)
+	# Set ${RE} for use in fx. DEPENDS and RDEPENDS
+	bb.data.setVar('RE', '-' + recipe_type, d)
+        # Add recipe-${RECIPE_TYPE} to OVERRIDES
+        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
 
     # FIXME: move to insane.bbclass
     provides = bb.data.getVar('PROVIDES', d, True)
@@ -1136,10 +1104,10 @@ def base_after_parse(d):
     if rprovides:
         bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
-    # Fixup package RPROVIDES, which is recipe type dependant
-    fixup_rprovides = bb.data.getVar('FIXUP_RPROVIDES', d, False)
-    if fixup_rprovides is not '':
-        eval(fixup_rprovides)(d)
+    # Fixup package PROVIDES and RPROVIDES (recipe type dependant)
+    fixup_provides = bb.data.getVar('FIXUP_PROVIDES', d, False)
+    if fixup_provides is not '':
+        eval(fixup_provides)(d)
 
     # RECIPE_ARCH override detection
     recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
@@ -1159,6 +1127,7 @@ def base_after_parse(d):
     # Detect manual machine "override" in PACKAGE_ARCH_* variables
     # FIXME: if PACKAGES has overrides, this will break as
     # overrides has not been applied at this point in time!
+    packages = bb.data.getVar('PACKAGES', d, True)
     for pkg in packages:
         package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
         if package_arch and package_arch == recipe_arch_mach:
@@ -1184,8 +1153,7 @@ def check_app_exists(app, d):
 # Patch handling
 inherit patch
 
-# Configuration data from site files
-# Move to autotools.bbclass?
+# Autoconf sitefile handling
 inherit siteinfo
 
 EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install

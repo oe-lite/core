@@ -1,31 +1,10 @@
 # use autotools_stage_all for native packages
 AUTOTOOLS_NATIVE_STAGE_INSTALL = "1"
 
-def autotools_dep_prepend(d):
-	if bb.data.getVar('INHIBIT_AUTOTOOLS_DEPS', d, 1):
-		return ''
-
-	pn = bb.data.getVar('PN', d, 1)
-	deps = ''
-
-	if pn in ['autoconf-native', 'automake-native']:
-		return deps
-	deps += 'autoconf-native automake-native '
-
-	if not pn in ['libtool', 'libtool-native', 'libtool-cross']:
-		deps += 'libtool-native '
-		if not bb.data.inherits_class('native', d) \
-                        and not bb.data.inherits_class('cross', d) \
-                        and not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d, 1):
-                    deps += 'libtool-cross '
-
-	return deps
-
 EXTRA_OEMAKE = ""
 
-DEPENDS_prepend = "${@autotools_dep_prepend(d)}"
-DEPENDS_virtclass-native_prepend = "${@autotools_dep_prepend(d)}"
-DEPENDS_virtclass-nativesdk_prepend = "${@autotools_dep_prepend(d)}"
+AUTOTOOLS_DEPENDS = "autoconf-native automake-native libtool-native"
+DEPENDS_prepend += "${AUTOTOOLS_DEPENDS}"
 
 acpaths = "default"
 EXTRA_AUTORECONF = "--exclude=autopoint"
@@ -38,7 +17,7 @@ def autotools_set_crosscompiling(d):
 # EXTRA_OECONF_append = "${@autotools_set_crosscompiling(d)}"
 
 # Arch tuple arguments for configure
-OECONF_ARCHTUPLE = "--build=${BUILD_CROSS} --host=${HOST_CROSS}"
+OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH}"
 
 oe_runconf () {
 	if [ -x ${S}/configure ] ; then

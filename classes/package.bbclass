@@ -2,116 +2,6 @@
 # General packaging help functions
 #
 
-def legitimize_package_name(s):
-	"""
-	Make sure package names are legitimate strings
-	"""
-	import re
-
-	def fixutf(m):
-		cp = m.group(1)
-		if cp:
-			return ('\u%s' % cp).decode('unicode_escape').encode('utf-8')
-
-	# Handle unicode codepoints encoded as <U0123>, as in glibc locale files.
-	s = re.sub('<U([0-9A-Fa-f]{1,4})>', fixutf, s)
-
-	# Remaining package name validity fixes
-	return s.lower().replace('_', '-').replace('@', '+').replace(',', '+').replace('/', '-')
-
-def do_split_packages(d, root, file_regex, output_pattern, description, postinst=None, recursive=False, hook=None, extra_depends=None, aux_files_pattern=None, postrm=None, allow_dirs=False, prepend=False, match_path=False, aux_files_pattern_verbatim=None, allow_links=False):
-	"""
-	Used in .bb files to split up dynamically generated subpackages of a
-	given package, usually plugins or modules.
-	"""
-	import os, os.path, bb
-
-	dvar = bb.data.getVar('D', d, 1)
-	if not dvar:
-		bb.error("D not defined")
-		return
-
-	packages = bb.data.getVar('PACKAGES', d, 1).split()
-
-	if postinst:
-		postinst = '#!/bin/sh\n' + postinst + '\n'
-	if postrm:
-		postrm = '#!/bin/sh\n' + postrm + '\n'
-	if not recursive:
-		objs = os.listdir(dvar + root)
-	else:
-		objs = []
-		for walkroot, dirs, files in os.walk(dvar + root):
-			for file in files:
-				relpath = os.path.join(walkroot, file).replace(dvar + root + '/', '', 1)
-				if relpath:
-					objs.append(relpath)
-
-	if extra_depends == None:
-		# This is *really* broken
-		mainpkg = packages[0]
-		# At least try and patch it up I guess...
-		if mainpkg.find('-dbg'):
-			mainpkg = mainpkg.replace('-dbg', '')
-		if mainpkg.find('-dev'):
-			mainpkg = mainpkg.replace('-dev', '')
-		extra_depends = mainpkg
-
-	for o in objs:
-		import re, stat
-		if match_path:
-			m = re.match(file_regex, o)
-		else:
-			m = re.match(file_regex, os.path.basename(o))
-
-		if not m:
-			continue
-		f = os.path.join(dvar + root, o)
-		mode = os.lstat(f).st_mode
-		if not (stat.S_ISREG(mode) or (allow_links and stat.S_ISLNK(mode)) or (allow_dirs and stat.S_ISDIR(mode))):
-			continue
-		on = legitimize_package_name(m.group(1))
-		pkg = output_pattern % on
-		if not pkg in packages:
-			if prepend:
-				packages = [pkg] + packages
-			else:
-				packages.append(pkg)
-			the_files = [os.path.join(root, o)]
-			if aux_files_pattern:
-				if type(aux_files_pattern) is list:
-					for fp in aux_files_pattern:
-						the_files.append(fp % on)
-				else:
-					the_files.append(aux_files_pattern % on)
-			if aux_files_pattern_verbatim:
-				if type(aux_files_pattern_verbatim) is list:
-					for fp in aux_files_pattern_verbatim:
-						the_files.append(fp % m.group(1))
-				else:
-					the_files.append(aux_files_pattern_verbatim % m.group(1))
-			bb.data.setVar('FILES_' + pkg, " ".join(the_files), d)
-			if extra_depends != '':
-				the_depends = bb.data.getVar('RDEPENDS_' + pkg, d, 1)
-				if the_depends:
-					the_depends = '%s %s' % (the_depends, extra_depends)
-				else:
-					the_depends = extra_depends
-				bb.data.setVar('RDEPENDS_' + pkg, the_depends, d)
-			bb.data.setVar('DESCRIPTION_' + pkg, description % on, d)
-			if postinst:
-				bb.data.setVar('pkg_postinst_' + pkg, postinst, d)
-			if postrm:
-				bb.data.setVar('pkg_postrm_' + pkg, postrm, d)
-		else:
-			oldfiles = bb.data.getVar('FILES_' + pkg, d, 1)
-			if not oldfiles:
-				bb.fatal("Package '%s' exists but has no files" % pkg)
-			bb.data.setVar('FILES_' + pkg, oldfiles + " " + os.path.join(root, o), d)
-		if callable(hook):
-			hook(f, pkg, file_regex, output_pattern, m.group(1))
-
-	bb.data.setVar('PACKAGES', ' '.join(packages), d)
 
 PACKAGE_DEPENDS += "file-native"
 
@@ -165,52 +55,55 @@ def write_package_md5sums (root, outfile, ignorepaths):
 #
 
 
-python package_populate () {
+python package_install_split () {
 	import bb, glob, errno, re, stat
 
 	workdir = bb.data.getVar('WORKDIR', d, True)
 	ddir = bb.data.getVar('D', d, True)
 	pkgd = bb.data.getVar('PKGD', d, True)
 	pn = bb.data.getVar('PN', d, True)
-	packages = bb.data.getVar('PACKAGES', d, True)
+	packages = bb.data.getVar('PACKAGES', d, True).split()
 	rpackages = bb.data.getVar('RPACKAGES', d, True)
+	if rpackages:
+		rpackages = rpackages.split()
+	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
+	if sysroot_packages:
+		sysroot_packages = sysroot_packages.split()
+		machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
+		sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
 	
 	# Sanity check PACKAGES for duplicates.
 	# move to sanity.bbclass once we have the infrastucture
 	package_list = []
-	for pkg in packages.split():
+	for pkg in packages:
 		if pkg in package_list:
 			bb.error("%s is listed in PACKAGES multiple times" % pkg)
-		else:
-			package_list.append(pkg)
-
-	# Sanity check RPACKAGES for duplicates.
-	# move to sanity.bbclass once we have the infrastucture
-	if rpackages:
-		rpackage_list = []
-		for pkg in rpackages.split():
-			if pkg in rpackage_list:
-				bb.error("%s is listed in RPACKAGES multiple times" % pkg)
-			else:
-				rpackage_list.append(pkg)
-			if not pkg in package_list:
-				bb.error("%s is in RPACKAGES but not PACKAGES" % pkg)
+			continue
+		# Don't split to machine and sdk packages directly
+		if sysroot_packages:
+			if pkg in machine_packages or pkg in sdk_packages:
+				continue
+		package_list.append(pkg)
+	
+	# Split to (temporary) sysroot packages
+	package_list += sysroot_packages
+	
 	seen = []
 	main_is_empty = 1
 	main_pkg = bb.data.getVar('PN', d, 1)
-
+	
 	for pkg in package_list:
 		localdata = bb.data.createCopy(d)
 		root = os.path.join(pkgd, pkg)
 		bb.mkdirhier(root)
-
+	
 		bb.data.setVar('PKG', pkg, localdata)
 		overrides = bb.data.getVar('OVERRIDES', localdata, True)
 		if not overrides:
 			raise bb.build.FuncFailed('OVERRIDES not defined')
 		bb.data.setVar('OVERRIDES', overrides + ':' + pkg, localdata)
 		bb.data.update_data(localdata)
-
+	
 		filesvar = bb.data.getVar('FILES', localdata, True) or ""
 		files = filesvar.split()
 		for file in files:
@@ -249,24 +142,24 @@ python package_populate () {
 			if pkg == main_pkg and main_is_empty:
 				main_is_empty = 0
 		del localdata
-
+	
 	unshipped = []
 	for root, dirs, files in os.walk(ddir + '/'):
 		for f in files:
 			path = os.path.join(root[len(ddir):], f)
 			if ('.' + path) not in seen:
 				unshipped.append(path)
-
+	
 	if unshipped != []:
 		bb.note("the following files were installed but not shipped in any package:")
 		for f in unshipped:
 			bb.note("  " + f)
-
+	
 	for pkg in package_list:
 		pkgname = bb.data.getVar('PKG_%s' % pkg, d, 1)
 		if pkgname is None:
 			bb.data.setVar('PKG_%s' % pkg, pkg, d)
-
+	
 	dangling_links = {}
 	pkg_files = {}
 	for pkg in package_list:
@@ -287,13 +180,10 @@ python package_populate () {
 					if target[0] != '/':
 						target = os.path.join(root[len(inst_root):], target)
 					dangling_links[pkg].append(os.path.normpath(target))
-
+	
 	for pkg in package_list:
-		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or bb.data.getVar('RDEPENDS', d, 0) or "")
-
-		remstr = "${PN} (= ${EXTENDPV})"
-		if main_is_empty and remstr in rdepends:
-			rdepends.remove(remstr)
+		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or "")
+	
 		for l in dangling_links[pkg]:
 			found = False
 			bb.debug(1, "%s contains dangling link %s" % (pkg, l))
@@ -311,82 +201,36 @@ python package_populate () {
 				bb.note("%s contains dangling symlink to %s" % (pkg, l))
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
 }
-package_populate[dirs] = "${D}"
+package_install_split[dirs] = "${D}"
 
 
-python emit_pkgdata() {
-	from glob import glob
-
-	def write_if_exists(f, pkg, var):
-		def encode(str):
-			import codecs
-			c = codecs.getencoder("string_escape")
-			return c(str)[0]
-
-		val = bb.data.getVar('%s_%s' % (var, pkg), d, 1)
-		if val:
-			f.write('%s_%s: %s\n' % (var, pkg, encode(val)))
- 			return
- 		val = bb.data.getVar('%s' % (var), d, 1)
- 		if val:
- 			f.write('%s: %s\n' % (var, encode(val)))
- 		return
-
-	packages = bb.data.getVar('PACKAGES', d, True)
-	pkgdatadir = bb.data.getVar('PKGDATA_DIR', d, True)
-
-	pstageactive = bb.data.getVar('PSTAGING_ACTIVE', d, True)
-	if pstageactive == "1":
-		lf = bb.utils.lockfile(bb.data.expand("${STAGING_DIR}/staging.lock", d))
-
-	data_file = pkgdatadir + bb.data.expand("/${PN}" , d)
-	f = open(data_file, 'w')
-	f.write("PACKAGES: %s\n" % packages)
-	f.close()
-	package_stagefile(data_file, d)
-
-	workdir = bb.data.getVar('WORKDIR', d, 1)
-
-	for pkg in packages.split():
-		subdata_file = pkgdatadir + "/runtime/%s" % pkg
-		sf = open(subdata_file, 'w')
-		write_if_exists(sf, pkg, 'PN')
-		write_if_exists(sf, pkg, 'PV')
-		write_if_exists(sf, pkg, 'PR')
-		write_if_exists(sf, pkg, 'DESCRIPTION')
-		write_if_exists(sf, pkg, 'RDEPENDS')
-		write_if_exists(sf, pkg, 'RPROVIDES')
-		write_if_exists(sf, pkg, 'RRECOMMENDS')
-		write_if_exists(sf, pkg, 'RSUGGESTS')
-		write_if_exists(sf, pkg, 'RREPLACES')
-		write_if_exists(sf, pkg, 'RCONFLICTS')
-		write_if_exists(sf, pkg, 'PKG')
-		write_if_exists(sf, pkg, 'ALLOW_EMPTY')
-		write_if_exists(sf, pkg, 'FILES')
-		write_if_exists(sf, pkg, 'pkg_postinst')
-		write_if_exists(sf, pkg, 'pkg_postrm')
-		write_if_exists(sf, pkg, 'pkg_preinst')
-		write_if_exists(sf, pkg, 'pkg_prerm')
-		sf.close()
-
-		package_stagefile(subdata_file, d)
-		#if pkgdatadir2:
-		#	bb.copyfile(subdata_file, pkgdatadir2 + "/runtime/%s" % pkg)
-
-		allow_empty = bb.data.getVar('ALLOW_EMPTY_%s' % pkg, d, 1)
-		if not allow_empty:
-			allow_empty = bb.data.getVar('ALLOW_EMPTY', d, 1)
-		root = "%s/install/%s" % (workdir, pkg)
-		os.chdir(root)
-		g = glob('*') + glob('.[!.]*')
-		if g or allow_empty == "1":
-			packagedfile = pkgdatadir + '/runtime/%s.packaged' % pkg
-			file(packagedfile, 'w').close()
-			package_stagefile(packagedfile, d)
-	if pstageactive == "1":
-		bb.utils.unlockfile(lf)
+# Helper function for do_package_install for cross and sdk-cross recipes.
+# Added to PACKAGE_INSTALL_FIXUP_FUNCS when needed.
+python package_install_sysroot_split () {
+	pkgd = bb.data.getVar('PKGD', d, True)
+	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
+	if not sysroot_packages:
+		return
+	sysroot_packages = sysroot_packages.split()
+	machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
+	sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
+	import shutil
+	for sysroot_pkg in sysroot_packages:
+		mach_pkg = sysroot_pkg.replace('sysroot', 'machine')
+		sdk_pkg = sysroot_pkg.replace('sysroot', 'sdk')
+		sysroot_d = os.path.join(pkgd, sysroot_pkg)
+		mach_d = os.path.join(pkgd, mach_pkg)
+		sdk_d = os.path.join(pkgd, sdk_pkg)
+		if mach_pkg in machine_packages:
+			if sdk_pkg in sdk_packages:
+				shutil.copytree(sysroot_d, sdk_d, True)
+			shutil.move(sysroot_d, mach_d)
+		elif sdk_d in sdk_packages:
+			shutil.move(sysroot_d, sdk_d)
+		else:
+			bb.fatal('Don\'t know how to split sysroot package: %s'%sysroot_pkg)
 }
-emit_pkgdata[dirs] = "${PKGDATA_DIR}/runtime"
+
 
 ldconfig_postinst_fragment() {
 if [ x"$D" = "x" ]; then
@@ -679,7 +523,7 @@ python package_do_pkgconfig () {
 python read_shlibdeps () {
 	packages = bb.data.getVar('PACKAGES', d, 1).split()
 	for pkg in packages:
-		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or bb.data.getVar('RDEPENDS', d, 0) or "")
+		rdepends = bb.utils.explode_deps(bb.data.getVar('RDEPENDS_' + pkg, d, 0) or "")
 		for extension in ".shlibdeps", ".pcdeps", ".clilibdeps":
 			depsfile = bb.data.expand("${PKGD}/" + pkg + extension, d)
 			if os.access(depsfile, os.R_OK):
@@ -800,7 +644,7 @@ python package_depchains() {
 }
 
 
-def package_clone (packages, dstdir, d):
+def package_clone(packages, dstdir, d):
 	pkgd = bb.data.getVar('PKGD', d, 1)
 
 	for pkg in packages:
@@ -831,7 +675,7 @@ target_package_clone[dirs] = '${PKGD_TARGET} ${PKGD}'
 
 PACKAGE_INSTALL_FUNCS = "\
 # package_split_locales\
- package_populate\
+ package_install_split\
 # package_shlibs\
 # package_pkgconfig\
 # package_depchains\
