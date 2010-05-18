@@ -10,4 +10,4 @@ DEFAULT_DEPENDS_append += "${DEFAULT_CXX_DEPENDS}"
 SDK_CXXFLAGS_append	+= "-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
 MACHINE_CXXFLAGS_append	+= "-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} -isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
 
-export CXXFLAGS
+export BUILD_CXXFLAGS CXXFLAGS
