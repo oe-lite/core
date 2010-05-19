@@ -1,6 +1,3 @@
-# use autotools_stage_all for native packages
-AUTOTOOLS_NATIVE_STAGE_INSTALL = "1"
-
 EXTRA_OEMAKE = ""
 
 AUTOTOOLS_DEPENDS = "autoconf-native automake-native libtool-native"
@@ -9,12 +6,12 @@ DEPENDS_prepend += "${AUTOTOOLS_DEPENDS}"
 acpaths = "default"
 EXTRA_AUTORECONF = "--exclude=autopoint"
 
-def autotools_set_crosscompiling(d):
+EXTRA_OECONF_append += "${@autotools_crosscompiling(d)}"
+def autotools_crosscompiling(d):
 	if not bb.data.inherits_class('native', d):
-		return " cross_compiling=yes"
+		return "cross_compiling=yes"
 	return ""
 
-# EXTRA_OECONF_append = "${@autotools_set_crosscompiling(d)}"
 
 # Arch tuple arguments for configure
 OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH}"
@@ -36,7 +33,7 @@ oe_runconf () {
 		    --includedir=${includedir} \
 		    --infodir=${infodir} \
 		    --mandir=${mandir} \
-			${EXTRA_OECONF} \
+		    ${EXTRA_OECONF} \
 		    $@"
 		oenote "Running $cfgcmd..."
 		$cfgcmd || oefatal "oe_runconf failed" 
@@ -46,14 +43,6 @@ oe_runconf () {
 }
 
 autotools_do_configure() {
-	case ${PN} in
-	autoconf*)
-	;;
-	automake*)
-	;;
-	*)
-	;;
-	esac
 	if [ -e ${S}/configure ]; then
 		oe_runconf
 	else
