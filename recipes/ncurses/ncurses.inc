@@ -14,6 +14,9 @@ RPROVIDES_${PN} = "libncurses5${RE}"
 
 inherit autotools
 
+export LTCC="${CC}"
+export LTCFLAGS="${CFLAGS}"
+
 # This keeps only tput/tset in ncurses
 # clear/reset are in already busybox
 FILES_${PN} = "${bindir}/tput ${bindir}/tset ${libdir}/lib*.so.* /usr/share/tabset /etc/terminfo"
@@ -24,7 +27,7 @@ FILES_${PN}-dev += "${bindir}/ncurses5-config"
 FILESPATH = "${FILE_DIRNAME}/local:${FILE_DIRNAME}/ncurses-${PV}-${PR}:${FILE_DIRNAME}/ncurses-${PV}:${FILE_DIRNAME}/ncurses:${FILE_DIRNAME}"
 
 EXTRA_OECONF = "--with-shared \
-                --with-libtool \
+                --with-libtool=`which ${LIBTOOL}` \
 	        --without-profile \
 	        --without-debug \
 	        --disable-rpath \
@@ -35,15 +38,11 @@ EXTRA_OECONF = "--with-shared \
 	        --without-cxx-binding \
 	        --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
 	        --enable-overwrite \
-	        --with-build-ldflags='' \
-	        --with-build-ccflags='' "
-export BUILD_CCFLAGS = "-I${S}/ncurses -I${S}/include ${BUILD_CFLAGS}"
-export BUILD_LDFLAGS = ""
-export EXTRA_OEMAKE = '"BUILD_LDFLAGS=" "BUILD_CCFLAGS=${BUILD_CCFLAGS}"'
+"
 
 # This is necessary so that the "tic" command executed during the install can
 # link with the correct libary in staging.
-export LD_LIBRARY_PATH = "${STAGING_LIBDIR_NATIVE}"
+#export LD_LIBRARY_PATH = "${STAGING_LIBDIR_NATIVE}"
 
 do_install() {
 	autotools_do_install
