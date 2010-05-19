@@ -265,11 +265,6 @@ do_install_recipe-canadian-cross () {
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
-# FIXME: let's rename toolchain to gcc4.4.3-glibc2.9 so we get package
-# names like gcc4.4.3-glibc2.9-doc gcc4.4.3-glibc2.9-sysroot-libc
-# (gcc4.4.3-glibc2.9-sysroot-libc-machine
-# gcc4.4.3-glibc2.9-sysroot-libc-sdk) and be able to build all available toolchain versions without messing with distro.
-
 PACKAGES	= "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
 MACHINE_PACKAGES = "${PN}-machine-gdbserver"
 RPACKAGES_append += "${MACHINE_PACKAGES}"
@@ -326,8 +321,8 @@ RPROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
 RPROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
 RPROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
 
-DEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
-RDEPENDS_${PN}-sysroot-dev	= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
@@ -387,6 +382,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-linux.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/gconv \
 "
