@@ -12,7 +12,7 @@ PACKAGES_append = " ${PN}-terminfo"
 FILES_${PN}_append = " ${datadir}/tabset"
 RPROVIDES_${PN} = "libncurses5${RE}"
 
-inherit autotools
+inherit autotools c++
 
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
