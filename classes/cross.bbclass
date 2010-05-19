@@ -52,18 +52,6 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-# But let's get rid of the stupid /usr thingy
-stage_prefix		= "${stage_base_prefix}"
-
-cross_do_install () {
-    oe_runmake install
-}
-
-do_install () {
-    cross_do_install
-}
-
-
 def machine_sysroot_packages(d):
     packages = (bb.data.getVar('SYSROOT_PACKAGES', d, True) or '').split()
     def sysroot_to_machine(s):
