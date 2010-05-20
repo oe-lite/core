@@ -9,9 +9,12 @@ FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/files",\
 ], d)}
 
-
 S = "${WORKDIR}/build"
 B = "${S}"
+
+DEPENDS_append_recipe-canadian-cross += "${TUI_DEPENDS}"
+TUI_DEPENDS = "ncurses-sdk readline-sdk"
+TUI_DEPENDS_host-mingw32 = ""
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
@@ -81,7 +84,7 @@ SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
-DEPENDS_append_recipe-canadian-cross += "${HOST_ARCH}-sdk-libstdc++"
+inherit c++
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
 export NATIVE_DIR
@@ -265,8 +268,10 @@ do_install_recipe-canadian-cross () {
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
-PACKAGES	= "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
-MACHINE_PACKAGES = "${PN}-machine-gdbserver"
+PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
+MACHINE_PACKAGES = ""
+MACHINE_PACKAGES_recipe-cross += "${PN}-machine-gdbserver"
+MACHINE_PACKAGES_recipe-sdk-cross += "${PN}-machine-gdbserver"
 RPACKAGES_append += "${MACHINE_PACKAGES}"
 SYSROOT_PACKAGES = "\
 	${PN}-sysroot-dev \
@@ -286,6 +291,7 @@ SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libgcc \
 	${PN}-sysroot-garbage \
 "
+# FIXME: SYSROOT_PACKAGES is still defined for machine recipe, which is wrong and bad
 
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}-toolchain"
 PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}-toolchain"
