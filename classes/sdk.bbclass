@@ -3,6 +3,8 @@ RECIPE_TYPE			 = "sdk"
 RECIPE_ARCH			 = "sdk/${SDK_ARCH}"
 RECIPE_ARCH_MACHINE		 = "sdk/${SDK_ARCH}--${MACHINE}"
 
+SYSROOT_PACKAGES := ""
+
 # Get sdk cross toolchain and sdk sysroot
 DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-sdk-dev"
 

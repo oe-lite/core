@@ -3,6 +3,8 @@ RECIPE_TYPE			 = "canadian-cross"
 RECIPE_ARCH			 = "canadian/${SDK_ARCH}--${MACHINE_ARCH}"
 RECIPE_ARCH_MACHINE		 = "canadian/${SDK_ARCH}--${MACHINE}"
 
+SYSROOT_PACKAGES := ""
+
 # Get both sdk and machine cross toolchains and sysroots
 DEFAULT_DEPENDS = "\
  ${HOST_ARCH}-toolchain ${HOST_ARCH}-sdk-dev\
