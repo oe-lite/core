@@ -1,5 +1,9 @@
 inherit cross
-RECIPE_TYPE = "sdk-cross"
+
+RECIPE_TYPE		= "sdk-cross"
+#
+RECIPE_ARCH		= "cross/${SDK_ARCH}"
+RECIPE_ARCH_MACHINE	= "cross/${SDK_ARCH}--${MACHINE}"
 
 # Set target=sdk to get architecture triplet build/build/sdk
 TARGET_ARCH		= "${SDK_ARCH}"
