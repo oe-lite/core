@@ -55,29 +55,6 @@ LD_LIBRARY_PATH = ""
 
 CONFIG_SITE	= ""
 
-# Try to avoid messing up sys-root paths
-prefix			= ""
-sysroot_prefix		= ""
-base_prefix		= ""
-prefix			= ""
-exec_prefix		= ""
-base_bindir		= ""
-base_sbindir		= ""
-base_libdir		= ""
-sysconfdir		= ""
-localstatedir		= ""
-servicedir		= ""
-sharedstatedir		= ""
-datadir			= ""
-infodir			= ""
-mandir			= ""
-docdir			= ""
-bindir			= ""
-sbindir			= ""
-libdir			= ""
-libexecdir		= ""
-includedir		= ""
-
 DEFCONFIG_COMMON	= "defconfig.common"
 
 DEFCONFIG_CPU		= "defconfig.${TARGET_CPU}"
@@ -97,7 +74,7 @@ DEPENDS = "crosstool-ng-native-${PV}"
 inherit c++
 
 # The ct-ng tools uses $NATIVE_DIR for staying relocateable
-export NATIVE_DIR
+export NATIVE_DIR = "${STAGE_DIR}/native"
 
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)

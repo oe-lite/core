@@ -25,15 +25,38 @@ HOST_LDFLAGS		= "${SDK_LDFLAGS}"
 # Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
 OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH} --target=${TARGET_ARCH}"
 
-# 
+# Need to have both host and target cross as well as native dirs in path
 PATH_prepend = "\
-${STAGE_DIR}/target/cross${stage_base_bindir}:${STAGE_DIR}/target/cross${stage_bindir}:\
-${STAGE_DIR}/host/cross${stage_base_bindir}:${STAGE_DIR}/host/cross${stage_bindir}:\
-${NATIVE_DIR}${stage_base_bindir}:${NATIVE_DIR}${stage_bindir}:\
+${STAGE_DIR}/target/cross${stage_bindir}:\
+${STAGE_DIR}/host/cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}:\
 "
 
 MACHINE_SYSROOT	 = "${STAGE_DIR}/target/sysroot"
 SDK_SYSROOT	 = "${STAGE_DIR}/host/sysroot"
+
+# Use the sdk_* path variables
+base_prefix		= "${sdk_base_prefix}"
+prefix			= "${sdk_prefix}"
+exec_prefix		= "${sdk_exec_prefix}"
+base_bindir		= "${sdk_base_bindir}"
+base_sbindir		= "${sdk_base_sbindir}"
+base_libexecdir		= "${sdk_base_libexecdir}"
+base_libdir		= "${sdk_base_libdir}"
+base_includecdir	= "${sdk_base_includedir}"
+datadir			= "${sdk_datadir}"
+sysconfdir		= "${sdk_sysconfdir}"
+servicedir		= "${sdk_servicedir}"
+sharedstatedir		= "${sdk_sharedstatedir}"
+localstatedir		= "${sdk_localstatedir}"
+infodir			= "${sdk_infodir}"
+mandir			= "${sdk_mandir}"
+docdir			= "${sdk_docdir}"
+bindir			= "${sdk_bindir}"
+sbindir			= "${sdk_sbindir}"
+libexecdir		= "${sdk_libexecdir}"
+libdir			= "${sdk_libdir}"
+includedir		= "${sdk_includedir}"
 
 # Override the set_stage to handle host/target split of stage dir
 python do_set_stage () {
