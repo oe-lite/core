@@ -82,13 +82,23 @@ def native_fixup_package_arch(d):
 
 FIXUP_PROVIDES = native_fixup_provides
 def native_fixup_provides(d):
+    target_arch = bb.data.getVar('TARGET_ARCH', d, True) + '/'
+    pn = bb.data.getVar('PN', d, True)
+    bpn = bb.data.getVar('BPN', d, True)
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
-    	provides = bb.data.getVar('PROVIDES_%s'%(pkg), d, True)
-	if provides:
-            provides = provides.split()
-        else:
-            provides = []
+    	provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
+        provides_changed = False
+	if pkg == pn:
+            cross_provides = target_arch + bpn
+            if not cross_provides in provides:
+                provides += [cross_provides]
+                provides_changed = True
         if not pkg in provides:
-            bb.data.setVar('PROVIDES_%s'%(pkg), ' '.join([pkg] + provides), d)
-	if bb.data.getVar('RPROVIDES_%s'%(pkg), d, True):
-            bb.data.setVar('RPROVIDES_%s'%(pkg), '', d)
+            provides = [pkg] + provides
+            provides_changed = True
+        if provides_changed:
+            bb.data.setVar('PROVIDES_'+pkg, ' '.join(provides), d)
+	if bb.data.getVar('RPROVIDES_'+pkg, d, True):
+            bb.data.setVar('RPROVIDES_'+pkg, '', d)
+	if bb.data.getVar('RDEPENDS_'+pkg, d, True):
+            bb.data.setVar('RDEPENDS_'+pkg, '', d)
