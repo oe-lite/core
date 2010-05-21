@@ -30,7 +30,7 @@ do_configure () {
 	echo "set_board_info username ${DG_TARGET_USERNAME}" >> board.exp
 }
 
-DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${MACHINE_ARCH} GXX_UNDER_TEST=${MACHINE_ARCH}-g++ GCC_UNDER_TEST=${MACHINE_ARCH}-gcc"
+DG_RUN_CMD = "runtest --tool ${DG_TOOLNAME} --srcdir ${S}/gcc/testsuite --all --target ${MACHINE_ARCH} GXX_UNDER_TEST=${MACHINE_PREFIX}g++ GCC_UNDER_TEST=${MACHINE_PREFIX}gcc"
 
 do_compile () {
 	# Exclude board config when running gcc compile tests

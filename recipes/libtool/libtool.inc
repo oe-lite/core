@@ -13,34 +13,18 @@ S = "${WORKDIR}/${BPN}-${PV}"
 
 inherit autotools
 
-AUTOTOOLS_DEPENDS_recipe-native = "autoconf-native automake-native"
-AUTOTOOLS_DEPENDS_recipe-cross = "autoconf-native automake-native"
-AUTOTOOLS_DEPENDS_recipe-sdk-cross = "autoconf-native automake-native"
+AUTOTOOLS_DEPENDS_recipe-native		= "autoconf-native automake-native"
+AUTOTOOLS_DEPENDS_recipe-cross		= "autoconf-native automake-native"
+AUTOTOOLS_DEPENDS_recipe-sdk-cross	= "autoconf-native automake-native"
 
-# FIXME: this looks a bit like a hack, as we now are assuming we are
-# using either machine or sysroot libraries, which might/could be
-# incompatible with the alternative. *SIGH*
-DEPENDS_recipe-cross = "${TARGET_ARCH}-toolchain ${TARGET_ARCH}-machine-dev"
-DEPENDS_recipe-sdk-cross = "${TARGET_ARCH}-toolchain ${TARGET_ARCH}-sdk-dev"
-
-LIBTOOL_SYSROOT_PACKAGES = "\
+SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libltdl \
 	${PN}-sysroot-libltdl-dev \
 	${PN}-sysroot-libltdl-dbg \
 "
-SYSROOT_PACKAGES_recipe-cross		= "${LIBTOOL_SYSROOT_PACKAGES}"
-SYSROOT_PACKAGES_recipe-sdk-cross	= "${LIBTOOL_SYSROOT_PACKAGES}"
 
-PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}-libtool"
-PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}-libtool"
-
-PROVIDES_${PN}-sysroot-libltdl		= "${TARGET_ARCH}-sysroot-libltdl"
-PROVIDES_${PN}-sysroot-libltdl-dev	= "${TARGET_ARCH}-sysroot-libltdl-dev"
-PROVIDES_${PN}-sysroot-libltdl-dbg	= "${TARGET_ARCH}-sysroot-libltdl-dbg"
-
-RPROVIDES_${PN}-sysroot-libltdl		= "${TARGET_ARCH}-sysroot-libltdl"
-RPROVIDES_${PN}-sysroot-libltdl-dev	= "${TARGET_ARCH}-sysroot-libltdl-dev"
-RPROVIDES_${PN}-sysroot-libltdl-dbg	= "${TARGET_ARCH}-sysroot-libltdl-dbg"
+PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/libtool"
+PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/libtool"
 
 DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"
 DEPENDS_${PN}-sysroot-libltdl-dbg	= "${PN}-sysroot-libltdl"

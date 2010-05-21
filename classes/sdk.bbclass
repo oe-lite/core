@@ -5,9 +5,6 @@ RECIPE_ARCH_MACHINE		 = "sdk/${SDK_ARCH}--${MACHINE}"
 
 SYSROOT_PACKAGES := ""
 
-# Get sdk cross toolchain and sdk sysroot
-DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-sdk-dev"
-
 # Set host=sdk
 HOST_ARCH		= "${SDK_ARCH}"
 HOST_CPUTYPE		= "${SDK_CPUTYPE}"
@@ -33,7 +30,3 @@ TARGET_OPTIMIZATION	= "${SDK_OPTIMIZATION}"
 TARGET_CFLAGS		= "${SDK_CFLAGS}"
 TARGET_CXXFLAGS		= "${SDK_CXXFLAGS}"
 TARGET_LDFLAGS		= "${SDK_LDFLAGS}"
-
-do_install () {
-	:
-}

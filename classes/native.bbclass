@@ -67,4 +67,28 @@ base_do_install() {
     oe_runmake install
 }
 
-FIXUP_PROVIDES = ''
+FIXUP_PACKAGE_ARCH = native_fixup_package_arch
+def native_fixup_package_arch(d):
+    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition('native/')
+    if not arch[0] and arch[1]:
+        # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
+        arch = arch[2]
+    else:
+        arch = '${BUILD_ARCH}'
+    for pkg in bb.data.getVar('PACKAGES', d, True).split():
+        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
+            pkg_arch = 'native/'+arch
+            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+
+FIXUP_PROVIDES = native_fixup_provides
+def native_fixup_provides(d):
+    for pkg in bb.data.getVar('PACKAGES', d, True).split():
+    	provides = bb.data.getVar('PROVIDES_%s'%(pkg), d, True)
+	if provides:
+            provides = provides.split()
+        else:
+            provides = []
+        if not pkg in provides:
+            bb.data.setVar('PROVIDES_%s'%(pkg), ' '.join([pkg] + provides), d)
+	if bb.data.getVar('RPROVIDES_%s'%(pkg), d, True):
+            bb.data.setVar('RPROVIDES_%s'%(pkg), '', d)

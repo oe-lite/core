@@ -1,6 +1,6 @@
 EXTRA_OEMAKE = ""
 
-AUTOTOOLS_DEPENDS = "autoconf-native automake-native ${HOST_ARCH}-libtool"
+AUTOTOOLS_DEPENDS = "autoconf-native automake-native ${HOST_ARCH}/libtool"
 DEPENDS_prepend += "${AUTOTOOLS_DEPENDS}"
 
 acpaths = "default"

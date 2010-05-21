@@ -1,18 +1,19 @@
 RECIPE_TYPE		= "cross"
 #
-RECIPE_ARCH		= "cross/${TARGET_ARCH}"
-RECIPE_ARCH_MACHINE	= ""
-
-# No default build dependencies (for now)
-DEFAULT_DEPENDS		= ""
+RECIPE_ARCH		= "cross/${MACHINE_ARCH}"
+RECIPE_ARCH_MACHINE	= "cross/${MACHINE}"
 
 # Default packages is stage (cross) packages
+PACKAGES_append		+= "${SYSROOT_PACKAGES}"
 SYSROOT_PACKAGES	?= ""
-MACHINE_SYSROOT_PACKAGES = "${@machine_sysroot_packages(d)}"
-SDK_SYSROOT_PACKAGES     = "${@sdk_sysroot_packages(d)}"
-RPACKAGES		 = "${MACHINE_SYSROOT_PACKAGES} ${SDK_SYSROOT_PACKAGES}"
-PACKAGES_append		+= "${RPACKAGES}"
+RPACKAGES		 = "${SYSROOT_PACKAGES}"
 RPROVIDES_${PN}          = ""
+
+# No reason to build target packages for internal cross packages
+RPACKAGES_recipe-cross		= "${SYSROOT_PACKAGES}"
+RPACKAGES_recipe-sdk-cross	= "${SYSROOT_PACKAGES}"
+
+DEFAULT_DEPENDS = "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
 
 # Set host=build to get architecture triplet build/build/target
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -52,102 +53,61 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-def machine_sysroot_packages(d):
-    packages = (bb.data.getVar('SYSROOT_PACKAGES', d, True) or '').split()
-    def sysroot_to_machine(s):
-        return s.replace('sysroot', 'machine')
-    return ' '.join(map(sysroot_to_machine, packages))
-
-def sdk_sysroot_packages(d):
-    packages = (bb.data.getVar('SYSROOT_PACKAGES', d, True) or '').split()
-    def sysroot_to_sdk(s):
-        return s.replace('sysroot', 'sdk')
-    return ' '.join(map(sysroot_to_sdk, packages))
-
-
-# Set PACKAGE_ARCH_* variables for runtime packages
-python __anonymous () {
-    packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
-    mach_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
-    sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
+# Fixup PACKAGE_ARCH_* variables for sysroot packages
+FIXUP_PACKAGE_ARCH = cross_fixup_package_arch
+def cross_fixup_package_arch(d):
+    arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
+    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
+    if not arch[0] and arch[1]:
+        # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
+        arch = arch[2]
+    else:
+        arch = '${TARGET_ARCH}'
+    packages = bb.data.getVar('PACKAGES', d, True).split()
+    sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
     for pkg in packages:
-        mach_pkg = pkg.replace('sysroot', 'machine')
-        if (mach_pkg in mach_packages
-            and not bb.data.getVar('PACKAGE_ARCH_%s'%mach_pkg, d, False)):
-            pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, False)
-            if pkg_arch:
-                pkg_arch = pkg_arch.replace('sysroot/', 'machine/')
+        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
+            if pkg in sysroot_packages:
+                pkg_arch = 'sysroot/'+arch
             else:
-                pkg_arch = 'machine/${TARGET_ARCH}'
-            bb.data.setVar('PACKAGE_ARCH_%s'%mach_pkg, pkg_arch, d)
-        sdk_pkg = pkg.replace('sysroot', 'sdk')
-        if (sdk_pkg in sdk_packages
-            and not bb.data.getVar('PACKAGE_ARCH_%s'%sdk_pkg, d, False)):
-            pkg_arch = bb.data.getVar('PACKAGE_ARCH_%s'%pkg, d, False)
-            if pkg_arch:
-                pkg_arch = pkg_arch.replace('sysroot/', 'sdk/')
-            else:
-                pkg_arch = 'sdk/${TARGET_ARCH}'
-            bb.data.setVar('PACKAGE_ARCH_%s'%sdk_pkg, pkg_arch, d)
-}
-
+                pkg_arch = 'cross/'+arch
+            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
 
 FIXUP_PROVIDES = cross_fixup_provides
 def cross_fixup_provides(d):
-    packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
-    mach_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
-    sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
+    pn = bb.data.getVar('PN', d, True) + '-'
+    target_arch = bb.data.getVar('TARGET_ARCH', d, True) + '/'
+    packages = bb.data.getVar('PACKAGES', d, True).split()
+    sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
 
     for pkg in packages:
-        provides = bb.data.getVar('PROVIDES_%s'%(pkg), d, True)
-        rprovides = bb.data.getVar('RPROVIDES_%s'%(pkg), d, True)
-        depends = bb.data.getVar('DEPENDS_%s'%(pkg), d, True)
-        rdepends = bb.data.getVar('DEPENDS_%s'%(pkg), d, True)
+        provides_changed = False
+        rprovides_changed = False
 
-        if provides:
-            provides = provides.split()
-        else:
-            provides = []
+        provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
         if not pkg in provides:
             provides = [pkg] + provides
-        provides = ' '.join(provides)
+            provides_changed = True
 
-        if rprovides:
-            rprovides = rprovides.split()
-        else:
-            rprovides = []
-        if not pkg in rprovides:
-            rprovides = [pkg] + rprovides
-        rprovides = ' '.join(rprovides)
+	if pkg in sysroot_packages:
 
-        mach_pkg = pkg.replace('sysroot', 'machine')
-        if mach_pkg in mach_packages:
-            if not bb.data.getVar('PROVIDES_%s'%mach_pkg, d, False):
-                mach_provides = provides.replace('sysroot', 'machine')
-                bb.data.setVar('PROVIDES_%s'%mach_pkg, mach_provides, d)
-            if not bb.data.getVar('RPROVIDES_%s'%mach_pkg, d, False):
-                mach_rprovides = rprovides.replace('sysroot', 'machine')
-                bb.data.setVar('RPROVIDES_%s'%mach_pkg, mach_rprovides, d)
-            if depends and not bb.data.getVar('DEPENDS_%s'%mach_pkg, d, False):
-                mach_depends = depends.replace('sysroot', 'machine')
-                bb.data.setVar('DEPENDS_%s'%mach_pkg, mach_depends, d)
-            if rdepends and not bb.data.getVar('RDEPENDS_%s'%mach_pkg, d, False):
-                mach_rdepends = rdepends.replace('sysroot', 'machine')
-                bb.data.setVar('RDEPENDS_%s'%mach_pkg, mach_rdepends, d)
+            rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
+            if not pkg in rprovides:
+                rprovides = [pkg] + rprovides
+                rprovides_changed = True
 
-        sdk_pkg = pkg.replace('sysroot', 'sdk')
-        if sdk_pkg in sdk_packages:
-            if not bb.data.getVar('PROVIDES_%s'%sdk_pkg, d, False):
-                sdk_provides = provides.replace('sysroot', 'sdk')
-                bb.data.setVar('PROVIDES_%s'%sdk_pkg, sdk_provides, d)
-            if not bb.data.getVar('RPROVIDES_%s'%sdk_pkg, d, False):
-                sdk_rprovides = rprovides.replace('sysroot', 'sdk')
-                bb.data.setVar('RPROVIDES_%s'%sdk_pkg, sdk_rprovides, d)
-            if depends and not bb.data.getVar('DEPENDS_%s'%sdk_pkg, d, False):
-                sdk_depends = depends.replace('sysroot', 'sdk')
-                bb.data.setVar('DEPENDS_%s'%sdk_pkg, sdk_depends, d)
-            if rdepends and not bb.data.getVar('RDEPENDS_%s'%sdk_pkg, d, False):
-                sdk_rdepends = rdepends.replace('sysroot', 'sdk')
-                bb.data.setVar('RDEPENDS_%s'%sdk_pkg, sdk_rdepends, d)
+            cross_provides = pkg.replace(pn, target_arch, 1)
 
-PACKAGE_INSTALL_FUNCS_append += "package_install_sysroot_split"
+            if not cross_provides in provides:
+                provides += [cross_provides]
+                provides_changed = True
+
+            if not cross_provides in rprovides:
+                rprovides += [cross_provides]
+                rprovides_changed = True
+
+        if provides_changed:
+            bb.data.setVar('PROVIDES_%s'%pkg, ' '.join(provides), d)
+
+        if rprovides_changed:
+            bb.data.setVar('RPROVIDES_%s'%pkg, ' '.join(rprovides), d)

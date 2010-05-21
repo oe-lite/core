@@ -15,7 +15,7 @@ def base_path_join(a, *p):
             path += '/' + b
     return path
 
-DEFAULT_DEPENDS = "${HOST_ARCH}-toolchain ${HOST_ARCH}-machine-dev"
+DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
 def base_read_file(filename):
@@ -1021,16 +1021,30 @@ def srcuri_machine_override(d, srcuri):
     return False
 
 
+FIXUP_PACKAGE_ARCH = base_fixup_package_arch
+def base_fixup_package_arch(d):
+    arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
+    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
+    # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
+    if not arch[0] and arch[1]:
+        arch = arch[2]
+    else:
+        arch = '${TARGET_ARCH}'
+    for pkg in bb.data.getVar('PACKAGES', d, True).split():
+        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
+            pkg_arch = 'sysroot/'+arch
+            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+
+
 FIXUP_PROVIDES = base_fixup_provides
 def base_fixup_provides(d):
-    for package in bb.data.getVar('PACKAGES', d, True).split():
-    	rprovides = bb.data.getVar('RPROVIDES_%s'%(package), d, True)
-	if rprovides:
-            rprovides = rprovides.split()
-        else:
-            rprovides = []
-        if not package in rprovides:
-            bb.data.setVar('RPROVIDES_%s'%(package), ' '.join([package] + rprovides), d)
+    for pkg in bb.data.getVar('PACKAGES', d, True).split():
+    	provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
+        if not pkg in provides:
+            bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
+    	rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
+        if not pkg in rprovides:
+            bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
 
 
 def base_after_parse(d):
@@ -1104,6 +1118,11 @@ def base_after_parse(d):
     if rprovides:
         bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
+    # Fixup package PACKAGE_ARCH (recipe type dependant)
+    fixup_package_arch = bb.data.getVar('FIXUP_PACKAGE_ARCH', d, False)
+    if fixup_package_arch is not '':
+        eval(fixup_package_arch)(d)
+
     # Fixup package PROVIDES and RPROVIDES (recipe type dependant)
     fixup_provides = bb.data.getVar('FIXUP_PROVIDES', d, False)
     if fixup_provides is not '':
@@ -1129,7 +1148,7 @@ def base_after_parse(d):
     # overrides has not been applied at this point in time!
     packages = bb.data.getVar('PACKAGES', d, True)
     for pkg in packages:
-        package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, 1)
+        package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, True)
         if package_arch and package_arch == recipe_arch_mach:
             if recipe_arch != recipe_arch_mach:
             	bb.debug("PACKAGE_ARCH_%s overrides RECIPE_ARCH from %s to %s"%

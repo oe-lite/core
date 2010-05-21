@@ -63,14 +63,6 @@ python package_install_split () {
 	pkgd = bb.data.getVar('PKGD', d, True)
 	pn = bb.data.getVar('PN', d, True)
 	packages = bb.data.getVar('PACKAGES', d, True).split()
-	rpackages = bb.data.getVar('RPACKAGES', d, True)
-	if rpackages:
-		rpackages = rpackages.split()
-	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
-	if sysroot_packages:
-		sysroot_packages = sysroot_packages.split()
-		machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
-		sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
 	
 	# Sanity check PACKAGES for duplicates.
 	# move to sanity.bbclass once we have the infrastucture
@@ -79,15 +71,8 @@ python package_install_split () {
 		if pkg in package_list:
 			bb.error("%s is listed in PACKAGES multiple times" % pkg)
 			continue
-		# Don't split to machine and sdk packages directly
-		if sysroot_packages:
-			if pkg in machine_packages or pkg in sdk_packages:
-				continue
 		package_list.append(pkg)
-	
-	# Split to (temporary) sysroot packages
-	package_list += sysroot_packages
-	
+
 	seen = []
 	main_is_empty = 1
 	main_pkg = bb.data.getVar('PN', d, 1)
@@ -202,34 +187,6 @@ python package_install_split () {
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
 }
 package_install_split[dirs] = "${D}"
-
-
-# Helper function for do_package_install for cross and sdk-cross recipes.
-# Added to PACKAGE_INSTALL_FIXUP_FUNCS when needed.
-python package_install_sysroot_split () {
-	pkgd = bb.data.getVar('PKGD', d, True)
-	sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True) or []
-	if not sysroot_packages:
-		return
-	sysroot_packages = sysroot_packages.split()
-	machine_packages = bb.data.getVar('MACHINE_SYSROOT_PACKAGES', d, True).split()
-	sdk_packages = bb.data.getVar('SDK_SYSROOT_PACKAGES', d, True).split()
-	import shutil
-	for sysroot_pkg in sysroot_packages:
-		mach_pkg = sysroot_pkg.replace('sysroot', 'machine')
-		sdk_pkg = sysroot_pkg.replace('sysroot', 'sdk')
-		sysroot_d = os.path.join(pkgd, sysroot_pkg)
-		mach_d = os.path.join(pkgd, mach_pkg)
-		sdk_d = os.path.join(pkgd, sdk_pkg)
-		if mach_pkg in machine_packages:
-			if sdk_pkg in sdk_packages:
-				shutil.copytree(sysroot_d, sdk_d, True)
-			shutil.move(sysroot_d, mach_d)
-		elif sdk_d in sdk_packages:
-			shutil.move(sysroot_d, sdk_d)
-		else:
-			bb.fatal('Don\'t know how to split sysroot package: %s'%sysroot_pkg)
-}
 
 
 ldconfig_postinst_fragment() {
@@ -748,9 +705,6 @@ python do_stage_package_build () {
 	if len(stage_packages) < 1:
 		bb.debug(1, "No stage packages")
 		return
-
-	# FIXME: add sysroot_packages handling here.  should be
-        # cloned, and even double cloned in the form of -sdk variants
 
 	pkgd_stage = bb.data.getVar('PKGD_STAGE', d, True)
 	deploy_dir = bb.data.getVar('STAGE_DEPLOY_DIR', d, True)

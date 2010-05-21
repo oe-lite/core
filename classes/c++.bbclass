@@ -1,9 +1,6 @@
-DEFAULT_CXX_DEPENDS = "${HOST_ARCH}-machine-libstdc++"
-DEFAULT_CXX_DEPENDS_recipe-sdk = "${HOST_ARCH}-sdk-libstdc++"
-DEFAULT_CXX_DEPENDS_recipe-canadian-cross = "${HOST_ARCH}-machine-libstdc++ ${TARGET_ARCH}-machine-libstdc++"
+DEFAULT_CXX_DEPENDS = "${HOST_ARCH}/sysroot-libstdc++"
+DEFAULT_CXX_DEPENDS_append_recipe-canadian-cross = " ${TARGET_ARCH}/sysroot-libstdc++"
 DEFAULT_CXX_DEPENDS_recipe-native = ""
-DEFAULT_CXX_DEPENDS_recipe-cross = ""
-DEFAULT_CXX_DEPENDS_recipe-sdk-cross = ""
 
 DEFAULT_DEPENDS_append += "${DEFAULT_CXX_DEPENDS}"
 

@@ -12,18 +12,28 @@ FILESPATH=${@base_set_filespath([\
 S = "${WORKDIR}/build"
 B = "${S}"
 
+DEFAULT_DEPENDS_recipe-native		= ""
+DEFAULT_DEPENDS_recipe-cross		= ""
+DEFAULT_DEPENDS_recipe-sdk-cross	= ""
+
 DEPENDS_append_recipe-canadian-cross += "${TUI_DEPENDS}"
-TUI_DEPENDS = "ncurses-sdk readline-sdk"
+TUI_DEPENDS = "ncurses-sdk-dev readline-sdk-dev"
 TUI_DEPENDS_host-mingw32 = ""
+
+DEPENDS_append_recipe-canadian-cross += "\
+${TARGET_ARCH}/sysroot-libdl \
+${TARGET_ARCH}/sysroot-libpthread \
+${TARGET_ARCH}/sysroot-libm \
+"
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
-STRIP		= "${D}/bin/${TARGET_ARCH}-strip"
+STRIP		= "${D}/bin/${TARGET_PREFIX}strip"
 CC		= ""
 CPP		= ""
 CXX		= ""
 F77		= ""
-OBJCOPY		= "${D}/bin/${TARGET_ARCH}-objcopy"
+OBJCOPY		= "${D}/bin/${TARGET_PREFIX}objcopy"
 CXX		= ""
 AR		= ""
 NM		= ""
@@ -268,12 +278,13 @@ do_install_recipe-canadian-cross () {
 # And as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 
-PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale"
-MACHINE_PACKAGES = ""
-MACHINE_PACKAGES_recipe-cross += "${PN}-machine-gdbserver"
-MACHINE_PACKAGES_recipe-sdk-cross += "${PN}-machine-gdbserver"
-RPACKAGES_append += "${MACHINE_PACKAGES}"
+# We always build all packages, so care must be taken to choose the
+# right sysroot packages as there can be multiple builds providing
+# (almost) the same
+PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
+
 SYSROOT_PACKAGES = "\
+	${PN}-sysroot-gdbserver \
 	${PN}-sysroot-dev \
 	${PN}-sysroot-doc \
 	${PN}-sysroot-locale \
@@ -291,41 +302,9 @@ SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libgcc \
 	${PN}-sysroot-garbage \
 "
-# FIXME: SYSROOT_PACKAGES is still defined for machine recipe, which is wrong and bad
 
-PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}-toolchain"
-PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}-toolchain"
-
-PROVIDES_${PN}-sysroot-dev		= "${TARGET_ARCH}-sysroot-dev"
-PROVIDES_${PN}-sysroot-doc		= "${TARGET_ARCH}-sysroot-doc"
-PROVIDES_${PN}-sysroot-local		= "${TARGET_ARCH}-sysroot-locale"
-PROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
-PROVIDES_${PN}-sysroot-libc		= "${TARGET_ARCH}-sysroot-libc"
-PROVIDES_${PN}-sysroot-libdl		= "${TARGET_ARCH}-sysroot-libdl"
-PROVIDES_${PN}-sysroot-libnss-files	= "${TARGET_ARCH}-sysroot-libnss-files"
-PROVIDES_${PN}-sysroot-libnss-dns	= "${TARGET_ARCH}-sysroot-libnss-dns"
-PROVIDES_${PN}-sysroot-libresolv	= "${TARGET_ARCH}-sysroot-libresolv"
-PROVIDES_${PN}-sysroot-libutil		= "${TARGET_ARCH}-sysroot-libutil"
-PROVIDES_${PN}-sysroot-libcrypt		= "${TARGET_ARCH}-sysroot-libcrypt"
-PROVIDES_${PN}-sysroot-libpthread	= "${TARGET_ARCH}-sysroot-libpthread"
-PROVIDES_${PN}-sysroot-libm		= "${TARGET_ARCH}-sysroot-libm"
-PROVIDES_${PN}-sysroot-librt		= "${TARGET_ARCH}-sysroot-librt"
-PROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
-PROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
-
-RPROVIDES_${PN}-sysroot-libc		= "${TARGET_ARCH}-sysroot-libc"
-RPROVIDES_${PN}-sysroot-libdl		= "${TARGET_ARCH}-sysroot-libdl"
-RPROVIDES_${PN}-sysroot-libnss-files	= "${TARGET_ARCH}-sysroot-libnss-files"
-RPROVIDES_${PN}-sysroot-libnss-dns	= "${TARGET_ARCH}-sysroot-libnss-dns"
-RPROVIDES_${PN}-sysroot-libresolv	= "${TARGET_ARCH}-sysroot-libresolv"
-RPROVIDES_${PN}-sysroot-libutil		= "${TARGET_ARCH}-sysroot-libutil"
-RPROVIDES_${PN}-sysroot-libcrypt	= "${TARGET_ARCH}-sysroot-libcrypt"
-RPROVIDES_${PN}-sysroot-libpthread	= "${TARGET_ARCH}-sysroot-libpthread"
-RPROVIDES_${PN}-sysroot-libm		= "${TARGET_ARCH}-sysroot-libm"
-RPROVIDES_${PN}-sysroot-librt		= "${TARGET_ARCH}-sysroot-librt"
-RPROVIDES_${PN}-sysroot-libstdc++	= "${TARGET_ARCH}-sysroot-libstdc++"
-RPROVIDES_${PN}-sysroot-libgcc		= "${TARGET_ARCH}-sysroot-libgcc"
-RPROVIDES_${PN}-sysroot-garbage		= "${TARGET_ARCH}-sysroot-garbage"
+PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/toolchain"
+PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/toolchain"
 
 DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
@@ -374,7 +353,7 @@ FILES_${PN}-locale_append_recipe-canadian-cross = "\
 ${FILES_${PN}-sysroot-locale} \
 "
 
-FILES_${PN}-machine-gdbserver = "\
+FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${machine_mandir}/man1/gdbserver.1 \
 "
@@ -483,9 +462,10 @@ ${base_prefix}/${TARGET_ARCH}/sys-root \
 # Move the machine sysroot packages into proper target layout
 # and then mend the crosstool-ng-toolchain package so it will
 # get back in place on stage
+PACKAGE_INSTALL_FUNCS_append = " package_install_sysroot_mangle"
 package_install_sysroot_mangle () {
 	# Fixup the layout of the sysroot packages
-	for pkg in ${SYSROOT_PACKAGES} ${MACHINE_PACKAGES} ; do
+	for pkg in ${SYSROOT_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
 			(
 			cd $pkg/${TARGET_ARCH}
@@ -516,9 +496,7 @@ package_install_sysroot_mangle () {
 	done
 
 	#mkdir -p ${PN}/lib
-	#ln -s ../../machine ${PN}/${TARGET_ARCH}/sys-root
-	#ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
+	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
+	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
 }
 package_install_sysroot_mangle[dirs] = "${PKGD}"
-PACKAGE_INSTALL_FUNCS_append-recipe-cross = " package_install_sysroot_mangle"
-PACKAGE_INSTALL_FUNCS_append_recipe-sdk-cross = " package_install_sysroot_mangle"
