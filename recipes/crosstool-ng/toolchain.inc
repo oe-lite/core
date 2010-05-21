@@ -303,6 +303,7 @@ SYSROOT_PACKAGES = "\
 	${PN}-sysroot-garbage \
 "
 
+PROVIDES_${PN} += "toolchain${RE}"
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/toolchain"
 PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/toolchain"
 
