@@ -3,8 +3,6 @@ RECIPE_TYPE			 = "sdk"
 RECIPE_ARCH			 = "sdk/${SDK_ARCH}"
 RECIPE_ARCH_MACHINE		 = "sdk/${SDK_ARCH}--${MACHINE}"
 
-SYSROOT_PACKAGES := ""
-
 # Set host=sdk
 HOST_ARCH		= "${SDK_ARCH}"
 HOST_CPUTYPE		= "${SDK_CPUTYPE}"

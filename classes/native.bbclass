@@ -3,8 +3,6 @@ RECIPE_TYPE			 = "native"
 RECIPE_ARCH			 = "native/${BUILD_ARCH}"
 RECIPE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
-SYSROOT_PACKAGES := ""
-
 # Native packages does not runtime provide anything
 RPACKAGES		= ""
 RPROVIDES_${PN}		= ""

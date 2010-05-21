@@ -22,6 +22,7 @@ SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libltdl-dev \
 	${PN}-sysroot-libltdl-dbg \
 "
+PACKAGES_append_recipe-native += "${SYSROOT_PACKAGES}"
 
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/libtool"
 PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/libtool"
