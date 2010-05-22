@@ -925,6 +925,12 @@ def runstrip(file, d):
         bb.debug(1, "runstrip() skip %s" % file)
         return
 
+    target_elf = bb.data.getVar('TARGET_ELF', d, True)
+
+    if target_elf not in result:
+        bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
+        return
+
     # If the file is in a .debug directory it was already stripped,
     # don't do it again...
     if os.path.dirname(file).endswith(".debug"):
