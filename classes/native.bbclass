@@ -87,16 +87,8 @@ def native_fixup_provides(d):
     bpn = bb.data.getVar('BPN', d, True)
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
     	provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
-        provides_changed = False
-	if pkg == pn:
-            cross_provides = target_arch + bpn
-            if not cross_provides in provides:
-                provides += [cross_provides]
-                provides_changed = True
         if not pkg in provides:
             provides = [pkg] + provides
-            provides_changed = True
-        if provides_changed:
             bb.data.setVar('PROVIDES_'+pkg, ' '.join(provides), d)
 	if bb.data.getVar('RPROVIDES_'+pkg, d, True):
             bb.data.setVar('RPROVIDES_'+pkg, '', d)

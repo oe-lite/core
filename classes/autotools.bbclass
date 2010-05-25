@@ -1,6 +1,8 @@
 EXTRA_OEMAKE = ""
 
-AUTOTOOLS_DEPENDS = "autoconf-native automake-native ${HOST_ARCH}/libtool"
+AUTOTOOLS_LIBTOOL_DEPENDS = "${HOST_ARCH}/libtool"
+AUTOTOOLS_LIBTOOL_DEPENDS_recipe-native = "libtool-native"
+AUTOTOOLS_DEPENDS = "autoconf-native automake-native ${AUTOTOOLS_LIBTOOL_DEPENDS}"
 DEPENDS_prepend += "${AUTOTOOLS_DEPENDS}"
 
 acpaths = "default"
@@ -16,7 +18,8 @@ def autotools_crosscompiling(d):
 BUILD_LIBTOOL	= "${BUILD_PREFIX}libtool"
 HOST_LIBTOOL	= "${HOST_PREFIX}libtool"
 TARGET_LIBTOOL	= "${TARGET_PREFIX}libtool"
-export LIBTOOL	= "${HOST_LIBTOOL}"
+LIBTOOL	= "${HOST_LIBTOOL}"
+export LIBTOOL
 #EXTRA_OECONF_append += "--with-libtool=`which ${LIBTOOL}`"
 
 # Arch tuple arguments for configure
