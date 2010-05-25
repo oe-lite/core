@@ -26,18 +26,19 @@ FILES_${PN}-dev += "${bindir}/ncurses5-config"
 
 FILESPATH = "${FILE_DIRNAME}/local:${FILE_DIRNAME}/ncurses-${PV}-${PR}:${FILE_DIRNAME}/ncurses-${PV}:${FILE_DIRNAME}/ncurses:${FILE_DIRNAME}"
 
-EXTRA_OECONF = "--with-shared \
-                --with-libtool=`which ${LIBTOOL}` \
-	        --without-profile \
-	        --without-debug \
-	        --disable-rpath \
-	        --enable-echo \
-	        --enable-const \
-	        --without-ada \
-	        --enable-termcap \
-	        --without-cxx-binding \
-	        --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
-	        --enable-overwrite \
+EXTRA_OECONF = "\
+--with-shared \
+--with-libtool=`which ${LIBTOOL}` \
+--without-profile \
+--without-debug \
+--disable-rpath \
+--enable-echo \
+--enable-const \
+--without-ada \
+--enable-termcap \
+--without-cxx-binding \
+--with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
+--enable-overwrite \
 "
 
 # This is necessary so that the "tic" command executed during the install can
