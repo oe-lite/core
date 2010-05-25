@@ -1,4 +1,4 @@
-PR = "r3"
+PR = "r4"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -449,10 +449,24 @@ ${base_prefix}/${TARGET_ARCH}/sys-root \
 #/${TARGET_ARCH}/debug-root
 
 
+CROSS_SYSROOT_MANGLE = "\
+package_install_sysroot_mangle \
+package_install_sysroot_mangle_cross \
+"
+
+SDK_SYSROOT_MANGLE = "\
+package_install_sysroot_mangle \
+package_install_sysroot_mangle_sdk \
+"
+
+PACKAGE_INSTALL_FUNCS_append += "${SDK_SYSROOT_MANGLE}"
+PACKAGE_INSTALL_FUNCS_append_recipe-canadian-cross += "${SDK_SYSROOT_MANGLE}"
+PACKAGE_INSTALL_FUNCS_append_recipe-sdk += "${SDK_SYSROOT_MANGLE}
+PACKAGE_INSTALL_FUNCS_append_recipe-cross += "${CROSS_SYSROOT_MANGLE}"
+PACKAGE_INSTALL_FUNCS_append_recipe-sdk-cross += "${CROSS_SYSROOT_MANGLE}"
+PACKAGE_INSTALL_FUNCS_append_recipe-native += "${CROSS_SYSROOT_MANGLE}"
+
 # Move the machine sysroot packages into proper target layout
-# and then mend the crosstool-ng-toolchain package so it will
-# get back in place on stage
-PACKAGE_INSTALL_FUNCS_append = " package_install_sysroot_mangle"
 package_install_sysroot_mangle () {
 	# Fixup the layout of the sysroot packages
 	for pkg in ${SYSROOT_PACKAGES} ; do
@@ -484,9 +498,18 @@ package_install_sysroot_mangle () {
 			)
 		fi
 	done
-
-	#mkdir -p ${PN}/lib
-	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
 	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
 }
 package_install_sysroot_mangle[dirs] = "${PKGD}"
+
+# Add symlinks to get sys-root back on stage
+package_install_sysroot_mangle_cross () {
+	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
+}
+package_install_sysroot_mangle_cross[dirs] = "${PKGD}"
+
+# Add symlinks to get sys-root back on stage
+package_install_sysroot_mangle_sdk () {
+	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
+}
+package_install_sysroot_mangle_cross[dirs] = "${PKGD}"
