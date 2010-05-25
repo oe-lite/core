@@ -78,7 +78,7 @@ export NATIVE_DIR = "${STAGE_DIR}/native"
 
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)
-CT_PARALLEL_JOBS	= "1"
+CT_PARALLEL_JOBS	?= "1"
 CT_LOAD			= "0"
 
 _CT_KERNEL_VERSION	= "CT_KERNEL_V_"
@@ -308,6 +308,8 @@ ${base_libdir}/libiberty.a \
 ${base_libexecdir}/gcc/${TARGET_ARCH} \
 ${base_prefix}/${TARGET_ARCH}/bin \
 ${base_prefix}/${TARGET_ARCH}/lib \
+${base_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/lib64 \
 "
 
 FILES_${PN}-doc += "\
@@ -378,7 +380,11 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libc.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libc-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-*.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}64 \
 "
+# FIXME: the lib64 symlink should be in separate package!
 
 FILES_${PN}-sysroot-libdl = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libdl.so.* \
