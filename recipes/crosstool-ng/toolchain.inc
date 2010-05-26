@@ -1,4 +1,4 @@
-PR = "r4"
+PR = "r6"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -290,8 +290,11 @@ DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
+RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
+RDEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
+RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
 
 # 1. The install/ dir maintains it's crosstool-ng layout, and all
 # FILES_* variables must therefore use crosstool-ng layout paths.
@@ -331,6 +334,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${machine_mandir}/man1/gdbserver.1 \
 ${datadir}/gdb \
 "
+RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
 FILES_${PN}-sysroot-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_bindir}/.debug \
