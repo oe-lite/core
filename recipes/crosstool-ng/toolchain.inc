@@ -1,4 +1,4 @@
-PR = "r5"
+PR = "r6"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -334,6 +334,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${machine_mandir}/man1/gdbserver.1 \
 ${datadir}/gdb \
 "
+RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
 FILES_${PN}-sysroot-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_bindir}/.debug \
