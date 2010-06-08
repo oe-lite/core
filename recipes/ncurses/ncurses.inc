@@ -3,28 +3,43 @@ HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
 SECTION = "libs"
 
-PR = "r0"
+PR = "r1"
+
+BBCLASSEXTEND = "native sdk"
+
+PACKAGES_prepend =+ "\
+${PN}-tools ${PN}-terminfo \
+${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 
 DEPENDS = "ncurses-native"
 DEPENDS_recipe-native = ""
-PACKAGES_prepend = "${PN}-tools "
-PACKAGES_append = " ${PN}-terminfo"
-FILES_${PN}_append = " ${datadir}/tabset"
-RPROVIDES_${PN} = "libncurses5${RE}"
+
+PROVIDES_${PN}-dev = "\
+libncurses libncurses5 libtermcap \
+libform libmenu libpanel"
+DEPENDS_${PN}-dev = "${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
+
+RPROVIDES_${PN}-libncurses = "libncurses${RE} libncurses5${RE}"
+RPROVIDES_${PN}-libform = "libform{RE}"
+RPROVIDES_${PN}-libmenu = "libmenu{RE}"
+RPROVIDES_${PN}-libpanel = "libpanel{RE}"
+
+RDEPENDS_${PN} = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+RDEPENDS_${PN}-tools = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
+DEPENDS_${PN}-libform = "${RDEPENDS_${PN}-libform}"
+RDEPENDS_${PN}-libform = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+DEPENDS_${PN}-libmenu = "${RDEPENDS_${PN}-libmenu}"
+RDEPENDS_${PN}-libmenu = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+DEPENDS_${PN}-libpanel = "${RDEPENDS_${PN}-libpanel}"
+RDEPENDS_${PN}-libpanel = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+
+SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
+S = "${WORKDIR}/ncurses-${PV}"
 
 inherit autotools c++
 
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
-
-# This keeps only tput/tset in ncurses
-# clear/reset are in already busybox
-FILES_${PN} = "${bindir}/tput ${bindir}/tset ${libdir}/lib*.so.* /usr/share/tabset /etc/terminfo"
-FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack "
-FILES_${PN}-terminfo = "${datadir}/terminfo"
-FILES_${PN}-dev += "${bindir}/ncurses5-config"
-
-FILESPATH = "${FILE_DIRNAME}/local:${FILE_DIRNAME}/ncurses-${PV}-${PR}:${FILE_DIRNAME}/ncurses-${PV}:${FILE_DIRNAME}/ncurses:${FILE_DIRNAME}"
 
 EXTRA_OECONF = "\
 --with-shared \
@@ -76,4 +91,16 @@ do_install() {
 	fi
 }
 
-BBCLASSEXTEND = "native sdk"
+FILES_${PN}_append = " ${datadir}/tabset"
+
+# Keep only tput/tset in primary package (clear/reset are already in busybox)
+FILES_${PN} = "${bindir}/tput ${bindir}/tset ${datadir}/tabset ${sysconfdir}/terminfo"
+FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack "
+FILES_${PN}-terminfo = "${datadir}/terminfo"
+FILES_${PN}-dev += "${bindir}/ncurses5-config"
+FILES_${PN}-libncurses = "${libdir}/libncurses${SOLIBS}"
+FILES_${PN}-libform = "${libdir}/libform${SOLIBS}"
+FILES_${PN}-libmenu = "${libdir}/libmenu${SOLIBS}"
+FILES_${PN}-libpanel = "${libdir}/libpanel${SOLIBS}"
+
+FILESPATH = "${FILE_DIRNAME}/local:${FILE_DIRNAME}/ncurses-${PV}-${PR}:${FILE_DIRNAME}/ncurses-${PV}:${FILE_DIRNAME}/ncurses:${FILE_DIRNAME}"
