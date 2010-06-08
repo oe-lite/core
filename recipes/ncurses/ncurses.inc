@@ -14,24 +14,25 @@ ${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 DEPENDS = "ncurses-native"
 DEPENDS_recipe-native = ""
 
-PROVIDES_${PN}-dev = "\
-libncurses libncurses5 libtermcap \
-libform libmenu libpanel"
-DEPENDS_${PN}-dev = "${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
+RPROVIDES_${PN}-libncurses	= "libncurses${RE} libncurses5${RE}"
+RPROVIDES_${PN}-libform		= "libform{RE}"
+RPROVIDES_${PN}-libmenu		= "libmenu{RE}"
+RPROVIDES_${PN}-libpanel	= "libpanel{RE}"
 
-RPROVIDES_${PN}-libncurses = "libncurses${RE} libncurses5${RE}"
-RPROVIDES_${PN}-libform = "libform{RE}"
-RPROVIDES_${PN}-libmenu = "libmenu{RE}"
-RPROVIDES_${PN}-libpanel = "libpanel{RE}"
+PROVIDES_${PN}-dev	= "libncurses${RE} libncurses5${RE} libtermcap${RE} \
+	libform${RE} libmenu${RE} libpanel${RE}"
+DEPENDS_${PN}-dev	= "${PN}-libncurses \
+	${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 
-RDEPENDS_${PN} = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-RDEPENDS_${PN}-tools = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
-DEPENDS_${PN}-libform = "${RDEPENDS_${PN}-libform}"
-RDEPENDS_${PN}-libform = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-DEPENDS_${PN}-libmenu = "${RDEPENDS_${PN}-libmenu}"
-RDEPENDS_${PN}-libmenu = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-DEPENDS_${PN}-libpanel = "${RDEPENDS_${PN}-libpanel}"
-RDEPENDS_${PN}-libpanel = "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+RDEPENDS_${PN}-libform	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
+RDEPENDS_${PN}-libmenu	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
+RDEPENDS_${PN}-libpanel	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
+
+RDEPENDS_${PN}		= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
+RDEPENDS_${PN}-tools	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
 
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 S = "${WORKDIR}/ncurses-${PV}"
