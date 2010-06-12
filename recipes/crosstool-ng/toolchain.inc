@@ -1,4 +1,4 @@
-PR = "r6"
+PR = "r7"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
