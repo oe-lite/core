@@ -1,4 +1,4 @@
-PR = "r7"
+PR = "r8"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -108,6 +108,18 @@ CT_ARCH_CPU_powerpc	= "${TARGET_CPUTYPE}"
 # armv7 and more.
 CT_ARCH_CPU_arm		= "${TARGET_CPUTYPE}"
 
+CT_KERNEL_VERSION	?= "custom"
+
+DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
+TOOLCHAIN_DEFAULT_DEPENDS = ""
+python () {
+	import bb
+	kernel_version = bb.data.getVar("CT_KERNEL_VERSION", d, True)
+	if kernel_version == "custom":
+		bb.data.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers", d)
+}
+
+
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${WORKDIR}"
 do_mangle () {
@@ -123,7 +135,6 @@ do_mangle () {
 	ct_cloog_version=${_CT_CLOOG_VERSION}`echo ${CT_CLOOG_VERSION}|tr . _`
 	ct_mpc_version=${_CT_MPC_VERSION}`echo ${CT_MPC_VERSION}|tr . _`
 	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version
-	echo ct_kernel_version=$ct_kernel_version
 
 	cat ${DEFCONFIG_COMMON} ${DEFCONFIG_CPU} ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
@@ -153,6 +164,17 @@ do_mangle () {
 	    -e "s%# \($ct_cloog_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_mpc_version\) is not set%\1=y%" \
     	> defconfig
+
+	mv defconfig defconfig.tmp
+	if [ x${CT_KERNEL_VERSION} == xcustom ] ; then
+		sed -e 's%.*\(CT_KERNEL_LINUX_USE_CUSTOM_HEADERS\).*%\1=y%' \
+		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${includedir}"%' \
+		< defconfig.tmp > defconfig
+	else
+		sed -e 's%.*\(CT_KERNEL_LINUX_INSTALL\).*%\1=y%' \
+		    -e 's%# \($ct_kernel_version\) is not set%\1=y%' \
+		< defconfig.tmp > defconfig
+	fi		
 
 	# FIXME: should we strip the -Wl, off TARGET_LDFLAGS ??
 	#    -e 's%\(CT_TARGET_LDFLAGS\)=.*%\1="${TARGET_LDFLAGS}"%' \

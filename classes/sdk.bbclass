@@ -29,6 +29,8 @@ TARGET_CFLAGS		= "${SDK_CFLAGS}"
 TARGET_CXXFLAGS		= "${SDK_CXXFLAGS}"
 TARGET_LDFLAGS		= "${SDK_LDFLAGS}"
 
+TARGET_SYSROOT		= "${SDK_SYSROOT}"
+
 # Use the sdk_* path variables
 base_prefix		= "${sdk_base_prefix}"
 prefix			= "${sdk_prefix}"
