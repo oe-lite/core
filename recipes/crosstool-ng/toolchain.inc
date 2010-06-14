@@ -73,9 +73,6 @@ DEPENDS = "crosstool-ng-native-${PV}"
 
 inherit c++
 
-# The ct-ng tools uses $NATIVE_DIR for staying relocateable
-export NATIVE_DIR = "${STAGE_DIR}/native"
-
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)
 CT_PARALLEL_JOBS	?= "1"
