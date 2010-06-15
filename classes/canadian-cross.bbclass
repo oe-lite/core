@@ -35,7 +35,7 @@ ${STAGE_DIR}/native${stage_bindir}:\
 MACHINE_SYSROOT	 = "${STAGE_DIR}/target/sysroot"
 SDK_SYSROOT	 = "${STAGE_DIR}/host/sysroot"
 
-# Use the sdk_* path variables
+# Use sdk_* path variables for host paths
 base_prefix		= "${sdk_base_prefix}"
 prefix			= "${sdk_prefix}"
 exec_prefix		= "${sdk_exec_prefix}"

@@ -31,7 +31,7 @@ HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 # Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
 OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH} --target=${TARGET_ARCH}"
 
-# Use the stage_* path variables
+# Use stage_* path variables for host paths
 base_prefix		= "${stage_base_prefix}"
 prefix			= "${stage_prefix}"
 exec_prefix		= "${stage_exec_prefix}"
