@@ -1,5 +1,5 @@
-# BitBake class to handle CONFIG_SITE variable for GNU Autoconf configure scripts.
-# Leverage base_arch.bbclass as much as possible.
+# BitBake class to handle CONFIG_SITE variable for GNU Autoconf
+# configure scripts.  Leverage base_arch.bbclass as much as possible.
 
 # Recipes that need to query architecture specific knowledge, such as
 # endianness or word size should use functions provided by
