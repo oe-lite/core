@@ -1,4 +1,4 @@
-PR = "r8"
+PR = "r9"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -119,7 +119,6 @@ python () {
 		bb.data.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers", d)
 }
 
-
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${WORKDIR}"
 do_mangle () {
@@ -168,7 +167,7 @@ do_mangle () {
 	mv defconfig defconfig.tmp
 	if [ x${CT_KERNEL_VERSION} == xcustom ] ; then
 		sed -e 's%.*\(CT_KERNEL_LINUX_USE_CUSTOM_HEADERS\).*%\1=y%' \
-		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${includedir}"%' \
+		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${target_includedir}/.."%' \
 		< defconfig.tmp > defconfig
 	else
 		sed -e 's%.*\(CT_KERNEL_LINUX_INSTALL\).*%\1=y%' \
@@ -345,51 +344,51 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/*/.debug \
 "
 
 FILES_${PN}-sysroot-gdbserver-dbg = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug \
 "
 
 FILES_${PN}-sysroot-gdbserver = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${machine_bindir}/gdbserver \
-${base_prefix}/${TARGET_ARCH}/debug-root${machine_mandir}/man1/gdbserver.1 \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
 ${datadir}/gdb \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
 FILES_${PN}-sysroot-dbg = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_bindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_bindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_sbindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_sbindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libexecdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libexecdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/gconv/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libexecdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libexecdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
 "
 
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_includedir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.o \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/*.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-linux.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ldscripts \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}/gconv \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_includedir} \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-linux.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ldscripts \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
 "
 
 FILES_${PN}-sysroot-doc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_infodir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_mandir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_docdir} \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_infodir} \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_mandir} \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_docdir} \
 "
 
 FILES_${PN}-sysroot-locale = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_datadir}/locale \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_datadir}/i18n \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/locale \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/i18n \
 "
 
 # libc can depend on libnss_files libnss_dns
@@ -399,67 +398,67 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${machine_datadir}/i18n \
 # libnss_dns libresolv
 
 FILES_${PN}-sysroot-libc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libc.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libc-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/ld-*.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}64 \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
 "
 # FIXME: the lib64 symlink should be in separate package!
 
 FILES_${PN}-sysroot-libdl = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libdl.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libdl-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libdl.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libdl-*.so \
 "
 
 FILES_${PN}-sysroot-libcrypt = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libcrypt.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libcrypt-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libcrypt.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libcrypt-*.so \
 "
 
 FILES_${PN}-sysroot-libutil = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libutil-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libnss_dns-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libutil-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns-*.so \
 "
 
 FILES_${PN}-sysroot-libnss-files = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libnss_files-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libnss_files.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_files-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_files.so.* \
 "
 
 FILES_${PN}-sysroot-libnss-dns = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libnss_dns-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libnss_dns.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns.so.* \
 "
 
 FILES_${PN}-sysroot-libresolv = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libresolv-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libresolv.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libresolv-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libresolv.so.* \
 "
 
 FILES_${PN}-sysroot-libpthread = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libpthread.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libpthread-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libpthread.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libpthread-*.so \
 "
 
 FILES_${PN}-sysroot-libm = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libm.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libm-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libm.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libm-*.so \
 "
 
 FILES_${PN}-sysroot-librt = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/librt.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/librt-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/librt.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/librt-*.so \
 "
 
 FILES_${PN}-sysroot-libstdc++ = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libstdc++.so* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libstdc++.so* \
 "
 
 FILES_${PN}-sysroot-libgcc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${machine_base_libdir}/libgcc_s.so* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so* \
 "
 
 FILES_${PN}-sysroot-garbage = "\
@@ -497,14 +496,14 @@ package_install_sysroot_mangle () {
 			fi
 			rm -f include
 			if [ -d include ] ; then
-				mkdir -p ../${machine_includedir}
-				mv include/* ../${machine_includedir}
+				mkdir -p ../${target_includedir}
+				mv include/* ../${target_includedir}
 				rmdir include
 			fi
 			rm -f lib
 			if [ -d lib ] ; then
-				mkdir -p ../${machine_libdir}
-				mv lib/* ../${machine_libdir}
+				mkdir -p ../${target_libdir}
+				mv lib/* ../${target_libdir}
 				rmdir lib
 			fi
 			cd ..
