@@ -1,4 +1,4 @@
-PR = "r9"
+PR = "r10"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -109,6 +109,8 @@ CT_ARCH_CPU_powerpc	= "${TARGET_CPUTYPE}"
 CT_ARCH_CPU_arm		= "${TARGET_CPUTYPE}"
 
 CT_KERNEL_VERSION	?= "custom"
+CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.31.13"
+CT_KERNEL_VERSION_recipe-sdk		= "2.6.31.13"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
