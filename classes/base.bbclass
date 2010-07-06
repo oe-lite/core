@@ -1162,9 +1162,35 @@ def base_after_parse(d):
                 bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
             break
 
+#
+# RECIPE_OPTIONS are to be defined in recipes, and should be a
+# space-separated list of upper-case options, preferably prefixed with
+# the recipe name (in upper-case).
+#
+# Distro configuration files can then define these as needed, and set
+# them to the desired values, enabling distro customization of recipes
+# without the need to include anything about the distros in the
+# meta-data repository holding the repository.
+#
+def base_apply_recipe_options(d):
+	import bb
+	recipe_options = (bb.data.getVar('RECIPE_OPTIONS', d, 1) or "")
+	if not recipe_options:
+		return
+	overrides = (bb.data.getVar('OVERRIDES', d, 1) or "")
+	overrides_changed = False
+	for option in recipe_options.split():
+		enable = bb.data.getVar(option, d, 1)
+		if enable and enable != "0":
+			overrides += ":" + option
+			overrides_changed = True
+	if overrides_changed:
+		bb.data.setVar('OVERRIDES', overrides, d)	
+	return
 
 python () {
     base_after_parse(d)
+    base_apply_recipe_options(d)
 }
 
 def check_app_exists(app, d):
