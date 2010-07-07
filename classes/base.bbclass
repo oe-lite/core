@@ -1177,12 +1177,28 @@ def base_apply_recipe_options(d):
 	recipe_options = (bb.data.getVar('RECIPE_OPTIONS', d, 1) or "")
 	if not recipe_options:
 		return
+	recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
+	recipe_arch_mach = bb.data.getVar('RECIPE_ARCH_MACHINE', d, 1)
 	overrides = (bb.data.getVar('OVERRIDES', d, 1) or "")
 	overrides_changed = False
 	for option in recipe_options.split():
-		enable = bb.data.getVar(option, d, 1)
-		if enable and enable != "0":
-			overrides += ":" + option
+		recipe_val = bb.data.getVar('RECIPE_CONFIG_'+option, d, 1)
+		machine_val = bb.data.getVar('MACHINE_CONFIG_'+option, d, 1)
+		distro_val = bb.data.getVar('DISTRO_CONFIG_'+option, d, 1)
+		default_val = bb.data.getVar('DEFAULT_CONFIG_'+option, d, 1)
+		if recipe_val:
+			val = recipe_val
+		elif machine_val:
+			if recipe_arch != recipe_arch_mach:
+				bb.data.setVar('RECIPE_ARCH', '${RECIPE_ARCH_MACHINE}', d)
+			val = machine_val
+		elif distro_val:
+			val = distro_val
+		else:
+			val = default_val
+		if val and val != "0":
+			bb.data.setVar('RECIPE_OPTION_'+option, val, d)
+			overrides += ':RECIPE_OPTION_'+option
 			overrides_changed = True
 	if overrides_changed:
 		bb.data.setVar('OVERRIDES', overrides, d)	
