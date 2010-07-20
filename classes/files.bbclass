@@ -5,7 +5,6 @@ python do_files_install() {
         if not eval(files_install)(rdep, d):
             return False
 }
-EXPORT_FUNCTIONS do_files_install
 addtask files_install before do_files_fixup after do_install
 do_files_install[cleandirs] = "${FILES_DIR}"
 do_files_install[dirs] = "${FILES_DIR}"
@@ -33,9 +32,10 @@ def files_install_package(rdep,d):
     return True
 
 
+FILES_FIXUP_FUNCS ?= ""
 python do_files_fixup() {
-    bb.note('Ni... Whom... Ping.')
+    for f in (bb.data.getVar('FILES_FIXUP_FUNCS', d, 1) or '').split():
+        bb.build.exec_func(f, d)
 }
-EXPORT_FUNCTIONS do_files_fixup
 addtask files_fixup before do_package_install after do_files_install
-
+do_files_fixup[dirs] = "${FILES_DIR}"
