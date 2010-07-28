@@ -1,0 +1,11 @@
+diff -uprN crosstool-ng-1.7.1.org/scripts/build/cc/gcc.sh crosstool-ng-1.7.1/scripts/build/cc/gcc.sh
+--- crosstool-ng-1.7.1.org/scripts/build/cc/gcc.sh	2010-06-27 18:38:14.000000000 +0200
++++ crosstool-ng-1.7.1/scripts/build/cc/gcc.sh	2010-07-28 09:20:40.000000000 +0200
+@@ -331,6 +331,7 @@ do_cc() {
+     # is needed. Shoe-horn it in our LDFLAGS
+     if [ "${CT_COMPLIBS_SHARED}" != "y" ]; then
+         final_LDFLAGS='-lstdc++'
++        extra_config+=("--with-host-libstdcxx='-lstdc++'")
+     fi
+     if [ "${CT_CC_GCC_USE_GMP_MPFR}" = "y" ]; then
+         extra_config+=("--with-gmp=${CT_COMPLIBS_DIR}")
