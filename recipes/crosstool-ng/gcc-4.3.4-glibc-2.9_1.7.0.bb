@@ -3,8 +3,8 @@ require toolchain.inc
 PR_append = ".1"
 
 # gcc and glibc versions should be locked down by distro
-CT_CC_VERSION			 = "${GCC_VERSION}"
-CT_LIBC_VERSION			 = "${GLIBC_VERSION}"
+CT_CC_VERSION			 = "4.3.4"
+CT_LIBC_VERSION			 = "2.9"
 
 # the rest should be set here
 CT_KERNEL_VERSION		?= "2.6.31.13"
