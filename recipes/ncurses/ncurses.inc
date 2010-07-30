@@ -11,19 +11,19 @@ PACKAGES_prepend =+ "\
 ${PN}-tools ${PN}-terminfo \
 ${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 
+# Recipe build dependencies
 DEPENDS = "ncurses-native"
 DEPENDS_recipe-native = ""
 
-RPROVIDES_${PN}-libncurses	= "libncurses${RE} libncurses5${RE}"
-RPROVIDES_${PN}-libform		= "libform{RE}"
-RPROVIDES_${PN}-libmenu		= "libmenu{RE}"
-RPROVIDES_${PN}-libpanel	= "libpanel{RE}"
-
-PROVIDES_${PN}-dev	= "libncurses${RE} libncurses5${RE} libtermcap${RE} \
-	libform${RE} libmenu${RE} libpanel${RE}"
+# Package build dependencies
 DEPENDS_${PN}-dev	= "${PN}-libncurses \
 	${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 
+# Package build provides
+PROVIDES_${PN}-dev	= "libncurses${RE} libncurses5${RE} libtermcap${RE} \
+	libform${RE} libmenu${RE} libpanel${RE}"
+
+# Library package build and run-time dependencies
 RDEPENDS_${PN}-libform	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
 RDEPENDS_${PN}-libmenu	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
@@ -31,8 +31,15 @@ DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
 RDEPENDS_${PN}-libpanel	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
 
+# Package run-time dependencies
 RDEPENDS_${PN}		= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 RDEPENDS_${PN}-tools	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
+
+# Package run-time provides
+RPROVIDES_${PN}-libncurses	= "libncurses${RE} libncurses5${RE}"
+RPROVIDES_${PN}-libform		= "libform{RE}"
+RPROVIDES_${PN}-libmenu		= "libmenu{RE}"
+RPROVIDES_${PN}-libpanel	= "libpanel{RE}"
 
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 S = "${WORKDIR}/ncurses-${PV}"
