@@ -1,0 +1,102 @@
+diff -urN crosstool-ng-1.8.0-orig/scripts/build/cc/gcc.sh crosstool-ng-1.8.0/scripts/build/cc/gcc.sh
+--- crosstool-ng-1.8.0-orig/scripts/build/cc/gcc.sh	2010-08-10 23:29:14.000000000 +0200
++++ crosstool-ng-1.8.0/scripts/build/cc/gcc.sh	2010-08-10 23:32:19.000000000 +0200
+@@ -429,7 +429,13 @@
+     fi
+ 
+     CT_DoLog EXTRA "Building final compiler"
++    if [ "${CT_MINGW32}" = "y" ]; then
++        CT_DoExecLog ALL ln -sv "usr" "${CT_SYSROOT_DIR}/mingw"
++    fi
+     CT_DoExecLog ALL make ${PARALLELMFLAGS} all
++    if [ "${CT_MINGW32}" = "y" ]; then
++        CT_DoExecLog ALL rm "${CT_SYSROOT_DIR}/mingw"
++    fi
+ 
+     CT_DoLog EXTRA "Installing final compiler"
+     CT_DoExecLog ALL make install
+diff -urN crosstool-ng-1.8.0-orig/scripts/build/kernel/mingw32.sh crosstool-ng-1.8.0/scripts/build/kernel/mingw32.sh
+--- crosstool-ng-1.8.0-orig/scripts/build/kernel/mingw32.sh	2010-08-01 14:23:08.000000000 +0200
++++ crosstool-ng-1.8.0/scripts/build/kernel/mingw32.sh	2010-08-10 23:29:44.000000000 +0200
+@@ -19,9 +19,9 @@
+ do_kernel_headers() {
+     CT_DoStep INFO "Installing kernel headers"
+ 
+-    mkdir -p "${CT_SYSROOT_DIR}/include"
+-    cp -r ${CT_SRC_DIR}/w32api-${CT_W32API_VERSION}-mingw32/include \
+-          ${CT_SYSROOT_DIR}
++    mkdir -p "${CT_HEADERS_DIR}"
++    cp -r ${CT_SRC_DIR}/w32api-${CT_W32API_VERSION}-mingw32/include/* \
++          ${CT_HEADERS_DIR}
+ 
+     CT_EndStep
+ }
+diff -urN crosstool-ng-1.8.0-orig/scripts/build/libc/mingw.sh crosstool-ng-1.8.0/scripts/build/libc/mingw.sh
+--- crosstool-ng-1.8.0-orig/scripts/build/libc/mingw.sh	2010-08-01 14:23:08.000000000 +0200
++++ crosstool-ng-1.8.0/scripts/build/libc/mingw.sh	2010-08-10 23:34:31.000000000 +0200
+@@ -41,9 +41,9 @@
+     CT_DoStep INFO "Installing C library headers"
+ 
+     CT_DoLog EXTRA "Installing MinGW Runtime headers"
+-    mkdir -p "${CT_SYSROOT_DIR}/include"
+-    cp -r ${CT_SRC_DIR}/mingwrt-${CT_MINGWRT_VERSION}-mingw32/include \
+-          ${CT_SYSROOT_DIR}
++    mkdir -p "${CT_HEADERS_DIR}"
++    cp -r ${CT_SRC_DIR}/mingwrt-${CT_MINGWRT_VERSION}-mingw32/include/* \
++          ${CT_HEADERS_DIR}
+ 
+     CT_EndStep
+ }
+@@ -60,11 +60,12 @@
+     mkdir -p "${CT_BUILD_DIR}/build-w32api"
+     cd "${CT_BUILD_DIR}/build-w32api"
+ 
+-    CFLAGS="-I${CT_SYSROOT_DIR}/include"                          \
++    CFLAGS="-I${CT_HEADERS_DIR}"                                  \
+     LDFLAGS="-L${CT_SYSROOT_DIR}/lib"                             \
+     CT_DoExecLog ALL                                              \
+     "${CT_SRC_DIR}/w32api-${CT_W32API_VERSION}-mingw32/configure" \
+         --prefix=${CT_SYSROOT_DIR}                                \
++        --includedir=${CT_HEADERS_DIR}                            \
+         --host=${CT_TARGET}
+ 
+     CT_DoLog EXTRA "Building W32-API"
+@@ -78,11 +79,12 @@
+     mkdir -p "${CT_BUILD_DIR}/build-mingwrt"
+     cd "${CT_BUILD_DIR}/build-mingwrt"
+ 
+-    CFLAGS="-I${CT_SYSROOT_DIR}/include"                            \
++    CFLAGS="-I${CT_HEADERS_DIR}"                                    \
+     LDFLAGS="-L${CT_SYSROOT_DIR}/lib"                               \
+     CT_DoExecLog ALL                                                \
+     "${CT_SRC_DIR}/mingwrt-${CT_MINGWRT_VERSION}-mingw32/configure" \
+         --prefix=${CT_SYSROOT_DIR}/                                 \
++        --includedir=${CT_HEADERS_DIR}                              \
+         --host=${CT_TARGET}
+ 
+     CT_DoLog EXTRA "Building MinGW Runtime"
+@@ -120,7 +122,7 @@
+         CT_DoLog EXTRA "Installing PDCurses development files"
+         chmod a+r ${CT_SRC_DIR}/PDCurses-${CT_MINGW_PDCURSES_VERSION}/*.h
+         cp ${CT_SRC_DIR}/PDCurses-${CT_MINGW_PDCURSES_VERSION}/*.h \
+-           ${CT_SYSROOT_DIR}/include
++           ${CT_HEADERS_DIR}/
+         cp pdcurses.a ${CT_SYSROOT_DIR}/lib/libpdcurses.a
+         cp pdcurses.a ${CT_SYSROOT_DIR}/lib/libncurses.a
+     fi
+@@ -134,10 +136,11 @@
+         CFLAGS="${CT_CFLAGS_FOR_TARGET}"                \
+         CT_DoExecLog ALL                                \
+         "${CT_SRC_DIR}/mingw-libgnurx-${CT_MINGW_GNURX_VERSION}/configure" \
+-            --build=${CT_BUILD}           \
+-            --host=${CT_TARGET}           \
+-            --prefix=${CT_SYSROOT_DIR}    \
+-            --enable-shared               \
++            --build=${CT_BUILD}                         \
++            --host=${CT_TARGET}                         \
++            --prefix=${CT_SYSROOT_DIR}                  \
++            --includedir=${CT_HEADERS_DIR}              \
++            --enable-shared                             \
+             --enable-static
+ 
+         CT_DoLog EXTRA "Building GnuRX development files"

@@ -1,6 +1,4 @@
-PR = "r1"
-
-INHIBIT_DEFAULT_DEPS = "1"
+PR_append = ".3"
 
 inherit native
 
@@ -14,7 +12,7 @@ do_configure () {
 	fi
 }
 
-FILES_${PN} += "${libdir}/ct-ng-${PV}"
+FILES_${PN} += "${libdir}/ct-ng-*"
 
 stage_package_fixup () {
 	mv ${PN}/${stage_bindir}/ct-ng \
