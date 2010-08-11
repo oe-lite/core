@@ -1,4 +1,4 @@
-PR = "r10"
+PR_append = ".1"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -8,6 +8,15 @@ FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/crosstool-ng",\
 	"${FILE_DIRNAME}/files",\
 ], d)}
+
+TOOLCHAIN_VERSION			= "gcc-${CT_CC_VERSION}"
+TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc-${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
+
+PR_prepend = "${TOOLCHAIN_VERSION}-"
+
+# Depend on the right version of the ct-ng tool
+DEPENDS = "crosstool-ng-native-${TOOLCHAIN_VERSION}"
 
 S = "${WORKDIR}/build"
 B = "${S}"
@@ -20,6 +29,7 @@ DEPENDS_append_recipe-canadian-cross += "${TUI_DEPENDS}"
 TUI_DEPENDS = "ncurses-sdk-dev readline-sdk-dev"
 TUI_DEPENDS_host-mingw32 = ""
 
+# FIXME: this looks REALLY wrong!
 DEPENDS_append_recipe-canadian-cross += "\
 ${TARGET_ARCH}/sysroot-libdl \
 ${TARGET_ARCH}/sysroot-libpthread \
@@ -68,9 +78,6 @@ DEFCONFIG_OS		= "defconfig.${TARGET_OS}"
 
 SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
-# Depend on the right version of the ct-ng tool
-DEPENDS = "crosstool-ng-native-${PV}"
-
 inherit c++
 
 # default crosstool-ng build configuration (to be overridden in
@@ -88,6 +95,8 @@ _CT_MPFR_VERSION	= "CT_MPFR_V_"
 _CT_PPL_VERSION		= "CT_PPL_V_"
 _CT_CLOOG_VERSION	= "CT_CLOOG_V_"
 _CT_MPC_VERSION		= "CT_MPC_V_"
+_CT_W32API_VERSION	= "CT_W32API_V_"
+_CT_MINGWRT_VERSION	= "CT_MINGWRT_V_"
 
 CT_ARCH_ARCH		= ""
 CT_ARCH_CPU		= ""
@@ -135,7 +144,9 @@ do_mangle () {
 	ct_ppl_version=${_CT_PPL_VERSION}`echo ${CT_PPL_VERSION}|tr . _`
 	ct_cloog_version=${_CT_CLOOG_VERSION}`echo ${CT_CLOOG_VERSION}|tr . _`
 	ct_mpc_version=${_CT_MPC_VERSION}`echo ${CT_MPC_VERSION}|tr . _`
-	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version
+	ct_w32api_version=${_CT_W32API_VERSION}`echo ${CT_W32API_VERSION}|tr . _`
+	ct_mingwrt_version=${_CT_MINGWRT_VERSION}`echo ${CT_MINGWRT_VERSION}|tr . _`
+	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version ct_w32api_version ct_mingwrt_version
 
 	cat ${DEFCONFIG_COMMON} ${DEFCONFIG_CPU} ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
@@ -164,6 +175,8 @@ do_mangle () {
 	    -e "s%# \($ct_ppl_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_cloog_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_mpc_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_w32api_version\) is not set%\1=y%" \
+	    -e "s%# \($ct_mingwrt_version\) is not set%\1=y%" \
     	> defconfig
 
 	mv defconfig defconfig.tmp
@@ -371,21 +384,32 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_includedir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.o \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.py \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-linux.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ldscripts \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
+"
+
+FILES_${PN}-sysroot-dev_append_mingw32 = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/*.dll \
 "
 
 FILES_${PN}-sysroot-doc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_infodir} \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_mandir} \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_docdir} \
+"
+
+# Hackeydihack.... should instead get all sysroot doc in target_docdir
+FILES_${PN}-sysroot-doc_append_mingw32 = "\
+${base_prefix}/${TARGET_ARCH}/sys-root/doc/runtime \
 "
 
 FILES_${PN}-sysroot-locale = "\

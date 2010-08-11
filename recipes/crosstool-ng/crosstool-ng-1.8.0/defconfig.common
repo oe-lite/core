@@ -1,6 +1,7 @@
 #
-# crosstool-NG version: 1.7.1 -- common configuration
+# crosstool-NG version: 1.8.0 -- common configuration
 #
+# CT_BACKEND is not set
 
 #
 # Paths and misc options
@@ -125,4 +126,3 @@ CT_HOST_SUFFIX=""
 #
 CT_TARGET_PREFIX=""
 CT_TARGET_SUFFIX=""
-

@@ -1,5 +1,5 @@
 #
-# crosstool-NG version: 1.7.1 -- x86-pc configuration
+# crosstool-NG version: 1.8.0 -- x86 configuration
 #
 
 #
@@ -26,7 +26,7 @@ CT_ARCH_TUNE=""
 CT_ARCH_32=y
 # CT_ARCH_64 is not set
 CT_ARCH_BITNESS=32
-# CT_ARCH_FLOAT_HW is not set
+CT_ARCH_FLOAT_HW=y
 # CT_ARCH_FLOAT_SW is not set
 CT_TARGET_CFLAGS=""
 CT_TARGET_LDFLAGS=""
@@ -37,6 +37,7 @@ CT_TARGET_LDFLAGS=""
 # CT_ARCH_alpha is not set
 # CT_ARCH_arm is not set
 # CT_ARCH_avr32 is not set
+# CT_ARCH_blackfin is not set
 # CT_ARCH_ia64 is not set
 # CT_ARCH_m68k is not set
 # CT_ARCH_mips is not set
@@ -44,6 +45,17 @@ CT_TARGET_LDFLAGS=""
 # CT_ARCH_s390 is not set
 # CT_ARCH_sh is not set
 CT_ARCH_x86=y
+CT_ARCH_alpha_AVAILABLE=y
+CT_ARCH_arm_AVAILABLE=y
+CT_ARCH_avr32_AVAILABLE=y
+CT_ARCH_blackfin_AVAILABLE=y
+CT_ARCH_ia64_AVAILABLE=y
+CT_ARCH_m68k_AVAILABLE=y
+CT_ARCH_mips_AVAILABLE=y
+CT_ARCH_powerpc_AVAILABLE=y
+CT_ARCH_s390_AVAILABLE=y
+CT_ARCH_sh_AVAILABLE=y
+CT_ARCH_x86_AVAILABLE=y
 CT_ARCH_USE_MMU=y
 
 #
