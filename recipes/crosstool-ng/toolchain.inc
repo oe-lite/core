@@ -4,8 +4,8 @@ FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
 	"${FILE_DIRNAME}/${P}",\
 	"${FILE_DIRNAME}/${PN}",\
-	"${FILE_DIRNAME}/crosstool-ng-${PV}",\
-	"${FILE_DIRNAME}/crosstool-ng",\
+	"${FILE_DIRNAME}/toolchain-${PV}",\
+	"${FILE_DIRNAME}/toolchain",\
 	"${FILE_DIRNAME}/files",\
 ], d)}
 
