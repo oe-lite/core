@@ -410,7 +410,7 @@ def set_stage_add(dep, d):
     bb.note('unpacking %s to %s'%(filename, os.getcwd()))
 
     # FIXME: do error handling on tar command
-    os.system('tar xf %s'%filename)
+    os.system('tar xfp %s'%filename)
     return
 
 python do_set_stage () {

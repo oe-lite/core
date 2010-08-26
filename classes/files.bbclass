@@ -24,7 +24,7 @@ def files_install_package(rdep,d):
 
         bb.note('unpacking %s to %s'%(filename, os.getcwd()))
 
-        os.system('tar -x -f %s'%filename)
+        os.system('tar xpf %s'%filename)
     else:
         bb.note('Error getting PKGPROVIDER_%s'%rdep)
         return False
