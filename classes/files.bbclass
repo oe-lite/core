@@ -39,3 +39,23 @@ python do_files_fixup() {
 }
 addtask files_fixup before do_package_install after do_files_install
 do_files_fixup[dirs] = "${FILES_DIR}"
+
+RECIPE_OPTIONS_append += "mdev"
+
+#INHERIT_MDEV_FILES = ""
+#INHERIT_MDEV_FILES_append_RECIPE_OPTION_mdev = "mdev_files"
+#INHERIT += "${INHERIT_MDEV_FILES}"
+
+require conf/mdev.conf
+
+FILES_FIXUP_MDEV = ""
+FILES_FIXUP_MDEV_append_RECIPE_OPTION_mdev = "files_fixup_mdev"
+FILES_FIXUP_FUNCS += "${FILES_FIXUP_MDEV}"
+files_fixup_mdev[dirs] = "${FILES_DIR}"
+files_fixup_mdev () {
+	test -d ./${mdevdir} || return 0
+	for f in ./${mdevdir}/* ; do
+		cat $f >> ./${mdevconf}
+		rm $f
+	done
+}
