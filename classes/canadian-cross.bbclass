@@ -106,7 +106,7 @@ def canadian_set_stage_add(dep, d):
     bb.note('unpacking %s to %s'%(filename, os.path.join(os.getcwd(), subdir)))
 
     # FIXME: do error handling on tar command
-    cmd = 'tar xf %s'%filename
+    cmd = 'tar xpf %s'%filename
     if subdir:
         cmd = 'cd %s;%s'%(subdir, cmd)
     os.system(cmd)
