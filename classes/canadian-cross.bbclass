@@ -11,11 +11,7 @@ DEFAULT_DEPENDS += "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
 
 # Set host=sdk for architecture triplet build/sdk/target
 HOST_ARCH		= "${SDK_ARCH}"
-HOST_CPUTYPE		= "${SDK_CPUTYPE}"
-HOST_FPU		= "${SDK_FPU}"
 HOST_CFLAGS		= "${SDK_CFLAGS}"
-HOST_EXEEXT		= "${SDK_EXEEXT}"
-HOST_PREFIX		= "${SDK_PREFIX}"
 HOST_CPPFLAGS		= "${SDK_CPPFLAGS}"
 HOST_OPTIMIZATION	= "${SDK_OPTIMIZATION}"
 HOST_CFLAGS		= "${SDK_CFLAGS}"

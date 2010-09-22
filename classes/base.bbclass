@@ -3,7 +3,7 @@ BB_DEFAULT_TASK ?= "build"
 RECIPE_TYPE = "machine"
 RE = ""
 
-inherit base_arch
+inherit arch
 
 # like os.path.join but doesn't treat absolute RHS specially
 def base_path_join(a, *p):

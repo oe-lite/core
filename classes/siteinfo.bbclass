@@ -17,33 +17,33 @@ HOST_CONFIG_SITE	= "${STAGE_SITE_DIR}/host.site"
 TARGET_CONFIG_SITE	= "${STAGE_SITE_DIR}/target.site"
 
 BUILD_SITEFILES		= "common\
- ${@'${BUILD_OS}'.split('-')[0]}\
+ ${BUILD_BASEOS}\
  ${BUILD_OS}\
  ${BUILD_CPU}\
  ${BUILD_CPU}-${BUILD_VENDOR}\
  ${BUILD_CPU}-${BUILD_OS}\
  bit-${BUILD_WORDSIZE}\
- endian-${BUILD_ENDIAN}\
+ endian-${BUILD_ENDIAN}e\
 "
 
 HOST_SITEFILES		= "common\
- ${@'${HOST_OS}'.split('-')[0]}\
+ ${HOST_BASEOS}\
  ${HOST_OS}\
  ${HOST_CPU}\
  ${HOST_CPU}-${HOST_VENDOR}\
  ${HOST_CPU}-${HOST_OS}\
  bit-${HOST_WORDSIZE}\
- endian-${HOST_ENDIAN}\
+ endian-${HOST_ENDIAN}e\
 "
 
 TARGET_SITEFILES		= "common\
- ${@'${TARGET_OS}'.split('-')[0]}\
+ ${TARGET_BASEOS}\
  ${TARGET_OS}\
  ${TARGET_CPU}\
  ${TARGET_CPU}-${TARGET_VENDOR}\
  ${TARGET_CPU}-${TARGET_OS}\
  bit-${TARGET_WORDSIZE}\
- endian-${TARGET_ENDIAN}\
+ endian-${TARGET_ENDIAN}e\
 "
 
 addtask siteinfo after do_patch	before do_configure

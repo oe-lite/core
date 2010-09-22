@@ -9,8 +9,11 @@ FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/files",\
 ], d)}
 
+# FIXME: come up with a more elegant solution. if not before, it then when
+# fx. uclibc or eglibc is used, or even more, if llvm compiler is added
 TOOLCHAIN_VERSION			= "gcc-${CT_CC_VERSION}"
 TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc-${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc-${CT_LIBC_VERSION}"
 TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
 
 PR_prepend = "${TOOLCHAIN_VERSION}-"
@@ -74,7 +77,9 @@ DEFCONFIG_CPU_i586	= "defconfig.x86"
 DEFCONFIG_CPU_i686	= "defconfig.x86"
 DEFCONFIG_CPU_i786	= "defconfig.x86"
 
+# FIXME: find a proper solution for this gnueabi mess
 DEFCONFIG_OS		= "defconfig.${TARGET_OS}"
+DEFCONFIG_OS_linux-gnueabi= "defconfig.linux-gnu"
 
 SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
@@ -98,24 +103,9 @@ _CT_MPC_VERSION		= "CT_MPC_V_"
 _CT_W32API_VERSION	= "CT_W32API_V_"
 _CT_MINGWRT_VERSION	= "CT_MINGWRT_V_"
 
-CT_ARCH_ARCH		= ""
-CT_ARCH_CPU		= ""
-CT_ARCH_TUNE		= ""
-
-CT_ARCH_ARCH_i386	= "${TARGET_CPUTYPE}"
-CT_ARCH_ARCH_i486	= "${TARGET_CPUTYPE}"
-CT_ARCH_ARCH_i586	= "${TARGET_CPUTYPE}"
-CT_ARCH_ARCH_i686	= "${TARGET_CPUTYPE}"
-CT_ARCH_ARCH_i786	= "${TARGET_CPUTYPE}"
-
-CT_ARCH_ARCH_x86_64	= "${TARGET_CPUTYPE}"
-
-CT_ARCH_CPU_powerpc	= "${TARGET_CPUTYPE}"
-
-# FIXME: need to do something to support both -march and -mcpu, and at
-# the same time handle the fact that config.sub does not suppot armv6,
-# armv7 and more.
-CT_ARCH_CPU_arm		= "${TARGET_CPUTYPE}"
+CT_ARCH_ARCH		= "${TARGET_MARCH}"
+CT_ARCH_CPU		= "${TARGET_MCPU}"
+CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 
 CT_KERNEL_VERSION	?= "custom"
 CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.31.13"
@@ -162,8 +152,8 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_ARCH\)=.*%\1="${CT_ARCH_ARCH}"%' \
 	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${CT_ARCH_CPU}"%' \
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1="${@['n','y'][${TARGET_FPU}]}"%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1="${@['y','n'][${TARGET_FPU}]}"%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@['n','y'][${TARGET_FPU}!="0"]}%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@['y','n'][${TARGET_FPU}!="0"]}%' \
     	    -e "s%# \($ct_kernel_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_binutils_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_cc_version\) is not set%\1=y%" \
@@ -185,7 +175,7 @@ do_mangle () {
 		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${target_includedir}/.."%' \
 		< defconfig.tmp > defconfig
 	else
-		sed -e 's%.*\(CT_KERNEL_LINUX_INSTALL\).*%\1=y%' \
+		sed -e 's%# \(CT_KERNEL_LINUX_INSTALL\) is not set%\1=y%' \
 		    -e 's%# \($ct_kernel_version\) is not set%\1=y%' \
 		< defconfig.tmp > defconfig
 	fi		
