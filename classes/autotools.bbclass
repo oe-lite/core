@@ -54,7 +54,82 @@ oe_runconf () {
 	fi
 }
 
+AUTOTOOLS_AUTORECONF ?= "0"
+EXTRA_AUTORECONF = ""
+acpaths = "__default__"
+
+autotools_autoreconf() {
+
+	for ac in `find ${S} -name configure.in -o -name configure.ac`; do
+       		rm -f `dirname $ac`/configure
+	done
+
+	if [ -e ${S}/configure.in -o -e ${S}/configure.ac ]; then
+		if [ "${acpaths}" = "__default__" ]; then
+			acpaths=
+			for i in `find ${S} -maxdepth 2 -name \*.m4|grep -v 'aclocal.m4'| \
+				grep -v 'acinclude.m4' | sed -e 's,\(.*/\).*$,\1,'|sort -u`; do
+				acpaths="$acpaths -I $i"
+			done
+		else
+			acpaths="${acpaths}"
+		fi
+
+		#AUTOV=`automake --version |head -n 1 |sed "s/.* //;s/\.[0-9]\+$//"`
+		#automake --version
+		#echo "AUTOV is $AUTOV"
+		#install -d ${STAGING_DATADIR}/aclocal
+		#install -d ${STAGING_DATADIR}/aclocal-$AUTOV
+		#acpaths="$acpaths -I${STAGING_DATADIR}/aclocal-$AUTOV -I ${STAGING_DATADIR}/aclocal"
+
+		# autoreconf is too shy to overwrite aclocal.m4 if it doesn't look
+		# like it was auto-generated.  Work around this by blowing it away
+		# by hand, unless the package specifically asked not to run aclocal.
+		if ! echo ${EXTRA_AUTORECONF} | grep -q "aclocal"; then
+		        rm -f aclocal.m4
+		fi
+
+		if [ -e configure.in ]; then
+		  CONFIGURE_AC=configure.in
+		else
+		  CONFIGURE_AC=configure.ac
+		fi
+
+		#if grep "^[[:space:]]*AM_GLIB_GNU_GETTEXT" $CONFIGURE_AC >/dev/null; then
+		#  if grep "sed.*POTFILES" $CONFIGURE_AC >/dev/null; then
+		#    : do nothing -- we still have an old unmodified configure.ac
+		#  else
+		#    oenote Executing glib-gettextize --force --copy
+		#    echo "no" | glib-gettextize --force --copy
+		#  fi
+		#else if grep "^[[:space:]]*AM_GNU_GETTEXT" $CONFIGURE_AC >/dev/null; then
+		#  if [ -e ${STAGING_DATADIR}/gettext/config.rpath ]; then
+		#    cp ${STAGING_DATADIR}/gettext/config.rpath ${S}/
+		#  else
+		#    oenote ${STAGING_DATADIR}/gettext/config.rpath not found. gettext is not installed.
+		#  fi
+		#fi
+		
+		#fi
+
+		mkdir -p m4
+
+		oenote Executing autoreconf --verbose --install --force ${EXTRA_AUTORECONF} $acpaths
+		autoreconf -Wcross --verbose --install --force ${EXTRA_AUTORECONF} $acpaths || oefatal "autoreconf execution failed."
+		if grep "^[[:space:]]*[AI][CT]_PROG_INTLTOOL" $CONFIGURE_AC >/dev/null; then
+		  oenote Executing intltoolize --copy --force --automake
+		  intltoolize --copy --force --automake
+		fi
+	fi
+
+}
+
 autotools_do_configure() {
+
+	if [ "${AUTOTOOLS_AUTORECONF}" != "0" ]; then
+		autotools_autoreconf
+	fi
+
 	if [ -e ${S}/configure ]; then
 		oe_runconf
 	else
