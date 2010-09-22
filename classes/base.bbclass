@@ -1220,9 +1220,6 @@ def check_app_exists(app, d):
 # Patch handling
 inherit patch
 
-# Autoconf sitefile handling
-inherit siteinfo
-
 EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install
 
 MIRRORS[func] = "0"

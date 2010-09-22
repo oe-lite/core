@@ -1,3 +1,6 @@
+# Autoconf sitefile handling
+inherit siteinfo
+
 EXTRA_OEMAKE = ""
 
 AUTOTOOLS_LIBTOOL_DEPENDS = "${HOST_ARCH}/libtool"
