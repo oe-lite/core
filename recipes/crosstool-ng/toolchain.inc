@@ -181,7 +181,8 @@ do_mangle () {
 	fi		
 
 	# FIXME: should we strip the -Wl, off TARGET_LDFLAGS ??
-	#    -e 's%\(CT_TARGET_LDFLAGS\)=.*%\1="${TARGET_LDFLAGS}"%' \
+	#    -e 's%\(CT_TARGET_LDFLAGS\)=.*%\1="${TARGET_LDFLAGS}"%'
+
 }
 
 addtask fetch_tarballs after do_mangle before do_configure

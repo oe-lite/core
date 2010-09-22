@@ -9,10 +9,10 @@ inherit arch
 def base_path_join(a, *p):
     path = a
     for b in p:
-        if path == '' or path.endswith('/'):
-            path +=  b
-        else:
-            path += '/' + b
+	if path == '' or path.endswith('/'):
+	    path +=  b
+	else:
+	    path += '/' + b
     return path
 
 DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
@@ -42,37 +42,37 @@ def base_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
 def base_version_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
     result = bb.vercmp(bb.data.getVar(variable,d,True), checkvalue)
     if result <= 0:
-        return truevalue
+	return truevalue
     else:
-        return falsevalue
+	return falsevalue
 
 def base_contains(variable, checkvalues, truevalue, falsevalue, d):
 	matches = 0
 	if type(checkvalues).__name__ == "str":
 		checkvalues = [checkvalues]
 	for value in checkvalues:
-		if bb.data.getVar(variable,d,1).find(value) != -1:	
+		if bb.data.getVar(variable,d,1).find(value) != -1:
 			matches = matches + 1
 	if matches == len(checkvalues):
-		return truevalue		
+		return truevalue
 	return falsevalue
 
 def base_both_contain(variable1, variable2, checkvalue, d):
        if bb.data.getVar(variable1,d,1).find(checkvalue) != -1 and bb.data.getVar(variable2,d,1).find(checkvalue) != -1:
-               return checkvalue
+	       return checkvalue
        else:
-               return ""
+	       return ""
 
 
 FETCHER_DEPENDS = ""
 DEPENDS_prepend += "${FETCHER_DEPENDS}"
 
 def base_prune_suffix(var, suffixes, d):
-    # See if var ends with any of the suffixes listed and 
+    # See if var ends with any of the suffixes listed and
     # remove it if found
     for suffix in suffixes:
-        if var.endswith(suffix):
-            return var.replace(suffix, "")
+	if var.endswith(suffix):
+	    return var.replace(suffix, "")
     return var
 
 def base_set_filespath(path, d):
@@ -304,10 +304,10 @@ inherit package
 def package_stagefile(file, d):
 
     if bb.data.getVar('PSTAGING_ACTIVE', d, True) == "1":
-        destfile = file.replace(bb.data.getVar("TMPDIR", d, 1), bb.data.getVar("PSTAGE_TMPDIR_STAGE", d, 1))
-        bb.mkdirhier(os.path.dirname(destfile))
-        #print "%s to %s" % (file, destfile)
-        bb.copyfile(file, destfile)
+	destfile = file.replace(bb.data.getVar("TMPDIR", d, 1), bb.data.getVar("PSTAGE_TMPDIR_STAGE", d, 1))
+	bb.mkdirhier(os.path.dirname(destfile))
+	#print "%s to %s" % (file, destfile)
+	bb.copyfile(file, destfile)
 
 package_stagefile_shell() {
 	if [ "$PSTAGING_ACTIVE" = "1" ]; then
@@ -399,13 +399,13 @@ def set_stage_add(dep, d):
     # the form PACKAGE_ARCH/PACKAGE-PV-PR
     pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
     if not pkg:
-        bb.error('PKGPROVIDER_%s not defined!'%dep)
-        return
+	bb.error('PKGPROVIDER_%s not defined!'%dep)
+	return
 
     filename = os.path.join(bb.data.getVar('STAGE_DEPLOY_DIR', d, True), pkg + '.tar')
     if not os.path.isfile(filename):
-        bb.error('could not find %s to satisfy %s'%(filename, dep))
-        return
+	bb.error('could not find %s to satisfy %s'%(filename, dep))
+	return
 
     bb.note('unpacking %s to %s'%(filename, os.getcwd()))
 
@@ -419,7 +419,7 @@ python do_set_stage () {
     recdepends = bb.data.getVar('RECDEPENDS', d, True).split()
     bb.debug('set_stage: RECDEPENDS=%s'%recdepends)
     for dep in recdepends:
-        set_stage_add(dep, d)
+	set_stage_add(dep, d)
 }
 do_set_stage[cleandirs] = "${STAGE_DIR}"
 do_set_stage[dirs] = "${STAGE_DIR}"
@@ -631,7 +631,7 @@ def base_detect_revision(d):
 		if rev <> "<unknown>":
 			return rev
 
-	return "<unknown>"	
+	return "<unknown>"
 
 def base_detect_branch(d):
 	path = base_get_scmbasepath(d)
@@ -643,9 +643,9 @@ def base_detect_branch(d):
 		if rev <> "<unknown>":
 			return rev.strip()
 
-	return "<unknown>"	
-	
-	
+	return "<unknown>"
+
+
 
 def base_get_scmbasepath(d):
 	path_to_bbfiles = bb.data.getVar( 'BBFILES', d, 1 ).split()
@@ -697,23 +697,23 @@ def base_get_metadata_git_revision(path, d):
 GIT_CONFIG = "${STAGING_DIR_NATIVE}/usr/etc/gitconfig"
 
 def generate_git_config(e):
-        from bb import data
+	from bb import data
 
-        if data.getVar('GIT_CORE_CONFIG', e.data, True):
-                gitconfig_path = bb.data.getVar('GIT_CONFIG', e.data, True)
-                proxy_command = "    gitproxy = %s\n" % data.getVar('GIT_PROXY_COMMAND', e.data, True)
+	if data.getVar('GIT_CORE_CONFIG', e.data, True):
+		gitconfig_path = bb.data.getVar('GIT_CONFIG', e.data, True)
+		proxy_command = "    gitproxy = %s\n" % data.getVar('GIT_PROXY_COMMAND', e.data, True)
 
-                bb.mkdirhier(bb.data.expand("${STAGING_DIR_NATIVE}/usr/etc/", e.data))
-                if (os.path.exists(gitconfig_path)):
-                        os.remove(gitconfig_path)
+		bb.mkdirhier(bb.data.expand("${STAGING_DIR_NATIVE}/usr/etc/", e.data))
+		if (os.path.exists(gitconfig_path)):
+			os.remove(gitconfig_path)
 
-                f = open(gitconfig_path, 'w')
-                f.write("[core]\n")
-                ignore_hosts = data.getVar('GIT_PROXY_IGNORE', e.data, True).split()
-                for ignore_host in ignore_hosts:
-                        f.write("    gitproxy = none for %s\n" % ignore_host)
-                f.write(proxy_command)
-                f.close
+		f = open(gitconfig_path, 'w')
+		f.write("[core]\n")
+		ignore_hosts = data.getVar('GIT_PROXY_IGNORE', e.data, True).split()
+		for ignore_host in ignore_hosts:
+			f.write("    gitproxy = none for %s\n" % ignore_host)
+		f.write(proxy_command)
+		f.close
 
 addhandler base_eventhandler
 python base_eventhandler() {
@@ -767,15 +767,15 @@ python base_eventhandler() {
 	#
 	if name.startswith("StampUpdate"):
 		for (fn, task) in e.targets:
-			#print "%s %s" % (task, fn)         
+			#print "%s %s" % (task, fn)
 			if task == "do_rebuild":
 				dir = "%s.*" % e.stampPrefix[fn]
 				bb.note("Removing stamps: " + dir)
 				os.system('rm -f '+ dir)
 				os.system('touch ' + e.stampPrefix[fn] + '.needclean')
 
-        if name == "ConfigParsed":
-                generate_git_config(e)
+	if name == "ConfigParsed":
+		generate_git_config(e)
 
 	if not data in e.__dict__:
 		return NotHandled
@@ -826,7 +826,7 @@ sysroot_stage_libdir() {
 	cd $src
 	las=$(find . -name \*.la -type f)
 	cd $olddir
-	echo "Found la files: $las"		 
+	echo "Found la files: $las"
 	for i in $las
 	do
 		sed -e 's/^installed=yes$/installed=no/' \
@@ -891,19 +891,18 @@ addtask install_fixup after do_install before do_package_install
 python install_strip () {
     import stat
     def isexec(path):
-        try:
-            s = os.stat(path)
-        except (os.error, AttributeError):
-            return 0
-        return (s[stat.ST_MODE] & stat.S_IEXEC)
+	try:
+	    s = os.stat(path)
+	except (os.error, AttributeError):
+	    return 0
+	return (s[stat.ST_MODE] & stat.S_IEXEC)
 
     if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
 	for root, dirs, files in os.walk(os.getcwd()):
-            for f in files:
-                    file = os.path.join(root, f)
-                    if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
-                        runstrip(file, d)
-
+	    for f in files:
+	       file = os.path.join(root, f)
+	       if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+		   runstrip(file, d)
 }
 install_strip[dirs] = "${D}"
 
@@ -919,45 +918,47 @@ def runstrip(file, d):
     ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
 
     if ret:
-        bb.fatal("runstrip() 'file %s' failed" % file)
+	bb.fatal("runstrip() 'file %s' failed" % file)
 
     if "not stripped" not in result:
-        bb.debug(1, "runstrip() skip %s" % file)
-        return
+	bb.debug(1, "runstrip() skip %s" % file)
+	return
 
     target_elf = bb.data.getVar('TARGET_ELF', d, True)
+    if not target_elf:
+	bb.fatal("TARGET_ELF not defined, please fix")
 
     if target_elf not in result:
-        bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
-        return
+	bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
+	return
 
     # If the file is in a .debug directory it was already stripped,
     # don't do it again...
     if os.path.dirname(file).endswith(".debug"):
-        bb.note("Already ran strip")
-        return
+	bb.note("Already ran strip")
+	return
 
     strip = bb.data.getVar("STRIP", d, True)
     if not len(strip) >0:
-	    bb.note("runstrip() STRIP var empty")
-	    return
+	bb.note("runstrip() STRIP var empty")
+	return
 
     objcopy = bb.data.getVar("OBJCOPY", d, True)
     if not len(objcopy) >0:
-	    bb.note("runstrip() OBJCOPY var empty")
-	    return
+	bb.note("runstrip() OBJCOPY var empty")
+	return
 
     newmode = None
     if not os.access(file, os.W_OK):
-        origmode = os.stat(file)[stat.ST_MODE]
-        newmode = origmode | stat.S_IWRITE
-        os.chmod(file, newmode)
+	origmode = os.stat(file)[stat.ST_MODE]
+	newmode = origmode | stat.S_IWRITE
+	os.chmod(file, newmode)
 
     extraflags = ""
     if ".so" in file and "shared" in result:
-        extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
+	extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
     elif "shared" in result or "executable" in result:
-        extraflags = "--remove-section=.comment --remove-section=.note"
+	extraflags = "--remove-section=.comment --remove-section=.note"
 
     bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
     debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
@@ -972,18 +973,18 @@ def runstrip(file, d):
 
     ret, result = commands.getstatusoutput("%s%s" % (pathprefix, objcpcmd))
     if ret:
-        bb.note("runstrip() '%s' %s" % (objcpcmd,result))
+	bb.note("runstrip() '%s' %s" % (objcpcmd,result))
 
     ret, result = commands.getstatusoutput("%s%s" % (pathprefix, stripcmd))
     if ret:
-        bb.note("runstrip() '%s' %s" % (stripcmd,result))
+	bb.note("runstrip() '%s' %s" % (stripcmd,result))
 
     ret, result = commands.getstatusoutput("%s%s" % (pathprefix, objlncmd))
     if ret:
-        bb.note("runstrip() '%s' %s" % (objlncmd,result))
+	bb.note("runstrip() '%s' %s" % (objlncmd,result))
 
     if newmode:
-        os.chmod(file, origmode)
+	os.chmod(file, origmode)
 
 
 
@@ -997,7 +998,7 @@ do_build[func] = "1"
 MACHINE[unexport] = "1"
 
 # Make sure TARGET_ARCH isn't exported
-# (breaks Makefiles using implicit rules, e.g. quilt, as GNU make has this 
+# (breaks Makefiles using implicit rules, e.g. quilt, as GNU make has this
 # in them, undocumented)
 TARGET_ARCH[unexport] = "1"
 
@@ -1013,17 +1014,17 @@ def srcuri_machine_override(d, srcuri):
     paths = []
     # FIXME: this should use FILESPATHPKG
     for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
-        path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
-        if os.path.isdir(path):
-            paths.append(path)
+	path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
+	if os.path.isdir(path):
+	    paths.append(path)
     if len(paths) != 0:
-        for s in srcuri.split():
-            if not s.startswith("file://"):
-                continue
-            local = bb.data.expand(bb.fetch.localpath(s, d), d)
-            for mp in paths:
-                if local.startswith(mp):
-                    return True
+	for s in srcuri.split():
+	    if not s.startswith("file://"):
+		continue
+	    local = bb.data.expand(bb.fetch.localpath(s, d), d)
+	    for mp in paths:
+		if local.startswith(mp):
+		    return True
     return False
 
 
@@ -1033,24 +1034,24 @@ def base_fixup_package_arch(d):
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
     # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
     if not arch[0] and arch[1]:
-        arch = arch[2]
+	arch = arch[2]
     else:
-        arch = '${TARGET_ARCH}'
+	arch = '${TARGET_ARCH}'
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
-        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
-            pkg_arch = 'sysroot/'+arch
-            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+	if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
+	    pkg_arch = 'sysroot/'+arch
+	    bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
 
 
 FIXUP_PROVIDES = base_fixup_provides
 def base_fixup_provides(d):
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
     	provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
-        if not pkg in provides:
-            bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
+	if not pkg in provides:
+	    bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
     	rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
-        if not pkg in rprovides:
-            bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
+	if not pkg in rprovides:
+	    bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
 
 
 def base_after_parse(d):
@@ -1059,48 +1060,48 @@ def base_after_parse(d):
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
 
     if not source_mirror_fetch:
-        need_host = bb.data.getVar('COMPATIBLE_HOST', d, 1)
-        if need_host:
-            import re
-            this_host = bb.data.getVar('HOST_SYS', d, 1)
-            if not re.match(need_host, this_host):
-                raise bb.parse.SkipPackage("incompatible with host %s" % this_host)
+	need_host = bb.data.getVar('COMPATIBLE_HOST', d, 1)
+	if need_host:
+	    import re
+	    this_host = bb.data.getVar('HOST_SYS', d, 1)
+	    if not re.match(need_host, this_host):
+		raise bb.parse.SkipPackage("incompatible with host %s" % this_host)
 
-        need_machine = bb.data.getVar('COMPATIBLE_MACHINE', d, 1)
-        if need_machine:
-            import re
-            this_machine = bb.data.getVar('MACHINE', d, 1)
-            if this_machine and not re.match(need_machine, this_machine):
-                raise bb.parse.SkipPackage("incompatible with machine %s" % this_machine)
+	need_machine = bb.data.getVar('COMPATIBLE_MACHINE', d, 1)
+	if need_machine:
+	    import re
+	    this_machine = bb.data.getVar('MACHINE', d, 1)
+	    if this_machine and not re.match(need_machine, this_machine):
+		raise bb.parse.SkipPackage("incompatible with machine %s" % this_machine)
 
     pn = bb.data.getVar('PN', d, 1)
 
     use_nls = bb.data.getVar('USE_NLS_%s' % pn, d, 1)
     if use_nls != None:
-        bb.data.setVar('USE_NLS', use_nls, d)
+	bb.data.setVar('USE_NLS', use_nls, d)
 
     fetcher_depends = ""
 
     # Git packages should DEPEND on git-native
     srcuri = bb.data.getVar('SRC_URI', d, 1)
     if "git://" in srcuri:
-        fetcher_depends += " git-native "
+	fetcher_depends += " git-native "
 
     # Mercurial packages should DEPEND on mercurial-native
     elif "hg://" in srcuri:
-        fetcher_depends += " mercurial-native "
+	fetcher_depends += " mercurial-native "
 
     # OSC packages should DEPEND on osc-native
     elif "osc://" in srcuri:
-        fetcher_depends += " osc-native "
+	fetcher_depends += " osc-native "
 
     # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
     # on shasum-native.  We need to ensure that it is staged before we fetch.
     if bb.data.getVar('PN', d, True) != "shasum-native":
-        try:
-            import hashlib
-        except ImportError:
-            fetcher_depends += " shasum-native"
+	try:
+	    import hashlib
+	except ImportError:
+	    fetcher_depends += " shasum-native"
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
@@ -1111,28 +1112,28 @@ def base_after_parse(d):
     if recipe_type in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
 	# Set ${RE} for use in fx. DEPENDS and RDEPENDS
 	bb.data.setVar('RE', '-' + recipe_type, d)
-        # Add recipe-${RECIPE_TYPE} to OVERRIDES
-        bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
+	# Add recipe-${RECIPE_TYPE} to OVERRIDES
+	bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
 
     # FIXME: move to insane.bbclass
     provides = bb.data.getVar('PROVIDES', d, True)
     if provides:
-        bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
+	bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
 
     # FIXME: move to insane.bbclass
     rprovides = bb.data.getVar('RPROVIDES', d, True)
     if rprovides:
-        bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
+	bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
     # Fixup package PACKAGE_ARCH (recipe type dependant)
     fixup_package_arch = bb.data.getVar('FIXUP_PACKAGE_ARCH', d, False)
     if fixup_package_arch is not '':
-        eval(fixup_package_arch)(d)
+	eval(fixup_package_arch)(d)
 
     # Fixup package PROVIDES and RPROVIDES (recipe type dependant)
     fixup_provides = bb.data.getVar('FIXUP_PROVIDES', d, False)
     if fixup_provides is not '':
-        eval(fixup_provides)(d)
+	eval(fixup_provides)(d)
 
     # RECIPE_ARCH override detection
     recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
@@ -1143,24 +1144,24 @@ def base_after_parse(d):
     override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
 
     if (recipe_arch != recipe_arch_mach and override != '0' and
-        srcuri_machine_override(d, srcuri)):
-        bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
-                 (pn, recipe_arch, recipe_arch_mach))
-        bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
-        recipe_arch = recipe_arch_mach
+	srcuri_machine_override(d, srcuri)):
+	bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
+		 (pn, recipe_arch, recipe_arch_mach))
+	bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
+	recipe_arch = recipe_arch_mach
 
     # Detect manual machine "override" in PACKAGE_ARCH_* variables
     # FIXME: if PACKAGES has overrides, this will break as
     # overrides has not been applied at this point in time!
     packages = bb.data.getVar('PACKAGES', d, True)
     for pkg in packages:
-        package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, True)
-        if package_arch and package_arch == recipe_arch_mach:
-            if recipe_arch != recipe_arch_mach:
-            	bb.debug("PACKAGE_ARCH_%s overrides RECIPE_ARCH from %s to %s"%
-                	 (pkg, recipe_arch, recipe_arch_mach))
-                bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
-            break
+	package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, True)
+	if package_arch and package_arch == recipe_arch_mach:
+	    if recipe_arch != recipe_arch_mach:
+		bb.debug("PACKAGE_ARCH_%s overrides RECIPE_ARCH from %s to %s"%
+			 (pkg, recipe_arch, recipe_arch_mach))
+		bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
+	    break
 
 #
 # RECIPE_OPTIONS are to be defined in recipes, and should be a
@@ -1201,7 +1202,7 @@ def base_apply_recipe_options(d):
 			overrides += ':RECIPE_OPTION_'+option
 			overrides_changed = True
 	if overrides_changed:
-		bb.data.setVar('OVERRIDES', overrides, d)	
+		bb.data.setVar('OVERRIDES', overrides, d)
 	return
 
 python () {

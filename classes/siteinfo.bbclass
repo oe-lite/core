@@ -78,7 +78,7 @@ python do_siteinfo () {
 
 def generate_siteinfo(d, arch, output_filename):
     import bb, fileinput
-    input_files = list_sitefiles(d, bb.data.getVar(arch + '_SITEFILES', d, True))
+    input_files = list_sitefiles(d, bb.data.getVar(arch+'_SITEFILES', d, True))
     output_file = open(output_filename, 'w')
     for line in fileinput.input(input_files):
         output_file.write(line)
