@@ -124,6 +124,22 @@ autotools_autoreconf() {
 
 }
 
+AUTOTOOLS_LIBTOOL_FIXUP				= "libtool"
+AUTOTOOLS_LIBTOOL_FIXUP_recipe-native		= ""
+AUTOTOOLS_LIBTOOL_FIXUP_recipe-cross		= ""
+AUTOTOOLS_LIBTOOL_FIXUP_recipe-sdk-cross	= ""
+
+autotools_libtool_fixup () {
+	oenote autotools_libtool_fixup
+	pwd
+	for file in ${AUTOTOOLS_LIBTOOL_FIXUP} ; do
+		if [ -f $file ]; then
+			rm -f $file
+			ln -s ${STAGE_DIR}/cross${stage_bindir}/${HOST_PREFIX}libtool $file
+		fi
+	done
+}
+
 autotools_do_configure() {
 
 	if [ "${AUTOTOOLS_AUTORECONF}" != "0" ]; then
@@ -134,6 +150,10 @@ autotools_do_configure() {
 		oe_runconf
 	else
 		oenote "nothing to configure"
+	fi
+
+	if [ -n "${AUTOTOOLS_LIBTOOL_FIXUP}" ]; then
+		autotools_libtool_fixup
 	fi
 }
 
