@@ -110,44 +110,6 @@ def canadian_set_stage_add(dep, d):
     return
 
 
-# Hackedyhack.... override the files.bbclass until BitBake has
-# improved dependency handling
-FILES_INSTALL_PACKAGE = "canadian_files_install_package"
-def canadian_files_install_package(rdep,d):
-    import os, bb
-
-    pkg = bb.data.getVar('PKGRPROVIDER_%s'%rdep, d, 0)
-    if not pkg:
-        bb.note('Error getting PKGPROVIDER_%s'%rdep)
-        return False
-
-    deploy_dir = bb.data.getVar('TARGET_DEPLOY_DIR', d, True)
-    filename = os.path.join(deploy_dir, pkg + '.tar')
-
-    if not os.path.isfile(filename):
-        bb.error('could not find %s to satisfy %s'%(filename, rdep))
-        return False
-
-    host_arch = bb.data.getVar('HOST_ARCH', d, True)
-    target_arch = bb.data.getVar('TARGET_ARCH', d, True)
-    if pkg.startswith('sysroot/%s/'%host_arch):
-        subdir = ''
-    elif pkg.startswith('sysroot/%s--'%host_arch):
-        subdir = ''
-    else:
-        subdir = os.path.join(target_arch, 'sys-root')
-
-    bb.note('unpacking %s to %s'%(filename, os.path.abspath(subdir)))
-
-    cmd = 'tar xf %s'%filename
-    if subdir:
-        if not os.path.exists(subdir):
-            os.makedirs(subdir)
-        cmd = 'cd %s;%s'%(subdir, cmd)
-    os.system(cmd)
-
-    return True
-
 FIXUP_PACKAGE_ARCH = canadian_fixup_package_arch
 def canadian_fixup_package_arch(d):
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition('canadian/')
