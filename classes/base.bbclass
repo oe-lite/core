@@ -926,7 +926,8 @@ def runstrip(file, d):
 
     target_elf = bb.data.getVar('TARGET_ELF', d, True)
     if not target_elf:
-	bb.fatal("TARGET_ELF not defined, please fix")
+	bb.debug(1, "TARGET_ELF not defined, you might want to fix this...")
+	return
 
     if target_elf not in result:
 	bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
