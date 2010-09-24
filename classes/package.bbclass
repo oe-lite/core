@@ -646,9 +646,7 @@ python do_stage_package_qa () {
        bb.note("do_stage_package_qa not implemented yet")
 }
 do_stage_package_qa[dirs] = "${PKGD}"
-addtask stage_package_qa \
-	before do_stage_package_build \
-	after do_stage_package_fixup
+#addtask stage_package_qa before do_stage_package_build after do_stage_package_fixup
 
 
 python do_stage_package_build () {
@@ -710,7 +708,7 @@ python do_target_package_qa () {
        bb.note("do_target_package_qa not implemented yet")
 }
 do_target_package_qa[dirs] = "${PKGD}"
-addtask target_package_qa before do_target_package_build after do_target_package_fixup
+#addtask target_package_qa before do_target_package_build after do_target_package_fixup
 
 python do_target_package_build () {
 	import bb, os
