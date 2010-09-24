@@ -1,3 +1,5 @@
+IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
+
 inherit image image_mdev image_crontab image_makedevs
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
@@ -11,7 +13,7 @@ do_install_append () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 ${D}/
 }
 
-FILES_${PN} += "/${IMAGE_BASENAME}.jffs2*"
+FILES_${PN} += "/*.jffs2"
 
 do_deploy_append () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 \
