@@ -7,7 +7,6 @@ python () {
 	localdata = bb.data.createCopy(d)
 	bb.data.update_data(localdata)
 	inherit = localdata.getVar('INHERIT_SDK_IMAGE', 1)
-	bb.note('INHERIT_SDK_IMAGE is %s'%inherit)
 	d = bb.parse.handle(os.path.join('classes', '%s.bbclass' % inherit), d, True )
 }
 
