@@ -1,4 +1,4 @@
-addtask set_image_stage before do_compile
+addtask set_image_stage after do_set_stage before do_compile
 addtask deploy after do_install_fixup before do_build
 
 IMAGE_BASENAME ?= "${PN}"
