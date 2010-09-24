@@ -1,4 +1,4 @@
-inherit image image_mdev image_crontab
+inherit image image_mdev image_crontab image_makedevs
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
 
