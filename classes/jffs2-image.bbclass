@@ -4,9 +4,13 @@ inherit image image_mdev image_crontab image_makedevs
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
 
+JFFS2_IMAGE_OPTIONS ?= "-x lzo --faketime"
+
 jffs2_image () {
-	mkfs.jffs2 -x lzo --root=${IMAGE_STAGE} --faketime \
-		--output=${B}/${IMAGE_BASENAME}.jffs2
+	mkfs.jffs2 ${JFFS2_IMAGE_OPTIONS} \
+		--root=${IMAGE_STAGE} \
+		--output=${B}/${IMAGE_BASENAME}.jffs2 \
+		
 }
 
 do_install_append () {
