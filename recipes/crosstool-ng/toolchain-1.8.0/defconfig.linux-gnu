@@ -16,20 +16,24 @@ CT_KERNEL_linux=y
 CT_KERNEL_bare_metal_AVAILABLE=y
 CT_KERNEL_linux_AVAILABLE=y
 # CT_KERNEL_LINUX_INSTALL is not set
-CT_KERNEL_LINUX_INSTALL_CHECK=y
+# CT_KERNEL_V_2_6_34_1 is not set
+# CT_KERNEL_V_2_6_34 is not set
+# CT_KERNEL_V_2_6_33_6 is not set
+# CT_KERNEL_V_2_6_33_5 is not set
+# CT_KERNEL_V_2_6_33_4 is not set
+# CT_KERNEL_V_2_6_33_3 is not set
 # CT_KERNEL_V_2_6_33_2 is not set
 # CT_KERNEL_V_2_6_33_1 is not set
 # CT_KERNEL_V_2_6_33 is not set
-# CT_KERNEL_V_2_6_32_11 is not set
-# CT_KERNEL_V_2_6_31_13 is not set
+# CT_KERNEL_V_2_6_32_16 is not set
+# CT_KERNEL_V_2_6_31_14 is not set
 # CT_KERNEL_V_2_6_30_10 is not set
-# CT_KERNEL_V_2_6_29_6 is not set
-# CT_KERNEL_V_2_6_28_10 is not set
-# CT_KERNEL_V_2_6_27_46 is not set
+# CT_KERNEL_V_2_6_27_48 is not set
 CT_KERNEL_LINUX_VERBOSITY_0=y
 # CT_KERNEL_LINUX_VERBOSITY_1 is not set
 # CT_KERNEL_LINUX_VERBOSITY_2 is not set
 CT_KERNEL_LINUX_VERBOSE_LEVEL=0
+CT_KERNEL_LINUX_INSTALL_CHECK=y
 # CT_KERNEL_LINUX_USE_CUSTOM_HEADERS is not set
 # CT_KERNEL_LINUX_CUSTOM_IS_TARBALL is not set
 CT_KERNEL_LINUX_CUSTOM_PATH=""

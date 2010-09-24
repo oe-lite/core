@@ -108,8 +108,8 @@ CT_ARCH_CPU		= "${TARGET_MCPU}"
 CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 
 CT_KERNEL_VERSION	?= "custom"
-CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.31.13"
-CT_KERNEL_VERSION_recipe-sdk		= "2.6.31.13"
+CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.33.6"
+CT_KERNEL_VERSION_recipe-sdk		= "2.6.33.6"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
@@ -152,8 +152,8 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_ARCH\)=.*%\1="${CT_ARCH_ARCH}"%' \
 	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${CT_ARCH_CPU}"%' \
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@['n','y'][${TARGET_FPU}!="0"]}%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@['y','n'][${TARGET_FPU}!="0"]}%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@['n','y']["${TARGET_FPU}"!="0"]}%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@['y','n']["${TARGET_FPU}"!="0"]}%' \
     	    -e "s%# \($ct_kernel_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_binutils_version\) is not set%\1=y%" \
 	    -e "s%# \($ct_cc_version\) is not set%\1=y%" \
