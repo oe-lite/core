@@ -159,6 +159,11 @@ def arch_init():
                 'mcpu'		: 'arm926ej-s',
                 'mtune'		: 'arm926ej-s',
                 },
+            'cortexa8'	: {
+                'mcpu'		: 'cortex-a8',
+                'mtune'		: 'cortex-a8',
+		'fpu'		: 'neon',
+                },
             },
         }
 
@@ -172,6 +177,7 @@ def arch_init():
         'arm'	: {
             'at91rm9200'	: '920t',
             'at91sam9260'	: '926ejs',
+	    'omap3520'		: 'cortexa8'
             },
         }
 
