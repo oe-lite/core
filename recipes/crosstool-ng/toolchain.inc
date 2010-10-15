@@ -107,6 +107,8 @@ CT_ARCH_ARCH		= "${TARGET_MARCH}"
 CT_ARCH_CPU		= "${TARGET_MCPU}"
 CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 
+# FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
+
 CT_KERNEL_VERSION	?= "custom"
 CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.33.6"
 CT_KERNEL_VERSION_recipe-sdk		= "2.6.33.6"

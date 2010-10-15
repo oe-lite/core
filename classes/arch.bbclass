@@ -10,182 +10,272 @@ def arch_init():
 
     g['gccspecs'] = {}
 
-    g['archspecs'] = {
-        'powerpc'	: {
-            'wordsize'		: '32',
-            'endian'		: 'b',
-            'elf'		: 'PowerPC or cisco 4500',
-            },
-        'powerpc64'	: {
-            'wordsize'		: '64',
-            'endian'		: 'b',
-            },
-        'arm'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-	    'elf'		: 'ELF 32-bit LSB shared object, ARM, version 1 (SYSV)',
-            },
-        'armeb'		: {
-            'wordsize'		: '32',
-            'endian'		: 'b',
-            },
-        'avr32'		: {
-            'wordsize'		: '32',
-            'endian'		: 'b',
-            },
-        'mips'		: {
-            'wordsize'		: '32',
-            'endian'		: 'b',
-            },
-        'mipsel'	: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            },
-        'sparc'		: {
-            'wordsize'		: '32',
-            'endian'		: 'b',
-            },
-        'bfin'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            },
-        'sh3'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            },
-        'sh4'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            },
-        'i386'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'elf'		: 'Intel 80386',
-            'fpu'		: '1',
-	    'march'		: 'i386',
-            },
-        'i486'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'i486',
-            },
-        'i586'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'i586',
-            },
-        'i586mmx'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'pentium-mmx',
-            },
-        'i686'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'i686',
-            },
-        'i686mmx'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'pentium2',
-            },
-        'i686sse'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'pentium3',
-            },
-        'i686sse2'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'fpu'		: '1',
-	    'march'		: 'pentium-m',
-            },
-        'i786'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'march'		: 'pentium4',
-            'fpu'		: '1',
-            },
-        'i786sse3'		: {
-            'wordsize'		: '32',
-            'endian'		: 'l',
-            'march'		: 'prescott',
-            'fpu'		: '1',
-            },
-        'x86_64'	: {
-            'wordsize'		: '64',
-            'endian'		: 'l',
-            'fpu'		: '1',
-            'march'		: 'k8',
-            'elf'		: 'x86-64',
-            },
-        'ia64'		: {
-            'wordsize'		: '64',
-            'endian'		: 'l',
-            },
-        }
+    g['cpuspecs'] = {
 
-    g['corespecs'] = {
-        'powerpc' : {
-            'e300c1'		: {
-                'mcpu'		: 'e300c1',
-                'fpu'		: '1',
-                },
-            'e300c2'	: {
-                'mcpu'		: 'e300c2',
-                },
-            'e300c3'	: {
-                'mcpu'		: 'e300c3',
-                'fpu'		: '1',
-                },
-            'e300c4'	: {
-                'mcpu'		: 'e300c4',
-                'fpu'		: '1',
-                },
-            },
-        'arm' : {
-            '920t'	: {
-                'mcpu'		: 'arm920t',
-                'mtune'		: 'arm920t',
-                },
-            '926ejs'	: {
-                'march'		: 'armv5te',
-                'mcpu'		: 'arm926ej-s',
-                'mtune'		: 'arm926ej-s',
-                },
-            'cortexa8'	: {
-                'mcpu'		: 'cortex-a8',
-                'mtune'		: 'cortex-a8',
+	'powerpc'	: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'b',
+	        'elf'		: 'PowerPC or cisco 4500',
+		},
+	    'e300c1'		: {
+		'mcpu'		: 'e300c1',
+		'fpu'		: '1',
+		},
+	    'e300c2'		: {
+		'mcpu'		: 'e300c2',
+		},
+	    'e300c3'		: {
+		'mcpu'		: 'e300c3',
+		'fpu'		: '1',
+		},
+	    'e300c4'		: {
+		'mcpu'		: 'e300c4',
+		'fpu'		: '1',
+		},
+	    },
+
+	'powerpc64'	: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '64',
+	        'endian'	: 'b',
+		},
+	    },
+
+	'arm'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'ELF 32-bit LSB shared object, ARM, version 1 (SYSV)',
+		},
+	    '920t'		: {
+		'mcpu'		: 'arm920t',
+		'mtune'		: 'arm920t',
+		},
+	    '926ejs'		: {
+		'march'		: 'armv5te',
+		'mcpu'		: 'arm926ej-s',
+		'mtune'		: 'arm926ej-s',
+		},
+	    'cortexa8'		: {
+		'mcpu'		: 'cortex-a8',
+		'mtune'		: 'cortex-a8',
 		'fpu'		: 'neon',
-                },
-            },
-        }
+		},
+	    },
 
-    g['socmap'] = {
-        'powerpc'	: {
-            'mpc8313'		: 'e300c3',
-            'mpc8313e'		: 'e300c3',
-            'mpc8360'		: 'e300c1',
-            'mpc8270'		: 'g2le',
-            },
-        'arm'	: {
-            'at91rm9200'	: '920t',
-            'at91sam9260'	: '926ejs',
+	'armeb'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'b',
+		},
+	    },
+
+	'avr32'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'b',
+		},
+	    },
+
+	'mips'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'b',
+		},
+	    },
+
+	'mipsel'	: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+		},
+	    },
+
+	'sparc'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'b',
+		},
+	    },
+
+	'bfin'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+		},
+	    },
+
+	'sh3'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+		},
+	    },
+
+	'sh4'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+		},
+	    },
+
+	'i386'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'Intel 80386',
+	        'march'		: 'i386',
+	        'fpu'		: '387',
+		},
+	    },
+
+	'i486'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'Intel 80386',
+	        'march'		: 'i486',
+	        'fpu'		: '387',
+		},
+	    'winchipc6'		: {
+		'march'		: 'winchip-c6',
+		},
+	    'winchip2'		: {
+		'march'		: 'winchip2',
+		},
+	    'c3'		: {
+		'march'		: 'c3',
+		},
+	    'c32'		: {
+		'march'		: 'c3-2',
+		},
+	    },
+
+	'i586'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'Intel 80386',
+	        'march'		: 'i586',
+	        'fpu'		: '387',
+		},
+	    'mmx'		: {
+	        'march'		: 'pentium-mmx',
+	        },
+	    'k6'		: {
+		'march'		: 'k6',
+		},
+	    'k62'		: {
+		'march'		: 'k6-2',
+		},
+	    'geode'		: {
+		'march'		: 'geode',
+		},
+	    },
+
+	'i686'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'Intel 80386',
+	        'march'		: 'i686',
+	        'fpu'		: '387',
+		},
+	    'mmx'		: {
+		'march'		: 'pentium2',
+		},
+	    'sse'		: {
+		'march'		: 'pentium3',
+	        'fpu'		: 'sse',
+		},
+	    'sse2'		: {
+		'march'		: 'pentium-m',
+	        'fpu'		: 'sse',
+		},
+	    'athlon'		: {
+		'march'		: 'athlon',
+		},
+	    'athlon4'		: {
+		'march'		: 'athlon-4',
+	        'fpu'		: 'sse',
+		},
+	    },
+
+	'i786'		: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '32',
+	        'endian'	: 'l',
+	        'elf'		: 'Intel 80386',
+	        'march'		: 'pentium4',
+	        'fpu'		: 'sse',
+		},
+	    'sse3'		: {
+	        'march'		: 'prescott',
+	        },
+	    },
+
+	'x86_64'	: {
+	    'DEFAULT'		: {
+	        'wordsize'	: '64',
+	        'endian'	: 'l',
+	        'elf'		: 'x86-64',
+	        'march'		: 'opteron',
+	        'fpu'		: 'sse',
+		},
+	    'sse3'		: {
+		'march'		: 'k8-sse3',
+		},
+	    'nocona'		: {
+		'march'		: 'nocona',
+		},
+	    'core2'		: {
+		'march'		: 'core2',
+		},
+	    'atom'		: {
+		'march'		: 'atom',
+		},
+	    'amdfam10'		: {
+		'march'		: 'amdfam10',
+		},
+	    },
+
+	'ia64'		: {
+	    'DEFAULT'		: {
+	        'wordsize'		: '64',
+	        'endian'		: 'l',
+		},
+	    },
+	}
+
+    g['cpumap'] = {
+
+	'powerpc'	: {
+	    'mpc8313'		: 'e300c3',
+	    'mpc8313e'		: 'e300c3',
+	    'mpc8360'		: 'e300c1',
+	    'mpc8270'		: 'g2le',
+	    },
+
+	'arm'		: {
+	    'at91rm9200'	: '920t',
+	    'at91sam9260'	: '926ejs',
 	    'omap3520'		: 'cortexa8'
-            },
-        }
+	    },
+
+	'x86'		: {
+	    'celeronm575'	: ('i686', 'sse2'),
+	    },
+
+	}
 
     g['osspecs'] = {
-        'mingw32'	: {
-            'exeext'		: '.exe',
-            },
-        }
+
+	'mingw32'	: {
+	    'exeext'		: '.exe',
+	    },
+
+	}
 
 python () {
     arch_init()
@@ -244,28 +334,37 @@ def arch_update(d, prefix, gcc_version):
 
 
 def arch_fixup(arch, gcc):
-    global socmap, corespecs
+    global cpumap, cpuspecs
 
     gccv=map(int,gcc.split('.'))
     (cpu, vendor, os) = arch_split(arch)
 
-    if cpu in socmap and vendor in socmap[cpu]:
-        core = socmap[cpu][vendor]
-    elif cpu in corespecs and vendor in corespecs[cpu].keys():
-        core = vendor
+    if vendor == 'pc':
+        vendor = 'unknown'
+    if cpu in cpumap and vendor in cpumap[cpu]:
+        mapto = cpumap[cpu][vendor]
+	if isinstance(mapto, tuple):
+	    (cpu, vendor) = mapto
+        else:
+	    vendor = mapto
+    elif cpu in cpuspecs and vendor in cpuspecs[cpu]:
+        pass
+    elif vendor == 'unknown':
+        pass
     else:
-        core = 'unknown'
+        bb.msg.warn(None, "unknown cpu vendor: %s"%vendor)
+	vendor = 'unknown'
 
     # Currently, OE-lite does only support EABI for ARM
     # When/if OABI is added, os should be kept as linux-gnu for OABI
     if cpu == 'arm' and os == 'linux-gnu':
-        os = 'linux-gnueabi'
-    
-    return '-'.join((cpu, core, os))
+	os = 'linux-gnueabi'
+
+    return '-'.join((cpu, vendor, os))
 
 
 def arch_gccspec(arch, gcc):
-    global gccspecs, socmap, archspecs, corespecs, osspecs
+    global gccspecs, cpuspecs, osspecs
 
     if gcc in gccspecs:
         if arch in gccspecs[gcc]:
@@ -277,12 +376,12 @@ def arch_gccspec(arch, gcc):
     (cpu, vendor, os) = arch_split(arch)
 
     gccspec = {}
-    if cpu in archspecs:
-        gccspec.update(archspecs[cpu])
-    if cpu in corespecs and vendor in corespecs[cpu]:
-        gccspec.update(corespecs[cpu][vendor])
+    if cpu in cpuspecs:
+	gccspec.update(cpuspecs[cpu]['DEFAULT'])
+    if cpu in cpuspecs and vendor in cpuspecs[cpu]:
+	gccspec.update(cpuspecs[cpu][vendor])
     if os in osspecs:
-        gccspec.update(osspecs[os])
+	gccspec.update(osspecs[os])
 
     try:
     
