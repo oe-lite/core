@@ -14,9 +14,9 @@ def arch_init():
 
 	'powerpc'	: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'b',
-	        'elf'		: 'PowerPC or cisco 4500',
+		'wordsize'	: '32',
+		'endian'	: 'b',
+		'elf'		: 'PowerPC or cisco 4500',
 		},
 	    'e300c1'		: {
 		'mcpu'		: 'e300c1',
@@ -37,16 +37,16 @@ def arch_init():
 
 	'powerpc64'	: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '64',
-	        'endian'	: 'b',
+		'wordsize'	: '64',
+		'endian'	: 'b',
 		},
 	    },
 
 	'arm'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'ELF 32-bit LSB shared object, ARM, version 1 (SYSV)',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'ELF 32-bit LSB shared object, ARM, version 1 (SYSV)',
 		},
 	    '920t'		: {
 		'mcpu'		: 'arm920t',
@@ -66,77 +66,77 @@ def arch_init():
 
 	'armeb'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'b',
+		'wordsize'	: '32',
+		'endian'	: 'b',
 		},
 	    },
 
 	'avr32'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'b',
+		'wordsize'	: '32',
+		'endian'	: 'b',
 		},
 	    },
 
 	'mips'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'b',
+		'wordsize'	: '32',
+		'endian'	: 'b',
 		},
 	    },
 
 	'mipsel'	: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
+		'wordsize'	: '32',
+		'endian'	: 'l',
 		},
 	    },
 
 	'sparc'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'b',
+		'wordsize'	: '32',
+		'endian'	: 'b',
 		},
 	    },
 
 	'bfin'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
+		'wordsize'	: '32',
+		'endian'	: 'l',
 		},
 	    },
 
 	'sh3'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
+		'wordsize'	: '32',
+		'endian'	: 'l',
 		},
 	    },
 
 	'sh4'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
+		'wordsize'	: '32',
+		'endian'	: 'l',
 		},
 	    },
 
 	'i386'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'Intel 80386',
-	        'march'		: 'i386',
-	        'fpu'		: '387',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'Intel 80386',
+		'march'		: 'i386',
+		'fpu'		: '387',
 		},
 	    },
 
 	'i486'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'Intel 80386',
-	        'march'		: 'i486',
-	        'fpu'		: '387',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'Intel 80386',
+		'march'		: 'i486',
+		'fpu'		: '387',
 		},
 	    'winchipc6'		: {
 		'march'		: 'winchip-c6',
@@ -154,15 +154,15 @@ def arch_init():
 
 	'i586'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'Intel 80386',
-	        'march'		: 'i586',
-	        'fpu'		: '387',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'Intel 80386',
+		'march'		: 'i586',
+		'fpu'		: '387',
 		},
 	    'mmx'		: {
-	        'march'		: 'pentium-mmx',
-	        },
+		'march'		: 'pentium-mmx',
+		},
 	    'k6'		: {
 		'march'		: 'k6',
 		},
@@ -176,52 +176,52 @@ def arch_init():
 
 	'i686'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'Intel 80386',
-	        'march'		: 'i686',
-	        'fpu'		: '387',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'Intel 80386',
+		'march'		: 'i686',
+		'fpu'		: '387',
 		},
 	    'mmx'		: {
 		'march'		: 'pentium2',
 		},
 	    'sse'		: {
 		'march'		: 'pentium3',
-	        'fpu'		: 'sse',
+		'fpu'		: 'sse',
 		},
 	    'sse2'		: {
 		'march'		: 'pentium-m',
-	        'fpu'		: 'sse',
+		'fpu'		: 'sse',
 		},
 	    'athlon'		: {
 		'march'		: 'athlon',
 		},
 	    'athlon4'		: {
 		'march'		: 'athlon-4',
-	        'fpu'		: 'sse',
+		'fpu'		: 'sse',
 		},
 	    },
 
 	'i786'		: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '32',
-	        'endian'	: 'l',
-	        'elf'		: 'Intel 80386',
-	        'march'		: 'pentium4',
-	        'fpu'		: 'sse',
+		'wordsize'	: '32',
+		'endian'	: 'l',
+		'elf'		: 'Intel 80386',
+		'march'		: 'pentium4',
+		'fpu'		: 'sse',
 		},
 	    'sse3'		: {
-	        'march'		: 'prescott',
-	        },
+		'march'		: 'prescott',
+		},
 	    },
 
 	'x86_64'	: {
 	    'DEFAULT'		: {
-	        'wordsize'	: '64',
-	        'endian'	: 'l',
-	        'elf'		: 'x86-64',
-	        'march'		: 'opteron',
-	        'fpu'		: 'sse',
+		'wordsize'	: '64',
+		'endian'	: 'l',
+		'elf'		: 'x86-64',
+		'march'		: 'opteron',
+		'fpu'		: 'sse',
 		},
 	    'sse3'		: {
 		'march'		: 'k8-sse3',
@@ -242,8 +242,8 @@ def arch_init():
 
 	'ia64'		: {
 	    'DEFAULT'		: {
-	        'wordsize'		: '64',
-	        'endian'		: 'l',
+		'wordsize'		: '64',
+		'endian'		: 'l',
 		},
 	    },
 	}
@@ -297,21 +297,21 @@ def arch_after_parse(d):
 def arch_set_build_arch(d, gcc_version):
     script = arch_find_script(d, 'config.guess')
     try:
-        guess = arch_split(os.popen(script).readline().strip())
+	guess = arch_split(os.popen(script).readline().strip())
     except OSError, e:
-        bb.fatal('config.guess failed: '+e)
-        return None
+	bb.fatal('config.guess failed: '+e)
+	return None
     # Replace the silly 'pc' vendor with 'unknown' to yield a result
     # comparable with arch_cross().
     if guess[1] == 'pc':
-        guess[1] = 'unknown'
+	guess[1] = 'unknown'
     bb.data.setVar('BUILD_ARCH', '-'.join(guess), d)
     return
 
 
 def arch_set_cross_arch(d, prefix, gcc_version):
     cross_arch = '%s-%s'%(bb.data.getVar(prefix+'_CPU', d, True),
-                          bb.data.getVar(prefix+'_OS', d, True))
+			  bb.data.getVar(prefix+'_OS', d, True))
     cross_arch = arch_config_sub(d, cross_arch)
     cross_arch = arch_fixup(cross_arch, gcc_version)
     bb.data.setVar(prefix+'_ARCH', cross_arch, d)
@@ -327,9 +327,9 @@ def arch_update(d, prefix, gcc_version):
     bb.data.setVar(prefix+'_OS', os, d)
     ost = os.split('-',1)
     if len(ost) > 1:
-        bb.data.setVar(prefix+'_BASEOS', ost[0], d)
+	bb.data.setVar(prefix+'_BASEOS', ost[0], d)
     for spec in gccspec:
-        bb.data.setVar(prefix+'_'+spec.upper(), gccspec[spec], d)
+	bb.data.setVar(prefix+'_'+spec.upper(), gccspec[spec], d)
     return
 
 
@@ -340,19 +340,19 @@ def arch_fixup(arch, gcc):
     (cpu, vendor, os) = arch_split(arch)
 
     if vendor == 'pc':
-        vendor = 'unknown'
+	vendor = 'unknown'
     if cpu in cpumap and vendor in cpumap[cpu]:
-        mapto = cpumap[cpu][vendor]
+	mapto = cpumap[cpu][vendor]
 	if isinstance(mapto, tuple):
 	    (cpu, vendor) = mapto
-        else:
+	else:
 	    vendor = mapto
     elif cpu in cpuspecs and vendor in cpuspecs[cpu]:
-        pass
+	pass
     elif vendor == 'unknown':
-        pass
+	pass
     else:
-        bb.msg.warn(None, "unknown cpu vendor: %s"%vendor)
+	bb.msg.warn(None, "unknown cpu vendor: %s"%vendor)
 	vendor = 'unknown'
 
     # Currently, OE-lite does only support EABI for ARM
@@ -367,10 +367,10 @@ def arch_gccspec(arch, gcc):
     global gccspecs, cpuspecs, osspecs
 
     if gcc in gccspecs:
-        if arch in gccspecs[gcc]:
-            return gccspecs[gcc][arch]
+	if arch in gccspecs[gcc]:
+	    return gccspecs[gcc][arch]
     else:
-        gccspecs[gcc] = {}
+	gccspecs[gcc] = {}
 
     gccv=map(int,gcc.split('.'))
     (cpu, vendor, os) = arch_split(arch)
@@ -384,22 +384,22 @@ def arch_gccspec(arch, gcc):
 	gccspec.update(osspecs[os])
 
     try:
-    
-        if gccspec['mcpu'] in ('e300c1', 'e300c4'):
-            gccspec['mcpu'] = '603e'
-        if gccspec['mtune'] in ('e300c1', 'e300c4'):
-            gccspec['mtune'] = '603e'
-    
-        if gccspec['mcpu'] in ('e300c2', 'e300c3'):
-            if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
-                gccspec['mcpu'] = '603e'
-        if gccspec['mtune'] in ('e300c2', 'e300c3'):
-            if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
-                gccspec['mtune'] = '603e'
-    
+
+	if gccspec['mcpu'] in ('e300c1', 'e300c4'):
+	    gccspec['mcpu'] = '603e'
+	if gccspec['mtune'] in ('e300c1', 'e300c4'):
+	    gccspec['mtune'] = '603e'
+
+	if gccspec['mcpu'] in ('e300c2', 'e300c3'):
+	    if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
+		gccspec['mcpu'] = '603e'
+	if gccspec['mtune'] in ('e300c2', 'e300c3'):
+	    if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
+		gccspec['mtune'] = '603e'
+
     except KeyError, e:
-        bb.msg.debug(1, None, 'KeyError in arch_gccspec: ')
-    
+	bb.msg.debug(1, None, 'KeyError in arch_gccspec: ')
+
     gccspecs[gcc][arch] = gccspec
     return gccspec
 
@@ -408,10 +408,10 @@ def arch_config_sub(d, arch):
     script = arch_find_script(d, 'config.sub')
 
     try:
-        canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
+	canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
     except OSError, e:
-        bb.error('config.sub(%s) failed: %s'%(arch, e))
-        return arch
+	bb.error('config.sub(%s) failed: %s'%(arch, e))
+	return arch
 
     return canonical_arch
 
@@ -419,25 +419,25 @@ def arch_config_sub(d, arch):
 def arch_split(arch):
     archtuple = arch.split('-', 2)
     if len(archtuple) == 3:
-        return archtuple
+	return archtuple
     else:
-        bb.error('invalid arch string: '+arch)
-        return None
+	bb.error('invalid arch string: '+arch)
+	return None
 
 
 def arch_find_script(d, filename):
     try:
-        scripts = globals()['arch_scripts']
+	scripts = globals()['arch_scripts']
     except KeyError:
-        scripts = {}
-        globals()['arch_scripts'] = scripts
+	scripts = {}
+	globals()['arch_scripts'] = scripts
     if not filename in scripts:
-        for bbpath in bb.data.getVar('BBPATH', d, 1).split(':'):
-            filepath = os.path.join(bbpath, 'scripts', filename)
-            if os.path.isfile(filepath):
-                bb.debug('found %s: %s'%(filename, filepath))
-                scripts[filename] = filepath
-                break
-        if not filename in scripts:
-            bb.error('could not find script: %s'%filename)
+	for bbpath in bb.data.getVar('BBPATH', d, 1).split(':'):
+	    filepath = os.path.join(bbpath, 'scripts', filename)
+	    if os.path.isfile(filepath):
+		bb.debug('found %s: %s'%(filename, filepath))
+		scripts[filename] = filepath
+		break
+	if not filename in scripts:
+	    bb.error('could not find script: %s'%filename)
     return scripts[filename]
