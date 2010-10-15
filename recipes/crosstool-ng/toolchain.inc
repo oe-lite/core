@@ -1,4 +1,4 @@
-PR_append = ".1"
+PR_append = ".2"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -379,7 +379,6 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.py \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-linux.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
