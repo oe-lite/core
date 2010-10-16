@@ -1,4 +1,4 @@
-PR_append = ".1"
+PR_append = ".2"
 
 FILESPATH=${@base_set_filespath([\
 	"${FILE_DIRNAME}/${PF}",\
@@ -106,6 +106,8 @@ _CT_MINGWRT_VERSION	= "CT_MINGWRT_V_"
 CT_ARCH_ARCH		= "${TARGET_MARCH}"
 CT_ARCH_CPU		= "${TARGET_MCPU}"
 CT_ARCH_TUNE		= "${TARGET_MTUNE}"
+
+# FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
 CT_KERNEL_VERSION	?= "custom"
 CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.33.6"
@@ -379,7 +381,6 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.py \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-linux.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
