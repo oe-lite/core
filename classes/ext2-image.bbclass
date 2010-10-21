@@ -2,8 +2,8 @@ IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
 inherit image image_mdev image_crontab image_makedevs
 
-IMAGE_DEPENDS_GENEXT2FS = "genext2fs-native"
-DEPENDS += "${IMAGE_DEPENDS_GENEXT2FS}"
+EXT2_IMAGE_DEPENDS = "genext2fs-native"
+DEPENDS += "${EXT2_IMAGE_DEPENDS}"
 
 IMAGE_CREATE_FUNCS += "genext2fs_image"
 
@@ -11,7 +11,7 @@ EXT2_IMAGE_SIZE ?= "20480"
 EXT2_IMAGE_OPTIONS ?= "-z -q -f"
 
 genext2fs_image () {
-	genext2fs -b ${EXT2_IMAGE_SIZE} -d ${IMAGE_STAGE} ${JFFS2_IMAGE_OPTIONS} ${B}/${IMAGE_BASENAME}.ext2
+	genext2fs -b ${EXT2_IMAGE_SIZE} -d ${IMAGE_STAGE} ${EXT2_IMAGE_OPTIONS} ${B}/${IMAGE_BASENAME}.ext2
 }
 
 do_install_append () {
