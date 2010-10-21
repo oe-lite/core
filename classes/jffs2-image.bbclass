@@ -2,6 +2,9 @@ IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
 inherit image image_mdev image_crontab image_makedevs
 
+JFFS2_IMAGE_DEPENDS = "mtd-utils-native"
+DEPENDS_prepend += "${JFFS2_IMAGE_DEPENDS}"
+
 IMAGE_CREATE_FUNCS += "jffs2_image"
 
 JFFS2_IMAGE_OPTIONS ?= "-x lzo --faketime"
