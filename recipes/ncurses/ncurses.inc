@@ -110,5 +110,3 @@ FILES_${PN}-libncurses = "${libdir}/libncurses${SOLIBS}"
 FILES_${PN}-libform = "${libdir}/libform${SOLIBS}"
 FILES_${PN}-libmenu = "${libdir}/libmenu${SOLIBS}"
 FILES_${PN}-libpanel = "${libdir}/libpanel${SOLIBS}"
-
-FILESPATH = "${FILE_DIRNAME}/local:${FILE_DIRNAME}/ncurses-${PV}-${PR}:${FILE_DIRNAME}/ncurses-${PV}:${FILE_DIRNAME}/ncurses:${FILE_DIRNAME}"
