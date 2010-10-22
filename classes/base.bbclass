@@ -32,6 +32,13 @@ do_build[func] = "1"
 RECIPE_TYPE = "machine"
 RE = ""
 
+
+# FIXME: this shoul dbe moved to a c.bbclass, renamed to C_DEPENDS and
+# added to CLASS_DEPENDS which is assigned to DEPENDS_PREPEND.  This
+# way, DEPENDS and DEPENDS_append is freely available to all recipes,
+# and individual class inherited dependencies can be overridden via
+# it's own _DEPENDS variable, and the collective class dependencies
+# can be accessed in recipes via the CLASS_DEPENDS variable
 DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
@@ -64,6 +71,9 @@ python oe_import () {
 }
 
 
+#
+# Shell functions for printing out messages in the BitBake output
+#
 
 die() {
 	oefatal "$*"
@@ -93,6 +103,7 @@ oedebug() {
 		echo "DEBUG:" $*
 	}
 }
+
 
 oe_runmake() {
 	if [ x"$MAKE" = x ]; then MAKE=make; fi
@@ -179,6 +190,7 @@ do_buildall() {
 	:
 }
 
+
 def subprocess_setup():
 	import signal
 	# Python installs a SIGPIPE handler by default. This is usually not what
@@ -259,7 +271,6 @@ python base_eventhandler() {
 }
 
 do_configure[dirs] = "${S} ${B}"
-#do_configure[deptask] = "do_populate_sysroot"
 base_do_configure() {
 	:
 }
@@ -395,15 +406,14 @@ def runstrip(file, d):
 	os.chmod(file, origmode)
 
 
-
-# Make sure MACHINE isn't exported
-# (breaks binutils at least)
-MACHINE[unexport] = "1"
-
 # Make sure TARGET_ARCH isn't exported
 # (breaks Makefiles using implicit rules, e.g. quilt, as GNU make has this
 # in them, undocumented)
 TARGET_ARCH[unexport] = "1"
+
+# Make sure MACHINE isn't exported
+# (breaks binutils at least)
+MACHINE[unexport] = "1"
 
 # Make sure DISTRO isn't exported
 # (breaks sysvinit at least)
