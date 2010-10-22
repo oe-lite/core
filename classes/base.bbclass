@@ -1,5 +1,3 @@
-BB_DEFAULT_TASK ?= "build"
-
 inherit arch
 inherit utils
 inherit stage
