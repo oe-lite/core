@@ -54,26 +54,6 @@ oe_runmake() {
 
 inherit package
 
-# FIXME: move all package_stage stuff to package.bbclass
-
-def package_stagefile(file, d):
-
-    if bb.data.getVar('PSTAGING_ACTIVE', d, True) == "1":
-	destfile = file.replace(bb.data.getVar("TMPDIR", d, 1), bb.data.getVar("PSTAGE_TMPDIR_STAGE", d, 1))
-	bb.mkdirhier(os.path.dirname(destfile))
-	#print "%s to %s" % (file, destfile)
-	bb.copyfile(file, destfile)
-
-package_stagefile_shell() {
-	if [ "$PSTAGING_ACTIVE" = "1" ]; then
-		srcfile=$1
-		destfile=`echo $srcfile | sed s#${TMPDIR}#${PSTAGE_TMPDIR_STAGE}#`
-		destdir=`dirname $destfile`
-		mkdir -p $destdir
-		cp -dp $srcfile $destfile
-	fi
-}
-
 oe_machinstall() {
 	# Purpose: Install machine dependent files, if available
 	#          If not available, check if there is a default
@@ -137,8 +117,6 @@ do_rebuild[nostamp] = "1"
 python base_do_rebuild() {
 	"""rebuild a package"""
 }
-
-SCENEFUNCS += "base_scenefunction"
 
 
 addtask fetch
@@ -520,60 +498,6 @@ base_do_compile() {
 	fi
 }
 
-
-sysroot_stage_dir() {
-	src="$1"
-	dest="$2"
-	# This will remove empty directories so we can ignore them
-	rmdir "$src" 2> /dev/null || true
-	if [ -d "$src" ]; then
-		mkdir -p "$dest"
-		cp -fpPR "$src"/* "$dest"
-	fi
-}
-
-sysroot_stage_libdir() {
-	src="$1"
-	dest="$2"
-
-	olddir=`pwd`
-	cd $src
-	las=$(find . -name \*.la -type f)
-	cd $olddir
-	echo "Found la files: $las"
-	for i in $las
-	do
-		sed -e 's/^installed=yes$/installed=no/' \
-		    -e '/^dependency_libs=/s,${WORKDIR}[[:alnum:]/\._+-]*/\([[:alnum:]\._+-]*\),${STAGING_LIBDIR}/\1,g' \
-		    -e "/^dependency_libs=/s,\([[:space:]']\)${libdir},\1${STAGING_LIBDIR},g" \
-		    -i $src/$i
-	done
-	sysroot_stage_dir $src $dest
-}
-
-sysroot_stage_dirs() {
-	from="$1"
-	to="$2"
-
-	sysroot_stage_dir $from${includedir} $to${STAGING_INCDIR}
-	if [ "${BUILD_SYS}" = "${HOST_SYS}" ]; then
-		sysroot_stage_dir $from${bindir} $to${STAGING_DIR_HOST}${bindir}
-		sysroot_stage_dir $from${sbindir} $to${STAGING_DIR_HOST}${sbindir}
-		sysroot_stage_dir $from${base_bindir} $to${STAGING_DIR_HOST}${base_bindir}
-		sysroot_stage_dir $from${base_sbindir} $to${STAGING_DIR_HOST}${base_sbindir}
-		sysroot_stage_dir $from${libexecdir} $to${STAGING_DIR_HOST}${libexecdir}
-		sysroot_stage_dir $from${sysconfdir} $to${STAGING_DIR_HOST}${sysconfdir}
-	fi
-	if [ -d $from${libdir} ]
-	then
-		sysroot_stage_libdir $from/${libdir} $to${STAGING_LIBDIR}
-	fi
-	if [ -d $from${base_libdir} ]
-	then
-		sysroot_stage_libdir $from${base_libdir} $to${STAGING_DIR_HOST}${base_libdir}
-	fi
-	sysroot_stage_dir $from${datadir} $to${STAGING_DATADIR}
-}
 
 
 
