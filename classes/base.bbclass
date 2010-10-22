@@ -112,9 +112,10 @@ python do_listtasks() {
 			sys.__stdout__.write("%s\n" % e)
 }
 
+
 do_clean[dirs] = "${TOPDIR}"
 do_clean[nostamp] = "1"
-python base_do_clean() {
+python do_clean() {
 	"""clear the build and temp directories"""
 	dir = bb.data.expand("${WORKDIR}", d)
 	if dir == '//': raise bb.build.FuncFailed("wrong DATADIR")
@@ -126,9 +127,10 @@ python base_do_clean() {
 	os.system('rm -f '+ dir)
 }
 
+
 do_rebuild[dirs] = "${TOPDIR}"
 do_rebuild[nostamp] = "1"
-python base_do_rebuild() {
+python do_rebuild() {
 	"""rebuild a package"""
 }
 
@@ -164,14 +166,16 @@ python do_checkuri() {
 		raise bb.build.FuncFailed("Unknown fetch Error: %s" % value)
 }
 
+
 do_checkuriall[recrdeptask] = "do_checkuri"
 do_checkuriall[nostamp] = "1"
-base_do_checkuriall() {
+do_checkuriall() {
 	:
 }
 
+
 do_buildall[recrdeptask] = "do_build"
-base_do_buildall() {
+do_buildall() {
 	:
 }
 
