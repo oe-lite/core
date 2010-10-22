@@ -9,17 +9,18 @@ inherit mirrors
 # to have do_fetch
 inherit fetch
 
-addtask listtasks
-addtask clean
-addtask rebuild after do_${BB_DEFAULT_TASK}
-addtask checkuri
-addtask checkuriall after do_checkuri
-addtask buildall after do_build
 addtask configure after do_unpack do_patch
 addtask compile after do_configure
 addtask install after do_compile
-addtask install_fixup after do_install before do_package_install
-addtask build after do_install
+addtask install_fixup after do_install
+addtask build after do_install_fixup
+addtask buildall after do_build
+addtask rebuild after do_${BB_DEFAULT_TASK}
+addtask clean
+
+addtask listtasks
+addtask checkuri
+addtask checkuriall after do_checkuri
 
 do_build = ""
 do_build[func] = "1"

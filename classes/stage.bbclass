@@ -1,19 +1,19 @@
-addtask set_stage before do_fetch
+addtask stage before do_fetch
 
-do_set_stage[cleandirs] =	"${STAGE_DIR}"
-do_set_stage[dirs] =		"${STAGE_DIR}"
-do_set_stage[recdeptask] =	"do_stage_package_build"
+do_stage[cleandirs] =	"${STAGE_DIR}"
+do_stage[dirs] =		"${STAGE_DIR}"
+do_stage[recdeptask] =	"do_stage_package_build"
 
-python do_set_stage () {
+python do_stage () {
     import bb
 
     recdepends = bb.data.getVar('RECDEPENDS', d, True).split()
-    bb.debug('set_stage: RECDEPENDS=%s'%recdepends)
+    bb.debug('stage: RECDEPENDS=%s'%recdepends)
     for dep in recdepends:
-	set_stage_add(dep, d)
+	stage_add(dep, d)
 }
 
-def set_stage_add(dep, d):
+def stage_add(dep, d):
     bb.debug(2, 'adding build dependency %s to stage'%dep)
 
     # FIXME: we should find a way to avoid building recipes needed for

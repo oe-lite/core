@@ -1,4 +1,4 @@
-addtask fetch
+addtask fetch after do_stage
 addtask fetchall after do_fetch
 addtask unpack after do_fetch
 

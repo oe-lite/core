@@ -55,18 +55,18 @@ libexecdir		= "${sdk_libexecdir}"
 libdir			= "${sdk_libdir}"
 includedir		= "${sdk_includedir}"
 
-# Override the set_stage to handle host/target split of stage dir
-python do_set_stage () {
+# Override the stage to handle host/target split of stage dir
+python do_stage () {
     import bb, os
     recdepends = bb.data.getVar('RECDEPENDS', d, True).split()
-    bb.debug('set_stage: RECDEPENDS=%s'%recdepends)
+    bb.debug('stage: RECDEPENDS=%s'%recdepends)
     for dir in ('target', 'host'):
         os.mkdir(dir)
     for dep in recdepends:
-        canadian_set_stage_add(dep, d)
+        canadian_stage_add(dep, d)
 }
 
-def canadian_set_stage_add(dep, d):
+def canadian_stage_add(dep, d):
     bb.debug(2, 'adding build dependency %s to stage'%dep)
 
     # FIXME: we should find a way to avoid building recipes needed for
