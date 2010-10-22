@@ -245,103 +245,6 @@ def oe_unpack_file(file, data, url = None):
 
 	return ret == 0
 
-METADATA_BRANCH ?= "${@base_detect_branch(d)}"
-METADATA_REVISION ?= "${@base_detect_revision(d)}"
-
-def base_detect_revision(d):
-	path = base_get_scmbasepath(d)
-
-	scms = [base_get_metadata_git_revision, \
-			base_get_metadata_svn_revision]
-
-	for scm in scms:
-		rev = scm(path, d)
-		if rev <> "<unknown>":
-			return rev
-
-	return "<unknown>"
-
-def base_detect_branch(d):
-	path = base_get_scmbasepath(d)
-
-	scms = [base_get_metadata_git_branch]
-
-	for scm in scms:
-		rev = scm(path, d)
-		if rev <> "<unknown>":
-			return rev.strip()
-
-	return "<unknown>"
-
-
-
-def base_get_scmbasepath(d):
-	path_to_bbfiles = bb.data.getVar( 'BBFILES', d, 1 ).split()
-	return path_to_bbfiles[0][:path_to_bbfiles[0].rindex( "recipes" )]
-
-def base_get_metadata_monotone_branch(path, d):
-	monotone_branch = "<unknown>"
-	try:
-		monotone_branch = file( "%s/_MTN/options" % path ).read().strip()
-		if monotone_branch.startswith( "database" ):
-			monotone_branch_words = monotone_branch.split()
-			monotone_branch = monotone_branch_words[ monotone_branch_words.index( "branch" )+1][1:-1]
-	except:
-		pass
-	return monotone_branch
-
-def base_get_metadata_monotone_revision(path, d):
-	monotone_revision = "<unknown>"
-	try:
-		monotone_revision = file( "%s/_MTN/revision" % path ).read().strip()
-		if monotone_revision.startswith( "format_version" ):
-			monotone_revision_words = monotone_revision.split()
-			monotone_revision = monotone_revision_words[ monotone_revision_words.index( "old_revision" )+1][1:-1]
-	except IOError:
-		pass
-	return monotone_revision
-
-def base_get_metadata_svn_revision(path, d):
-	revision = "<unknown>"
-	try:
-		revision = file( "%s/.svn/entries" % path ).readlines()[3].strip()
-	except IOError:
-		pass
-	return revision
-
-def base_get_metadata_git_branch(path, d):
-	branch = os.popen('cd %s; git branch | grep "^* " | tr -d "* "' % path).read()
-
-	if len(branch) != 0:
-		return branch
-	return "<unknown>"
-
-def base_get_metadata_git_revision(path, d):
-	rev = os.popen("cd %s; git log -n 1 --pretty=oneline --" % path).read().split(" ")[0]
-	if len(rev) != 0:
-		return rev
-	return "<unknown>"
-
-GIT_CONFIG = "${STAGING_DIR_NATIVE}/usr/etc/gitconfig"
-
-def generate_git_config(e):
-	from bb import data
-
-	if data.getVar('GIT_CORE_CONFIG', e.data, True):
-		gitconfig_path = bb.data.getVar('GIT_CONFIG', e.data, True)
-		proxy_command = "    gitproxy = %s\n" % data.getVar('GIT_PROXY_COMMAND', e.data, True)
-
-		bb.mkdirhier(bb.data.expand("${STAGING_DIR_NATIVE}/usr/etc/", e.data))
-		if (os.path.exists(gitconfig_path)):
-			os.remove(gitconfig_path)
-
-		f = open(gitconfig_path, 'w')
-		f.write("[core]\n")
-		ignore_hosts = data.getVar('GIT_PROXY_IGNORE', e.data, True).split()
-		for ignore_host in ignore_hosts:
-			f.write("    gitproxy = none for %s\n" % ignore_host)
-		f.write(proxy_command)
-		f.close
 
 addhandler base_eventhandler
 python base_eventhandler() {
@@ -376,7 +279,7 @@ python base_eventhandler() {
 
 	if name.startswith("BuildStarted"):
 		bb.data.setVar( 'BB_VERSION', bb.__version__, e.data )
-		statusvars = ['BB_VERSION', 'METADATA_BRANCH', 'METADATA_REVISION', 'MACHINE', 'MACHINE_CPU', 'MACHINE_OS', 'SDK_CPU', 'SDK_OS', 'DISTRO', 'DISTRO_VERSION']
+		statusvars = ['BB_VERSION', 'MACHINE', 'MACHINE_CPU', 'MACHINE_OS', 'SDK_CPU', 'SDK_OS', 'DISTRO', 'DISTRO_VERSION']
 		statuslines = ["%-17s = \"%s\"" % (i, bb.data.getVar(i, e.data, 1) or '') for i in statusvars]
 		statusmsg = "\nOE Build Configuration:\n%s\n" % '\n'.join(statuslines)
 		print statusmsg
@@ -401,9 +304,6 @@ python base_eventhandler() {
 				bb.note("Removing stamps: " + dir)
 				os.system('rm -f '+ dir)
 				os.system('touch ' + e.stampPrefix[fn] + '.needclean')
-
-	if name == "ConfigParsed":
-		generate_git_config(e)
 
 	if not data in e.__dict__:
 		return NotHandled
