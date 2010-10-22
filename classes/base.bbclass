@@ -7,13 +7,14 @@ inherit arch
 inherit utils
 inherit stage
 
+# FIXME: inherit in specialized classes, so that fx. image does not have
+# to have do_fetch
+inherit fetch
+
 
 DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
-
-FETCHER_DEPENDS = ""
-DEPENDS_prepend += "${FETCHER_DEPENDS}"
 
 FILESPATH = "${@base_set_filespath([ "${FILE_DIRNAME}/${PF}", "${FILE_DIRNAME}/${P}", "${FILE_DIRNAME}/${PN}", "${FILE_DIRNAME}/${BP}", "${FILE_DIRNAME}/${BPN}", "${FILE_DIRNAME}/files", "${FILE_DIRNAME}" ], d)}"
 
@@ -118,48 +119,6 @@ python base_do_rebuild() {
 	"""rebuild a package"""
 }
 
-
-addtask fetch
-do_fetch[dirs] = "${DL_DIR}"
-python base_do_fetch() {
-	import sys
-
-	localdata = bb.data.createCopy(d)
-	bb.data.update_data(localdata)
-
-	src_uri = bb.data.getVar('SRC_URI', localdata, 1)
-	if not src_uri:
-		return 1
-
-	try:
-		bb.fetch.init(src_uri.split(),d)
-	except bb.fetch.NoMethodError:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("No method: %s" % value)
-
-	try:
-		bb.fetch.go(localdata)
-	except bb.fetch.MissingParameterError:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("Missing parameters: %s" % value)
-	except bb.fetch.FetchError:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("Fetch failed: %s" % value)
-	except bb.fetch.MD5SumError:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("MD5  failed: %s" % value)
-	except:
-		(type, value, traceback) = sys.exc_info()
-		raise bb.build.FuncFailed("Unknown fetch Error: %s" % value)
-
-	return
-}
-
-addtask fetchall after do_fetch
-do_fetchall[recrdeptask] = "do_fetch"
-base_do_fetchall() {
-	:
-}
 
 addtask checkuri
 do_checkuri[nostamp] = "1"
@@ -285,29 +244,6 @@ def oe_unpack_file(file, data, url = None):
 	os.chdir(save_cwd)
 
 	return ret == 0
-
-addtask unpack after do_fetch
-do_unpack[dirs] = "${WORKDIR}"
-python base_do_unpack() {
-	import re
-
-	localdata = bb.data.createCopy(d)
-	bb.data.update_data(localdata)
-
-	src_uri = bb.data.getVar('SRC_URI', localdata, True)
-	if not src_uri:
-		return
-
-	for url in src_uri.split():
-		try:
-			local = bb.data.expand(bb.fetch.localpath(url, localdata), localdata)
-		except bb.MalformedUrl, e:
-			raise FuncFailed('Unable to generate local path for malformed uri: %s' % e)
-		local = os.path.realpath(local)
-		ret = oe_unpack_file(local, localdata, url)
-		if not ret:
-			raise bb.build.FuncFailed()
-}
 
 METADATA_BRANCH ?= "${@base_detect_branch(d)}"
 METADATA_REVISION ?= "${@base_detect_revision(d)}"
