@@ -297,7 +297,7 @@ base_do_install() {
 INSTALL_FIXUP_FUNCS = "\
 install_strip \
 #install_refactor \
-install_fixup"
+"
 
 python do_install_fixup () {
 	for f in (bb.data.getVar('INSTALL_FIXUP_FUNCS', d, 1) or '').split():
