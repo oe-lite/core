@@ -691,4 +691,4 @@ def check_app_exists(app, d):
 	app = data.expand(app, d)
 	path = data.getVar('PATH', d, 1)
 	return len(which(path, app)) != 0
-EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install
+EXPORT_FUNCTIONS do_configure do_compile do_install
