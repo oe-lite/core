@@ -1,16 +1,36 @@
 BB_DEFAULT_TASK ?= "build"
 
-RECIPE_TYPE = "machine"
-RE = ""
-
 inherit arch
 inherit utils
 inherit stage
+inherit patch
+inherit package
 
 # FIXME: inherit in specialized classes, so that fx. image does not have
 # to have do_fetch
 inherit fetch
 
+EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install
+addtask listtasks
+addtask clean
+addtask rebuild after do_${BB_DEFAULT_TASK}
+addtask checkuri
+addtask checkuriall after do_checkuri
+addtask buildall after do_build
+addtask configure after do_unpack do_patch
+addtask compile after do_configure
+addtask install after do_compile
+addtask install_fixup after do_install before do_package_install
+addtask build after do_install
+
+do_build = ""
+do_build[func] = "1"
+
+
+# Default recipe type is machine, so other recipe type classes must
+# override this, and any other recipe type defaults as needed
+RECIPE_TYPE = "machine"
+RE = ""
 
 DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
@@ -53,7 +73,6 @@ oe_runmake() {
 	${MAKE} ${EXTRA_OEMAKE} "$@" || die "oe_runmake failed"
 }
 
-inherit package
 
 oe_machinstall() {
 	# Purpose: Install machine dependent files, if available
@@ -85,7 +104,6 @@ oe_machinstall() {
 	fi
 }
 
-addtask listtasks
 do_listtasks[nostamp] = "1"
 python do_listtasks() {
 	import sys
@@ -97,7 +115,6 @@ python do_listtasks() {
 			sys.__stdout__.write("%s\n" % e)
 }
 
-addtask clean
 do_clean[dirs] = "${TOPDIR}"
 do_clean[nostamp] = "1"
 python base_do_clean() {
@@ -112,7 +129,6 @@ python base_do_clean() {
 	os.system('rm -f '+ dir)
 }
 
-addtask rebuild after do_${BB_DEFAULT_TASK}
 do_rebuild[dirs] = "${TOPDIR}"
 do_rebuild[nostamp] = "1"
 python base_do_rebuild() {
@@ -120,7 +136,6 @@ python base_do_rebuild() {
 }
 
 
-addtask checkuri
 do_checkuri[nostamp] = "1"
 python do_checkuri() {
 	import sys
@@ -152,14 +167,12 @@ python do_checkuri() {
 		raise bb.build.FuncFailed("Unknown fetch Error: %s" % value)
 }
 
-addtask checkuriall after do_checkuri
 do_checkuriall[recrdeptask] = "do_checkuri"
 do_checkuriall[nostamp] = "1"
 base_do_checkuriall() {
 	:
 }
 
-addtask buildall after do_build
 do_buildall[recrdeptask] = "do_build"
 base_do_buildall() {
 	:
@@ -317,14 +330,12 @@ python base_eventhandler() {
 	return NotHandled
 }
 
-addtask configure after do_unpack do_patch
 do_configure[dirs] = "${S} ${B}"
 #do_configure[deptask] = "do_populate_sysroot"
 base_do_configure() {
 	:
 }
 
-addtask compile after do_configure
 do_compile[dirs] = "${S} ${B}"
 base_do_compile() {
 	if [ -e Makefile -o -e makefile ]; then
@@ -337,7 +348,6 @@ base_do_compile() {
 
 
 
-addtask install after do_compile
 do_install[dirs] = "${D} ${S} ${B}"
 # Remove and re-create ${D} so that is it guaranteed to be empty
 do_install[cleandirs] = "${D}"
@@ -360,7 +370,6 @@ python do_install_fixup () {
 		bb.build.exec_func(f, d)
 }
 do_install_fixup[dirs] = "${D}"
-addtask install_fixup after do_install before do_package_install
 
 python install_strip () {
     import stat
@@ -462,11 +471,6 @@ def runstrip(file, d):
 	os.chmod(file, origmode)
 
 
-
-#addtask build after do_populate_sysroot
-addtask build after do_install
-do_build = ""
-do_build[func] = "1"
 
 # Make sure MACHINE isn't exported
 # (breaks binutils at least)
@@ -692,11 +696,6 @@ def check_app_exists(app, d):
 	path = data.getVar('PATH', d, 1)
 	return len(which(path, app)) != 0
 
-
-# Patch handling
-inherit patch
-
-EXPORT_FUNCTIONS do_clean do_fetch do_unpack do_configure do_compile do_install
 
 MIRRORS[func] = "0"
 MIRRORS () {
