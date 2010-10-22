@@ -356,10 +356,6 @@ base_do_install() {
 	:
 }
 
-base_do_package() {
-	:
-}
-
 INSTALL_FIXUP_FUNCS = "\
 install_strip \
 #install_refactor \
