@@ -2,13 +2,22 @@
 # General packaging help functions
 #
 
+addtask split after do_install
+addtask fixup after do_split
+#addtask fixup_qa after do_fixup before do_qa
+addtask package after do_fixup before do_build
+#addtask package_qa after do_package before do_qa
+addtask rfixup after do_split
+#addtask fixup_qa after do_rfixup before do_qa
+addtask rpackage after do_rfixup before do_build
+#addtask rpackage_qa after do_rpackage before do_qa
 
 
 #
-# Package functions suitable for inclusion in PACKAGE_*_FUNCS
+# Package functions suitable for inclusion in *_FUNCS
 #
 
-python package_install_split () {
+python package_split () {
 	import bb, glob, errno, re, stat
 
 	workdir = bb.data.getVar('WORKDIR', d, True)
@@ -139,7 +148,7 @@ python package_install_split () {
 				bb.note("%s contains dangling symlink to %s" % (pkg, l))
 		bb.data.setVar('RDEPENDS_' + pkg, " " + " ".join(rdepends), d)
 }
-package_install_split[dirs] = "${D}"
+package_split[dirs] = "${D}"
 
 
 ldconfig_postinst_fragment() {
@@ -574,45 +583,42 @@ stage_package_clone[cleandirs] = '${PKGD_STAGE}'
 stage_package_clone[dirs] = '${PKGD_STAGE} ${PKGD}'
 
 
+target_package_clone[cleandirs] = '${PKGD_TARGET}'
+target_package_clone[dirs] = '${PKGD_TARGET} ${PKGD}'
+
 python target_package_clone () {
 	pkgd_target = bb.data.getVar('PKGD_TARGET', d, True)
 	packages = (bb.data.getVar('RPACKAGES', d, True) or "").split()
 	package_clone(packages, pkgd_target, d)
 }
-target_package_clone[cleandirs] = '${PKGD_TARGET}'
-target_package_clone[dirs] = '${PKGD_TARGET} ${PKGD}'
 
 
-PACKAGE_INSTALL_FUNCS = "\
+SPLIT_FUNCS = "\
 # package_split_locales\
- package_install_split\
+ package_split\
 # package_shlibs\
 # package_pkgconfig\
 # package_depchains\
 "
 # FIXME: package_pkgconfig should be dynamically added to
-# PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
+# SPLIT_FUNCS by pkgconfig.bbclass
 
 
-python do_package_install () {
+do_split[cleandirs] = "${PKGD}"
+do_split[dirs] = "${PKGD} ${D}"
+
+python do_split () {
 	packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
 	if len(packages) < 1:
 		bb.error("No packages to build")
 		return
 
-	for f in (bb.data.getVar('PACKAGE_INSTALL_FUNCS', d, 1) or '').split():
+	for f in (bb.data.getVar('SPLIT_FUNCS', d, 1) or '').split():
 		bb.build.exec_func(f, d)
 }
-do_package_install[cleandirs] = "${PKGD}"
-do_package_install[dirs] = "${PKGD} ${D}"
-addtask package_install \
-	before do_build \
-	after do_install
-
-EXPORT_FUNCTIONS do_package_install
 
 
-STAGE_PACKAGE_FIXUP_FUNCS = "\
+FIXUP_FUNCS = "\
 stage_package_clone \
 #stage_package_rpath \
 #stage_package_shlibs \
@@ -622,34 +628,28 @@ stage_package_fixup"
 # openembedded package.bbclass
 
 # FIXME: stage_package_pkgconfig should be dynamically added to
-# PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
+# SPLIT_FUNCS by pkgconfig.bbclass
 
-python do_stage_package_fixup () {
+
+do_fixup[cleandirs] = "${PKGD_STAGE}"
+do_fixup[dirs] = "${PKGD_STAGE} ${PKGD}"
+
+python do_fixup () {
 	stage_packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
 	if len(stage_packages) < 1:
 		bb.debug(1, "No stage packages")
 		return
 
-	for f in (bb.data.getVar('STAGE_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
+	for f in (bb.data.getVar('FIXUP_FUNCS', d, 1) or '').split():
 		if not bb.data.getVarFlag(f, 'dirs', d):
 			bb.data.setVarFlag(f, 'dirs', '${PKGD_STAGE}', d)
 		bb.build.exec_func(f, d)
 }
-do_stage_package_fixup[cleandirs] = "${PKGD_STAGE}"
-do_stage_package_fixup[dirs] = "${PKGD_STAGE} ${PKGD}"
-addtask stage_package_fixup \
-	before do_stage_package_build \
-	after do_package_install
 
 
-python do_stage_package_qa () {
-       bb.note("do_stage_package_qa not implemented yet")
-}
-do_stage_package_qa[dirs] = "${PKGD}"
-#addtask stage_package_qa before do_stage_package_build after do_stage_package_fixup
+do_package[dirs] = "${PKGD_STAGE}"
 
-
-python do_stage_package_build () {
+python do_package () {
 	import bb, os
 
 	stage_packages = (bb.data.getVar('PACKAGES', d, 1) or "").split()
@@ -672,15 +672,9 @@ python do_stage_package_build () {
 		# FIXME: rewrite to use python functions instead of os.system
 		os.system('mv %s %s'%(basedir, pkg))
 }
-do_stage_package_build[dirs] = "${PKGD_STAGE}"
-addtask stage_package_build \
-	before do_build \
-	after do_stage_package_fixup
-
-EXPORT_FUNCTIONS do_stage_package_fixup do_stage_package_qa do_stage_package_build
 
 
-TARGET_PACKAGE_FIXUP_FUNCS = "\
+RFIXUP_FUNCS = "\
 target_package_clone \
 #target_package_rpath \
 #target_package_shlibs \
@@ -690,27 +684,25 @@ target_package_clone \
 # openembedded package.bbclass
 
 # FIXME: target_package_pkgconfig should be dynamically added to
-# PACKAGE_INSTALL_FUNCS by pkgconfig.bbclass
+# SPLIT_FUNCS by pkgconfig.bbclass
 
-python do_target_package_fixup () {
+
+do_rfixup[cleandirs] = "${PKGD_TARGET}"
+
+python do_rfixup () {
 	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
 	if not packages:
 		bb.note("No target packages")
 		return
 
-	for f in (bb.data.getVar('TARGET_PACKAGE_FIXUP_FUNCS', d, 1) or '').split():
+	for f in (bb.data.getVar('RFIXUP_FUNCS', d, 1) or '').split():
 		bb.build.exec_func(f, d)
 }
-do_target_package_fixup[cleandirs] = "${PKGD_TARGET}"
-addtask target_package_fixup before do_target_package_build after do_package_install
 
-python do_target_package_qa () {
-       bb.note("do_target_package_qa not implemented yet")
-}
-do_target_package_qa[dirs] = "${PKGD}"
-#addtask target_package_qa before do_target_package_build after do_target_package_fixup
 
-python do_target_package_build () {
+do_rpackage[dirs] = "${PKGD_TARGET}"
+
+python do_rpackage () {
 	import bb, os
 
 	packages = (bb.data.getVar('RPACKAGES', d, 1) or "").split()
@@ -731,9 +723,3 @@ python do_target_package_build () {
 		os.system('tar cf %s/%s-%s.tar .'%(outdir, pkg, pv))
 		os.chdir('..')
 }
-do_target_package_build[dirs] = "${PKGD_TARGET}"
-addtask target_package_build \
-	before do_build \
-	after do_target_package_fixup
-
-EXPORT_FUNCTIONS do_target_package_fixup do_target_package_qa do_target_package_build

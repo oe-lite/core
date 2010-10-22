@@ -489,16 +489,16 @@ ${base_prefix}/${TARGET_ARCH}/sys-root \
 #/${TARGET_ARCH}/debug-root
 
 
-CROSS_SYSROOT_MANGLE = "package_install_sysroot_mangle package_install_sysroot_mangle_cross"
-SDK_SYSROOT_MANGLE = "package_install_sysroot_mangle package_install_sysroot_mangle_sdk"
+CROSS_SYSROOT_MANGLE = "split_sysroot_mangle split_sysroot_mangle_cross"
+SDK_SYSROOT_MANGLE = "split_sysroot_mangle split_sysroot_mangle_sdk"
 SYSROOT_MANGLE = "${SDK_SYSROOT_MANGLE}"
 SYSROOT_MANGLE_recipe-cross	= "${CROSS_SYSROOT_MANGLE}"
 SYSROOT_MANGLE_recipe-sdk-cross	= "${CROSS_SYSROOT_MANGLE}"
 SYSROOT_MANGLE_recipe-native	= "${CROSS_SYSROOT_MANGLE}"
-PACKAGE_INSTALL_FUNCS_append += "${SYSROOT_MANGLE}"
+SPLIT_FUNCS_append += "${SYSROOT_MANGLE}"
 
 # Move the machine sysroot packages into proper target layout
-package_install_sysroot_mangle () {
+split_sysroot_mangle () {
 	# Fixup the layout of the sysroot packages
 	for pkg in ${SYSROOT_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
@@ -531,16 +531,16 @@ package_install_sysroot_mangle () {
 	done
 	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
 }
-package_install_sysroot_mangle[dirs] = "${PKGD}"
+split_sysroot_mangle[dirs] = "${PKGD}"
 
 # Add symlinks to get sys-root back on stage for internal cross packages
-package_install_sysroot_mangle_cross () {
+split_sysroot_mangle_cross () {
 	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
 }
-package_install_sysroot_mangle_cross[dirs] = "${PKGD}"
+split_sysroot_mangle_cross[dirs] = "${PKGD}"
 
 # Add empty sys-root dir in sdk packages
-package_install_sysroot_mangle_sdk () {
+split_sysroot_mangle_sdk () {
 	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
 }
-package_install_sysroot_mangle_sdk[dirs] = "${PKGD}"
+split_sysroot_mangle_sdk[dirs] = "${PKGD}"

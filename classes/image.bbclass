@@ -1,4 +1,4 @@
-addtask set_image_stage after do_set_stage before do_compile
+addtask rstage before do_compile
 addtask deploy after do_install_fixup before do_build
 
 IMAGE_BASENAME ?= "${PN}"
@@ -9,9 +9,11 @@ IMAGE_CREATE_FUNCS	?= ""
 
 SRC_URI = ""
 
-# FIXME: do_compile should be renamed to do_build when do_build is
-# renamed to do_all, which should be done when refactoring (cleaning
-# up) base.bbclass
+# FIXME: do_compile could be renamed to do_build when do_build is
+# renamed to do_all, which should be done when merging in BitBake code
+# into OE-lite Bakery as bblib.  But on the other hand, this would
+# impact most recipes (those messing with do_compile(), so let's just
+# stick with do_compile
 
 # IMAGE_PREPROCESS_FUNCS could create device nodes, merge crontab
 # entries, mdev.conf and ineted.conf files
@@ -41,11 +43,11 @@ do_deploy() {
 	:
 }
 
-do_set_image_stage[dirs] = "${IMAGE_STAGE}"
-do_set_image_stage[cleandirs] = "${IMAGE_STAGE}"
-do_set_image_stage[recrdeptask] = "do_target_package_build"
+do_rstage[dirs] = "${IMAGE_STAGE}"
+do_rstage[cleandirs] = "${IMAGE_STAGE}"
+do_rstage[recrdeptask] = "do_target_package_build"
 
-python do_set_image_stage () {
+python do_rstage () {
     recrdeps = bb.data.getVar('RECRDEPENDS', d, 0)
 
     def image_stage_install(rdep,d):

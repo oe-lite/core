@@ -1,5 +1,7 @@
 # Copyright (C) 2006  OpenedHand LTD
 
+addtask patch after do_unpack
+
 # Point to an empty file so any user's custom settings don't break things
 QUILTRCFILE ?= "${STAGING_BINDIR_NATIVE}/quiltrc"
 
@@ -449,7 +451,6 @@ def patch_init(d):
 	g["NotFoundError"] = NotFoundError
 	g["CmdError"] = CmdError
 
-addtask patch after do_unpack
 do_patch[dirs] = "${WORKDIR}"
 
 PATCHDEPENDENCY = "${PATCHTOOL}-native:do_populate_staging"
