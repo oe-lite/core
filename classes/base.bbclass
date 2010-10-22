@@ -36,6 +36,34 @@ DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
 
+#
+# Import standard Python modules as well as custom OE modules
+# (disabled for now...)
+#
+
+#addhandler oe_import
+
+OE_IMPORTS += "oe.path oe.utils oe.packagegroup sys os time"
+
+python oe_import () {
+    if isinstance(e, bb.event.ConfigParsed):
+        import os, sys
+        bbpath = e.data.getVar("BBPATH", True).split(":")
+        sys.path[0:0] = [os.path.join(dir, "lib") for dir in bbpath]
+
+        def inject(name, value):
+            """Make a python object accessible from the metadata"""
+            if hasattr(bb.utils, "_context"):
+                bb.utils._context[name] = value
+            else:
+                __builtins__[name] = value
+
+        for toimport in e.data.getVar("OE_IMPORTS", True).split():
+            imported = __import__(toimport)
+            inject(toimport.split(".", 1)[0], imported)
+}
+
+
 
 die() {
 	oefatal "$*"
