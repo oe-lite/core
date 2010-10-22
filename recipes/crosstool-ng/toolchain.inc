@@ -1,13 +1,6 @@
 PR_append = ".2"
 
-FILESPATH=${@base_set_filespath([\
-	"${FILE_DIRNAME}/${PF}",\
-	"${FILE_DIRNAME}/${P}",\
-	"${FILE_DIRNAME}/${PN}",\
-	"${FILE_DIRNAME}/toolchain-${PV}",\
-	"${FILE_DIRNAME}/toolchain",\
-	"${FILE_DIRNAME}/files",\
-], d)}
+FILESPATHPKG = "${PF}:${P}:${PN}:${BP}:${BPN}:toolchain-${PV}:toolchain:files"
 
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
