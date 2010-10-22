@@ -36,7 +36,6 @@ DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
 DEPENDS_prepend = "${DEFAULT_DEPENDS} "
 
 
-FILESPATH = "${@base_set_filespath([ "${FILE_DIRNAME}/${PF}", "${FILE_DIRNAME}/${P}", "${FILE_DIRNAME}/${PN}", "${FILE_DIRNAME}/${BP}", "${FILE_DIRNAME}/${BPN}", "${FILE_DIRNAME}/files", "${FILE_DIRNAME}" ], d)}"
 
 die() {
 	oefatal "$*"
