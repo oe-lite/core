@@ -97,6 +97,13 @@ oe_soinstall() {
 	ln -sf $libname $2/$solink
 }
 
+def check_app_exists(app, d):
+	from bb import which, data
+
+	app = data.expand(app, d)
+	path = data.getVar('PATH', d, 1)
+	return len(which(path, app)) != 0
+
 oe_libinstall() {
 	# Purpose: Install a library, in all its forms
 	# Example
