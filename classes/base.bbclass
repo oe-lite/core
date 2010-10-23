@@ -32,14 +32,11 @@ RECIPE_TYPE = "machine"
 RE = ""
 
 
-# FIXME: this shoul dbe moved to a c.bbclass, renamed to C_DEPENDS and
-# added to CLASS_DEPENDS which is assigned to DEPENDS_PREPEND.  This
-# way, DEPENDS and DEPENDS_append is freely available to all recipes,
-# and individual class inherited dependencies can be overridden via
-# it's own _DEPENDS variable, and the collective class dependencies
-# can be accessed in recipes via the CLASS_DEPENDS variable
+# FIXME: this should be moved to a c.bbclass, renamed to C_DEPENDS and
+# added to CLASS_DEPENDS.
 DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
-DEPENDS_prepend = "${DEFAULT_DEPENDS} "
+CLASS_DEPENDS = "${DEFAULT_DEPENDS}"
+DEPENDS_prepend = "${CLASS_DEPENDS} "
 
 
 #

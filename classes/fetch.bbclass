@@ -3,7 +3,7 @@ addtask fetchall after do_fetch
 addtask unpack after do_fetch
 
 FETCHER_DEPENDS = ""
-DEPENDS_prepend += "${FETCHER_DEPENDS}"
+CLASS_DEPENDS += "${FETCHER_DEPENDS}"
 
 do_fetch[dirs] = "${DL_DIR}"
 

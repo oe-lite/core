@@ -6,7 +6,7 @@ EXTRA_OEMAKE = ""
 AUTOTOOLS_LIBTOOL_DEPENDS = "${HOST_ARCH}/libtool"
 AUTOTOOLS_LIBTOOL_DEPENDS_recipe-native = "libtool-native"
 AUTOTOOLS_DEPENDS = "autoconf-native automake-native ${AUTOTOOLS_LIBTOOL_DEPENDS}"
-DEPENDS_prepend += "${AUTOTOOLS_DEPENDS}"
+CLASS_DEPENDS += "${AUTOTOOLS_DEPENDS}"
 
 acpaths = "default"
 EXTRA_AUTORECONF = "--exclude=autopoint"

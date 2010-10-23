@@ -8,7 +8,7 @@ IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_MAKEDEVS}"
 
 IMAGE_DEPENDS_MAKEDEVS = ""
 IMAGE_DEPENDS_MAKEDEVS_append_RECIPE_OPTION_makedevs = "makedevs-native"
-DEPENDS += "${IMAGE_DEPENDS_MAKEDEVS}"
+CLASS_DEPENDS += "${IMAGE_DEPENDS_MAKEDEVS}"
 
 image_preprocess_makedevs () {
 	if [ -d ./${devtabledir} ]; then
