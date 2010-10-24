@@ -20,9 +20,6 @@ B = "${S}"
 DEFAULT_DEPENDS_recipe-native		= ""
 DEFAULT_DEPENDS_recipe-cross		= ""
 DEFAULT_DEPENDS_recipe-sdk-cross	= ""
-DEFAULT_CXX_DEPENDS_recipe-native	= ""
-DEFAULT_CXX_DEPENDS_recipe-cross	= ""
-DEFAULT_CXX_DEPENDS_recipe-sdk-cross	= ""
 
 DEPENDS_append_recipe-canadian-cross += "${TUI_DEPENDS}"
 TUI_DEPENDS = "ncurses-sdk-dev readline-sdk-dev"
@@ -80,6 +77,9 @@ DEFCONFIG_OS_linux-gnueabi= "defconfig.linux-gnu"
 SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
 inherit c++
+DEFAULT_CXX_DEPENDS_recipe-native	= ""
+DEFAULT_CXX_DEPENDS_recipe-cross	= ""
+DEFAULT_CXX_DEPENDS_recipe-sdk-cross	= ""
 
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)

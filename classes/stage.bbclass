@@ -1,8 +1,8 @@
 addtask stage before do_fetch
 
 do_stage[cleandirs] =	"${STAGE_DIR}"
-do_stage[dirs] =		"${STAGE_DIR}"
-do_stage[recdeptask] =	"do_stage_package_build"
+do_stage[dirs] =	"${STAGE_DIR}"
+do_stage[recdeptask] =	"do_package"
 
 python do_stage () {
     import bb

@@ -45,7 +45,7 @@ do_deploy() {
 
 do_rstage[dirs] = "${IMAGE_STAGE}"
 do_rstage[cleandirs] = "${IMAGE_STAGE}"
-do_rstage[recrdeptask] = "do_target_package_build"
+do_rstage[recrdeptask] = "do_rpackage"
 
 python do_rstage () {
     recrdeps = bb.data.getVar('RECRDEPENDS', d, 0)
