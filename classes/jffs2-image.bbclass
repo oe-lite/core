@@ -12,7 +12,7 @@ JFFS2_IMAGE_OPTIONS ?= "-x lzo --faketime"
 
 jffs2_image () {
 	mkfs.jffs2 ${JFFS2_IMAGE_OPTIONS} \
-		--root=${IMAGE_STAGE} \
+		--root=${IMAGE_DIR} \
 		--output=${B}/${IMAGE_BASENAME}.jffs2
 }
 

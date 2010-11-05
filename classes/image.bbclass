@@ -18,12 +18,11 @@ SRC_URI = ""
 # IMAGE_PREPROCESS_FUNCS could create device nodes, merge crontab
 # entries, mdev.conf and ineted.conf files
 
-do_compile[dirs] = "${WORKDIR}"
+do_compile[dirs] = "${IMAGE_DIR}"
 do_compile[cleandirs] = "${IMAGE_DIR}"
 
 fakeroot do_compile () {
-	cp -a ${IMAGE_STAGE} ${IMAGE_DIR}
-	cd ${IMAGE_DIR}
+	cp -a ${IMAGE_STAGE}/. ./
 	for func in ${IMAGE_PREPROCESS_FUNCS}; do
 		$func
 	done
