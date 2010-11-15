@@ -373,7 +373,7 @@ def arch_fixup(arch, gcc):
     elif vendor == 'unknown':
 	pass
     else:
-	bb.msg.warn(None, "unknown cpu vendor: %s"%vendor)
+	bb.warn(1, "unknown cpu vendor: %s"%vendor)
 	vendor = 'unknown'
 
     # Currently, OE-lite does only support EABI for ARM
@@ -419,7 +419,7 @@ def arch_gccspec(arch, gcc):
 		gccspec['mtune'] = '603e'
 
     except KeyError, e:
-	bb.msg.debug(1, None, 'KeyError in arch_gccspec: ')
+	bb.debug(1, 'KeyError in arch_gccspec: ')
 
     gccspecs[gcc][arch] = gccspec
     return gccspec
@@ -467,7 +467,7 @@ def arch_find_script(d, filename):
 	for bbpath in bb.data.getVar('BBPATH', d, 1).split(':'):
 	    filepath = os.path.join(bbpath, 'scripts', filename)
 	    if os.path.isfile(filepath):
-		bb.debug('found %s: %s'%(filename, filepath))
+		bb.debug(1, 'found %s: %s'%(filename, filepath))
 		scripts[filename] = filepath
 		break
 	if not filename in scripts:
