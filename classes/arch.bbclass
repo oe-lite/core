@@ -308,16 +308,24 @@ def arch_after_parse(d):
 
 
 def arch_set_build_arch(d, gcc_version):
-    script = arch_find_script(d, 'config.guess')
     try:
-	guess = arch_split(os.popen(script).readline().strip())
-    except OSError, e:
-	bb.fatal('config.guess failed: '+e)
-	return None
-    # Replace the silly 'pc' vendor with 'unknown' to yield a result
-    # comparable with arch_cross().
-    if guess[1] == 'pc':
-	guess[1] = 'unknown'
+	guess = globals()['config_guess_cache']
+    except KeyError:
+        bb.debug(1, "config.guess")
+        script = arch_find_script(d, 'config.guess')
+        try:
+            guess = arch_split(os.popen(script).readline().strip())
+        except OSError, e:
+            bb.fatal('config.guess failed: '+e)
+            return None
+	config_guess_cache = guess
+	globals()['config_guess_cache'] = config_guess_cache
+
+        # Replace the silly 'pc' vendor with 'unknown' to yield a result
+        # comparable with arch_cross().
+        if guess[1] == 'pc':
+            guess[1] = 'unknown'
+
     bb.data.setVar('BUILD_ARCH', '-'.join(guess), d)
     return
 
@@ -418,13 +426,24 @@ def arch_gccspec(arch, gcc):
 
 
 def arch_config_sub(d, arch):
-    script = arch_find_script(d, 'config.sub')
+    try:
+	config_sub_cache = globals()['config_sub_cache']
+    except KeyError:
+	config_sub_cache = {}
+	globals()['config_sub_cache'] = config_sub_cache
 
     try:
-	canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
-    except OSError, e:
-	bb.error('config.sub(%s) failed: %s'%(arch, e))
-	return arch
+        canonical_arch = config_sub_cache[arch]
+
+    except KeyError:
+        script = arch_find_script(d, 'config.sub')
+        try:
+            bb.debug(1, "config.sub")
+            canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
+            config_sub_cache[arch] = canonical_arch
+        except OSError, e:
+            bb.error("config.sub(%s) failed: %s"%(arch, e))
+            return arch
 
     return canonical_arch
 
