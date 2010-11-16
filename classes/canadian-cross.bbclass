@@ -113,6 +113,7 @@ def canadian_stage_add(dep, d):
 FIXUP_PACKAGE_ARCH = canadian_fixup_package_arch
 def canadian_fixup_package_arch(d):
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition('canadian/')
+    sdk_arch = None
     if not arch[0] and arch[1]:
         # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
         # and split at the double dash
