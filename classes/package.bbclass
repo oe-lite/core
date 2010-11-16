@@ -2,7 +2,7 @@
 # General packaging help functions
 #
 
-addtask split after do_install
+addtask split after do_install_fixup
 addtask fixup after do_split
 #addtask fixup_qa after do_fixup before do_qa
 addtask package after do_fixup before do_build
