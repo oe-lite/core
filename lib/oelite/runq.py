@@ -11,7 +11,7 @@ class OEliteRunQueue:
         self.config = config
         self.assume_provided = (self.config.getVar("ASSUME_PROVIDED", 1)
                                 or "").split()
-        self.runable = None
+        self.runable = []
         return
 
 
@@ -489,9 +489,7 @@ class OEliteRunQueue:
 
 
     def get_runabletask(self):
-        if self.runable is None:
-            self.runable = self.db.get_leafrunabletasks()
-        if self.runable == []:
+        if not self.runable:
             self.runable = self.db.get_runabletasks()
         if not self.runable:
             return None

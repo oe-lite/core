@@ -630,37 +630,11 @@ class OEliteDB:
                   "task INTEGER, "
                   "hash TEXT, "
                   "dephash TEXT, "
-                  "running INTEGER, "
-                  "done INTEGER )")
+                  "running INTEGER )")
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_taskdepend ( "
                   "task INTEGER, "
                   "depend INTEGER )") # depend is task id
-
-        c.execute("CREATE VIEW IF NOT EXISTS runq_taskdepend_view AS "
-                  "SELECT runq_task_task.task AS task, "
-                  "runq_task_task.running AS running, "
-                  "runq_task_task.done AS done, "
-                  "runq_task_depend.task AS depend, "
-                  "runq_task_depend.hash AS depend_hash, "
-                  "runq_task_depend.done AS depend_done "
-                  "FROM runq_taskdepend, "
-                  "runq_task AS runq_task_task, "
-                  "runq_task AS runq_task_depend "
-                  "WHERE runq_taskdepend.task = runq_task_task.task "
-                  "AND runq_taskdepend.depend=runq_task_depend.task")
-
-        c.execute("CREATE VIEW IF NOT EXISTS runq_taskdepends_count AS "
-                  "SELECT t.task AS task, t.running AS running, t.done AS done,"
-                  " c.total AS total_depends, c.hashed AS hashed_depends,"
-                  " c.done AS done_depends "
-                  "FROM runq_task AS t, "
-                  "(SELECT task, "
-                  " COUNT(depend) AS total,"
-                  " COUNT(depend_hash) AS hashed,"
-                  " COUNT(depend_done) AS done"
-                  " FROM runq_taskdepend_view GROUP BY task) AS c "
-                  "WHERE t.task=c.task")
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_recipehash ( "
                   "recipe INTEGER, "
@@ -902,34 +876,12 @@ class OEliteDB:
         return (recipes, packages)
 
 
-    def get_leafrunabletask(self):
-        return flatten_single_value(self.db.execute(
-                "SELECT task FROM runq_task WHERE NOT EXISTS "
-                "(SELECT * FROM runq_taskdepend"
-                " WHERE runq_taskdepend.task = runq_task.task) "
-                "AND running IS NULL AND done IS NULL "
-                "LIMIT 1"))
-
-    def get_leafrunabletasks(self):
-        return flatten_single_column_rows(self.db.execute(
-                "SELECT task FROM runq_task WHERE NOT EXISTS "
-                "(SELECT * FROM runq_taskdepend"
-                " WHERE runq_taskdepend.task = runq_task.task) "
-                "AND running IS NULL AND done IS NULL "))
-
-    def get_runabletask(self):
-        return flatten_single_value(self.db.execute(
-                "SELECT task FROM runq_taskdepends_count "
-                "WHERE running IS NULL AND done IS NULL "
-                "AND done_depends=total_depends "
-                "LIMIT 1"
-                ))
-
     def get_runabletasks(self):
         return flatten_single_column_rows(self.db.execute(
-                "SELECT task FROM runq_taskdepends_count "
-                "WHERE running IS NULL AND done IS NULL "
-                "AND done_depends=total_depends "))
+                "SELECT task FROM runq_task WHERE NOT EXISTS "
+                "(SELECT * FROM runq_taskdepend"
+                " WHERE runq_taskdepend.task = runq_task.task) "
+                "AND running IS NULL"))
 
 
     def set_runq_task_running(self, task):
@@ -942,7 +894,7 @@ class OEliteDB:
     def set_runq_task_done(self, task):
         task = self.task_id(task)
         self.db.execute(
-            "UPDATE runq_task SET done=1 WHERE task=?", (task,))
+            "DELETE FROM runq_taskdepend WHERE depend=?", (task,))
         return
 
 
