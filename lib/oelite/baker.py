@@ -102,14 +102,14 @@ class OEliteBaker:
 
         def parse_status(parsed):
             if os.isatty(sys.stdout.fileno()):
-                sys.stdout.write("\rParsing: %04d/%04d [%2d %%]"%(
+                sys.stdout.write("\rParsing recipe files: %04d/%04d [%2d %%]"%(
                         parsed, total, parsed*100//total))
                 if parsed == total:
                     sys.stdout.write("\n")
                 sys.stdout.flush()
             else:
                 if parsed == 0:
-                    sys.stdout.write("Parsing, please wait...")
+                    sys.stdout.write("Parsing recipe files, please wait...")
                 elif parsed == total:
                     sys.stdout.write("done.\n")
                 sys.stdout.flush()
@@ -213,7 +213,7 @@ class OEliteBaker:
             #    debug("runq_taskdepend %s\t%s\t%s\t%s\t%s\t%s"%runable)
             recipe_name = self.db.get_recipe({"task": task})
             task_name = self.db.get_task(task=task)
-            info("running %s:%s"%(recipe_name,task_name))
+            info("Running %s:%s"%(recipe_name,task_name))
             runq.mark_done(task)
             task = runq.get_runabletask()
 
