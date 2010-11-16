@@ -21,9 +21,13 @@ DEFAULT_DEPENDS_recipe-native		= ""
 DEFAULT_DEPENDS_recipe-cross		= ""
 DEFAULT_DEPENDS_recipe-sdk-cross	= ""
 
-DEPENDS_append_recipe-canadian-cross += "${TUI_DEPENDS}"
-TUI_DEPENDS = "ncurses-sdk-dev readline-sdk-dev"
-TUI_DEPENDS_host-mingw32 = ""
+DEPENDS += "${TUI_DEPENDS}"
+TUI_DEPENDS				= "ncurses-dev readline-dev"
+TUI_DEPENDS_recipe-native		= ""
+TUI_DEPENDS_recipe-cross		= ""
+TUI_DEPENDS_recipe-sdk-cross		= ""
+TUI_DEPENDS_recipe-sdk			= "ncurses-sdk-dev readline-sdk-dev"
+TUI_DEPENDS_recipe-canadian-cross	= "ncurses-sdk-dev readline-sdk-dev"
 
 # FIXME: this looks REALLY wrong!
 DEPENDS_append_recipe-canadian-cross += "\
