@@ -10,7 +10,7 @@ CPIO_IMAGE_DIRNAME ?= "${IMAGE_BASENAME}"
 cpio_image () {
 	(
         cd ${IMAGE_DIR}
-        find . -print -depth | cpio -o -H newc > ${B}/${IMAGE_BASENAME}.cpio
+        find . | cpio -o -H newc > ${B}/${IMAGE_BASENAME}.cpio
         cd -
 	)
 }
