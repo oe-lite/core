@@ -255,7 +255,8 @@ python base_eventhandler() {
 				os.system('touch ' + e.stampPrefix[fn] + '.needclean')
 
 	if not data in e.__dict__:
-		return NotHandled
+		#return NotHandled
+		return None
 
 	log = data.getVar("EVENTLOG", e.data, 1)
 	if log:
@@ -263,7 +264,8 @@ python base_eventhandler() {
 		logfile.write("%s\n" % msg)
 		logfile.close()
 
-	return NotHandled
+	#return NotHandled
+	return None
 }
 
 do_configure[dirs] = "${S} ${B}"
