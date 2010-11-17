@@ -628,11 +628,11 @@ class OEliteDB:
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_provider ( "
                   "item INTEGER, "
-                  "recipe INTEGER )")
+                  "package INTEGER )")
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_rprovider ( "
                   "ritem INTEGER, "
-                  "recipe INTEGER )")
+                  "package INTEGER )")
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_task ( "
                   "task INTEGER, "
@@ -671,19 +671,19 @@ class OEliteDB:
         return
 
 
-    def set_runq_provider(self, item, recipe):
+    def set_runq_provider(self, item, package):
         item = self.item_id(item)
-        recipe = self.recipe_id(recipe)
+        package = self.package_id(package)
         self.db.execute(
-            "INSERT INTO runq_provider (item, recipe) VALUES (?, ?)",
-            (item, recipe)).fetchone()
+            "INSERT INTO runq_provider (item, package) VALUES (?, ?)",
+            (item, package)).fetchone()
         return
 
 
     def get_runq_provider(self, item):
         item = self.item_id(item)
         runq_provider = self.db.execute(
-            "SELECT recipe FROM runq_provider WHERE item=?",
+            "SELECT package FROM runq_provider WHERE item=?",
             (item,)).fetchone()
         if runq_provider is None:
             return None
@@ -724,19 +724,19 @@ class OEliteDB:
         return providers.fetchall()
 
 
-    def set_runq_rprovider(self, ritem, recipe):
+    def set_runq_rprovider(self, ritem, package):
         ritem = self.ritem_id(ritem)
-        recipe = self.recipe_id(recipe)
+        package = self.package_id(package)
         self.db.execute(
-            "INSERT INTO runq_rprovider (ritem, recipe) VALUES (?, ?)",
-            (ritem, recipe)).fetchone()
+            "INSERT INTO runq_rprovider (ritem, package) VALUES (?, ?)",
+            (ritem, package)).fetchone()
         return
 
 
     def get_runq_rprovider(self, ritem):
         ritem = self.ritem_id(ritem)
         runq_rprovider = self.db.execute(
-            "SELECT recipe FROM runq_rprovider WHERE ritem=?",
+            "SELECT package FROM runq_rprovider WHERE ritem=?",
             (ritem,)).fetchone()
         if runq_rprovider is None:
             return None
