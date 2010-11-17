@@ -174,18 +174,17 @@ class OEliteBaker:
 
 
         info("Processing runqueue:")
+        # FIXME: add some kind of statistics, with total_tasks,
+        # prebaked_tasks, running_tasks, failed_tasks, done_tasks
         task = runq.get_runabletask()
         while task:
-            #debug("runable tasks:")
-            #runable_tasks = self.db.db.execute(
-            #    "SELECT * FROM runq_taskdepends_count")
-            #for runable in runable_tasks.fetchall():
-            #    debug("runq_taskdepend %s\t%s\t%s\t%s\t%s\t%s"%runable)
+            recipe_id = self.db.get_recipe_id(task=task)
             recipe_name = self.db.get_recipe_name(recipe_id)
+            recipe = self.cookbook[recipe_id]
             task_name = self.db.get_task(task=task)
             debug("")
             info("Running %s:%s"%(recipe_name, task_name))
-            if self.run_task(task):
+            if exec_func(task_name, recipe.data):
                 runq.mark_done(task)
             else:
                 warn("%s:%s failed"%(recipe_name, task_name))
@@ -194,13 +193,6 @@ class OEliteBaker:
             task = runq.get_runabletask()
 
         return 0
-
-
-    def run_task(self, task):
-        recipe_id = self.db.get_recipe_id(task=task)
-        recipe = self.cookbook[recipe_id]
-        task_name = self.db.get_task(task=task)
-        return exec_func(task_name, recipe.data)
 
 
     def setup_tmpdir(self):
