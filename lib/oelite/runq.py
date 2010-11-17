@@ -489,12 +489,14 @@ class OEliteRunQueue:
 
 
     def get_runabletask(self):
-        if not self.runable:
-            self.runable = self.db.get_runabletasks()
+        newrunable = self.db.get_runabletasks()
+        if newrunable:
+            self.runable = newrunable + self.runable
+            for task in newrunable:
+                self.db.set_runq_task_running(task)
         if not self.runable:
             return None
         task = self.runable.pop()
-        self.db.set_runq_task_running(task)
         return task
 
 
