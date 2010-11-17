@@ -183,6 +183,8 @@ class OEliteBaker:
             recipe = self.cookbook[recipe_id]
             task_name = self.db.get_task(task=task)
             debug("")
+            debug("Preparing %s:%s"%(recipe_name, task_name))
+            recipe.prepare()
             info("Running %s:%s"%(recipe_name, task_name))
             if exec_func(task_name, recipe.data):
                 runq.mark_done(task)

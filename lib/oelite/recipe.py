@@ -127,3 +127,51 @@ class OEliteRecipe:
         self.id = recipe_id
 
         return
+
+
+    def prepare(self):
+
+        def set_pkgproviders(self_db_get_recipe_depends,
+                             self_db_get_runq_recdepends,
+                             self_db_get_runq_provider,
+                             PKGPROVIDER_, RECDEPENDS):
+            recdepends = []
+
+            def set_pkgprovider(item,
+                                self_db_get_runq_provider,
+                                PKGPROVIDER_):
+                debug("set_pkgprovider(%s)"%(item))
+                package_id = self_db_get_runq_provider(item)
+                (package_name, package_arch) = self.db.get_package(package_id)
+                (recipe_name, recipe_version) = self.db.get_recipe(
+                        {"package": package_id})
+                pkgprovider = "%s/%s-%s"%(
+                        package_arch, package_name, recipe_version)
+                recdepends.append(package_name)
+                debug("recdepends=%s"%(str(recdepends)))
+                self.data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
+                return package_id
+
+            depends = self_db_get_recipe_depends(self.id) or []
+            for item in depends:
+                provider = set_pkgprovider(
+                    item, self_db_get_runq_provider, PKGPROVIDER_)
+                for item in (self_db_get_runq_recdepends(provider)[1] or []):
+                    set_pkgprovider(
+                        item, self_db_get_runq_provider, PKGPROVIDER_)
+
+            debug("%s=%s"%(RECDEPENDS, " ".join(recdepends)))
+            self.data.setVar(RECDEPENDS, " ".join(recdepends))
+
+        # FIXME: only do this for recdeptasks
+        set_pkgproviders(self.db.get_recipe_depends,
+                         self.db.get_runq_recdepends,
+                         self.db.get_runq_provider,
+                         "PKGPROVIDER_", "RECDEPENDS")
+
+        # FIXME: only do this for recrdeptasks
+        set_pkgproviders(self.db.get_recipe_rdepends,
+                         self.db.get_runq_recrdepends,
+                         self.db.get_runq_rprovider,
+                         "PKGRPROVIDER_", "RECRDEPENDS")
+
