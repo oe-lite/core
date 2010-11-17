@@ -101,7 +101,9 @@ class OEliteRecipe:
 
         for package in packages.split():
 
-            self.db.add_package(recipe_id, package)
+            arch = (self.data.getVar("PACKAGE_ARCH_" + package, True) or
+                    self.data.getVar("RECIPE_ARCH", True))
+            self.db.add_package(recipe_id, package, arch)
             package_id = self.db.get_package_id(recipe_id, package)
 
             provides = data.getVar("PROVIDES_" + package, 1) or ""

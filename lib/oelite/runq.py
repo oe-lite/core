@@ -219,13 +219,14 @@ class OEliteRunQueue:
             if package in recursion_path[0]:
                 debug("circular dependency while resolving %s"%(item_name))
                 recipe_name = self.db.get_recipe(recipe)
-                package_name = self.db.get_package(package)
+                package_name = self.db.get_package(package)[0]
 
                 depends = []
                 recursion_path[0].append(package)
                 recursion_path[1].append(item)
                 for i in xrange(len(recursion_path[0])):
-                    depend_package = self.db.get_package(recursion_path[0][i])
+                    depend_package = self.db.get_package(
+                        recursion_path[0][i])[0]
                     depend_item = self.db.get_item(recursion_path[1][i])
                     if depend_item == depend_package:
                         depends.append(depend_package)
@@ -253,7 +254,7 @@ class OEliteRunQueue:
 
             depends = self_db_get_package_depends(package)
             if depends:
-                depender = self.db.get_package(package)
+                depender = self.db.get_package(package)[0]
                 dependee = []
                 for d in depends:
                     dependee.append(self_db_get_item(d))

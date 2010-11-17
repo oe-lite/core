@@ -34,6 +34,7 @@ class OEliteDB:
                   "id INTEGER PRIMARY KEY, "
                   "recipe INTEGER, "
                   "name TEXT, "
+                  "arch TEXT, "
                   "UNIQUE (recipe, name) ON CONFLICT IGNORE )")
 
         c.execute("CREATE TABLE IF NOT EXISTS item ( "
@@ -196,11 +197,11 @@ class OEliteDB:
         return recipes
 
 
-    def add_package(self, recipe, package):
+    def add_package(self, recipe, name, arch):
         recipe = self.recipe_id(recipe)
         self.db.execute(
-            "INSERT INTO package (recipe, name) VALUES (?, ?)",
-            (recipe, package))
+            "INSERT INTO package (recipe, name, arch) VALUES (?, ?, ?)",
+            (recipe, name, arch))
         return
 
 
@@ -247,9 +248,9 @@ class OEliteDB:
 
     def get_package(self, package):
         package = self.package_id(package)
-        return flatten_one_string_row(self.db.execute(
-            "SELECT name FROM package WHERE id=?",
-            (package,)))
+        return self.db.execute(
+            "SELECT name, arch FROM package WHERE id=?",
+            (package,)).fetchone()
 
 
     def get_packages(self, packages):
