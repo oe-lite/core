@@ -167,41 +167,10 @@ class OEliteBaker:
                             e.args[1], "\n\t--> ".join(e.args[0])))
 
 
-        #tasks = self.db.db.execute(
-        #    "SELECT task_name.name, recipe.name, runq_task.run, runq_task.done "
-        #    "FROM runq_task, task, task_name, recipe "
-        #    "WHERE runq_task.task=task.id AND task.name=task_name.id "
-        #    "AND task.recipe=recipe.id ")
-        #for task in tasks.fetchall():
-        #    debug("runq_task %s:%s run=%s done=%s"%task)
-
-        #tasks = self.db.db.execute(
-        #    "SELECT * FROM runq_taskdepend")
-        #for task in tasks.fetchall():
-        #    debug("runq_taskdepend %s\t%s"%task)
-        
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
         #runq.update_tasks()
 
-        #runable_tasks = self.db.db.execute(
-        #    "SELECT t.task, c.total, c.done "
-        #    "FROM runq_task AS t, "
-        #    "(SELECT task, "
-        #    " COUNT(depend) AS total,"
-        #    " COUNT(depend_hash) AS hashed,"
-        #    " COUNT(depend_done) AS done"
-        #    " FROM runq_taskdepend_view GROUP BY task) AS c "
-        #    "WHERE t.task=c.task")
-        #for runable in runable_tasks.fetchall():
-        #    #debug("runq_taskdepend %s\t%s\t%s\t%s\t%s\t%s"%runable)
-        #    debug("runq_taskdepend %s\t%s\t%s"%runable)
-
-        #runable_tasks = self.db.db.execute(
-        #    "SELECT * FROM runq_taskdepends_count WHERE total_depends=0")
-        #for runable in runable_tasks.fetchall():
-        #    #debug("runq_taskdepend %s\t%s\t%s\t%s\t%s\t%s"%runable)
-        #    debug("runq_taskdepends_count %s\t%s\t%s\t%s\t%s\t%s"%runable)
 
         info("Processing runqueue:")
         task = runq.get_runabletask()
@@ -228,7 +197,7 @@ class OEliteBaker:
 
 
     def setup_tmpdir(self):
-        
+
         tmpdir = os.path.abspath(self.config.getVar("TMPDIR", 1) or "tmp")
         #debug("TMPDIR = %s"%tmpdir)
 
@@ -256,12 +225,12 @@ class OEliteBaker:
 
 
     def list_bbrecipes(self):
-    
+
         BBRECIPES = (self.config["BBRECIPES"] or "").split(":")
-    
+
         if not BBRECIPES:
             die("BBRECIPES not defined")
-    
+
         newfiles = set()
         for f in BBRECIPES:
             if os.path.isdir(f):
@@ -272,7 +241,7 @@ class OEliteBaker:
                 if not globbed and os.path.exists(f):
                     globbed = [f]
                 newfiles.update(globbed)
-    
+
         bbrecipes = []
         bbappend = []
         for f in newfiles:
@@ -282,7 +251,7 @@ class OEliteBaker:
                 bbappend.append(f)
             else:
                 warn("skipping %s: unknown file extension"%(f))
-        
+
         appendlist = {}
         for f in bbappend:
             base = os.path.basename(f).replace(".bbappend", ".bb")
