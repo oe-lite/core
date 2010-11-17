@@ -181,7 +181,7 @@ class OEliteBaker:
             #    "SELECT * FROM runq_taskdepends_count")
             #for runable in runable_tasks.fetchall():
             #    debug("runq_taskdepend %s\t%s\t%s\t%s\t%s\t%s"%runable)
-            recipe_name = self.db.get_recipe({"task": task})
+            recipe_name = self.db.get_recipe_name(recipe_id)
             task_name = self.db.get_task(task=task)
             debug("")
             info("Running %s:%s"%(recipe_name, task_name))

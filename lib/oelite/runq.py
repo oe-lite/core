@@ -60,7 +60,7 @@ class OEliteRunQueue:
         task = self.db.get_task_id(recipe_id, task_name)
         if not task:
             raise NoSuchTask("recipe %s do not have a %s task"%(
-                    self.db.get_recipe(recipe_id),
+                    self.db.get_recipe_name(recipe_id),
                     self.db.get_task(task_name)))
 
         alltasks = set()
@@ -74,7 +74,7 @@ class OEliteRunQueue:
                 try:
                     newtasks.update(self.task_dependencies(task))
                 except RecursiveDepends, e:
-                    recipe = self.db.get_recipe({"task":task})
+                    recipe = self.db.get_recipe_name({"task":task})
                     task = self.db.get_task(task=task)
                     raise RecursiveDepends(e.args[0], "%s:%s"%(recipe, task))
 
@@ -218,7 +218,7 @@ class OEliteRunQueue:
             # detect circular package dependencies
             if package in recursion_path[0]:
                 debug("circular dependency while resolving %s"%(item_name))
-                recipe_name = self.db.get_recipe(recipe)
+                #recipe_name = self.db.get_recipe_name(recipe)
                 package_name = self.db.get_package(package)[0]
 
                 depends = []

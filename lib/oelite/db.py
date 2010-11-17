@@ -180,6 +180,13 @@ class OEliteDB:
 
     def get_recipe(self, recipe):
         recipe = self.recipe_id(recipe)
+        return self.db.execute(
+            "SELECT name, version FROM recipe WHERE id=?",
+            (recipe,)).fetchone()
+
+
+    def get_recipe_name(self, recipe):
+        recipe = self.recipe_id(recipe)
         name = self.db.execute(
             "SELECT name, version FROM recipe WHERE id=?",
             (recipe,)).fetchone()
