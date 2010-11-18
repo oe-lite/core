@@ -9,10 +9,17 @@ class OEliteRunQueue:
         self.db = db
         self.cookbook = cookbook
         self.config = config
-        self.assume_provided = (self.config.getVar("ASSUME_PROVIDED", 1)
+        self._assume_provided = (self.config.getVar("ASSUME_PROVIDED", 1)
                                 or "").split()
         self.runable = []
+        self.hashable = []
         return
+
+
+    def assume_provided(self, item):
+        if isinstance(item, str) or isinstance(item, unicode):
+            return item in self._assume_provided
+        return self.db.get_item(item) in self._assume_provided
 
 
     def add_something(self, something, task_name):
@@ -146,7 +153,7 @@ class OEliteRunQueue:
         # (ie. do_sometask[depends] = "itemname:do_someothertask")
         taskdepends = self.db.get_task_depends(task) or []
         for taskdepend in taskdepends:
-            if self.db.get_item(taskdepend[0]) in self.assume_provided:
+            if self.assume_provided(taskdepend[0]):
                 #debug("ASSUME_PROVIDED %s"%(
                 #        self.db.get_item(taskdepend[0])))
                 continue
@@ -202,7 +209,7 @@ class OEliteRunQueue:
 
         def simple_resolve(item, recursion_path):
             item_name = self_db_get_item(item)
-            if item_name in self.assume_provided:
+            if self.assume_provided(item_name):
                 #debug("ASSUME_PROVIDED %s"%(item_name))
                 return ([], [])
             (recipe, package) = self_get_recipe_provider(item)
@@ -210,7 +217,7 @@ class OEliteRunQueue:
 
         def recursive_resolve(item, recursion_path):
             item_name = self_db_get_item(item)
-            if item_name in self.assume_provided:
+            if self.assume_provided(item_name):
                 #debug("ASSUME_PROVIDED %s"%(item_name))
                 return ([], [])
             (recipe, package) = self_get_recipe_provider(item)
@@ -244,7 +251,7 @@ class OEliteRunQueue:
 
             # cache recdepends tuple of list: (recipes, packages)
             recdepends = self_db_get_runq_recdepends(package)
-            if recdepends:
+            if recdepends[0] or recdepends[1]:
                 recdepends[0].append(recipe)
                 recdepends[1].append(package)
                 return recdepends
@@ -258,7 +265,6 @@ class OEliteRunQueue:
                 dependee = []
                 for d in depends:
                     dependee.append(self_db_get_item(d))
-                debug("db_get_package_depends: %s depends on %s"%(depender, dependee))
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
@@ -352,9 +358,9 @@ class OEliteRunQueue:
             import bb.utils
 
             # filter out all but the highest priority providers
-            highest_preference = providers[0][2]
+            highest_preference = providers[0][3]
             for i in range(1, len(providers)):
-                if providers[i][2] != highest_preference:
+                if providers[i][3] != highest_preference:
                     del providers[i:]
                     break
             if len(providers) == 1:
@@ -376,7 +382,7 @@ class OEliteRunQueue:
             if len(latest) == 1:
                 package = latest.values()[0][0][0]
                 recipe = self.db.recipe_id({"package": package})
-                self_db_set_runq_provider(item, recipe)
+                self_db_set_runq_provider(item, package)
                 return latest.values()[0][0][0]
             if len(latest) > 1:
                 multiple_providers = []
@@ -421,6 +427,8 @@ class OEliteRunQueue:
 
     def update_tasks(self):
 
+        return
+
         # start from leaf dependencies, and then next level and so on,
         # and for each dependency determine if it needs to be rebuild,
         # based on recipe checksum, src checksum, and dependency
@@ -428,6 +436,7 @@ class OEliteRunQueue:
         # tasks that depend on it (recursively) will also have
         # different checksum because of the dependency checksum and
         # will therefore have to be rebuilt
+
 
         # on each iteration on the above, the dependency tree must be
         # updated so the next iteration can find the next dependencies
@@ -490,16 +499,24 @@ class OEliteRunQueue:
 
 
     def get_runabletask(self):
-        newrunable = self.db.get_runabletasks()
+        newrunable = self.db.get_readytasks()
         if newrunable:
             self.runable = newrunable + self.runable
             for task in newrunable:
-                self.db.set_runq_task_running(task)
+                self.db.set_runq_task_pending(task)
         if not self.runable:
             return None
         task = self.runable.pop()
         return task
 
 
-    def mark_done(self, task):
-        return self.db.set_runq_task_done(task)
+    def get_hashabletask(self):
+        if not self.hashable:
+            self.hashable = list(self.db.get_hashabletasks())
+        if not self.hashable:
+            return None
+        return self.hashable.pop()
+
+
+    def mark_done(self, task, delete=True):
+        return self.db.set_runq_task_done(task, delete)

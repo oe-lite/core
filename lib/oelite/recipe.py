@@ -8,6 +8,10 @@ class OEliteRecipe:
         self.db = db
         self.data = data
 
+        self._datahash = None
+        self._srchash = "FOOBAR"
+        self._hash = None
+
         name = data.getVar("PN", 1)
         if not name:
             raise InvalidRecipe("no PN in %s:%s"%(
@@ -16,7 +20,7 @@ class OEliteRecipe:
         version = data.getVar("PV", 1) or "0"
         if "PR" in data:
             version += "-" + data.getVar("PR", 1)
-        
+
         preference = data.getVar("DEFAULT_PREFERENCE", 1) or "0"
         try:
             preference = int(preference)
@@ -129,7 +133,7 @@ class OEliteRecipe:
         return
 
 
-    def prepare(self):
+    def prepare(self, runq):
 
         def set_pkgproviders(self_db_get_recipe_depends,
                              self_db_get_runq_recdepends,
@@ -137,30 +141,31 @@ class OEliteRecipe:
                              PKGPROVIDER_, RECDEPENDS):
             recdepends = []
 
-            def set_pkgprovider(item,
+            def set_pkgprovider(package,
                                 self_db_get_runq_provider,
                                 PKGPROVIDER_):
-                debug("set_pkgprovider(%s)"%(item))
-                package_id = self_db_get_runq_provider(item)
-                (package_name, package_arch) = self.db.get_package(package_id)
+                (package_name, package_arch) = self.db.get_package(package)
                 (recipe_name, recipe_version) = self.db.get_recipe(
-                        {"package": package_id})
+                        {"package": package})
                 pkgprovider = "%s/%s-%s"%(
                         package_arch, package_name, recipe_version)
                 recdepends.append(package_name)
-                debug("recdepends=%s"%(str(recdepends)))
+                #debug("setting %s%s=%s"%(
+                #        PKGPROVIDER_, package_name, pkgprovider))
                 self.data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
-                return package_id
+                return
 
             depends = self_db_get_recipe_depends(self.id) or []
             for item in depends:
-                provider = set_pkgprovider(
-                    item, self_db_get_runq_provider, PKGPROVIDER_)
-                for item in (self_db_get_runq_recdepends(provider)[1] or []):
+                if runq.assume_provided(item):
+                    continue
+                package = self_db_get_runq_provider(item)
+                set_pkgprovider(
+                    package, self_db_get_runq_provider, PKGPROVIDER_)
+                for package in (self_db_get_runq_recdepends(package)[1] or []):
                     set_pkgprovider(
-                        item, self_db_get_runq_provider, PKGPROVIDER_)
+                        package, self_db_get_runq_provider, PKGPROVIDER_)
 
-            debug("%s=%s"%(RECDEPENDS, " ".join(recdepends)))
             self.data.setVar(RECDEPENDS, " ".join(recdepends))
 
         # FIXME: only do this for recdeptasks
@@ -175,3 +180,45 @@ class OEliteRecipe:
                          self.db.get_runq_rprovider,
                          "PKGRPROVIDER_", "RECRDEPENDS")
 
+
+    def datahash(self):
+        import bb.data
+        import hashlib
+
+        if self._datahash:
+            return self._datahash
+
+        class StringOutput:
+            def __init__(self):
+                self.blob = ""
+            def write(self, msg):
+                self.blob += str(msg)
+            def __len__(self):
+                return len(self.blob)
+
+        class StringHasher:
+            def __init__(self, hasher):
+                self.hasher = hasher
+            def write(self, msg):
+                self.hasher.update(str(msg))
+            def __str__(self):
+                return self.hasher.hexdigest()
+
+        blob = StringOutput()
+        hasher = StringHasher(hashlib.md5())
+
+        data = self.data.createCopy()
+        data.delVar("DATE")
+        data.delVar("TIME")
+        data.delVar("DATETIME")
+
+        #bb.data.emit_env(blob, data, all=True)
+        bb.data.emit_env(hasher, data, all=True)
+
+        self._datahash = str(hasher)
+        return self._datahash
+
+
+    def srchash(self):
+        if self._srchash:
+            return self._srchash

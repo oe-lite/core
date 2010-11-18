@@ -1,7 +1,7 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
 from oelite import *
-import sys, os, glob, shutil
+import sys, os, glob, shutil, datetime
 
 from db import OEliteDB
 from recipe import OEliteRecipe
@@ -69,10 +69,9 @@ class OEliteBaker:
         bb.fetch.fetcher_init(self.config)
 
         self.appendlist = {}
-
         self.db = OEliteDB()
-
         self.prepare_cookbook()
+        self.buildhash = {}
 
         return
 
@@ -101,31 +100,20 @@ class OEliteBaker:
         # collect all available .bb files
         bbrecipes = self.list_bbrecipes()
 
-        def parse_status(parsed):
-            if os.isatty(sys.stdout.fileno()):
-                sys.stdout.write("\rParsing recipe files: %04d/%04d [%2d %%]"%(
-                        parsed, total, parsed*100//total))
-                if parsed == total:
-                    sys.stdout.write("\n")
-                sys.stdout.flush()
-            else:
-                if parsed == 0:
-                    sys.stdout.write("Parsing recipe files, please wait...")
-                elif parsed == total:
-                    sys.stdout.write("done.\n")
-                sys.stdout.flush()
-
         # parse all .bb files
         total = len(bbrecipes)
         parsed = 0
+        start = datetime.datetime.now()
         for bbrecipe in bbrecipes:
-            parse_status(parsed)
+            progress_info("Parsing recipe files", total, parsed)
             data = self.parse_recipe(bbrecipe)
             for extend in data:
                 recipe = OEliteRecipe(bbrecipe, extend, data[extend], self.db)
                 self.cookbook[recipe.id] = recipe
             parsed += 1
-        parse_status(parsed)
+        progress_info("Parsing recipe files", total, parsed)
+        if oebakery.DEBUG:
+            timing_info("Parsing", start)
 
         return
 
@@ -156,6 +144,8 @@ class OEliteBaker:
 
         # first, add complete dependency tree, with complete
         # task-to-task dependency information
+        debug("Building dependency tree")
+        start = datetime.datetime.now()
         for thing in things_todo:
             for task in tasks_todo:
                 task = "do_" + task
@@ -166,17 +156,99 @@ class OEliteBaker:
                     #die("recursive dependency detected: %s %s"%(type(e), e))
                     die("dependency loop: %s\n\t--> %s"%(
                             e.args[1], "\n\t--> ".join(e.args[0])))
-
+        if oebakery.DEBUG:
+            timing_info("Building dependency tree", start)
 
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
+        # examing each task, computing it's hash, and checking if the
+        # task has already been built, and with the same hash.
+        task = runq.get_hashabletask()
+        total = self.db.number_of_runq_tasks()
+        count = reuse = rebuild = partial = pristine = 0
+        start = datetime.datetime.now()
+        while task:
+            progress_info("Checking task status", total, count)
+            recipe_id = self.db.get_recipe_id(task=task)
+            recipe = self.cookbook[recipe_id]
+
+            datahash = recipe.datahash()
+
+            srchash = recipe.srchash()
+
+            dephashes = {}
+            for depend in runq.task_dependencies(task):
+                dephashes[depend] = self.db.get_runq_task_hash(depend)
+
+            import hashlib
+
+            hasher = hashlib.md5()
+            hasher.update(str(dephashes))
+            dephash = hasher.hexdigest()
+
+            hasher = hashlib.md5()
+            hasher.update(datahash)
+            hasher.update(srchash)
+            hasher.update(dephash)
+            buildhash = hasher.hexdigest()
+            self.buildhash[task] = buildhash
+
+            recipe_name = self.db.get_recipe_name(recipe_id)
+            task_name = self.db.get_task(task=task)
+            #debug("datahash=%s srchash=%s dephash=%s buildhash=%s %d %s:%s"%(
+            #        datahash, srchash, dephash, buildhash, task, recipe_name, task_name))
+
+            self.db.set_runq_task_hash(task, buildhash)
+
+            # check for existing build, ie. read the task hash file
+            # if it exists, but is empty, a partial build is assume
+            # if it exists, and hash matches, the task is considered done
+            # if it exists, but hash does not match, task must be rebuilt
+            status = self.get_task_status(task, recipe.data, buildhash)
+            recipe_name = self.db.get_recipe({"task": task})
+            task_name = self.db.get_task(task=task)
+            if status == 0:
+                # task has been built with matching hash
+                debug("reusing task %d %s:%s"%(task, recipe_name, task_name))
+                runq.mark_done(task, delete=False)
+                reuse += 1
+                pass
+            elif status == 1:
+                # task built, but with different hash
+                debug("task needs to be rebuild  %d %s:%s"%(task, recipe_name, task_name))
+                rebuild += 1
+                pass
+            elif status == 2:
+                # task partial built
+                debug("partially built task %d %s:%s"%(task, recipe_name, task_name))
+                partial += 1
+                pass
+            else:
+                # task has not been built
+                debug("pristine task %d %s:%s"%(task, recipe_name, task_name))
+                pristine += 1
+                pass
+
+            task = runq.get_hashabletask()
+
+            count += 1
+            continue
+
+        progress_info("Checking task status", total, count)
+        build = rebuild + partial + pristine
+        info("%d tasks to run, %d tasks does not have to be run"%(
+                build, reuse))
+        if oebakery.DEBUG:
+            timing_info("Task checking", start)
+
+        self.db.prune_done_tasks()
+
         #runq.update_tasks()
 
-
-        info("Processing runqueue:")
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
         task = runq.get_runabletask()
+        start = datetime.datetime.now()
         while task:
             recipe_id = self.db.get_recipe_id(task=task)
             recipe_name = self.db.get_recipe_name(recipe_id)
@@ -184,15 +256,20 @@ class OEliteBaker:
             task_name = self.db.get_task(task=task)
             debug("")
             debug("Preparing %s:%s"%(recipe_name, task_name))
-            recipe.prepare()
+            recipe.prepare(runq)
             info("Running %s:%s"%(recipe_name, task_name))
+            self.task_build_started(task, recipe.data)
             if exec_func(task_name, recipe.data):
+                self.task_build_done(task, recipe.data, self.buildhash[task])
                 runq.mark_done(task)
             else:
                 warn("%s:%s failed"%(recipe_name, task_name))
+                self.task_build_failed(task, recipe.data)
                 # FIXME: support command-line option to abort on first
                 # failed task
-            task = runq.get_runabletask()
+                task = runq.get_runabletask()
+        if build:
+            timing_info("Build", start)
 
         return 0
 
@@ -266,6 +343,54 @@ class OEliteBaker:
     def parse_recipe(self, recipe):
         path = os.path.abspath(recipe)
         return bb.parse.handle(path, self.config.createCopy())
+
+
+    def hashfile_path(self, task, data):
+        task_name = self.db.get_task(task=task)
+        hashbase = data.getVar("HASHDIR", True)
+        return (hashbase, os.path.join(hashbase, task_name))
+
+
+    def get_task_status(self, task, data, buildhash):
+        hashpath = self.hashfile_path(task, data)[1]
+        if not os.path.exists(hashpath):
+            return 3
+        if not os.path.isfile(hashpath):
+            die("bad hash file: %s"%(hashpath))
+        if os.path.getsize(hashpath) == 0:
+            return 2
+        with open(hashpath, "r") as hashfile:
+            oldhash = hashfile.read()
+        if oldhash != buildhash:
+            return 1
+        return 0
+
+
+    def task_build_started(self, task, data):
+        (hashdir, hashfile) = self.hashfile_path(task, data)
+        if not os.path.exists(hashdir):
+            os.makedirs(hashdir)
+        open(hashfile, "w").close()
+        return
+
+
+    def task_build_done(self, task, data, buildhash):
+        (hashdir, hashfile) = self.hashfile_path(task, data)
+        if not os.path.exists(hashdir):
+            os.makedirs(hashdir)
+        with open(hashfile, "w") as _hashfile:
+            oldhash = _hashfile.write(buildhash)
+        return
+
+
+    def task_build_failed(self, task, data):
+        return
+
+
+    def task_cleaned(self, task, data):
+        hashpath = self.hashfile_path(task, data)
+        if os.path.exists(hashpath):
+            os.remove(hashpath)
 
 
 def exec_func(func, data):
@@ -381,7 +506,7 @@ def exec_func(func, data):
         se.close()
 
         if os.path.exists(logfile) and os.path.getsize(logfile) == 0:
-            debug("Removing zero size logfile: %s"%logfile)
+            #debug("Removing zero size logfile: %s"%logfile)
             os.remove(logfile)
 
         # Close the backup fds
@@ -461,3 +586,38 @@ def exec_func_shell(func, data, runfile, logfile, flags):
         return True
 
     return False
+
+
+def progress_info(msg, total, current):
+    if os.isatty(sys.stdout.fileno()):
+        fieldlen = len(str(total))
+        template = "\r%s: %%%dd / %%%dd [%2d %%%%]"%(msg, fieldlen, fieldlen,
+                                                 current*100//total)
+        #sys.stdout.write("\r%s: %04d/%04d [%2d %%]"%(
+        sys.stdout.write(template%(current, total))
+        if current == total:
+            sys.stdout.write("\n")
+        sys.stdout.flush()
+    else:
+        if current == 0:
+            sys.stdout.write("%s, please wait..."%(msg))
+        elif current == total:
+            sys.stdout.write("done.\n")
+        sys.stdout.flush()
+
+
+def timing_info(msg, start):
+    msg += " time "
+    delta = datetime.datetime.now() - start
+    hours = delta.seconds // 3600
+    minutes = delta.seconds // 60 % 60
+    seconds = delta.seconds % 60
+    milliseconds = delta.microseconds // 1000
+    if hours:
+        msg += "%dh%02m%02s"%(hours, minutes, seconds)
+    elif minutes:
+        msg += "%dm%02s"%(minutes, seconds)
+    else:
+        msg += "%d.%03d"%(seconds, milliseconds)
+    info(msg)
+    return

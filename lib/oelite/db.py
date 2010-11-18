@@ -638,19 +638,16 @@ class OEliteDB:
                   "task INTEGER, "
                   "hash TEXT, "
                   "dephash TEXT, "
-                  "running INTEGER )")
+                  "datahash TEXT, "
+                  "srchash TEXT, " # srchash only needs to be
+                                   # considered in do_fetch, as it
+                                   # will then propagate through the
+                                   # dependency chain
+                  "status INTEGER )")
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_taskdepend ( "
                   "task INTEGER, "
                   "depend INTEGER )") # depend is task id
-
-        c.execute("CREATE TABLE IF NOT EXISTS runq_recipehash ( "
-                  "recipe INTEGER, "
-                  "datahash TEXT, "
-                  "srchash TEXT )") # srchash only needs to be
-                                    # considered in do_fetch, as it
-                                    # will then propagate through the
-                                    # dependency chain
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_recdepend_recipe ( "
                   "package INTEGER, "
@@ -669,6 +666,11 @@ class OEliteDB:
                   "rdepend INTEGER )") # rdepend is package id
 
         return
+
+
+    def number_of_runq_tasks(self):
+        return flatten_single_value(self.db.execute(
+                "SELECT COUNT(*) FROM runq_task"))
 
 
     def set_runq_provider(self, item, package):
@@ -701,7 +703,7 @@ class OEliteDB:
                 "AND recipe.name=:recipe AND recipe.version=:version "
                 "AND package.recipe=recipe.id "
                 "AND package_provide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         elif item and recipe:
             providers = self.db.execute(
                 "SELECT package.id, "
@@ -711,7 +713,7 @@ class OEliteDB:
                 "AND recipe.name=:recipe "
                 "AND package.recipe=recipe.id "
                 "AND package_provide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         else:
             providers = self.db.execute(
                 "SELECT package.id, "
@@ -720,7 +722,7 @@ class OEliteDB:
                 "WHERE package_provide.item=:item "
                 "AND package.recipe=recipe.id "
                 "AND package_provide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         return providers.fetchall()
 
 
@@ -754,7 +756,7 @@ class OEliteDB:
                 "AND recipe.name=:recipe AND recipe.version=:version "
                 "AND package.recipe=recipe.id "
                 "AND package_rprovide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         elif ritem and recipe:
             rproviders = self.db.execute(
                 "SELECT package.id, recipe.preference, recipe.version "
@@ -763,7 +765,7 @@ class OEliteDB:
                 "AND recipe.name=:recipe "
                 "AND package.recipe=recipe.id "
                 "AND package_rprovide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         else:
             rproviders = self.db.execute(
                 "SELECT package.id, recipe.preference, recipe.version "
@@ -771,7 +773,7 @@ class OEliteDB:
                 "WHERE package_rprovide.ritem=:ritem "
                 "AND package.recipe=recipe.id "
                 "AND package_rprovide.package=package.id "
-                "ORDER BY recipe.preference, recipe.name", locals())
+                "ORDER BY recipe.preference DESC, recipe.name", locals())
         return rproviders.fetchall()
 
 
@@ -826,7 +828,7 @@ class OEliteDB:
             "VALUES (?, ?)", recipelist)
         packagelist = []
         for depend in packages:
-            recipelist.append((package, depend))
+            packagelist.append((package, depend))
         self.db.executemany(
             "INSERT INTO runq_recdepend_package (package, depend) "
             "VALUES (?, ?)", packagelist)
@@ -862,7 +864,7 @@ class OEliteDB:
             "VALUES (?, ?)", recipelist)
         packagelist = []
         for rdepend in packages:
-            recipelist.append((package, rdepend))
+            packagelist.append((package, rdepend))
         self.db.executemany(
             "INSERT INTO runq_recrdepend_package (package, rdepend) "
             "VALUES (?, ?)", packagelist)
@@ -884,26 +886,75 @@ class OEliteDB:
         return (recipes, packages)
 
 
-    def get_runabletasks(self):
+    def get_readytasks(self):
         return flatten_single_column_rows(self.db.execute(
                 "SELECT task FROM runq_task WHERE NOT EXISTS "
                 "(SELECT * FROM runq_taskdepend"
                 " WHERE runq_taskdepend.task = runq_task.task) "
-                "AND running IS NULL"))
+                "AND status IS NULL"))
+
+
+    def get_hashabletasks(self):
+        return flatten_single_column_rows(self.db.execute(
+                "SELECT task FROM runq_task "
+                "WHERE hash IS NULL AND NOT EXISTS "
+                "(SELECT runq_taskdepend.task "
+                " FROM runq_taskdepend, runq_task AS runq_task_depend"
+                " WHERE runq_taskdepend.task = runq_task.task"
+                " AND runq_taskdepend.depend = runq_task_depend.task"
+                " AND runq_task_depend.hash IS NULL )"))
+
+
+    def _set_runq_task_status(self, task, status):
+        task = self.task_id(task)
+        self.db.execute(
+            "UPDATE runq_task SET status=? WHERE task=?", (status, task))
+        return
+
+
+    def set_runq_task_pending(self, task):
+        return self._set_runq_task_status(task, 1)
 
 
     def set_runq_task_running(self, task):
+        return self._set_runq_task_status(task, 2)
+
+
+    def set_runq_task_failed(self, task):
+        return self._set_runq_task_status(task, 4)
+
+
+    def set_runq_task_done(self, task, delete):
         task = self.task_id(task)
-        self.db.execute(
-            "UPDATE runq_task SET running=1 WHERE task=?", (task,))
+        self._set_runq_task_status(task, 3)
+        if delete:
+            self.db.execute(
+                "DELETE FROM runq_taskdepend WHERE depend=?", (task,))
         return
 
 
-    def set_runq_task_done(self, task):
+    def prune_done_tasks(self):
+        self.db.execute(
+            "DELETE FROM runq_taskdepend WHERE EXISTS "
+            "( SELECT * FROM runq_task "
+            "WHERE runq_task.task = runq_taskdepend.depend AND status=3 )")
+        return
+
+
+    def get_runq_task_hash(self, task):
+        task = self.task_id(task)
+        return flatten_single_value(self.db.execute(
+            "SELECT hash FROM runq_task WHERE task=?", (task,)))
+
+
+    def set_runq_task_hash(self, task, dephash):
         task = self.task_id(task)
         self.db.execute(
-            "DELETE FROM runq_taskdepend WHERE depend=?", (task,))
+            "UPDATE runq_task SET hash=? WHERE task=?",
+            (dephash, task))
         return
+
+
 
 
 def flatten_single_value(rows):
