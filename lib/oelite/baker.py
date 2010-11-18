@@ -267,7 +267,7 @@ class OEliteBaker:
                 self.task_build_failed(task, recipe.data)
                 # FIXME: support command-line option to abort on first
                 # failed task
-                task = runq.get_runabletask()
+            task = runq.get_runabletask()
         if build:
             timing_info("Build", start)
 
