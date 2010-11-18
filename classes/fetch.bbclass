@@ -1,4 +1,4 @@
-addtask fetch after do_stage
+addtask fetch after do_stage_fixup
 addtask fetchall after do_fetch
 addtask unpack after do_fetch
 
@@ -143,3 +143,4 @@ def oe_unpack_file(file, data, url = None):
 	os.chdir(save_cwd)
 
 	return ret == 0
+

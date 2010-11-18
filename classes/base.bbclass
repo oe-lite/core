@@ -291,7 +291,7 @@ base_do_install() {
 	:
 }
 
-INSTALL_FIXUP_FUNCS = "\
+INSTALL_FIXUP_FUNCS += "\
 install_strip \
 #install_refactor \
 "
