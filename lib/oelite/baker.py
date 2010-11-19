@@ -614,10 +614,10 @@ def timing_info(msg, start):
     seconds = delta.seconds % 60
     milliseconds = delta.microseconds // 1000
     if hours:
-        msg += "%dh%02m%02s"%(hours, minutes, seconds)
+        msg += "%dh%02dm%02ds"%(hours, minutes, seconds)
     elif minutes:
-        msg += "%dm%02s"%(minutes, seconds)
+        msg += "%dm%02ds"%(minutes, seconds)
     else:
-        msg += "%d.%03d"%(seconds, milliseconds)
+        msg += "%d.%03d seconds"%(seconds, milliseconds)
     info(msg)
     return
