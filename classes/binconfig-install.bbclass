@@ -100,17 +100,26 @@ python binconfig_fixup () {
 		f.close
 	except IOError as exc:
 		if exc.errno == errno.ENOENT:
-			pass
+			return
 		else: raise
 
-	prefix = bb.data.getVar('prefix', d, True)
-	exec_prefix = bb.data.getVar('exec_prefix', d, True)
-	datadir = bb.data.getVar('datadir', d, True)
-	bindir = bb.data.getVar('bindir', d, True)
-	sbindir = bb.data.getVar('sbindir', d, True)
-	libexecdir = bb.data.getVar('libexecdir', d, True)
-	libdir = bb.data.getVar('libdir', d, True)
-	includedir = bb.data.getVar('includedir', d, True)
+	binconfigmangle = bb.data.getVar('binconfigmangle', d, True)
+
+	import ConfigParser
+	fname = open('.'+binconfigmangle,"r")
+	config = ConfigParser.ConfigParser()
+
+        config.readfp(fname)
+        fname.close()
+	prefix = config.get("paths","prefix")
+	exec_prefix = config.get("paths","exec_prefix")
+	datadir = config.get("paths","datadir")
+	bindir = config.get("paths","bindir")
+	sbindir = config.get("paths","sbindir")
+	libexecdir = config.get("paths","libexecdir")
+	libdir = config.get("paths","libdir")
+	includedir = config.get("paths","includedir")
+
 	STAGE_DIR = bb.data.getVar('STAGE_DIR', d, True)
 
 	import re, fileinput,sys
