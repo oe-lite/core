@@ -71,7 +71,6 @@ class OEliteBaker:
         self.appendlist = {}
         self.db = OEliteDB()
         self.prepare_cookbook()
-        self.buildhash = {}
 
         return
 
@@ -139,11 +138,11 @@ class OEliteBaker:
         else:
             things_todo = [ "base-rootfs" ]
 
-        # setup build quue
+        # init build quue
         runq = OEliteRunQueue(self.db, self.cookbook, self.config)
 
         # first, add complete dependency tree, with complete
-        # task-to-task dependency information
+        # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
         start = datetime.datetime.now()
         for thing in things_todo:
@@ -153,7 +152,6 @@ class OEliteBaker:
                     if not runq.add_something(thing, task):
                         die("failed to add %s:%s to runqueue"%(thing, task))
                 except RecursiveDepends, e:
-                    #die("recursive dependency detected: %s %s"%(type(e), e))
                     die("dependency loop: %s\n\t--> %s"%(
                             e.args[1], "\n\t--> ".join(e.args[0])))
         if oebakery.DEBUG:
@@ -163,22 +161,26 @@ class OEliteBaker:
         # determining which tasks needs to be run
         # examing each task, computing it's hash, and checking if the
         # task has already been built, and with the same hash.
-        task = runq.get_hashabletask()
+        task = runq.get_metahashable_task()
         total = self.db.number_of_runq_tasks()
-        count = reuse = rebuild = partial = pristine = 0
+        count = 0
         start = datetime.datetime.now()
         while task:
-            progress_info("Checking task status", total, count)
+            progress_info("Calculating task metadata hashes", total, count)
             recipe_id = self.db.get_recipe_id(task=task)
             recipe = self.cookbook[recipe_id]
 
             datahash = recipe.datahash()
-
             srchash = recipe.srchash()
 
             dephashes = {}
-            for depend in runq.task_dependencies(task):
-                dephashes[depend] = self.db.get_runq_task_hash(depend)
+            task_dependencies = runq.task_dependencies(task)
+            for depend in task_dependencies[0]:
+                dephashes[depend] = self.db.get_runq_task_metahash(depend)
+            for depend in [d[0] for d in task_dependencies[1]]:
+                dephashes[depend] = self.db.get_runq_task_metahash(depend)
+            for depend in [d[0] for d in task_dependencies[2]]:
+                dephashes[depend] = self.db.get_runq_task_metahash(depend)
 
             import hashlib
 
@@ -190,60 +192,58 @@ class OEliteBaker:
             hasher.update(datahash)
             hasher.update(srchash)
             hasher.update(dephash)
-            buildhash = hasher.hexdigest()
-            self.buildhash[task] = buildhash
+            metahash = hasher.hexdigest()
 
             recipe_name = self.db.get_recipe_name(recipe_id)
             task_name = self.db.get_task(task=task)
-            #debug("datahash=%s srchash=%s dephash=%s buildhash=%s %d %s:%s"%(
-            #        datahash, srchash, dephash, buildhash, task, recipe_name, task_name))
 
-            self.db.set_runq_task_hash(task, buildhash)
+            self.db.set_runq_task_metahash(task, metahash)
 
-            # check for existing build, ie. read the task hash file
-            # if it exists, but is empty, a partial build is assume
-            # if it exists, and hash matches, the task is considered done
-            # if it exists, but hash does not match, task must be rebuilt
-            status = self.get_task_status(task, recipe.data, buildhash)
-            recipe_name = self.db.get_recipe({"task": task})
-            task_name = self.db.get_task(task=task)
-            if status == 0:
-                # task has been built with matching hash
-                debug("reusing task %d %s:%s"%(task, recipe_name, task_name))
-                runq.mark_done(task, delete=False)
-                reuse += 1
-                pass
-            elif status == 1:
-                # task built, but with different hash
-                debug("task needs to be rebuild  %d %s:%s"%(task, recipe_name, task_name))
-                rebuild += 1
-                pass
-            elif status == 2:
-                # task partial built
-                debug("partially built task %d %s:%s"%(task, recipe_name, task_name))
-                partial += 1
-                pass
+            (mtime, tmphash) = self.read_task_stamp(task, recipe.data)
+            if not mtime:
+                self.db.set_runq_task_build(task)
             else:
-                # task has not been built
-                debug("pristine task %d %s:%s"%(task, recipe_name, task_name))
-                pristine += 1
-                pass
+                self.db.set_runq_task_stamp(task, mtime, tmphash)
 
-            task = runq.get_hashabletask()
+            task = runq.get_metahashable_task()
 
             count += 1
             continue
 
-        progress_info("Checking task status", total, count)
-        build = rebuild + partial + pristine
-        info("%d tasks to run, %d tasks does not have to be run"%(
-                build, reuse))
+        progress_info("Calculating task metadata hashes", total, count)
+
         if oebakery.DEBUG:
-            timing_info("Task checking", start)
+            timing_info("Calculation task metadata hashes", start)
 
-        self.db.prune_done_tasks()
+        if count != total:
+            die("Circular dependencies I presume.  Add more debug info!")
 
-        #runq.update_tasks()
+        self.db.set_runq_task_build_on_retired_tasks()
+        self.db.set_runq_task_build_on_hashdiff()
+        self.db.propagate_runq_task_build()
+
+        build_count = self.db.set_runq_buildhash_for_build_tasks()
+        nobuild_count = self.db.set_runq_buildhash_for_nobuild_tasks()
+        if (build_count + nobuild_count) != total:
+            die("build_count + nobuild_count != total")
+
+        # FIXME: this is where prebake support should be added.
+        # 1. check all runq_depend's with depend_package or
+        # depend_rpackage and set prebake flag if the package is
+        # available for the  buildhash (either in tmpdir or an external
+        # prebake repository)
+        # 2. delete all runq_depend's where all runq_depend rows with
+        # the same depend_task has prebake flag set
+
+        self.db.mark_primary_runq_depends()
+        self.db.prune_runq_depends_nobuild()
+        self.db.prune_runq_depends_with_nobody_depending_on_it()
+        self.db.prune_runq_tasks()
+
+        remaining = self.db.number_of_runq_tasks()
+        info("%d tasks needs to be built"%remaining)
+
+        #self.db.print_runq_tasks()
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
@@ -256,20 +256,20 @@ class OEliteBaker:
             task_name = self.db.get_task(task=task)
             debug("")
             debug("Preparing %s:%s"%(recipe_name, task_name))
-            recipe.prepare(runq)
+            data = recipe.prepare(runq, task)
             info("Running %s:%s"%(recipe_name, task_name))
-            self.task_build_started(task, recipe.data)
-            if exec_func(task_name, recipe.data):
-                self.task_build_done(task, recipe.data, self.buildhash[task])
+            self.task_build_started(task, data)
+            if exec_func(task_name, data):
+                self.task_build_done(task, data,
+                                     self.db.get_runq_buildhash(task))
                 runq.mark_done(task)
             else:
                 warn("%s:%s failed"%(recipe_name, task_name))
-                self.task_build_failed(task, recipe.data)
+                self.task_build_failed(task, data)
                 # FIXME: support command-line option to abort on first
                 # failed task
             task = runq.get_runabletask()
-        if build:
-            timing_info("Build", start)
+        timing_info("Build", start)
 
         return 0
 
@@ -294,12 +294,6 @@ class OEliteBaker:
             e.print_exception(type(e), e, True)
 
         return
-
-    # parse conf/bitbake.conf
-
-    # collect all available .bb files
-
-    # parse all .bb files
 
 
     def list_bbrecipes(self):
@@ -345,41 +339,41 @@ class OEliteBaker:
         return bb.parse.handle(path, self.config.createCopy())
 
 
-    def hashfile_path(self, task, data):
+    def stampfile_path(self, task, data):
         task_name = self.db.get_task(task=task)
-        hashbase = data.getVar("HASHDIR", True)
-        return (hashbase, os.path.join(hashbase, task_name))
+        stampdir = data.getVar("STAMPDIR", True)
+        return (stampdir, os.path.join(stampdir, task_name))
 
 
-    def get_task_status(self, task, data, buildhash):
-        hashpath = self.hashfile_path(task, data)[1]
-        if not os.path.exists(hashpath):
-            return 3
-        if not os.path.isfile(hashpath):
-            die("bad hash file: %s"%(hashpath))
-        if os.path.getsize(hashpath) == 0:
-            return 2
-        with open(hashpath, "r") as hashfile:
-            oldhash = hashfile.read()
-        if oldhash != buildhash:
-            return 1
-        return 0
+    # return (mtime, hash) from stamp file
+    def read_task_stamp(self, task, data):
+        stampfile = self.stampfile_path(task, data)[1]
+        if not os.path.exists(stampfile):
+            return (None, None)
+        if not os.path.isfile(stampfile):
+            die("bad hash file: %s"%(stampfile))
+        if os.path.getsize(stampfile) == 0:
+            return (None, None)
+        mtime = os.stat(stampfile).st_mtime
+        with open(stampfile, "r") as stampfile:
+            tmphash = stampfile.read()
+        return (mtime, tmphash)
 
 
     def task_build_started(self, task, data):
-        (hashdir, hashfile) = self.hashfile_path(task, data)
-        if not os.path.exists(hashdir):
-            os.makedirs(hashdir)
-        open(hashfile, "w").close()
+        (stampdir, stampfile) = self.stampfile_path(task, data)
+        if not os.path.exists(stampdir):
+            os.makedirs(stampdir)
+        open(stampfile, "w").close()
         return
 
 
     def task_build_done(self, task, data, buildhash):
-        (hashdir, hashfile) = self.hashfile_path(task, data)
-        if not os.path.exists(hashdir):
-            os.makedirs(hashdir)
-        with open(hashfile, "w") as _hashfile:
-            oldhash = _hashfile.write(buildhash)
+        (stampdir, stampfile) = self.stampfile_path(task, data)
+        if not os.path.exists(stampdir):
+            os.makedirs(stampdir)
+        with open(stampfile, "w") as _stampfile:
+            oldhash = _stampfile.write(buildhash)
         return
 
 
@@ -388,7 +382,7 @@ class OEliteBaker:
 
 
     def task_cleaned(self, task, data):
-        hashpath = self.hashfile_path(task, data)
+        hashpath = self.stampfile_path(task, data)
         if os.path.exists(hashpath):
             os.remove(hashpath)
 

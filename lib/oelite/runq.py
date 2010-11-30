@@ -5,14 +5,19 @@ import sys, os, copy
 class OEliteRunQueue:
 
 
-    def __init__(self, db, cookbook, config):
+    def __init__(self, db, cookbook, config, rebuild=None, relax=None,
+                 depth_first=False):
         self.db = db
         self.cookbook = cookbook
         self.config = config
+        # 1: --rebuild, 2: --rebuildall, 3: --reallyrebuildall
+        self.rebuild = rebuild
+        self.relax = relax
+        self.depth_first = depth_first
         self._assume_provided = (self.config.getVar("ASSUME_PROVIDED", 1)
                                 or "").split()
         self.runable = []
-        self.hashable = []
+        self.metahashable = []
         return
 
 
@@ -64,22 +69,59 @@ class OEliteRunQueue:
 
 
     def _add_recipe(self, recipe_id, task_name):
-        task = self.db.get_task_id(recipe_id, task_name)
-        if not task:
+        primary_recipe_id = recipe_id
+        primary_task = self.db.get_task_id(recipe_id, task_name)
+        if not primary_task:
             raise NoSuchTask("recipe %s do not have a %s task"%(
                     self.db.get_recipe_name(recipe_id),
                     self.db.get_task(task_name)))
 
         alltasks = set()
-        addedtasks = set([task])
+        addedtasks = set([primary_task])
 
         while addedtasks:
             self.db.add_runq_tasks(addedtasks)
+
             alltasks.update(addedtasks)
             newtasks = set()
             for task in addedtasks:
+
+                recipe_id = self.db.recipe_id({"task": task})
+                recipe_data = self.cookbook[recipe_id].data
+
+                if recipe_id == primary_recipe_id:
+                    is_primary_recipe = True
+                else:
+                    is_primary_recipe = False
+
+                # set rebuild flag (based on
+                # --rebuild/--rebuildall/--reallyrebuildall)
+                if ((self.rebuild == 1 and is_primary_recipe) or
+                    (self.rebuild == 2 and
+                     (is_primary_recipe or
+                      recipe_data.getVar("REBUILDALL_SKIP") != "1")) or
+                    (self.rebuild == 3)):
+                    self.db.runq_set_build(task)
+
+                # set relax flag (based on --sloppy/--relaxed)
+                if ((self.relax == 2 and is_primary_recipe or
+                    (self.relax == 1 and
+                     (not is_primary and recipe_data.getVar("RELAXED"))))):
+                    self.db.runq_set_relax(task)
+
                 try:
-                    newtasks.update(self.task_dependencies(task))
+                    # task_dependencies should return tuple:
+                    # task_depends: list of task_id's
+                    # package_depends: list of (task_id, package_id)
+                    # rpackage_depends: list of (task_id, package_id)
+                    (task_depends, package_depends, rpackage_depends) = \
+                        self.task_dependencies(task)
+                    self.db.add_runq_task_depends(task, task_depends)
+                    self.db.add_runq_package_depends(task, package_depends)
+                    self.db.add_runq_rpackage_depends(task, rpackage_depends)
+                    newtasks.update(task_depends)
+                    newtasks.update([d[0] for d in package_depends])
+                    newtasks.update([d[0] for d in rpackage_depends])
                 except RecursiveDepends, e:
                     recipe = self.db.get_recipe_name({"task":task})
                     task = self.db.get_task(task=task)
@@ -87,6 +129,7 @@ class OEliteRunQueue:
 
             addedtasks = newtasks.difference(alltasks)
 
+        self.db.set_runq_task_primary(primary_task)
         return True
 
 
@@ -96,15 +139,35 @@ class OEliteRunQueue:
         # add recipe-internal task parents
         # (ie. addtask X before Y after Z)
         parents = self.db.get_task_parents(task) or []
-        tasks = set(parents)
+        task_depends = set(parents)
 
-        # helper to add multipe tasks of multipe recipes
-        def add_tasks(task_names, recipes):
+        package_depends = set()
+        rpackage_depends = set()
+
+        # helper to add multipe task_depends
+        def add_task_depends(task_names, recipes):
             for task_name in task_names:
                 for recipe in recipes:
                     task = self.db.get_task_id(recipe, task_name)
                     if task:
-                        tasks.add(task)
+                        task_depends.add(task)
+                    else:
+                        debug("not adding unsupported task %s:%s"%(
+                                recipe, task_name))
+
+        # helpers to add multipe package_depends / rpackage_depends
+        def add_package_depends(task_names, depends):
+            return _add_package_depends(task_names, depends, package_depends)
+
+        def add_rpackage_depends(task_names, rdepends):
+            return _add_package_depends(task_names, rdepends, rpackage_depends)
+
+        def _add_package_depends(task_names, depends, package_depends):
+            for task_name in task_names:
+                for (recipe, package) in depends:
+                    task = self.db.get_task_id(recipe, task_name)
+                    if task:
+                        package_depends.add((task, package))
                     else:
                         debug("not adding unsupported task %s:%s"%(
                                 recipe, task_name))
@@ -113,46 +176,49 @@ class OEliteRunQueue:
         # (ie. do_sometask[deptask] = "do_someothertask")
         deptasks = self.db.get_task_deptasks(task)
         if deptasks:
-            # get distinct list of recipes providing ${DEPENDS}
-            (recipes, packages) = self.get_depends(recipe_id)
-            # add each deptask of each recipe
-            add_task(deptasks, recipes)
+            # get list of (recipe, package) providing ${DEPENDS}
+            depends = self.get_depends(recipe_id)
+            # add each deptask for each (recipe, package)
+            add_package_depends(deptasks, depends)
 
         # add rdeptask dependencies
         # (ie. do_sometask[rdeptask] = "do_someothertask")
         rdeptasks = self.db.get_task_rdeptasks(task)
         if rdeptasks:
-            # get distinct list of recipes providing ${RDEPENDS}
-            (recipes, packages) = self.get_rdepends(recipe_id)
-            # add each rdeptask of each recipe
-            add_tasks(rdeptasks, recipes)
+            # get list of (recipe, package) providing ${RDEPENDS}
+            rdepends = self.get_rdepends(recipe_id)
+            # add each rdeptask for each (recipe, package)
+            add_rpackage_depends(rdeptasks, rdepends)
 
         # add recdeptask dependencies
         # (ie. do_sometask[recdeptask] = "do_someothertask")
         recdeptasks = self.db.get_task_recdeptasks(task)
         if recdeptasks:
-            # get cumulative and distinct list of recipes providing
+            # get cumulative list of (recipe, package) providing
             # ${DEPENDS} and recursively the corresponding
             # ${PACKAGE_DEPENDS_*}
-            (recipes, packages) = self.get_depends(recipe_id, recursive=True)
-            # add each recdeptask of each recipe
-            add_tasks(recdeptasks, recipes)
+            depends = self.get_depends(recipe_id, recursive=True)
+            # add each recdeptask for each (recipe, package)
+            add_package_depends(recdeptasks, depends)
 
         # add recrdeptask dependencies
         # (ie. do_sometask[recrdeptask] = "do_someothertask")
         recrdeptasks = self.db.get_task_recrdeptasks(task)
         if recrdeptasks:
-            # get cumulative and distinct list of recipes providing
-            # ${DEPENDS} and recursively the corresponding
-            # ${PACKAGE_DEPENDS_*}
-            (recipes, packages) = self.get_rdepends(recipe_id, recursive=True)
-            # add each recdeptask of each recipe
-            add_tasks(recrdeptasks, recipes)
+            # get cumulative list of (recipe, package) providing
+            # ${RDEPENDS} and recursively the corresponding
+            # ${PACKAGE_RDEPENDS_*}
+            rdepends = self.get_rdepends(recipe_id, recursive=True)
+            # add each recdeptask of each (recipe, package)
+            add_rpackage_depends(recrdeptasks, rdepends)
 
         # add inter-task dependencies
         # (ie. do_sometask[depends] = "itemname:do_someothertask")
         taskdepends = self.db.get_task_depends(task) or []
         for taskdepend in taskdepends:
+            task_name = self.db.get_task(task=task)
+            recipe_name = self.db.get_recipe_name(recipe_id)
+            raise Exception("OE-lite does not support inter-task dependencies! %s:%s"%(recipe_name, task_name))
             if self.assume_provided(taskdepend[0]):
                 #debug("ASSUME_PROVIDED %s"%(
                 #        self.db.get_item(taskdepend[0])))
@@ -160,21 +226,23 @@ class OEliteRunQueue:
             (recipe, package) = self.get_recipe_provider(taskdepend[0])
             if not recipe:
                 raise NoProvider(taskdepend[0])
-            add_tasks([taskdepend[1]], [recipe])
+            add_task_depends([taskdepend[1]], [recipe])
 
         # can self references occur?
-        if task in tasks:
-            die("self reference for task %s %s"%(
-                    task, self.db.get_task(task=task)))
+        #if task in tasks:
+        #    die("self reference for task %s %s"%(
+        #            task, self.db.get_task(task=task)))
 
         # we are _not_ checking for multiple providers of the same
         # thing, as it is considered (in theory) to be a valid
         # use-case
 
         # add task dependency information to runq db
-        self.db.add_runq_taskdepends(task, tasks)
+        self.db.add_runq_task_depends(task, task_depends)
+        self.db.add_runq_package_depends(task, package_depends)
+        self.db.add_runq_rpackage_depends(task, rpackage_depends)
 
-        return tasks
+        return (task_depends, package_depends, rpackage_depends)
 
 
     def get_depends(self, recipe, recursive=False):
@@ -219,15 +287,33 @@ class OEliteRunQueue:
             item_name = self_db_get_item(item)
             if self.assume_provided(item_name):
                 #debug("ASSUME_PROVIDED %s"%(item_name))
-                return ([], [])
+                return set([])
             (recipe, package) = self_get_recipe_provider(item)
 
             # detect circular package dependencies
             if package in recursion_path[0]:
-                debug("circular dependency while resolving %s"%(item_name))
-                #recipe_name = self.db.get_recipe_name(recipe)
-                package_name = self.db.get_package(package)[0]
+                # actually, this might not be a bug/problem.......
+                # Fx: package X rdepends on package Y, and package Y
+                # rdepends on package X. As long as X and Y can be
+                # built, anyone rdepend'ing on either X or Y will just
+                # get both.  Bad circular dependencies must be
+                # detected at runq task level.  If we cannot build a
+                # recipe because of circular task dependencies, it is
+                # clearly a bug.  Improve runq detection of this by
+                # always simulating runq execution before starting,
+                # and checking that all tasks can be completed, and if
+                # some tasks are unbuildable, print out remaining
+                # tasks and their dependencies.
 
+                # on the other hand.... circular dependencies can be
+                # arbitrarely complex, and it is pretty hard to handle
+                # them generally, so better refuse to handle any of
+                # them, to avoid having to add more and more complex
+                # code to handle growingly sophisticated types of
+                # circular dependencies.
+
+                err("circular dependency while resolving %s"%(item_name))
+                package_name = self.db.get_package(package)[0]
                 depends = []
                 recursion_path[0].append(package)
                 recursion_path[1].append(item)
@@ -241,45 +327,31 @@ class OEliteRunQueue:
                         depends.append("%s:%s"%(depend_package, depend_item))
                 raise RecursiveDepends(depends)
 
-            # FIXME: detect circular recipe dependencies. remember to
-            # handle inter-package recipe dependencies, ie. allow
-            # recipe in recursion_path if it is the last recipe in the
-            # path
+            # Recipe/task based circular dependencies are detected
+            # later on when the entire runq has been constructed
 
             recursion_path[0].append(package)
             recursion_path[1].append(item)
 
-            # cache recdepends tuple of list: (recipes, packages)
+            # cache recdepends list of (recipe, package)
             recdepends = self_db_get_runq_recdepends(package)
-            if recdepends[0] or recdepends[1]:
-                recdepends[0].append(recipe)
-                recdepends[1].append(package)
+            if recdepends:
+                recdepends.append((recipe, package))
                 return recdepends
 
-            recipes = set()
-            packages = set()
+            recdepends = set()
 
             depends = self_db_get_package_depends(package)
             if depends:
-                depender = self.db.get_package(package)[0]
-                dependee = []
-                for d in depends:
-                    dependee.append(self_db_get_item(d))
-            if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
-                    recdepends = recursive_resolve(depend, _recursion_path)
-                    if recdepends[0]:
-                        recipes.update(recdepends[0])
-                    if recdepends[1]:
-                        packages.update(recdepends[1])
+                    _recdepends = recursive_resolve(depend, _recursion_path)
+                    recdepends.update(_recdepends)
 
-            self_db_set_runq_recdepends(package, recipes, packages)
+            self_db_set_runq_recdepends(package, recdepends)
 
-            recipes.add(recipe)
-            packages.add(package)
-
-            return (recipes, packages)
+            recdepends.update([(recipe, package)])
+            return recdepends
 
         if recursive:
             resolve = recursive_resolve
@@ -288,17 +360,13 @@ class OEliteRunQueue:
         
         depends = self_db_get_recipe_depends(recipe) or []
 
-        recipes = set()
-        packages = set()
+        recdepends = set()
 
         for depend in depends:
-            recdepends = resolve(depend, ([], []))
-            if recdepends[0]:
-                recipes.update(recdepends[0])
-            if recdepends[1]:
-                packages.update(recdepends[1])
+            _recdepends = resolve(depend, ([], []))
+            recdepends.update(_recdepends)
 
-        return (recipes, packages)
+        return recdepends
 
 
     def get_recipe_provider(self, item):
@@ -425,46 +493,6 @@ class OEliteRunQueue:
         raise NoProvider(item)
 
 
-    def update_tasks(self):
-
-        return
-
-        # start from leaf dependencies, and then next level and so on,
-        # and for each dependency determine if it needs to be rebuild,
-        # based on recipe checksum, src checksum, and dependency
-        # checksum.  when a dependency has a different checksum, all
-        # tasks that depend on it (recursively) will also have
-        # different checksum because of the dependency checksum and
-        # will therefore have to be rebuilt
-
-
-        # on each iteration on the above, the dependency tree must be
-        # updated so the next iteration can find the next dependencies
-        # to check.  maintain (in a relation in db) a list of
-        # still-not-checked dependency checksums. at the end of each
-        # iteration, the just computed dependency checksums is deleted
-        # from this list, and a select query can then find the tasks
-        # that now have 0 missing dependency checksums and have not
-        # been checked yet (which should be kept in a "boolean" db
-        # relation)
-
-        tasks = self.db.get_runq_leaftasks()
-        #"SELECT task FROM runq_taskdepend WHERE depend IS NULL"
-
-        while tasks:
-            for task in tasks:
-                self.update_task(task)
-            tasks = self.db.get_runq_hashabletasks()
-            # "SELECT task FROM runq_taskdepends WHERE hashed_depends=total_depends"
-
-        # check if there are still tasks that are not hashed.  if this
-        # is the case, the metadata is broken (ie. circular
-        # dependencies), and this function should return False and
-        # developer should debug/fix the metadata
-
-        return
-
-
     def update_task(self, task):
 
         get_recipe_datahash(task.recipe)
@@ -501,7 +529,10 @@ class OEliteRunQueue:
     def get_runabletask(self):
         newrunable = self.db.get_readytasks()
         if newrunable:
-            self.runable = newrunable + self.runable
+            if self.depth_first:
+                self.runable += newrunable
+            else:
+                self.runable = newrunable + self.runable
             for task in newrunable:
                 self.db.set_runq_task_pending(task)
         if not self.runable:
@@ -510,12 +541,12 @@ class OEliteRunQueue:
         return task
 
 
-    def get_hashabletask(self):
-        if not self.hashable:
-            self.hashable = list(self.db.get_hashabletasks())
-        if not self.hashable:
+    def get_metahashable_task(self):
+        if not self.metahashable:
+            self.metahashable = list(self.db.get_metahashable_tasks())
+        if not self.metahashable:
             return None
-        return self.hashable.pop()
+        return self.metahashable.pop()
 
 
     def mark_done(self, task, delete=True):

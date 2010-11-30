@@ -103,8 +103,8 @@ class OEliteDB:
 
         c.execute("CREATE TABLE IF NOT EXISTS task_depend ( "
                   "task INTEGER, "
-                  "depend_item INTEGER, "
-                  "depend_task INTEGER )")
+                  "parent_item INTEGER, "
+                  "parent_task INTEGER )")
 
         c.execute("CREATE TABLE IF NOT EXISTS task_nostamp ( "
                   "task INTEGER UNIQUE )")
@@ -592,20 +592,20 @@ class OEliteDB:
             "SELECT recrdeptask FROM task_recrdeptask WHERE task=?", (task,)))
 
 
-    def add_task_depend(self, task, depend_item, depend_task):
+    def add_task_depend(self, task, parent_item, parent_task):
         task_id = self.task_id(task)
-        depend_item_id = self.item_id(depend_item)
-        depend_task_id = self.task_name_id(depend_task)
+        parent_item_id = self.item_id(parent_item)
+        parent_task_id = self.task_name_id(parent_task)
         self.db.execute(
-            "INSERT INTO task_depend (task, depend_item, depend_task) "
-            "VALUES (?, ?, ?)", (task_id, depend_item_id, depend_task_id))
+            "INSERT INTO task_depend (task, parent_item, parent_task) "
+            "VALUES (?, ?, ?)", (task_id, parent_item_id, parent_task_id))
         return
 
 
     def get_task_depends(self, task):
         task = self.task_id(task)
         return self.db.execute(
-            "SELECT depend_item AS item, depend_task AS task "
+            "SELECT parent_item AS item, parent_task AS task "
             "FROM task_depend WHERE task=?", (task,)).fetchall()
 
 
@@ -636,60 +636,74 @@ class OEliteDB:
 
         c.execute("CREATE TABLE IF NOT EXISTS runq_task ( "
                   "task INTEGER, "
-                  "hash TEXT, "
-                  "dephash TEXT, "
-                  "datahash TEXT, "
-                  "srchash TEXT, " # srchash only needs to be
-                                   # considered in do_fetch, as it
-                                   # will then propagate through the
-                                   # dependency chain
-                  "status INTEGER )")
+                  "prime INTEGER, "
+                  "build INTEGER, "
+                  "relax INTEGER, "
+                  "status INTEGER, "
+                  "metahash TEXT, "
+                  "mtime REAL, "
+                  "tmphash TEXT, "
+                  "buildhash TEXT, "
+                  "UNIQUE (task) ON CONFLICT IGNORE )")
 
-        c.execute("CREATE TABLE IF NOT EXISTS runq_taskdepend ( "
+        c.execute("CREATE TABLE IF NOT EXISTS runq_depend ( "
+                  "id INTEGER PRIMARY KEY, "
                   "task INTEGER, "
-                  "depend INTEGER )") # depend is task id
+                  "prime INTEGER, "
+                  "parent_task INTEGER, "
+                  "UNIQUE (task, parent_task) ON CONFLICT IGNORE )")
 
-        c.execute("CREATE TABLE IF NOT EXISTS runq_recdepend_recipe ( "
-                  "package INTEGER, "
-                  "depend INTEGER )") # depend is recipe id
+        c.execute("CREATE TABLE IF NOT EXISTS runq_package_depend ( "
+                  "runq_depend INTEGER NOT NULL, "
+                  "package INTEGER NOT NULL, "
+                  "UNIQUE (runq_depend, package) ON CONFLICT IGNORE )")
 
-        c.execute("CREATE TABLE IF NOT EXISTS runq_recdepend_package ( "
-                  "package INTEGER, "
-                  "depend INTEGER )") # depend is package id
+        c.execute("CREATE TABLE IF NOT EXISTS runq_rpackage_depend ( "
+                  "runq_depend INTEGER NOT NULL, "
+                  "package INTEGER NOT NULL, "
+                  "UNIQUE (runq_depend, package) ON CONFLICT IGNORE )")
 
-        c.execute("CREATE TABLE IF NOT EXISTS runq_recrdepend_recipe ( "
+        c.execute("CREATE TABLE IF NOT EXISTS runq_recdepend ( "
                   "package INTEGER, "
-                  "rdepend INTEGER )") # rdepend is recipe id
+                  "parent_recipe INTEGER, "
+                  "parent_package INTEGER )")
 
-        c.execute("CREATE TABLE IF NOT EXISTS runq_recrdepend_package ( "
+        c.execute("CREATE TABLE IF NOT EXISTS runq_recrdepend ( "
                   "package INTEGER, "
-                  "rdepend INTEGER )") # rdepend is package id
+                  "parent_recipe INTEGER, "
+                  "parent_package INTEGER )")
 
         return
 
+
+    def print_runq_tasks(self):
+        runq_tasks = self.db.execute(
+            "SELECT prime,build,status,relax,task from runq_task").fetchall()
+        for row in runq_tasks:
+            for col in row:
+                print "%s "%(col),
+            print "%s:%s"%(self.get_recipe_name({"task":row[4]}),
+                           self.get_task(task=row[4]))
+        return
+
+
+    def print_runq_depends(self):
+        runq_depends = self.db.execute(
+            "SELECT prime,task,parent_task,parent_package,parent_rpackage FROM runq_depend").fetchall()
+        print "HEST! %d"%(len(runq_depends))
+        for row in runq_depends:
+            prime = row[0] or 0
+            print "%d %4d -> %4d %4s %4s  %s:%s -> %s:%s"%(
+                prime, row[1], row[2], row[3], row[4],
+                self.get_recipe_name({"task":row[1]}),
+                self.get_task(task=row[1]),
+                self.get_recipe_name({"task":row[2]}),
+                self.get_task(task=row[2]))
+        return
 
     def number_of_runq_tasks(self):
         return flatten_single_value(self.db.execute(
                 "SELECT COUNT(*) FROM runq_task"))
-
-
-    def set_runq_provider(self, item, package):
-        item = self.item_id(item)
-        package = self.package_id(package)
-        self.db.execute(
-            "INSERT INTO runq_provider (item, package) VALUES (?, ?)",
-            (item, package)).fetchone()
-        return
-
-
-    def get_runq_provider(self, item):
-        item = self.item_id(item)
-        runq_provider = self.db.execute(
-            "SELECT package FROM runq_provider WHERE item=?",
-            (item,)).fetchone()
-        if runq_provider is None:
-            return None
-        return runq_provider[0]
 
 
     def get_providers(self, item, recipe=None, version=None):
@@ -726,23 +740,23 @@ class OEliteDB:
         return providers.fetchall()
 
 
-    def set_runq_rprovider(self, ritem, package):
-        ritem = self.ritem_id(ritem)
+    def set_runq_provider(self, item, package):
+        item = self.item_id(item)
         package = self.package_id(package)
         self.db.execute(
-            "INSERT INTO runq_rprovider (ritem, package) VALUES (?, ?)",
-            (ritem, package)).fetchone()
+            "INSERT INTO runq_provider (item, package) VALUES (?, ?)",
+            (item, package)).fetchone()
         return
 
 
-    def get_runq_rprovider(self, ritem):
-        ritem = self.ritem_id(ritem)
-        runq_rprovider = self.db.execute(
-            "SELECT package FROM runq_rprovider WHERE ritem=?",
-            (ritem,)).fetchone()
-        if runq_rprovider is None:
+    def get_runq_provider(self, item):
+        item = self.item_id(item)
+        runq_provider = self.db.execute(
+            "SELECT package FROM runq_provider WHERE item=?",
+            (item,)).fetchone()
+        if runq_provider is None:
             return None
-        return runq_rprovider[0]
+        return runq_provider[0]
 
 
     def get_rproviders(self, ritem, recipe=None, version=None):
@@ -777,6 +791,25 @@ class OEliteDB:
         return rproviders.fetchall()
 
 
+    def set_runq_rprovider(self, ritem, package):
+        ritem = self.ritem_id(ritem)
+        package = self.package_id(package)
+        self.db.execute(
+            "INSERT INTO runq_rprovider (ritem, package) VALUES (?, ?)",
+            (ritem, package)).fetchone()
+        return
+
+
+    def get_runq_rprovider(self, ritem):
+        ritem = self.ritem_id(ritem)
+        runq_rprovider = self.db.execute(
+            "SELECT package FROM runq_rprovider WHERE ritem=?",
+            (ritem,)).fetchone()
+        if runq_rprovider is None:
+            return None
+        return runq_rprovider[0]
+
+
     def add_runq_task(self, task):
         task = self.task_id(task)
         self.db.execute(
@@ -785,124 +818,313 @@ class OEliteDB:
 
 
     def add_runq_tasks(self, tasks):
-        tasklist = []
-        for task in tasks:
-            tasklist.append((task,))
+        tasks = map(var_to_tuple, tasks)
         self.db.executemany(
-            "INSERT INTO runq_task (task) VALUES (?)", (tasklist))
+            "INSERT INTO runq_task (task) VALUES (?)", (tasks))
         return
 
 
-    def add_runq_taskdepend(self, task, depend):
+    def add_runq_depend(self, task, depend, package=None, rpackage=None):
         task = self.task_id(task)
         depend = self.task_id(depend)
-        self.db.execute(
-            "INSERT INTO runq_taskdepend (task, depend) VALUES (?, ?)",
-            (task, depend))
+        if package:
+            package = self.package_id(package)
+            self.db.execute(
+                "INSERT INTO runq_depend (task, parent_task) "
+                "VALUES (?, ?)", (task, depend))
+            self.db.execute(
+                "INSERT INTO runq_package_depend (runq_depend, package) "
+                "VALUES ("
+                "(SELECT id FROM runq_depend"
+                " WHERE task=? AND parent_task=?), ?)",
+                (task, depend, package))
+        elif rpackage:
+            rpackage = self.package_id(rpackage)
+            self.db.execute(
+                "INSERT INTO runq_depend (task, parent_task) "
+                "VALUES (?, ?)", (task, depend))
+            self.db.execute(
+                "INSERT INTO runq_rpackage_depend (runq_depend, package) "
+                "VALUES ("
+                "(SELECT id FROM runq_depend"
+                " WHERE task=? AND parent_task=?), ?)",
+                (task, depend, package))
+        else:
+            self.db.execute(
+                "INSERT INTO runq_depend (task, parent_task) VALUES (?, ?)",
+                (task, depend))
         return
 
 
-    def add_runq_taskdepends(self, task, depends):
+    def add_runq_task_depends(self, task, depends):
         task = self.task_id(task)
-        if isinstance(depends, set):
-            depends = list(depends)
-        for i in range(len(depends)):
-            depends[i] = (task, self.task_id(depends[i]))
+        def task_tuple(depend):
+            return (task, depend)
+        values = map(task_tuple, depends)
         self.db.executemany(
-            "INSERT INTO runq_taskdepend (task, depend) VALUES (?, ?)",
-            depends)
+            "INSERT INTO runq_depend (task, parent_task) VALUES (?, ?)", values)
         return
 
 
-    def set_runq_recdepends(self, package, recipes, packages):
-        #debug("set_runq_recdepends package=%s recipes=%s packages=%s"%(
-        #        self.get_package(package),
-        #        self.get_recipes(recipes),
-        #        self.get_packages(packages)))
+    def add_runq_package_depends(self, task, depends):
+        if not depends:
+            return
+        task = self.task_id(task)
+        for depend in depends:
+            self.add_runq_depend(task, depend[0], package=depend[1])
+
+    def add_runq_rpackage_depends(self, task, depends):
+        if not depends:
+            return
+        task = self.task_id(task)
+        for depend in depends:
+            self.add_runq_depend(task, depend[0], rpackage=depend[1])
+
+
+    def set_runq_recdepends(self, package, recdepends):
+        return self._set_runq_recdepends(
+            package, recdepends, "runq_recdepend")
+
+    def set_runq_recrdepends(self, package, recrdepends):
+        return self._set_runq_recdepends(
+            package, recrdepends, "runq_recrdepend")
+
+    def _set_runq_recdepends(self, package, recdepends, runq_recdepend):
+        if not recdepends:
+            return
         package = self.package_id(package)
-        recipelist = []
-        for depend in recipes:
-            recipelist.append((package, depend))
+        def task_tuple(depend):
+            return (package, depend[0], depend[1])
+        recdepends = map(task_tuple, recdepends)
         self.db.executemany(
-            "INSERT INTO runq_recdepend_recipe (package, depend) "
-            "VALUES (?, ?)", recipelist)
-        packagelist = []
-        for depend in packages:
-            packagelist.append((package, depend))
-        self.db.executemany(
-            "INSERT INTO runq_recdepend_package (package, depend) "
-            "VALUES (?, ?)", packagelist)
+            "INSERT INTO %s "%(runq_recdepend) +
+            "(package, parent_recipe, parent_package) "
+            "VALUES (?, ?, ?)", recdepends)
         return
 
 
     def get_runq_recdepends(self, package):
-        package = self.package_id(package)
-        recipes = flatten_single_column_rows(self.db.execute(
-                "SELECT depend FROM runq_recdepend_recipe WHERE package=?",
-                (package,)))
-        packages = flatten_single_column_rows(self.db.execute(
-                "SELECT depend FROM runq_recdepend_package WHERE package=?",
-                (package,)))
-        #debug("get_runq_recdepends package=%s recipes=%s packages=%s"%(
-        #        self.get_package(package),
-        #        self.get_recipes(recipes),
-        #        self.get_packages(packages)))
-        return (recipes, packages)
-
-
-    def set_runq_recrdepends(self, package, recipes, packages):
-        #debug("set_runq_recdepends package=%s recipes=%s packages=%s"%(
-        #        self.get_package(package),
-        #        self.get_recipes(recipes),
-        #        self.get_packages(packages)))
-        package = self.package_id(package)
-        recipelist = []
-        for rdepend in recipes:
-            recipelist.append((package, rdepend))
-        self.db.executemany(
-            "INSERT INTO runq_recrdepend_recipe (package, rdepend) "
-            "VALUES (?, ?)", recipelist)
-        packagelist = []
-        for rdepend in packages:
-            packagelist.append((package, rdepend))
-        self.db.executemany(
-            "INSERT INTO runq_recrdepend_package (package, rdepend) "
-            "VALUES (?, ?)", packagelist)
-        return
-
+        return self._get_runq_recdepends(package, "runq_recdepend")
 
     def get_runq_recrdepends(self, package):
+        return self._get_runq_recdepends(package, "runq_recrdepend")
+
+    def _get_runq_recdepends(self, package, runq_recdepend):
         package = self.package_id(package)
-        recipes = flatten_single_column_rows(self.db.execute(
-                "SELECT rdepend FROM runq_recrdepend_recipe WHERE package=?",
-                (package,)))
-        packages = flatten_single_column_rows(self.db.execute(
-                "SELECT rdepend FROM runq_recrdepend_package WHERE package=?",
-                (package,)))
-        #debug("get_runq_recrdepends package=%s recipes=%s packages=%s"%(
-        #        self.get_package(package),
-        #        self.get_recipes(recipes),
-        #        self.get_packages(packages)))
-        return (recipes, packages)
+        return self.db.execute(
+                "SELECT parent_recipe, parent_package "
+                "FROM %s "%(runq_recdepend) +
+                "WHERE package=?", (package,)).fetchall()
+
+
+    def get_runq_package_depends(self, task):
+        task = self.task_id(task)
+        return flatten_single_column_rows(self.db.execute(
+            "SELECT runq_package_depend.package "
+            "FROM runq_package_depend,runq_depend "
+            "WHERE runq_depend.task=? "
+            "AND runq_package_depend.runq_depend=runq_depend.id", (task,)))
+
+
+    def get_runq_rpackage_depends(self, task):
+        task = self.task_id(task)
+        return flatten_single_column_rows(self.db.execute(
+            "SELECT runq_rpackage_depend.package "
+            "FROM runq_rpackage_depend,runq_depend "
+            "WHERE runq_depend.task=? "
+            "AND runq_rpackage_depend.runq_depend=runq_depend.id", (task,)))
 
 
     def get_readytasks(self):
         return flatten_single_column_rows(self.db.execute(
-                "SELECT task FROM runq_task WHERE NOT EXISTS "
-                "(SELECT * FROM runq_taskdepend"
-                " WHERE runq_taskdepend.task = runq_task.task) "
-                "AND status IS NULL"))
+                "SELECT task FROM runq_task "
+                "WHERE build=1 AND status IS NULL AND NOT EXISTS "
+                "(SELECT * FROM runq_depend"
+                " WHERE runq_depend.task=runq_task.task"
+                " AND runq_depend.parent_task IS NOT NULL"
+                " LIMIT 1"
+                ")"))
 
 
-    def get_hashabletasks(self):
+    def get_metahashable_tasks(self):
         return flatten_single_column_rows(self.db.execute(
                 "SELECT task FROM runq_task "
-                "WHERE hash IS NULL AND NOT EXISTS "
-                "(SELECT runq_taskdepend.task "
-                " FROM runq_taskdepend, runq_task AS runq_task_depend"
-                " WHERE runq_taskdepend.task = runq_task.task"
-                " AND runq_taskdepend.depend = runq_task_depend.task"
-                " AND runq_task_depend.hash IS NULL )"))
+                "WHERE metahash IS NULL AND NOT EXISTS "
+                "(SELECT runq_depend.task"
+                " FROM runq_depend, runq_task AS runq_task_depend"
+                " WHERE runq_depend.task = runq_task.task"
+                " AND runq_depend.parent_task = runq_task_depend.task"
+                " AND runq_task_depend.metahash IS NULL"
+                " LIMIT 1"
+                ")"))
+
+
+    def get_runq_buildhash(self, task):
+        task = self.task_id(task)
+        return flatten_single_value(self.db.execute(
+            "SELECT buildhash FROM runq_task WHERE task=?", (task,)))
+
+
+    def set_runq_buildhash_for_build_tasks(self):
+        rowcount = self.db.execute(
+            "UPDATE runq_task SET buildhash=metahash WHERE build=1"
+            ).rowcount
+        if rowcount == -1:
+            die("unable to determine rowcount in "
+                "set_runq_buildhash_for_build_tasks")
+        return rowcount
+
+
+    def set_runq_buildhash_for_nobuild_tasks(self):
+        rowcount = self.db.execute(
+            "UPDATE runq_task SET buildhash=tmphash WHERE build IS NULL"
+            ).rowcount
+        if rowcount == -1:
+            die("unable to determine rowcount in "
+                "set_runq_buildhash_for_nobuild_tasks")
+        return rowcount
+
+
+    def mark_primary_runq_depends(self):
+        rowcount = self.db.execute(
+            "UPDATE runq_depend SET prime=1 WHERE EXISTS "
+            "(SELECT * FROM runq_task"
+            " WHERE runq_task.prime=1 AND runq_task.task=runq_depend.task"
+            ")").rowcount
+        if rowcount == -1:
+            die("mark_primary_runq_depends did not work out")
+        return rowcount
+
+
+    def prune_runq_depends_nobuild(self):
+        c = self.db.cursor()
+        rowcount = 0
+        while c.rowcount:
+            c.execute(
+                "UPDATE runq_depend SET parent_task=NULL "
+                "WHERE parent_task IS NOT NULL AND NOT EXISTS "
+                "(SELECT * FROM runq_task"
+                " WHERE runq_task.build=1"
+                " AND runq_task.task=runq_depend.parent_task"
+                " LIMIT 1"
+                ")")
+            if rowcount == -1:
+                die("prune_runq_depends_nobuild did not work out")
+            rowcount += c.rowcount
+        if rowcount:
+            info("pruned %d dependencies that did not have to be rebuilt"%rowcount)
+        return rowcount
+
+
+    def prune_runq_depends_with_nobody_depending_on_it(self):
+        c = self.db.cursor()
+        rowcount = 0
+        while c.rowcount:
+            c.execute(
+                "DELETE FROM runq_depend "
+                "WHERE prime IS NULL AND NOT EXISTS "
+                "(SELECT * FROM runq_depend AS next_depend"
+                " WHERE next_depend.parent_task=runq_depend.task"
+                " LIMIT 1"
+                ")")
+            if rowcount == -1:
+                die("prune_runq_depends_with_no_depending_tasks did not work out")
+            rowcount += c.rowcount
+        if rowcount:
+            info("pruned %d dependencies which where not needed anyway"%rowcount)
+        return rowcount
+
+
+    def prune_runq_tasks(self):
+        rowcount = self.db.execute(
+            "DELETE FROM runq_task WHERE prime IS NULL AND NOT EXISTS "
+            "(SELECT * FROM runq_depend"
+            " WHERE runq_depend.parent_task=runq_task.task"
+            " LIMIT 1"
+            ")").rowcount
+        if rowcount == -1:
+            die("prune_runq_tasks did not work out")
+        if rowcount:
+            info("pruned %d tasks that did not have to be rebuilt"%rowcount)
+        return rowcount
+        
+
+    def set_runq_task_stamp(self, task, mtime, tmphash):
+        task = self.task_id(task)
+        self.db.execute(
+            "UPDATE runq_task SET mtime=?, tmphash=? WHERE task=?",
+            (mtime, tmphash, task))
+        return
+
+
+    def set_runq_task_build(self, task):
+        task = self.task_id(task)
+        self.db.execute(
+            "UPDATE runq_task SET build=1 WHERE task=?", (task,))
+        return
+
+
+    def set_runq_task_primary(self, task):
+        task = self.task_id(task)
+        debug("set_runq_task_primary %s"%(task))
+        self.db.execute(
+            "UPDATE runq_task SET prime=1 WHERE task=?", (task,))
+        return
+
+
+    def is_runq_task_primary(self, task):
+        task = self.task_id(task)
+        primary = self.db.execute(
+            "SELECT prime FROM runq_task WHERE task=?", (task,)).fetchone()
+        return primary[0] == 1
+
+
+    def set_runq_task_build_on_retired_tasks(self):
+        c = self.db.cursor()
+        rowcount = 0
+        while c.rowcount:
+            c.execute(
+                "UPDATE runq_task SET build=1 "
+                "WHERE build IS NULL AND EXISTS "
+                "(SELECT * FROM runq_depend, runq_task AS parent_task"
+                " WHERE runq_depend.task=runq_task.task"
+                " AND runq_depend.parent_task=parent_task.task"
+                " AND parent_task.mtime > runq_task.mtime)")
+            if rowcount == -1:
+                die("set_runq_task_build_on_retired_tasks did not work out")
+            rowcount += c.rowcount
+        info("set build flag on %d retired tasks"%(rowcount))
+        return
+
+
+    def set_runq_task_build_on_hashdiff(self):
+        c = self.db.cursor()
+        rowcount = 0
+        while c.rowcount:
+            c.execute(
+                "UPDATE runq_task SET build=1 "
+                "WHERE build IS NULL AND relax IS NULL AND tmphash != metahash")
+            rowcount += c.rowcount
+        info("set build flag on %d tasks with tmphash != metahash"%(rowcount))
+        #hest = c.execute("SELECT metahash,tmphash FROM runq_task").fetchall()
+        #info("hest=%s"%(repr(hest)))
+        return
+
+
+    def propagate_runq_task_build(self):
+        c = self.db.cursor()
+        rowcount = 0
+        while c.rowcount:
+            c.execute(
+                "UPDATE runq_task SET build=1 "
+                "WHERE build IS NULL AND EXISTS "
+                "(SELECT * FROM runq_depend, runq_task AS parent_task"
+                " WHERE runq_depend.task=runq_task.task"
+                " AND runq_depend.parent_task=parent_task.task"
+                " AND parent_task.build=1)")
+            rowcount += c.rowcount
+        info("set build flag on %d tasks due to propagation"%(rowcount))
+        return
 
 
     def _set_runq_task_status(self, task, status):
@@ -920,39 +1142,42 @@ class OEliteDB:
         return self._set_runq_task_status(task, 2)
 
 
-    def set_runq_task_failed(self, task):
-        return self._set_runq_task_status(task, 4)
-
-
     def set_runq_task_done(self, task, delete):
         task = self.task_id(task)
         self._set_runq_task_status(task, 3)
-        if delete:
-            self.db.execute(
-                "DELETE FROM runq_taskdepend WHERE depend=?", (task,))
+        #if delete:
+        #    self.db.execute(
+        #        "DELETE FROM runq_depend WHERE parent_task=?", (task,))
+        self.db.execute(
+            "UPDATE runq_depend SET parent_task=NULL "
+            "WHERE parent_task=?", (task,))
         return
+
+
+    def set_runq_task_failed(self, task):
+        return self._set_runq_task_status(task, -1)
 
 
     def prune_done_tasks(self):
         self.db.execute(
-            "DELETE FROM runq_taskdepend WHERE EXISTS "
+            "DELETE FROM runq_depend WHERE EXISTS "
             "( SELECT * FROM runq_task "
-            "WHERE runq_task.task = runq_taskdepend.depend AND status=3 )")
+            "WHERE runq_task.task = runq_depend.parent_task AND status=3 )")
         return
 
 
-    def get_runq_task_hash(self, task):
-        task = self.task_id(task)
-        return flatten_single_value(self.db.execute(
-            "SELECT hash FROM runq_task WHERE task=?", (task,)))
-
-
-    def set_runq_task_hash(self, task, dephash):
+    def set_runq_task_metahash(self, task, metahash):
         task = self.task_id(task)
         self.db.execute(
-            "UPDATE runq_task SET hash=? WHERE task=?",
-            (dephash, task))
+            "UPDATE runq_task SET metahash=? WHERE task=?",
+            (metahash, task))
         return
+
+
+    def get_runq_task_metahash(self, task):
+        task = self.task_id(task)
+        return flatten_single_value(self.db.execute(
+            "SELECT metahash FROM runq_task WHERE task=?", (task,)))
 
 
 
@@ -978,3 +1203,7 @@ def flatten_single_column_rows(rows):
     for i in range(len(rows)):
         rows[i] = rows[i][0]
     return rows
+
+
+def var_to_tuple(var):
+    return (var,)

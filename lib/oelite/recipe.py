@@ -133,52 +133,38 @@ class OEliteRecipe:
         return
 
 
-    def prepare(self, runq):
+    def prepare(self, runq, task):
+    
+        data = self.data.createCopy()
 
-        def set_pkgproviders(self_db_get_recipe_depends,
-                             self_db_get_runq_recdepends,
-                             self_db_get_runq_provider,
+        def set_pkgproviders(self_db_get_runq_package_depends,
                              PKGPROVIDER_, RECDEPENDS):
             recdepends = []
 
-            def set_pkgprovider(package,
-                                self_db_get_runq_provider,
-                                PKGPROVIDER_):
+            packages = self_db_get_runq_package_depends(task) or []
+            for package in packages:
+                if package in recdepends:
+                    continue
+
                 (package_name, package_arch) = self.db.get_package(package)
                 (recipe_name, recipe_version) = self.db.get_recipe(
                         {"package": package})
                 pkgprovider = "%s/%s-%s"%(
                         package_arch, package_name, recipe_version)
                 recdepends.append(package_name)
-                #debug("setting %s%s=%s"%(
-                #        PKGPROVIDER_, package_name, pkgprovider))
-                self.data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
-                return
+                debug("setting %s%s=%s"%(
+                        PKGPROVIDER_, package_name, pkgprovider))
+                data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
+    
+            data.setVar(RECDEPENDS, " ".join(recdepends))
 
-            depends = self_db_get_recipe_depends(self.id) or []
-            for item in depends:
-                if runq.assume_provided(item):
-                    continue
-                package = self_db_get_runq_provider(item)
-                set_pkgprovider(
-                    package, self_db_get_runq_provider, PKGPROVIDER_)
-                for package in (self_db_get_runq_recdepends(package)[1] or []):
-                    set_pkgprovider(
-                        package, self_db_get_runq_provider, PKGPROVIDER_)
-
-            self.data.setVar(RECDEPENDS, " ".join(recdepends))
-
-        # FIXME: only do this for recdeptasks
-        set_pkgproviders(self.db.get_recipe_depends,
-                         self.db.get_runq_recdepends,
-                         self.db.get_runq_provider,
+        set_pkgproviders(self.db.get_runq_package_depends,
                          "PKGPROVIDER_", "RECDEPENDS")
-
-        # FIXME: only do this for recrdeptasks
-        set_pkgproviders(self.db.get_recipe_rdepends,
-                         self.db.get_runq_recrdepends,
-                         self.db.get_runq_rprovider,
+    
+        set_pkgproviders(self.db.get_runq_rpackage_depends,
                          "PKGRPROVIDER_", "RECRDEPENDS")
+
+        return data
 
 
     def datahash(self):
