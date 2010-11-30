@@ -453,8 +453,8 @@ def patch_init(d):
 
 do_patch[dirs] = "${WORKDIR}"
 
-PATCHDEPENDENCY = "${PATCHTOOL}-native:do_populate_staging"
-do_patch[depends] = "${PATCHDEPENDENCY}"
+PATCH_DEPENDS = "${PATCHTOOL}-native"
+DEPENDS += "${PATCH_DEPENDS}"
 
 python patch_do_patch() {
 	import re
