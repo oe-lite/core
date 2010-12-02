@@ -40,6 +40,24 @@ def add_parser_options(parser):
     parser.add_option("-t", "--task",
                       action="store", type="str", default=None,
                       help="task(s) to do")
+
+    parser.add_option("--rebuild",
+                      action="append_const", dest="rebuild", const="1",
+                      help="rebuild specified recipes")
+    parser.add_option("--rebuildall",
+                      action="append_const", dest="rebuild", const="2",
+                      help="rebuild specified recipes and all dependencies (except cross and native)")
+    parser.add_option("--reallyrebuildall",
+                      action="append_const", dest="rebuild", const="3",
+                      help="rebuild specified recipes and all dependencies")
+
+    parser.add_option("--relaxed",
+                      action="append_const", dest="relax", const="1",
+                      help="don't rebuild ${RELAXED} recipes because of metadata changes")
+    parser.add_option("--sloppy",
+                      action="append_const", dest="relax", const="2",
+                      help="don't rebuild dependencies because of metadata changes")
+
     return
 
 
@@ -85,6 +103,16 @@ class OEliteBaker:
             self.things_todo = self.config.getVar("BB_DEFAULT_THING", 1).split()
         else:
             self.things_todo = [ "base-rootfs" ]
+
+        if options.rebuild:
+            options.rebuild = max(options.rebuild)
+        else:
+            options.rebuild = None
+        if options.relax:
+            options.relax = max(options.relax)
+        else:
+            options.relax = None
+        self.options = options
 
         self.appendlist = {}
         self.db = OEliteDB()
