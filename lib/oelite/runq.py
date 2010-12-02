@@ -443,7 +443,7 @@ class OEliteRunQueue:
                 vercmp = bb.utils.vercmp_part(
                     latest[providers[i][1]][0][2], providers[i][2])
                 if vercmp < 0:
-                    latest = [ providers[i] ]
+                    latest[providers[i][1]] = [ providers[i] ]
                 elif vercmp == 0:
                     latest[providers[i][1]].append(providers[i])
             if len(latest) == 1:
