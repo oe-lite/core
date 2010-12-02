@@ -200,6 +200,12 @@ class OEliteBaker:
             recipe_id = self.db.get_recipe_id(task=task)
             recipe = self.cookbook[recipe_id]
 
+            if self.db.is_task_nostamp(task):
+                self.db.set_runq_task_metahash(task, "0")
+                task = runq.get_metahashable_task()
+                count += 1
+                continue
+            
             datahash = recipe.datahash()
             srchash = recipe.srchash()
 
@@ -248,6 +254,7 @@ class OEliteBaker:
         if count != total:
             die("Circular dependencies I presume.  Add more debug info!")
 
+        self.db.set_runq_task_build_on_nostamp_tasks()
         self.db.set_runq_task_build_on_retired_tasks()
         self.db.set_runq_task_build_on_hashdiff()
         self.db.propagate_runq_task_build()

@@ -1079,6 +1079,18 @@ class OEliteDB:
         return primary[0] == 1
 
 
+    def set_runq_task_build_on_nostamp_tasks(self):
+        rowcount = self.db.execute(
+            "UPDATE runq_task SET build=1 "
+            "WHERE build IS NULL AND EXISTS "
+            "(SELECT * FROM task_nostamp"
+            " WHERE task_nostamp.task=runq_task.task)").rowcount
+        if rowcount == -1:
+            die("set_runq_task_build_on_nostamp_tasks did not work out")
+        info("set build flag on %d nostamp tasks"%(rowcount))
+        return
+
+
     def set_runq_task_build_on_retired_tasks(self):
         c = self.db.cursor()
         rowcount = 0
