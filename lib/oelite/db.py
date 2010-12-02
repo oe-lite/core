@@ -1064,6 +1064,13 @@ class OEliteDB:
         return
 
 
+    def set_runq_task_relax(self, task):
+        task = self.task_id(task)
+        self.db.execute(
+            "UPDATE runq_task SET build=1 WHERE task=?", (task,))
+        return
+
+
     def set_runq_task_primary(self, task):
         task = self.task_id(task)
         self.db.execute(

@@ -126,3 +126,6 @@ def canadian_fixup_package_arch(d):
             else:
                 pkg_arch = 'sysroot/%s--%s'%(sdk_arch, machine_arch)
             bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+
+REBUILDALL_SKIP = "1"
+RELAXED = "1"

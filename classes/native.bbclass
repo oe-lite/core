@@ -113,3 +113,6 @@ def native_fixup_provides(d):
             bb.data.setVar('RPROVIDES_'+pkg, '', d)
 	if bb.data.getVar('RDEPENDS_'+pkg, d, True):
             bb.data.setVar('RDEPENDS_'+pkg, '', d)
+
+REBUILDALL_SKIP = "1"
+RELAXED = "1"

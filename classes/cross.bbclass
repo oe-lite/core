@@ -110,3 +110,6 @@ def cross_fixup_provides(d):
 
         if rprovides_changed:
             bb.data.setVar('RPROVIDES_%s'%pkg, ' '.join(rprovides), d)
+
+REBUILDALL_SKIP = "1"
+RELAXED = "1"

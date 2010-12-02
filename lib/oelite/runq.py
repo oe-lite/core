@@ -96,18 +96,17 @@ class OEliteRunQueue:
 
                 # set rebuild flag (based on
                 # --rebuild/--rebuildall/--reallyrebuildall)
-                if ((self.rebuild == 1 and is_primary_recipe) or
+                if ((self.rebuild >= 1 and is_primary_recipe) or
                     (self.rebuild == 2 and
-                     (is_primary_recipe or
-                      recipe_data.getVar("REBUILDALL_SKIP") != "1")) or
+                     recipe_data.getVar("REBUILDALL_SKIP") != "1") or
                     (self.rebuild == 3)):
-                    self.db.runq_set_build(task)
+                    self.db.set_runq_task_build(task)
 
                 # set relax flag (based on --sloppy/--relaxed)
                 if ((self.relax == 2 and is_primary_recipe or
                     (self.relax == 1 and
                      (not is_primary and recipe_data.getVar("RELAXED"))))):
-                    self.db.runq_set_relax(task)
+                    self.db.set_runq_task_relax(task)
 
                 try:
                     # task_dependencies should return tuple:
