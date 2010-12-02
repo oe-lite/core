@@ -1066,7 +1066,6 @@ class OEliteDB:
 
     def set_runq_task_primary(self, task):
         task = self.task_id(task)
-        debug("set_runq_task_primary %s"%(task))
         self.db.execute(
             "UPDATE runq_task SET prime=1 WHERE task=?", (task,))
         return
