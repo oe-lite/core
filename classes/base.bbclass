@@ -15,7 +15,6 @@ addtask install after do_compile
 addtask install_fixup after do_install
 addtask build after do_install_fixup
 addtask buildall after do_build
-addtask rebuild after do_${BB_DEFAULT_TASK}
 addtask clean
 
 addtask listtasks
@@ -135,13 +134,6 @@ python do_clean() {
 }
 
 
-do_rebuild[dirs] = "${TOPDIR}"
-do_rebuild[nostamp] = "1"
-python do_rebuild() {
-	"""rebuild a package"""
-}
-
-
 do_checkuri[nostamp] = "1"
 python do_checkuri() {
 	import sys
@@ -241,18 +233,6 @@ python base_eventhandler() {
 				pesteruser.append(v)
 		if pesteruser:
 			bb.fatal('The following variable(s) were not set: %s\nPlease set them directly, or choose a MACHINE or DISTRO that sets them.' % ', '.join(pesteruser))
-
-	#
-	# Handle removing stamps for 'rebuild' task
-	#
-	if name.startswith("StampUpdate"):
-		for (fn, task) in e.targets:
-			#print "%s %s" % (task, fn)
-			if task == "do_rebuild":
-				dir = "%s.*" % e.stampPrefix[fn]
-				bb.note("Removing stamps: " + dir)
-				os.system('rm -f '+ dir)
-				os.system('touch ' + e.stampPrefix[fn] + '.needclean')
 
 	if not data in e.__dict__:
 		#return NotHandled
