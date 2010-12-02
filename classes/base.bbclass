@@ -123,14 +123,13 @@ do_clean[dirs] = "${TOPDIR}"
 do_clean[nostamp] = "1"
 python do_clean() {
 	"""clear the build and temp directories"""
-	dir = bb.data.expand("${WORKDIR}", d)
-	if dir == '//': raise bb.build.FuncFailed("wrong DATADIR")
-	bb.note("removing " + dir)
-	os.system('rm -rf ' + dir)
-
-	dir = "%s.*" % bb.data.expand(bb.data.getVar('STAMP', d), d)
-	bb.note("removing " + dir)
-	os.system('rm -f '+ dir)
+	import shutil
+	workdir = d.getVar("WORKDIR", True)
+	bb.note("removing " + workdir)
+	shutil.rmtree(workdir)
+	stampdir = d.getVar("STAMPDIR", True)
+	bb.note("removing " + stampdir)
+	shutil.rmtree(stampdir)
 }
 
 
