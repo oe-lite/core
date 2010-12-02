@@ -1,11 +1,13 @@
+inherit binconfig-install
 addtask stage before do_fetch
+addtask stage_fixup after do_stage
 
 do_stage[cleandirs] =	"${STAGE_DIR}"
 do_stage[dirs] =	"${STAGE_DIR}"
 do_stage[recdeptask] =	"do_package"
 
 python do_stage () {
-    import bb
+    import bb, tempfile
     from oebakery import debug, info, warn, err, die
 
     recdepends = bb.data.getVar('RECDEPENDS', d, True)
@@ -36,6 +38,24 @@ python do_stage () {
 
         bb.debug(1, 'unpacking %s to %s'%(filename, os.getcwd()))
 
+        dest = os.getcwd()
+        tempdir = tempfile.mkdtemp(dir=dest)
+        os.chdir(tempdir)
+        bb.data.setVar('TEMP_STAGE_DIR', tempdir, d)
         # FIXME: do error handling on tar command
-        os.system('tar xfp %s'%filename)
+        os.system('tar xpf %s'%filename)
+    
+        for f in (bb.data.getVar('STAGE_FIXUP_FUNCS', d, 1) or '').split():
+            bb.build.exec_func(f, d)
+    
+        for root, dirs, files in os.walk("."):
+            for f in files:
+                file = os.path.join(root, f)
+                if os.path.exists(dest+"/"+file):
+                    bb.error("file exist in stage: %s" % dest+"/"+file)
+                os.renames(file, dest+"/"+file)
+        os.chdir(dest)
 }
+
+STAGE_FIXUP_FUNCS += " \
+"
