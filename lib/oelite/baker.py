@@ -52,7 +52,7 @@ def _parse(f, data, include=False):
 
 class OEliteBaker:
 
-    def __init__(self, config):
+    def __init__(self, options, args, config):
 
         self.config = config.createCopy()
 
@@ -67,6 +67,24 @@ class OEliteBaker:
                                  self.config, 1)
 
         bb.fetch.fetcher_init(self.config)
+
+        # task(s) to do
+        if options.task:
+            tasks_todo = options.task
+        elif "BB_DEFAULT_TASK" in self.config:
+            tasks_todo = self.config.getVar("BB_DEFAULT_TASK", 1)
+        else:
+            #tasks_todo = "all"
+            tasks_todo = "build"
+        self.tasks_todo = tasks_todo.split(",")
+
+        # things (ritem, item, recipe, or package) to do
+        if args:
+            self.things_todo = args
+        elif "BB_DEFAULT_THING" in self.config:
+            self.things_todo = self.config.getVar("BB_DEFAULT_THING", 1).split()
+        else:
+            self.things_todo = [ "base-rootfs" ]
 
         self.appendlist = {}
         self.db = OEliteDB()
@@ -117,36 +135,20 @@ class OEliteBaker:
         return
 
 
-    def bake(self, options, args):
+    def bake(self):
 
         self.setup_tmpdir()
 
-        # task(s) to do
-        if options.task:
-            tasks_todo = options.task.split(",")
-        elif "BB_DEFAULT_TASK" in self.config:
-            tasks_todo = self.config.getVar("BB_DEFAULT_TASK", 1).split(",")
-        else:
-            #tasks_todo = [ "all" ]
-            tasks_todo = [ "build" ]
-
-        # things (ritem, item, recipe, or package) to do
-        if args:
-            things_todo = args
-        elif "BB_DEFAULT_THING" in self.config:
-            things_todo = self.config.getVar("BB_DEFAULT_THING", 1).split()
-        else:
-            things_todo = [ "base-rootfs" ]
-
         # init build quue
-        runq = OEliteRunQueue(self.db, self.cookbook, self.config)
+        runq = OEliteRunQueue(self.db, self.cookbook, self.config,
+                              self.options.rebuild, self.options.relax)
 
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
         start = datetime.datetime.now()
-        for thing in things_todo:
-            for task in tasks_todo:
+        for thing in self.things_todo:
+            for task in self.tasks_todo:
                 task = "do_" + task
                 try:
                     if not runq.add_something(thing, task):
