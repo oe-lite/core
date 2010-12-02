@@ -48,13 +48,20 @@ python do_stage () {
         for f in (bb.data.getVar('STAGE_FIXUP_FUNCS', d, 1) or '').split():
             bb.build.exec_func(f, d)
     
+        # FIXME: do better
         for root, dirs, files in os.walk("."):
             for f in files:
                 file = os.path.join(root, f)
                 if os.path.exists(dest+"/"+file):
-                    bb.error("file exist in stage: %s" % dest+"/"+file)
+                    die("file exist in stage: %s" % dest+"/"+file)
                 os.renames(file, dest+"/"+file)
+
         os.chdir(dest)
+
+        try:
+                os.removedirs(tempdir)
+        except Exception:
+                die('Staging %s failed' %(filename))
 }
 
 STAGE_FIXUP_FUNCS += " \
