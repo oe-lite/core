@@ -848,7 +848,7 @@ class OEliteDB:
                 "VALUES ("
                 "(SELECT id FROM runq_depend"
                 " WHERE task=? AND parent_task=?), ?)",
-                (task, depend, package))
+                (task, depend, rpackage))
         else:
             self.db.execute(
                 "INSERT INTO runq_depend (task, parent_task) VALUES (?, ?)",
