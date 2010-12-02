@@ -357,7 +357,7 @@ class OEliteRunQueue:
             resolve = recursive_resolve
         else:
             resolve = simple_resolve
-        
+
         depends = self_db_get_recipe_depends(recipe) or []
 
         recdepends = set()

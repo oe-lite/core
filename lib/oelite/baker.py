@@ -205,7 +205,7 @@ class OEliteBaker:
                 task = runq.get_metahashable_task()
                 count += 1
                 continue
-            
+
             datahash = recipe.datahash()
             srchash = recipe.srchash()
 
@@ -242,7 +242,6 @@ class OEliteBaker:
                 self.db.set_runq_task_stamp(task, mtime, tmphash)
 
             task = runq.get_metahashable_task()
-
             count += 1
             continue
 

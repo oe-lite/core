@@ -134,7 +134,7 @@ class OEliteRecipe:
 
 
     def prepare(self, runq, task):
-    
+
         data = self.data.createCopy()
 
         def set_pkgproviders(self_db_get_runq_package_depends,
@@ -155,12 +155,12 @@ class OEliteRecipe:
                 debug("setting %s%s=%s"%(
                         PKGPROVIDER_, package_name, pkgprovider))
                 data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
-    
+
             data.setVar(RECDEPENDS, " ".join(recdepends))
 
         set_pkgproviders(self.db.get_runq_package_depends,
                          "PKGPROVIDER_", "RECDEPENDS")
-    
+
         set_pkgproviders(self.db.get_runq_rpackage_depends,
                          "PKGRPROVIDER_", "RECRDEPENDS")
 

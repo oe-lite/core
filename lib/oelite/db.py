@@ -1047,7 +1047,7 @@ class OEliteDB:
         if rowcount:
             info("pruned %d tasks that did not have to be rebuilt"%rowcount)
         return rowcount
-        
+
 
     def set_runq_task_stamp(self, task, mtime, tmphash):
         task = self.task_id(task)
