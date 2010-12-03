@@ -2,6 +2,15 @@ import sys, os
 from oebakery import die, err, warn, info, debug
 from oelite import InvalidRecipe
 
+BB_DATAHASH_BLACKLIST = [
+    "BB_DATAHASH_BLACKLIST",
+    "BB_ENV_WHITELIST",
+    "PATH",
+    "PWD",
+    "SHELL",
+    "TERM",
+]
+
 class OEliteRecipe:
 
     def __init__(self, filename, extend, data, db):
@@ -194,9 +203,12 @@ class OEliteRecipe:
         hasher = StringHasher(hashlib.md5())
 
         data = self.data.createCopy()
-        data.delVar("DATE")
-        data.delVar("TIME")
-        data.delVar("DATETIME")
+        blacklist = BB_DATAHASH_BLACKLIST
+        if "BB_DATAHASH_BLACKLIST" in data:
+            blacklist += data.getVar("BB_DATAHASH_BLACKLIST", True).\
+                split()
+        for var in blacklist:
+            data.delVar(var)
 
         #bb.data.emit_env(blob, data, all=True)
         bb.data.emit_env(hasher, data, all=True)
