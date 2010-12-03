@@ -10,30 +10,10 @@ from runq import OEliteRunQueue
 import bb.parse, bb.utils, bb.build, bb.fetch
 
 BB_ENV_WHITELIST = [
-    "COLORTERM",
-    "DBUS_SESSION_BUS_ADDRESS",
-    "DESKTOP_SESSION",
-    "DESKTOP_STARTUP_ID",
-    "DISPLAY",
-    "GNOME_KEYRING_PID",
-    "GNOME_KEYRING_SOCKET",
-    "GPG_AGENT_INFO",
-    "GTK_RC_FILES",
-    "HOME",
-    "LANG",
-    "LOGNAME",
     "PATH",
     "PWD",
-    "SESSION_MANAGER",
     "SHELL",
-    "SSH_AUTH_SOCK",
     "TERM",
-    "USER",
-    "USERNAME",
-    "_",
-    "XAUTHORITY",
-    "XDG_DATA_DIRS",
-    "XDG_SESSION_COOKIE",
 ]
 
 def add_parser_options(parser):
@@ -127,14 +107,21 @@ class OEliteBaker:
 
     def import_env(self):
         whitelist = BB_ENV_WHITELIST
-        if "BB_ENV_EXTRAWHITE" in os.environ:
-            whitelist += os.environ["BB_ENV_EXTRAWHITE"].split()
-        if "BB_ENV_EXTRAWHITE" in self.config:
-            whitelist += self.config["BB_ENV_EXTRAWHITE"].split()
+        if "BB_ENV_WHITELIST" in os.environ:
+            whitelist += os.environ["BB_ENV_WHITELIST"].split()
+        if "BB_ENV_WHITELIST" in self.config:
+            whitelist += self.config.getVar("BB_ENV_WHITELIST", True).split()
+        debug("whitelist=%s"%(whitelist))
+        for var in set(os.environ).difference(whitelist):
+            del os.environ[var]
+        if oebakery.DEBUG:
+            debug("Whitelist filtered shell environment:")
+            for var in os.environ:
+                debug("> %s=%s"%(var, os.environ[var]))
         for var in whitelist:
             if not var in self.config and var in os.environ:
                 self.config[var] = os.environ[var]
-                debug("importing env %s=%s"%(var, os.environ[var]))
+                debug("importing %s=%s"%(var, os.environ[var]))
         return
 
 
