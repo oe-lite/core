@@ -58,10 +58,8 @@ python do_stage () {
 
         os.chdir(dest)
 
-        try:
-                os.removedirs(tempdir)
-        except Exception:
-                die('Staging %s failed' %(filename))
+        import shutil
+        shutil.rmtree(tempdir)
 }
 
 STAGE_FIXUP_FUNCS += " \
