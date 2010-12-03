@@ -30,6 +30,8 @@ python binconfig_fixup () {
 
         config.readfp(fname)
         fname.close()
+        os.unlink(fname)
+
 	prefix = config.get("paths","prefix")
 	exec_prefix = config.get("paths","exec_prefix")
 	datadir = config.get("paths","datadir")
