@@ -460,7 +460,7 @@ class OEliteBaker:
         if not os.path.exists(stampdir):
             os.makedirs(stampdir)
         with open(stampfile, "w") as _stampfile:
-            oldhash = _stampfile.write(buildhash)
+            _stampfile.write(buildhash)
         return
 
 
