@@ -1,5 +1,3 @@
-PR_append = ".3"
-
 inherit native
 
 do_configure () {

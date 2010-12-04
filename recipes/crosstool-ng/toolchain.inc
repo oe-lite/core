@@ -1,5 +1,3 @@
-PR_append = ".2"
-
 FILESPATHPKG = "${PF}:${P}:${PN}:${BP}:${BPN}:toolchain-${PV}:toolchain:files"
 
 # FIXME: come up with a more elegant solution. if not before, it then when
@@ -9,7 +7,7 @@ TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc-${CT_LIBC_VERSION}"
 TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc-${CT_LIBC_VERSION}"
 TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
 
-PR_prepend = "${TOOLCHAIN_VERSION}-"
+PR = "${TOOLCHAIN_VERSION}-"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${TOOLCHAIN_VERSION}"
