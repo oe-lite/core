@@ -151,33 +151,19 @@ class OEliteBaker:
         search = self.things_todo[0].split("_", 1)
 
         if len(search) == 1:
-            search_list = [(search[0], "", None)]
-        else:
-            search_list = [(search[0], "", search[1])]
+            search.append(None)
 
-        for extend in ("native", "sdk", "sdk-cross", "canadian-cross", "cross"):
-            if search[0].endswith("-" + extend):
-                search_list.append((search[0][:-(len(extend)+1)],
-                                    extend, search_list[0][2]))
-                break
+        debug("looking for %s"%(repr(search)))
+        recipes = self.db.get_recipe_id(name=search[0], version=search[1],
+                                        multiple=True)
+        debug("recipes=%s %s"%(repr(recipes),
+                               repr(self.db.get_recipe(recipes[0]))))
 
-        found = []
-        debug("looking for %s"%(repr(search_list)))
-        for search in search_list:
-            recipes = self.db.get_recipe_id(
-                name=search[0], extend=search[1], version=search[2],
-                multiple=True)
-            if recipes:
-                debug("new found=%s"%(repr(recipes)))
-                debug("%s"%(repr(self.db.get_recipe(recipes[0]))))
-                found += recipes
-        debug("found %s"%(repr(found)))
-
-        if len(found) == 0:
+        if not recipes:
             die("no recipe found")
-        elif len(found) > 1:
-            chosen = (found[0], self.db.get_recipe(found[0])[1])
-            for other in found[1:]:
+        elif len(recipes) > 1:
+            chosen = (recipes[0], self.db.get_recipe(recipes[0])[1])
+            for other in recipes[1:]:
                 debug("chosen=%s other=%s"%(chosen, other))
                 version = self.db.get_recipe(other)[1]
                 vercmp = bb.utils.vercmp_part(chosen[1], version)
@@ -188,7 +174,7 @@ class OEliteBaker:
                     die("you have to be more precise")
             chosen = chosen[0]
         else:
-            chosen = found[0]
+            chosen = recipes[0]
 
         recipe = self.cookbook[chosen]
 
