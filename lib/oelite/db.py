@@ -139,7 +139,7 @@ class OEliteDB:
 
     def get_recipe_id(self, filename=None, extend=None,
                       name=None, version=None,
-                      task=None, package=None):
+                      task=None, package=None, multiple=False):
         if filename and (isinstance(extend, str) or
                          isinstance(extend, unicode)):
             recipe_id = self.db.execute(
@@ -167,13 +167,21 @@ class OEliteDB:
 
         recipe_id = recipe_id.fetchall()
         if len(recipe_id) == 1:
-            recipe_id = recipe_id[0][0]
+            if not multiple:
+                recipe_id = recipe_id[0][0]
+            else:
+                recipe_id = [ recipe_id[0][0] ]
         elif len(recipe_id) == 0:
             recipe_id = None
         elif len(recipe_id) > 1:
-            warn("multiple recipes found in %s.%s: returning None!"%(
-                    self.__class__.__name__, inspect.stack()[0][3]))
-            recipe_id = None
+            if not multiple:
+                warn("multiple recipes found in %s.%s: returning None!"%(
+                        self.__class__.__name__, inspect.stack()[0][3]))
+                for r in recipe_id:
+                    info(self._get_recipe_name(r[0]))
+                recipe_id = None
+            else:
+                recipe_id = map(tuple_to_var, recipe_id)
 
         return recipe_id
 
@@ -187,6 +195,10 @@ class OEliteDB:
 
     def get_recipe_name(self, recipe):
         recipe = self.recipe_id(recipe)
+        return self._get_recipe_name(recipe)
+
+
+    def _get_recipe_name(self, recipe):
         name = self.db.execute(
             "SELECT name, version FROM recipe WHERE id=?",
             (recipe,)).fetchone()
@@ -1225,5 +1237,8 @@ def flatten_single_column_rows(rows):
     return rows
 
 
-def var_to_tuple(var):
-    return (var,)
+def var_to_tuple(v):
+    return (v,)
+
+def tuple_to_var(t):
+    return t[0]
