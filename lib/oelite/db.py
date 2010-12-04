@@ -690,12 +690,12 @@ class OEliteDB:
 
     def print_runq_tasks(self):
         runq_tasks = self.db.execute(
-            "SELECT prime,build,status,relax,task from runq_task").fetchall()
+            "SELECT prime,build,status,relax,metahash,tmphash,mtime,task from runq_task").fetchall()
         for row in runq_tasks:
             for col in row:
                 print "%s "%(col),
-            print "%s:%s"%(self.get_recipe_name({"task":row[4]}),
-                           self.get_task(task=row[4]))
+            print "%s:%s"%(self.get_recipe_name({"task":row[7]}),
+                           self.get_task(task=row[7]))
         return
 
 
