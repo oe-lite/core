@@ -10,6 +10,7 @@ INC_PR = "r1"
 
 BBCLASSEXTEND = "native cross sdk-cross"
 
+require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
 S = "${WORKDIR}/${BPN}-${PV}"
 
