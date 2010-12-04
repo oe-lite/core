@@ -1026,7 +1026,7 @@ class OEliteDB:
                 die("prune_runq_depends_nobuild did not work out")
             rowcount += c.rowcount
         if rowcount:
-            info("pruned %d dependencies that did not have to be rebuilt"%rowcount)
+            debug("pruned %d dependencies that did not have to be rebuilt"%rowcount)
         return rowcount
 
 
@@ -1045,7 +1045,7 @@ class OEliteDB:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
             rowcount += c.rowcount
         if rowcount:
-            info("pruned %d dependencies which where not needed anyway"%rowcount)
+            debug("pruned %d dependencies which where not needed anyway"%rowcount)
         return rowcount
 
 
