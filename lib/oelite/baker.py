@@ -6,6 +6,7 @@ import sys, os, glob, shutil, datetime
 from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
+import oelite.data
 
 import bb.parse, bb.utils, bb.build, bb.fetch
 
@@ -16,7 +17,7 @@ BB_ENV_WHITELIST = [
     "TERM",
 ]
 
-def add_parser_options(parser):
+def add_bake_parser_options(parser):
     parser.add_option("-t", "--task",
                       action="store", type="str", default=None,
                       help="task(s) to do")
@@ -41,6 +42,14 @@ def add_parser_options(parser):
     return
 
 
+def add_show_parser_options(parser):
+    parser.add_option("--nohash",
+                      action="store_true",
+                      help="don't show variables that will be ignored when computing data hash")
+
+    return
+
+
 def _parse(f, data, include=False):
     try:
         return bb.parse.handle(f, data, include)
@@ -52,10 +61,10 @@ class OEliteBaker:
 
     def __init__(self, options, args, config):
 
+        self.options = options
+
         self.config = config.createCopy()
-
         self.import_env()
-
         self.config = _parse("conf/bitbake.conf", self.config)
 
         # Handle any INHERITs and inherit the base class
@@ -66,16 +75,6 @@ class OEliteBaker:
 
         bb.fetch.fetcher_init(self.config)
 
-        # task(s) to do
-        if options.task:
-            tasks_todo = options.task
-        elif "BB_DEFAULT_TASK" in self.config:
-            tasks_todo = self.config.getVar("BB_DEFAULT_TASK", 1)
-        else:
-            #tasks_todo = "all"
-            tasks_todo = "build"
-        self.tasks_todo = tasks_todo.split(",")
-
         # things (ritem, item, recipe, or package) to do
         if args:
             self.things_todo = args
@@ -83,16 +82,6 @@ class OEliteBaker:
             self.things_todo = self.config.getVar("BB_DEFAULT_THING", 1).split()
         else:
             self.things_todo = [ "base-rootfs" ]
-
-        if options.rebuild:
-            options.rebuild = max(options.rebuild)
-        else:
-            options.rebuild = None
-        if options.relax:
-            options.relax = max(options.relax)
-        else:
-            options.relax = None
-        self.options = options
 
         self.appendlist = {}
         self.db = OEliteDB()
@@ -137,22 +126,97 @@ class OEliteBaker:
         parsed = 0
         start = datetime.datetime.now()
         for bbrecipe in bbrecipes:
-            progress_info("Parsing recipe files", total, parsed)
+            if not self.options.quiet:
+                progress_info("Parsing recipe files", total, parsed)
             data = self.parse_recipe(bbrecipe)
             for extend in data:
                 recipe = OEliteRecipe(bbrecipe, extend, data[extend], self.db)
                 self.cookbook[recipe.id] = recipe
             parsed += 1
-        progress_info("Parsing recipe files", total, parsed)
+        if not self.options.quiet:
+            progress_info("Parsing recipe files", total, parsed)
         if oebakery.DEBUG:
             timing_info("Parsing", start)
 
         return
 
 
+    def show(self):
+
+        if len(self.things_todo) == 0:
+            die("you must specify something to show")
+        elif len(self.things_todo) > 1:
+            die("can only show one thing at a time")
+
+        search = self.things_todo[0].split("_", 1)
+
+        if len(search) == 1:
+            search_list = [(search[0], "", None)]
+        else:
+            search_list = [(search[0], "", search[1])]
+
+        for extend in ("native", "sdk", "sdk-cross", "canadian-cross", "cross"):
+            if search[0].endswith("-" + extend):
+                search_list.append((search[0][:-(len(extend)+1)],
+                                    extend, search_list[0][2]))
+                break
+
+        found = []
+        debug("looking for %s"%(repr(search_list)))
+        for search in search_list:
+            recipes = self.db.get_recipe_id(
+                name=search[0], extend=search[1], version=search[2],
+                multiple=True)
+            if recipes:
+                debug("new found=%s"%(repr(recipes)))
+                debug("%s"%(repr(self.db.get_recipe(recipes[0]))))
+                found += recipes
+        debug("found %s"%(repr(found)))
+
+        if len(found) == 0:
+            die("no recipe found")
+        elif len(found) > 1:
+            chosen = (found[0], self.db.get_recipe(found[0])[1])
+            for other in found[1:]:
+                debug("chosen=%s other=%s"%(chosen, other))
+                version = self.db.get_recipe(other)[1]
+                vercmp = bb.utils.vercmp_part(chosen[1], version)
+                if vercmp < 0:
+                    chosen = (other, version)
+                if vercmp == 0:
+                    debug("chosen=%s\nother=%s version=%s"%(chosen, other, version))
+                    die("you have to be more precise")
+            chosen = chosen[0]
+        else:
+            chosen = found[0]
+
+        recipe = self.cookbook[chosen]
+
+        oelite.data.dump(d=recipe.data, pretty=True,
+                         nohash=(not self.options.nohash))
+
     def bake(self):
 
         self.setup_tmpdir()
+
+        # task(s) to do
+        if self.options.task:
+            tasks_todo = self.options.task
+        elif "BB_DEFAULT_TASK" in self.config:
+            tasks_todo = self.config.getVar("BB_DEFAULT_TASK", 1)
+        else:
+            #tasks_todo = "all"
+            tasks_todo = "build"
+        self.tasks_todo = tasks_todo.split(",")
+
+        if self.options.rebuild:
+            self.options.rebuild = max(self.options.rebuild)
+        else:
+            self.options.rebuild = None
+        if self.options.relax:
+            self.options.relax = max(self.options.relax)
+        else:
+            self.options.relax = None
 
         # init build quue
         runq = OEliteRunQueue(self.db, self.cookbook, self.config,
