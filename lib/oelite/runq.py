@@ -425,9 +425,9 @@ class OEliteRunQueue:
             import bb.utils
 
             # filter out all but the highest priority providers
-            highest_preference = providers[0][1]
+            highest_preference = providers[0][3]
             for i in range(1, len(providers)):
-                if providers[i][1] != highest_preference:
+                if providers[i][3] != highest_preference:
                     del providers[i:]
                     break
             if len(providers) == 1:

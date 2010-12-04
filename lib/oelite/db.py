@@ -773,7 +773,8 @@ class OEliteDB:
                 "ORDER BY recipe.preference DESC, recipe.name", locals())
         elif ritem and recipe:
             rproviders = self.db.execute(
-                "SELECT package.id, recipe.preference, recipe.version "
+                "SELECT package.id, "
+                "recipe.name, recipe.version, recipe.preference "
                 "FROM package, package_rprovide, recipe "
                 "WHERE package_rprovide.ritem=:ritem "
                 "AND recipe.name=:recipe "
@@ -782,7 +783,8 @@ class OEliteDB:
                 "ORDER BY recipe.preference DESC, recipe.name", locals())
         else:
             rproviders = self.db.execute(
-                "SELECT package.id, recipe.preference, recipe.version "
+                "SELECT package.id, "
+                "recipe.name, recipe.version, recipe.preference "
                 "FROM package, package_rprovide, recipe "
                 "WHERE package_rprovide.ritem=:ritem "
                 "AND package.recipe=recipe.id "
