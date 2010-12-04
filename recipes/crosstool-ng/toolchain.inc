@@ -63,8 +63,6 @@ LD_LIBRARY_PATH = ""
 
 CONFIG_SITE	= ""
 
-DEFCONFIG_COMMON	= "defconfig.common"
-
 DEFCONFIG_CPU		= "defconfig.${TARGET_CPU}"
 DEFCONFIG_CPU_i386	= "defconfig.x86"
 DEFCONFIG_CPU_i486	= "defconfig.x86"
@@ -76,7 +74,7 @@ DEFCONFIG_CPU_i786	= "defconfig.x86"
 DEFCONFIG_OS		= "defconfig.${TARGET_OS}"
 DEFCONFIG_OS_linux-gnueabi= "defconfig.linux-gnu"
 
-SRC_URI = "file://${DEFCONFIG_COMMON} file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
+SRC_URI = "file://defconfig.misc file://defconfig.toolchain file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
 inherit c++
 DEFAULT_CXX_DEPENDS_recipe-native	= ""
@@ -98,6 +96,7 @@ _CT_MPFR_VERSION	= "CT_MPFR_V_"
 _CT_PPL_VERSION		= "CT_PPL_V_"
 _CT_CLOOG_VERSION	= "CT_CLOOG_V_"
 _CT_MPC_VERSION		= "CT_MPC_V_"
+_CT_LIBELF_VERSION	= "CT_LIBELF_V_"
 _CT_W32API_VERSION	= "CT_W32API_V_"
 _CT_MINGWRT_VERSION	= "CT_MINGWRT_V_"
 
@@ -108,8 +107,9 @@ CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 # FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
 CT_KERNEL_VERSION	?= "custom"
-CT_KERNEL_VERSION_recipe-sdk-cross	= "2.6.33.6"
-CT_KERNEL_VERSION_recipe-sdk		= "2.6.33.6"
+CT_KERNEL_VERSION_CROSS	?= "${CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION_recipe-sdk-cross	= "${CT_KERNEL_VERSION_CROSS}"
+CT_KERNEL_VERSION_recipe-sdk		= "${CT_KERNEL_VERSION_CROSS}"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
@@ -124,21 +124,27 @@ addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${WORKDIR}"
 do_mangle () {
 
-	ct_kernel_version=${_CT_KERNEL_VERSION}`echo ${CT_KERNEL_VERSION}|tr . _`
-	ct_binutils_version=${_CT_BINUTILS_VERSION}`echo ${CT_BINUTILS_VERSION}|tr . _`
-	ct_cc_version=${_CT_CC_VERSION}`echo ${CT_CC_VERSION}|tr . _`
-	ct_libc_version=${_CT_LIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`
-	ct_gdb_version=${_CT_GDB_VERSION}`echo ${CT_GDB_VERSION}|tr . _`
-	ct_gmp_version=${_CT_GMP_VERSION}`echo ${CT_GMP_VERSION}|tr . _`
-	ct_mpfr_version=${_CT_MPFR_VERSION}`echo ${CT_MPFR_VERSION}|tr . _`
-	ct_ppl_version=${_CT_PPL_VERSION}`echo ${CT_PPL_VERSION}|tr . _`
-	ct_cloog_version=${_CT_CLOOG_VERSION}`echo ${CT_CLOOG_VERSION}|tr . _`
-	ct_mpc_version=${_CT_MPC_VERSION}`echo ${CT_MPC_VERSION}|tr . _`
-	ct_w32api_version=${_CT_W32API_VERSION}`echo ${CT_W32API_VERSION}|tr . _`
-	ct_mingwrt_version=${_CT_MINGWRT_VERSION}`echo ${CT_MINGWRT_VERSION}|tr . _`
-	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version ct_w32api_version ct_mingwrt_version
+	if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
+		ct_kernel_version=${_CT_KERNEL_VERSION}`echo ${CT_KERNEL_VERSION}|tr . _`=y
+	else
+		ct_kernel_version="# ${_CT_KERNEL_VERSION} is not set"
+	fi
+	ct_binutils_version=${_CT_BINUTILS_VERSION}`echo ${CT_BINUTILS_VERSION}|tr . _`=y
+	ct_cc_version=${_CT_CC_VERSION}`echo ${CT_CC_VERSION}|tr . _`=y
+	ct_libc_version=${_CT_LIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`=y
+	ct_gdb_version=${_CT_GDB_VERSION}`echo ${CT_GDB_VERSION}|tr . _`=y
+	ct_gmp_version=${_CT_GMP_VERSION}`echo ${CT_GMP_VERSION}|tr . _`=y
+	ct_mpfr_version=${_CT_MPFR_VERSION}`echo ${CT_MPFR_VERSION}|tr . _`=y
+	ct_ppl_version=${_CT_PPL_VERSION}`echo ${CT_PPL_VERSION}|tr . _`=y
+	ct_cloog_version=${_CT_CLOOG_VERSION}`echo ${CT_CLOOG_VERSION}|tr . _`=y
+	ct_mpc_version=${_CT_MPC_VERSION}`echo ${CT_MPC_VERSION}|tr . _`=y
+	ct_libelf_version=${_CT_LIBELF_VERSION}`echo ${CT_LIBELF_VERSION}|tr . _`=y
+	ct_w32api_version=${_CT_W32API_VERSION}`echo ${CT_W32API_VERSION}|tr . _`=y
+	ct_mingwrt_version=${_CT_MINGWRT_VERSION}`echo ${CT_MINGWRT_VERSION}|tr . _`=y
+	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version ct_libelf_version ct_w32api_version ct_mingwrt_version
 
-	cat ${DEFCONFIG_COMMON} ${DEFCONFIG_CPU} ${DEFCONFIG_OS} | \
+
+	cat defconfig.misc ${DEFCONFIG_CPU} defconfig.toolchain ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=${CT_PARALLEL_JOBS}%' \
@@ -154,19 +160,20 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@['n','y']["${TARGET_FPU}"!="0"]}%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@['y','n']["${TARGET_FPU}"!="0"]}%' \
-    	    -e "s%# \($ct_kernel_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_binutils_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_cc_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_libc_version\) is not set%\1=y%" \
+    	    -e "s%# __${_CT_KERNEL_VERSION}%$ct_kernel_version%" \
+    	    -e "s%# __${_CT_BINUTILS_VERSION}%$ct_binutils_version%" \
+    	    -e "s%# __${_CT_CC_VERSION}%$ct_cc_version%" \
+    	    -e "s%# __${_CT_LIBC_VERSION}%$ct_libc_version%" \
     	    -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%" \
-	    -e "s%# \($ct_gdb_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_gmp_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_mpfr_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_ppl_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_cloog_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_mpc_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_w32api_version\) is not set%\1=y%" \
-	    -e "s%# \($ct_mingwrt_version\) is not set%\1=y%" \
+    	    -e "s%# __${_CT_GDB_VERSION}%$ct_gdb_version%" \
+    	    -e "s%# __${_CT_GMP_VERSION}%$ct_gmp_version%" \
+    	    -e "s%# __${_CT_MPFR_VERSION}%$ct_mpfr_version%" \
+    	    -e "s%# __${_CT_PPL_VERSION}%$ct_ppl_version%" \
+    	    -e "s%# __${_CT_CLOOG_VERSION}%$ct_cloog_version%" \
+    	    -e "s%# __${_CT_MPC_VERSION}%$ct_mpc_version%" \
+    	    -e "s%# __${_CT_LIBELF_VERSION}%$ct_libelf_version%" \
+    	    -e "s%# __${_CT_W32API_VERSION}%$ct_w32api_version%" \
+    	    -e "s%# __${_CT_MINGWRT_VERSION}%$ct_mingwrt_version%" \
     	> defconfig
 
 	mv defconfig defconfig.tmp
@@ -256,6 +263,139 @@ do_configure[dirs] = "${B}"
 do_configure () {
 	${DOT_CONFIG_MANGLING} <${WORKDIR}/defconfig > .config
 	ct-ng oldconfig
+}
+
+addtask configure_qa after do_configure
+do_configure_qa[dirs] = "${B}"
+do_configure_qa () {
+	fail=0
+
+	if grep "CT_KERNEL_linux=y" .config >/dev/null; then
+
+		if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
+			kernel_version=`grep CT_KERNEL_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+			if [ "$kernel_version" != "${CT_KERNEL_VERSION}" ]; then
+				oewarn "CT_KERNEL_VERSION = $kernel_version (should be ${CT_KERNEL_VERSION})"
+				fail=1
+			else
+				oenote "CT_KERNEL_VERSION = $kernel_version"
+			fi
+		fi
+
+		libc_version=`grep CT_LIBC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$libc_version" != "${CT_LIBC_VERSION}" ]; then
+			oewarn "CT_LIBC_VERSION = $libc_version (should be ${CT_LIBC_VERSION})"
+			fail=1
+		else
+			oenote "CT_LIBC_VERSION = $libc_version"
+		fi
+
+		gdb_version=`grep CT_GDB_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$gdb_version" != "${CT_GDB_VERSION}" ]; then
+			oewarn "CT_GDB_VERSION = $gdb_version (should be ${CT_GDB_VERSION})"
+			fail=1
+		else
+			oenote "CT_GDB_VERSION = $gdb_version"
+		fi
+
+	fi
+
+	binutils_version=`grep CT_BINUTILS_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	if [ "$binutils_version" != "${CT_BINUTILS_VERSION}" ]; then
+		oewarn "CT_BINUTILS_VERSION = $binutils_version (should be ${CT_BINUTILS_VERSION})"
+		fail=1
+	else
+		oenote "CT_BINUTILS_VERSION = $binutils_version"
+	fi
+
+	cc_version=`grep CT_CC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	if [ "$cc_version" != "${CT_CC_VERSION}" ]; then
+		oewarn "CT_CC_VERSION = $cc_version (should be ${CT_CC_VERSION})"
+		fail=1
+	else
+		oenote "CT_CC_VERSION = $cc_version"
+	fi
+
+	if grep "CT_GMP_NEEDED=y" .config >/dev/null; then
+		gmp_version=`grep CT_GMP_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$gmp_version" != "${CT_GMP_VERSION}" ]; then
+			oewarn "CT_GMP_VERSION = $gmp_version (should be ${CT_GMP_VERSION})"
+			fail=1
+		else
+			oenote "CT_GMP_VERSION = $gmp_version"
+		fi
+	fi
+
+	if grep "CT_MPFR_NEEDED=y" .config >/dev/null; then
+		mpfr_version=`grep CT_MPFR_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$mpfr_version" != "${CT_MPFR_VERSION}" ]; then
+			oewarn "CT_MPFR_VERSION = $mpfr_version (should be ${CT_MPFR_VERSION})"
+			fail=1
+		else
+			oenote "CT_MPFR_VERSION = $mpfr_version"
+		fi
+	fi
+
+	if grep "CT_PPL_NEEDED=y" .config >/dev/null; then
+		ppl_version=`grep CT_PPL_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$ppl_version" != "${CT_PPL_VERSION}" ]; then
+			oewarn "CT_PPL_VERSION = $ppl_version (should be ${CT_PPL_VERSION})"
+			fail=1
+		else
+			oenote "CT_PPL_VERSION = $ppl_version"
+		fi
+	fi
+
+	if grep "CT_CLOOG_NEEDED=y" .config >/dev/null; then
+		cloog_version=`grep CT_CLOOG_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$cloog_version" != "${CT_CLOOG_VERSION}" ]; then
+			oewarn "CT_CLOOG_VERSION = $cloog_version (should be ${CT_CLOOG_VERSION})"
+			fail=1
+		else
+			oenote "CT_CLOOG_VERSION = $cloog_version"
+		fi
+	fi
+
+	if grep "CT_MPC_NEEDED=y" .config >/dev/null; then
+		mpc_version=`grep CT_MPC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$mpc_version" != "${CT_MPC_VERSION}" ]; then
+			oewarn "CT_MPC_VERSION = $mpc_version (should be ${CT_MPC_VERSION})"
+			fail=1
+		else
+			oenote "CT_MPC_VERSION = $mpc_version"
+		fi
+	fi
+
+	if grep "CT_LIBELF_NEEDED=y" .config >/dev/null; then
+		libelf_version=`grep CT_LIBELF_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$libelf_version" != "${CT_LIBELF_VERSION}" ]; then
+			oewarn "CT_LIBELF_VERSION = $libelf_version (should be ${CT_LIBELF_VERSION})"
+			fail=1
+		else
+			oenote "CT_LIBELF_VERSION = $libelf_version"
+		fi
+	fi
+
+	if grep "CT_KERNEL_mingw32=y" .config >/dev/null; then
+		w32api_version=`grep CT_W32API_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$w32api_version" != "${CT_W32API_VERSION}" ]; then
+			oewarn "CT_W32API_VERSION = $w32api_version (should be ${CT_W32API_VERSION})"
+			fail=1
+		else
+			oenote "CT_W32API_VERSION = $w32api_version"
+		fi
+		mingwrt_version=`grep CT_MINGWRT_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$mingwrt_version" != "${CT_MINGWRT_VERSION}" ]; then
+			oewarn "CT_MINGWRT_VERSION = $mingwrt_version (should be ${CT_MINGWRT_VERSION})"
+			fail=1
+		else
+			oenote "CT_MINGWRT_VERSION = $mingwrt_version"
+		fi
+	fi
+
+	if [ $fail != 0 ]; then
+		oefatal "failed to configure the requested versions"
+	fi
 }
 
 do_compile[dirs] = "${B}"
@@ -501,6 +641,7 @@ split_sysroot_mangle () {
 	for pkg in ${SYSROOT_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
 			(
+			echo doing $pkg
 			cd $pkg/${TARGET_ARCH}
 			if [ -d debug-root ] ; then
 				mv debug-root/* ../
@@ -510,11 +651,13 @@ split_sysroot_mangle () {
 				mv sys-root/* ../
 				rmdir sys-root
 			fi
-			rm -f include
+			if [ -L include ] ; then
+				rm -f include
+			fi
 			if [ -d include ] ; then
 				mkdir -p ../${target_includedir}
-				mv include/* ../${target_includedir}
-				rmdir include
+				cp -r include/* ../${target_includedir}
+				rm -rf include
 			fi
 			rm -f lib
 			if [ -d lib ] ; then

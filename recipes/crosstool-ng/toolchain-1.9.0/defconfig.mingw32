@@ -1,8 +1,4 @@
 #
-# crosstool-NG version: 1.8.0 -- mingw32 configuration
-#
-
-#
 # Operating System
 #
 # CT_BARE_METAL is not set
@@ -15,7 +11,7 @@ CT_KERNEL_mingw32=y
 CT_KERNEL_bare_metal_AVAILABLE=y
 CT_KERNEL_linux_AVAILABLE=y
 CT_KERNEL_mingw32_AVAILABLE=y
-# CT_W32API_V_3_14 is not set
+# __CT_W32API_V_
 # CT_W32API_V_select is not set
 CT_W32API_VERSION=""
 
@@ -33,13 +29,7 @@ CT_ARCH_BINFMT_ELF=y
 #
 # GNU binutils
 #
-# CT_BINUTILS_V_2_20_1 is not set
-# CT_BINUTILS_V_2_20 is not set
-# CT_BINUTILS_V_2_19_1 is not set
-# CT_BINUTILS_V_2_19 is not set
-# CT_BINUTILS_V_2_18 is not set
-# CT_BINUTILS_V_2_17 is not set
-# CT_BINUTILS_V_2_16_1 is not set
+# __CT_BINUTILS_V_
 CT_BINUTILS_VERSION=""
 CT_BINUTILS_EXTRA_CONFIG=""
 # CT_BINUTILS_FOR_TARGET is not set
@@ -55,43 +45,12 @@ CT_BINUTILS_EXTRA_CONFIG=""
 CT_CC="gcc"
 CT_CC_VERSION=""
 CT_CC_gcc=y
-# CT_CC_V_4_5_1 is not set
-# CT_CC_V_4_5_0 is not set
-# CT_CC_V_4_4_4 is not set
-# CT_CC_V_4_4_3 is not set
-# CT_CC_V_4_4_2 is not set
-# CT_CC_V_4_4_1 is not set
-# CT_CC_V_4_4_0 is not set
-# CT_CC_V_4_3_4 is not set
-# CT_CC_V_4_3_3 is not set
-# CT_CC_V_4_3_2 is not set
-# CT_CC_V_4_3_1 is not set
-# CT_CC_V_4_2_4 is not set
-# CT_CC_V_4_2_3 is not set
-# CT_CC_V_4_2_2 is not set
-# CT_CC_V_4_2_1 is not set
-# CT_CC_V_4_2_0 is not set
-# CT_CC_V_4_1_2 is not set
-# CT_CC_V_4_0_4 is not set
-# CT_CC_V_3_4_6 is not set
-# CT_CC_GCC_4_2_or_later is not set
-# CT_CC_GCC_4_3_or_later is not set
-# CT_CC_GCC_4_4_or_later is not set
-# CT_CC_GCC_4_5_or_later is not set
-CT_CC_GCC_USE_GMP_MPFR=y
-# CT_CC_GCC_USE_PPL_CLOOG is not set
-# CT_CC_GCC_USE_MPC_LIBELF is not set
-CT_CC_CXA_ATEXIT=y
-CT_CC_SJLJ_EXCEPTIONS_CONFIGURE=y
-# CT_CC_SJLJ_EXCEPTIONS_USE is not set
-# CT_CC_SJLJ_EXCEPTIONS_DONT_USE is not set
-CT_CC_ENABLE_CXX_FLAGS=""
-CT_CC_CORE_EXTRA_CONFIG=""
-CT_CC_EXTRA_CONFIG="--disable-libstdcxx-pch"
-# CT_CC_GCC_ENABLE_TARGET_OPTSPACE
-CT_CC_GCC_DISABLE_PCH=y
+# __CT_CC_V_
 CT_CC_PKGVERSION="crosstool-NG-${CT_VERSION}"
 CT_CC_BUGURL=""
+CT_CC_ENABLE_CXX_FLAGS=""
+CT_CC_CORE_EXTRA_CONFIG=""
+CT_CC_EXTRA_CONFIG=""
 CT_CC_SUPPORT_CXX=y
 CT_CC_SUPPORT_FORTRAN=y
 CT_CC_SUPPORT_JAVA=y
@@ -111,6 +70,25 @@ CT_CC_LANG_CXX=y
 CT_CC_LANG_OTHERS=""
 
 #
+# gcc other options
+#
+# CT_CC_GCC_ENABLE_TARGET_OPTSPACE is not set
+# CT_CC_GCC_USE_GRAPHITE is not set
+# CT_CC_GCC_USE_LTO is not set
+CT_CC_STATIC_LIBSTDCXX=y
+# CT_CC_GCC_LIBMUDFLAP is not set
+# CT_CC_GCC_LIBGOMP is not set
+# CT_CC_GCC_LIBSSP is not set
+
+#
+# Misc. obscure options.
+#
+CT_CC_CXA_ATEXIT=y
+CT_CC_GCC_DISABLE_PCH=y
+CT_CC_GCC_SJLJ_EXCEPTIONS=y
+CT_CC_GCC_LDBL_128=y
+
+#
 # C-library
 #
 CT_LIBC="mingw"
@@ -123,12 +101,11 @@ CT_LIBC_mingw=y
 CT_LIBC_eglibc_AVAILABLE=y
 CT_LIBC_glibc_AVAILABLE=y
 CT_LIBC_mingw_AVAILABLE=y
-# CT_MINGWRT_V_3_18 is not set
+# __CT_MINGWRT_V_
 # CT_MINGWRT_V_select is not set
 CT_MINGWRT_VERSION=""
 CT_LIBC_newlib_AVAILABLE=y
-# CT_LIBC_NEWLIB_V_1_18_0 is not set
-# CT_LIBC_NEWLIB_V_1_17_0 is not set
+# __CT_LIBC_NEWLIB_V_
 # CT_LIBC_NEWLIB_CVS is not set
 CT_LIBC_none_AVAILABLE=y
 CT_LIBC_uClibc_AVAILABLE=y
@@ -175,24 +152,27 @@ CT_COMPLIBS=y
 # CT_WRAPPER_NEEDED is not set
 CT_GMP=y
 CT_MPFR=y
-# CT_GMP_V_5_0_1 is not set
-# CT_GMP_V_4_3_2 is not set
-# CT_GMP_V_4_3_1 is not set
-# CT_GMP_V_4_3_0 is not set
-# CT_GMP_V_4_2_4 is not set
-# CT_GMP_V_4_2_2 is not set
+CT_PPL=y
+CT_CLOOG=y
+CT_MPC=y
+CT_LIBELF=y
+# __CT_GMP_V_
 CT_GMP_VERSION=""
-# CT_MPFR_V_3_0_0 is not set
-# CT_MPFR_V_2_4_2 is not set
-# CT_MPFR_V_2_4_1 is not set
-# CT_MPFR_V_2_4_0 is not set
-# CT_MPFR_V_2_3_2 is not set
-# CT_MPFR_V_2_3_1 is not set
+# __CT_MPFR_V_
 CT_MPFR_VERSION=""
+# __CT_PPL_V_
+CT_PPL_VERSION=""
+# __CT_CLOOG_V_
+CT_CLOOG_VERSION=""
+# __CT_MPC_V_
+CT_MPC_VERSION=""
+# __CT_LIBELF_V_
+CT_LIBELF_VERSION=""
 
 #
 # Companion libraries common options
 #
+# CT_COMPLIBS_BACKUP is not set
 # CT_COMPLIBS_CHECK is not set
 # CT_COMPLIBS_SHARED is not set
 
@@ -210,3 +190,4 @@ CT_MPFR_VERSION=""
 #
 # CT_TEST_SUITE is not set
 # CT_TEST_SUITE_GCC is not set
+
