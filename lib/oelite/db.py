@@ -737,6 +737,11 @@ class OEliteDB:
                 "SELECT COUNT(*) FROM runq_task"))
 
 
+    def number_of_tasks_to_build(self):
+        return flatten_single_value(self.db.execute(
+                "SELECT COUNT(*) FROM runq_task WHERE build IS NOT NULL"))
+
+
     def get_providers(self, item, recipe=None, version=None):
         item = self.item_id(item)
         if item and recipe and version:
