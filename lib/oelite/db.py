@@ -1081,7 +1081,7 @@ class OEliteDB:
     def set_runq_task_relax(self, task):
         task = self.task_id(task)
         self.db.execute(
-            "UPDATE runq_task SET build=1 WHERE task=?", (task,))
+            "UPDATE runq_task SET relax=1 WHERE task=?", (task,))
         return
 
 
