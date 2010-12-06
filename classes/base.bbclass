@@ -601,3 +601,6 @@ python () {
 }
 
 EXPORT_FUNCTIONS do_configure do_compile do_install
+
+REBUILDALL_SKIP[nohash] = True
+RELAXED[nohash] = True
