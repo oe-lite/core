@@ -202,7 +202,11 @@ class OEliteBaker:
         if self.options.relax:
             self.options.relax = max(self.options.relax)
         else:
-            self.options.relax = None
+            default_relax = self.config.getVar("DEFAULT_RELAX", 1)
+            if default_relax and default_relax != "0":
+                self.options.relax = int(default_relax)
+            else:
+                self.options.relax = None
 
         # init build quue
         runq = OEliteRunQueue(self.db, self.cookbook, self.config,
