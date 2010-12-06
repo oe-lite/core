@@ -165,18 +165,16 @@ python do_checkuri() {
 }
 
 
+do_checkuriall[recdeptask]  = "do_checkuri"
 do_checkuriall[recrdeptask] = "do_checkuri"
-do_checkuriall[nostamp] = "1"
-do_checkuriall() {
-	:
-}
+do_checkuriall[nostamp] = True
+do_checkuriall[func] = True
+do_checkuriall = ""
 
-
+do_buildall[recdeptask]  = "do_build"
 do_buildall[recrdeptask] = "do_build"
-do_buildall() {
-	:
-}
-
+do_buildall[func] = True
+do_buildall = ""
 
 def subprocess_setup():
 	import signal
