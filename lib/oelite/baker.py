@@ -23,20 +23,20 @@ def add_bake_parser_options(parser):
                       help="task(s) to do")
 
     parser.add_option("--rebuild",
-                      action="append_const", dest="rebuild", const="1",
+                      action="append_const", dest="rebuild", const=1,
                       help="rebuild specified recipes")
     parser.add_option("--rebuildall",
-                      action="append_const", dest="rebuild", const="2",
+                      action="append_const", dest="rebuild", const=2,
                       help="rebuild specified recipes and all dependencies (except cross and native)")
     parser.add_option("--reallyrebuildall",
-                      action="append_const", dest="rebuild", const="3",
+                      action="append_const", dest="rebuild", const=3,
                       help="rebuild specified recipes and all dependencies")
 
     parser.add_option("--relaxed",
-                      action="append_const", dest="relax", const="1",
+                      action="append_const", dest="relax", const=1,
                       help="don't rebuild ${RELAXED} recipes because of metadata changes")
     parser.add_option("--sloppy",
-                      action="append_const", dest="relax", const="2",
+                      action="append_const", dest="relax", const=2,
                       help="don't rebuild dependencies because of metadata changes")
 
     return
