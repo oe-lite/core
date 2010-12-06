@@ -105,7 +105,8 @@ class OEliteRunQueue:
                 # set relax flag (based on --sloppy/--relaxed)
                 if ((self.relax == 2 and not is_primary_recipe) or
                     (self.relax == 1 and
-                     (not is_primary and recipe_data.getVar("RELAXED")))):
+                     (not is_primary_recipe and
+                      recipe_data.getVar("RELAXED", True)))):
                     self.db.set_runq_task_relax(task)
 
                 try:
