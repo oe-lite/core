@@ -6,7 +6,7 @@ import sys, os, glob, shutil, datetime
 from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
-import oelite.data
+import oelite.data, oelite.util
 
 import bb.parse, bb.utils, bb.build, bb.fetch
 
@@ -38,6 +38,10 @@ def add_bake_parser_options(parser):
     parser.add_option("--sloppy",
                       action="append_const", dest="relax", const=2,
                       help="don't rebuild dependencies because of metadata changes")
+
+    parser.add_option("-y", "--yes",
+                      action="store_true", default=False,
+                      help="assume 'y' response to trivial questions")
 
     return
 
@@ -318,9 +322,24 @@ class OEliteBaker:
         self.db.prune_runq_tasks()
 
         remaining = self.db.number_of_runq_tasks()
-        info("%d tasks needs to be built"%remaining)
+        debug("%d tasks remains"%remaining)
 
-        #self.db.print_runq_tasks()
+        recipes = self.db.get_recipes_with_tasks_to_build()
+        if not recipes:
+            info("Nothing to do")
+            return 0
+
+        print "The following will be build:"
+        text = []
+        for recipe in recipes:
+            text.append("%s(%d)"%(recipe[1], recipe[3]))
+        print oelite.util.format_textblock(" ".join(text))
+
+        if os.isatty(sys.stdin.fileno()) and not self.options.yes:
+            response = raw_input("Do you want to continue [Y/n]? ")
+            if response and not response[0] in ("y", "Y"):
+                info("Maybe next time")
+                return 0
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
