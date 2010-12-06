@@ -1059,7 +1059,7 @@ class OEliteDB:
         if rowcount == -1:
             die("prune_runq_tasks did not work out")
         if rowcount:
-            info("pruned %d tasks that did not have to be rebuilt"%rowcount)
+            debug("pruned %d tasks that did not have to be rebuilt"%rowcount)
         return rowcount
 
 
@@ -1107,7 +1107,7 @@ class OEliteDB:
             " WHERE task_nostamp.task=runq_task.task)").rowcount
         if rowcount == -1:
             die("set_runq_task_build_on_nostamp_tasks did not work out")
-        info("set build flag on %d nostamp tasks"%(rowcount))
+        debug("set build flag on %d nostamp tasks"%(rowcount))
         return
 
 
@@ -1125,7 +1125,7 @@ class OEliteDB:
             if rowcount == -1:
                 die("set_runq_task_build_on_retired_tasks did not work out")
             rowcount += c.rowcount
-        info("set build flag on %d retired tasks"%(rowcount))
+        debug("set build flag on %d retired tasks"%(rowcount))
         return
 
 
@@ -1137,7 +1137,7 @@ class OEliteDB:
                 "UPDATE runq_task SET build=1 "
                 "WHERE build IS NULL AND relax IS NULL AND tmphash != metahash")
             rowcount += c.rowcount
-        info("set build flag on %d tasks with tmphash != metahash"%(rowcount))
+        debug("set build flag on %d tasks with tmphash != metahash"%(rowcount))
         #hest = c.execute("SELECT metahash,tmphash FROM runq_task").fetchall()
         #info("hest=%s"%(repr(hest)))
         return
@@ -1155,7 +1155,7 @@ class OEliteDB:
                 " AND runq_depend.parent_task=parent_task.task"
                 " AND parent_task.build=1)")
             rowcount += c.rowcount
-        info("set build flag on %d tasks due to propagation"%(rowcount))
+        debug("set build flag on %d tasks due to propagation"%(rowcount))
         return
 
 
