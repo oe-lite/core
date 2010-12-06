@@ -72,7 +72,7 @@ class OEliteBaker:
         self.config = _parse("conf/bitbake.conf", self.config)
 
         # Handle any INHERITs and inherit the base class
-        inherits  = ["base"] + (config.getVar("INHERIT", 1) or "").split()
+        inherits  = ["base"] + (self.config.getVar("INHERIT", 1) or "").split()
         for inherit in inherits:
             self.config = _parse("classes/%s.bbclass"%(inherit),
                                  self.config, 1)
