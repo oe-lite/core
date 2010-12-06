@@ -326,7 +326,10 @@ class OEliteBaker:
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
         task = runq.get_runabletask()
         start = datetime.datetime.now()
+        total = self.db.number_of_tasks_to_build()
+        count = 0
         while task:
+            count += 1
             recipe_id = self.db.get_recipe_id(task=task)
             recipe_name = self.db.get_recipe_name(recipe_id)
             recipe = self.cookbook[recipe_id]
@@ -334,7 +337,7 @@ class OEliteBaker:
             debug("")
             debug("Preparing %s:%s"%(recipe_name, task_name))
             data = recipe.prepare(runq, task)
-            info("Running %s:%s"%(recipe_name, task_name))
+            info("Running %d / %d %s:%s"%(count, total, recipe_name, task_name))
             self.task_build_started(task, data)
             if exec_func(task_name, data):
                 self.task_build_done(task, data,
