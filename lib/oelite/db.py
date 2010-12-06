@@ -688,6 +688,25 @@ class OEliteDB:
         return
 
 
+    def get_recipes_with_tasks_to_build(self):
+        recipes = []
+        for row in self.db.execute(
+            "SELECT DISTINCT recipe.id "
+            "FROM runq_task, task, recipe "
+            "WHERE runq_task.build IS NOT NULL "
+            "AND runq_task.task=task.id AND task.recipe=recipe.id"):
+            row[0]
+            r = self.db.execute(
+                "SELECT recipe.id, recipe.name, recipe.version, "
+                "COUNT(runq_task.build) "
+                "FROM runq_task, task, recipe "
+                "WHERE recipe.id=? "
+                "AND runq_task.task=task.id AND task.recipe=recipe.id ",
+                (row[0],))
+            recipes.append(r.fetchone())
+        return recipes
+       
+
     def print_runq_tasks(self):
         runq_tasks = self.db.execute(
             "SELECT prime,build,status,relax,metahash,tmphash,mtime,task from runq_task").fetchall()
