@@ -247,7 +247,7 @@ class OEliteDB:
         elif name:
             package_id = self.db.execute(
                 "SELECT id FROM package WHERE name=?",
-                (recipe, name))
+                (name,))
         else:
             raise ValueError(
                 "invalid arguments: recipe=%s name=%s"%(recipe, name))
