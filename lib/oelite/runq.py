@@ -50,14 +50,14 @@ class OEliteRunQueue:
 
 
     def add_recipe(self, name, task_name):
-        recipe = self.db.get_recipe_id(name)
+        recipe = self.db.get_recipe_id(name=name)
         if not recipe:
             return False
         return self._add_recipe(recipe, task_name)
 
 
     def add_package(self, name, task_name):
-        package = self.db.get_package_id(name)
+        package = self.db.get_package_id(name=name)
         return self._add_package(package, task_name)
 
 
@@ -72,7 +72,7 @@ class OEliteRunQueue:
         primary_recipe_id = recipe_id
         primary_task = self.db.get_task_id(recipe_id, task_name)
         if not primary_task:
-            raise NoSuchTask("recipe %s do not have a %s task"%(
+            raise NoSuchTask("%s:%s"%(
                     self.db.get_recipe_name(recipe_id),
                     self.db.get_task(task_name)))
 

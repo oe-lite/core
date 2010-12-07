@@ -225,10 +225,12 @@ class OEliteBaker:
                 task = "do_" + task
                 try:
                     if not runq.add_something(thing, task):
-                        die("failed to add %s:%s to runqueue"%(thing, task))
+                        die("No such thing: %s"%(thing))
                 except RecursiveDepends, e:
                     die("dependency loop: %s\n\t--> %s"%(
                             e.args[1], "\n\t--> ".join(e.args[0])))
+                except NoSuchTask, e:
+                    die("No such task: %s: %s"%(thing, e.__str__()))
         if oebakery.DEBUG:
             timing_info("Building dependency tree", start)
 
