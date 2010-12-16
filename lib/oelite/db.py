@@ -705,10 +705,10 @@ class OEliteDB:
     def get_recipes_with_tasks_to_build(self):
         recipes = []
         for row in self.db.execute(
-            "SELECT DISTINCT recipe.id "
-            "FROM runq_task, task, recipe "
+            "SELECT DISTINCT task.recipe "
+            "FROM runq_task, task "
             "WHERE runq_task.build IS NOT NULL "
-            "AND runq_task.task=task.id AND task.recipe=recipe.id"):
+            "AND runq_task.task=task.id"):
             row[0]
             r = self.db.execute(
                 "SELECT recipe.id, recipe.name, recipe.version, "
