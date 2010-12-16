@@ -455,7 +455,7 @@ class OEliteRunQueue:
             if len(latest) > 1:
                 multiple_providers = []
                 for provider in latest.itervalues():
-                    multiple_providers.append(provider[1])
+                    multiple_providers.append(provider[0][1])
                 raise MultipleProviders(
                     "multiple providers: " + " ".join(multiple_providers))
             raise Exception("code path should never go here...")
