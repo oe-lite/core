@@ -6,7 +6,7 @@ class OEliteRunQueue:
 
 
     def __init__(self, db, cookbook, config, rebuild=None, relax=None,
-                 depth_first=False):
+                 depth_first=True):
         self.db = db
         self.cookbook = cookbook
         self.config = config
