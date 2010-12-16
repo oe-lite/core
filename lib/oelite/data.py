@@ -19,6 +19,7 @@ builtin_nohash = [
     "BBFILES_PRETTY",
     "BBRECIPES",
     "FILE",
+    "_task_deps",
 ]
 
 builtin_nohash_prefix = [
