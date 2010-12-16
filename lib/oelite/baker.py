@@ -768,10 +768,15 @@ def exec_func_python(func, data, runfile, logfile):
 
     f = open(runfile, "w")
     f.write(tmp)
-    comp = bb.utils.better_compile(tmp, func, bbfile)
+    comp = None
+    try:
+        comp = bb.utils.better_compile(tmp, func, bbfile)
+    except:
+        die("compiling %s failed, ask an OE-lite wizard to add more debug information"%func)
     try:
         bb.utils.better_exec(comp, {"d": data}, tmp, bbfile)
     except:
+        err("executing python function %s failed"%(func))
         if oebakery.DEBUG:
             raise
         return False
