@@ -38,13 +38,8 @@ python package_split () {
 		bb.mkdirhier(root)
 	
 		bb.data.setVar('PKG', pkg, localdata)
-		overrides = bb.data.getVar('OVERRIDES', localdata, True)
-		if not overrides:
-			raise bb.build.FuncFailed('OVERRIDES not defined')
-		bb.data.setVar('OVERRIDES', overrides + ':' + pkg, localdata)
-		bb.data.update_data(localdata)
 	
-		filesvar = bb.data.getVar('FILES', localdata, True) or ""
+		filesvar = bb.data.getVar("FILES_%s"%(pkg), localdata, True) or ""
 		files = filesvar.split()
 		for file in files:
 			if os.path.isabs(file):
