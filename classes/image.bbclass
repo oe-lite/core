@@ -24,22 +24,22 @@ do_compile[dirs] = "${IMAGE_DIR}"
 do_compile[cleandirs] = "${IMAGE_DIR}"
 
 fakeroot do_compile () {
-	cp -a ${IMAGE_STAGE}/. ./
-	for func in ${IMAGE_PREPROCESS_FUNCS}; do
-		$func
-	done
-	for func in ${IMAGE_CREATE_FUNCS}; do
-		$func
-	done
+    cp -a ${IMAGE_STAGE}/. ./
+    for func in ${IMAGE_PREPROCESS_FUNCS}; do
+        $func
+    done
+    for func in ${IMAGE_CREATE_FUNCS}; do
+        $func
+    done
 }
 
-do_install() {
-	:
+do_install () {
+    :
 }
 
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR}"
 do_deploy() {
-	:
+    :
 }
 
 do_rstage[dirs] = "${IMAGE_STAGE}"
@@ -55,15 +55,16 @@ python do_rstage () {
 
         pkg = d.getVar("PKGRPROVIDER_%s"%rdep, False)
         if not pkg:
-            bb.msg.fatal(bb.msg.domain.Build, "Error getting PKGPROVIDER_%s"%rdep)
+            bb.msg.fatal(bb.msg.domain.Build,
+                         "Error getting PKGPROVIDER_%s"%rdep)
             return False
-        
+
         filename = pkg
         #filename = os.path.join(d.getVar("PACKAGE_DEPLOY_DIR", True), pkg)
         if not os.path.isfile(filename):
             bb.error("could not find %s to satisfy %s"%(filename, rdep))
             return False
-        
+
         # FIXME: extend BitBake with dependency handling that can
         # differentiate between host and target depencies for
         # canadian-cross recipes, and then cleanup this mess
@@ -75,7 +76,7 @@ python do_rstage () {
             subdir = os.path.join(target_arch, "sys-root")
         else:
             subdir = ""
-        
+
         bb.note("unpacking %s to %s"%(filename, os.path.abspath(subdir)))
         cmd = "tar xpf %s"%filename
         if subdir:
@@ -88,7 +89,8 @@ python do_rstage () {
 
     for rdep in recrdepends.split():
         if not image_stage_install(rdep):
-            bb.msg.fatal(bb.msg.domain.Build, "image_stage_install(%s) failed"%(rdep))
+            bb.msg.fatal(bb.msg.domain.Build,
+                         "image_stage_install(%s) failed"%(rdep))
             return False
 
 }
