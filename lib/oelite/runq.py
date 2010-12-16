@@ -101,7 +101,7 @@ class OEliteRunQueue:
                 # --rebuild/--rebuildall/--reallyrebuildall)
                 if ((self.rebuild >= 1 and is_primary_recipe) or
                     (self.rebuild == 2 and
-                     recipe_data.getVar("REBUILDALL_SKIP") != "1") or
+                     recipe_data.getVar("REBUILDALL_SKIP", True) != "1") or
                     (self.rebuild == 3)):
                     self.db.set_runq_task_build(task)
 
