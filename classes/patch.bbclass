@@ -456,7 +456,7 @@ do_patch[dirs] = "${WORKDIR}"
 PATCH_DEPENDS = "${PATCHTOOL}-native"
 DEPENDS += "${PATCH_DEPENDS}"
 
-python patch_do_patch() {
+python do_patch() {
 	import re
 	import bb.fetch
 
@@ -552,5 +552,3 @@ python patch_do_patch() {
 		patchset.Import({"file":unpacked, "remote":url, "strippath": pnum}, True)
 		resolver.Resolve()
 }
-
-EXPORT_FUNCTIONS do_patch
