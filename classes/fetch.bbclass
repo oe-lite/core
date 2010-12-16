@@ -41,11 +41,10 @@ python do_fetch() {
 	return
 }
 
-do_fetchall[recrdeptask] = "do_fetch"
-
-do_fetchall() {
-	:
-}
+do_fetchall[recadeptask] = "do_fetch"
+do_fetchall[nostamp] = True
+do_fetchall[func] = True
+do_fetchall = ""
 
 do_unpack[dirs] = "${WORKDIR}"
 

@@ -165,14 +165,12 @@ python do_checkuri() {
 }
 
 
-do_checkuriall[recdeptask]  = "do_checkuri"
-do_checkuriall[recrdeptask] = "do_checkuri"
+do_checkuriall[recadeptask] = "do_checkuri"
 do_checkuriall[nostamp] = True
 do_checkuriall[func] = True
 do_checkuriall = ""
 
-do_buildall[recdeptask]  = "do_build"
-do_buildall[recrdeptask] = "do_build"
+do_buildall[recadaptask] = "do_build"
 do_buildall[func] = True
 do_buildall = ""
 
