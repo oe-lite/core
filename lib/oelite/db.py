@@ -940,6 +940,40 @@ class OEliteDB:
 
     def prune_prebaked_runq_depends(self):
 
+        tasks = flatten_single_column_rows(self.db.execute(
+            "SELECT"
+            "  task "
+            "FROM"
+            "  runq_task "
+            "WHERE"
+            "  EXISTS " # something depends on it
+            "    (SELECT *"
+            "     FROM runq_depend"
+            "     WHERE parent_task=runq_task.task"
+            "     LIMIT 1)"
+            "  AND NOT EXISTS " # and no task-based dependencies on it
+            "    (SELECT * FROM runq_depend "
+            "     WHERE runq_depend.parent_task=runq_task.task"
+            "     AND (runq_depend.depend_package < 0 AND"
+            "          runq_depend.rdepend_package < 0)"
+            "     LIMIT 1)"
+            "  AND NOT EXISTS " # and no non-prebaked dependencies on it
+            "    (SELECT *"
+            "     FROM runq_depend"
+            "     WHERE runq_depend.parent_task=runq_task.task"
+            "     AND (runq_depend.depend_package >= 0 OR"
+            "          runq_depend.rdepend_package >= 0)"
+            "     AND runq_depend.prebake IS NULL"
+            "     LIMIT 1)"
+            ))
+
+        for task in tasks:
+            debug("prebaked %s:%s"%(self.get_recipe_name({"task": task}),
+                                    self.get_task(task=task)))
+            self.db.execute(
+                "UPDATE runq_depend SET parent_task=NULL WHERE parent_task=?",
+                (task,))
+
         return        
 
 
@@ -1164,15 +1198,21 @@ class OEliteDB:
 
     def prune_runq_tasks(self):
         rowcount = self.db.execute(
-            "DELETE FROM runq_task WHERE prime IS NULL AND NOT EXISTS "
-            "(SELECT * FROM runq_depend"
-            " WHERE runq_depend.parent_task=runq_task.task"
-            " LIMIT 1"
+            "UPDATE"
+            "  runq_task "
+            "SET"
+            "  build=NULL "
+            "WHERE"
+            "  prime IS NULL AND NOT EXISTS"
+            "  (SELECT *"
+            "   FROM runq_depend"
+            "   WHERE runq_depend.parent_task=runq_task.task"
+            "   LIMIT 1"
             ")").rowcount
         if rowcount == -1:
             die("prune_runq_tasks did not work out")
         if rowcount:
-            debug("pruned %d tasks that did not have to be rebuilt"%rowcount)
+            debug("pruned %d tasks that does not need to be build"%rowcount)
         return rowcount
 
 
@@ -1210,6 +1250,16 @@ class OEliteDB:
         primary = self.db.execute(
             "SELECT prime FROM runq_task WHERE task=?", (task,)).fetchone()
         return primary[0] == 1
+
+
+    def is_runq_recipe_primary(self, recipe):
+        recipe = self.recipe_id(recipe)
+        primary = self.db.execute(
+            "SELECT runq_task.prime "
+            "FROM runq_task, task "
+            "WHERE task.recipe=? AND runq_task.prime IS NOT NULL "
+            "AND runq_task.task=task.id", (recipe,)).fetchone()
+        return primary and primary[0] == 1
 
 
     def set_runq_task_build_on_nostamp_tasks(self):

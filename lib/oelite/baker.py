@@ -43,6 +43,17 @@ def add_bake_parser_options(parser):
                       action="store_true", default=False,
                       help="assume 'y' response to trivial questions")
 
+    parser.add_option("--rmwork",
+                      action="store_true", default=None,
+                      help="clean workdir for all recipes being built")
+    parser.add_option("--no-rmwork",
+                      action="store_false", dest="rmwork", default=None,
+                      help="do not clean workdir for all recipes being built")
+
+    parser.add_option("--no-prebake",
+                      action="store_false", dest="prebake", default=True,
+                      help="do not use prebaked packages")
+
     return
 
 
@@ -77,6 +88,17 @@ class OEliteBaker:
 
         # Handle any INHERITs and inherit the base class
         inherits  = ["base"] + (self.config.getVar("INHERIT", 1) or "").split()
+        # and inherit rmwork when needed
+        try:
+            rmwork = self.options.rmwork
+            inherits.append("rmwork")
+            if rmwork is None:
+                rmwork = self.config.getVar("RMWORK", True)
+            if rmwork:
+                self.options.rmwork = True
+                inherits.append("rmwork")
+        except AttributeError:
+            pass
         for inherit in inherits:
             self.config = _parse("classes/%s.bbclass"%(inherit),
                                  self.config, 1)
@@ -213,6 +235,7 @@ class OEliteBaker:
 
         if self.options.rebuild:
             self.options.rebuild = max(self.options.rebuild)
+            self.options.prebake = False
         else:
             self.options.rebuild = None
         if self.options.relax:
@@ -315,6 +338,46 @@ class OEliteBaker:
         self.db.set_runq_task_build_on_nostamp_tasks()
         self.db.set_runq_task_build_on_retired_tasks()
         self.db.set_runq_task_build_on_hashdiff()
+
+        # check for availability of prebaked packages, and set package
+        # filename for all packages.
+        if self.options.prebake:
+            # FIXME: search tmp/packages even when --no-prebake is
+            # given
+            depend_packages = self.db.get_runq_depend_packages()
+            rdepend_packages = self.db.get_runq_rdepend_packages()
+            depend_packages = set(depend_packages).union(rdepend_packages)
+            for package in depend_packages:
+                # FIXME: skip this package if it is to be rebuild
+                prebake = self.find_prebaked_package(package)
+                if prebake:
+                    self.db.set_runq_package_filename(package, prebake,
+                                                      prebake=True)
+
+        # clear parent_task for all runq_depends where all runq_depend
+        # rows with the same parent_task has prebake flag set
+        self.db.prune_prebaked_runq_depends()
+
+        # FIXME: this might prune to much. If fx. A depends on B and
+        # C, and B depends on C, and all A->B dependencies are
+        # prebaked, but not all A->C dependencies, B will be used
+        # prebaked, and A will build with a freshly built C, which
+        # might be different from the C used in B.  This is especially
+        # risky when manually fidling with content of WORKDIR manually
+        # (fx. manually fixing something to get do_compile to
+        # complete, and then wanting to test the result before
+        # actually integrating it in the recipe).  Hmm....  Why not
+        # just add a --no-prebake option, so when developer is
+        # touching WORKDIR manually, this should be used to avoid
+        # strange prebake issues.  The mtime / retired task stuff
+        # should guarantee that consistency is kept then.
+
+        # Argh! if prebake is to work with rmwork, we might have to do
+        # the above after all :-( We will now have som runq_depends
+        # with parent_task.prebake flag set, but when we follow its
+        # dependencies, we will find one or more recipes that has to
+        # be rebuilt, fx. because of a --rebuild flag.
+
         self.db.propagate_runq_task_build()
 
         build_count = self.db.set_runq_buildhash_for_build_tasks()
@@ -335,26 +398,33 @@ class OEliteBaker:
                 "%s_%s_%s.tar"%(package_name, recipe_version, buildhash))
             debug("will use from build: %s"%(filename))
             self.db.set_runq_package_filename(package, filename)
-        # FIXME: this is where prebake support should be added.
-        # 1. check all runq_depend's with depend_package or
-        # depend_rpackage and set prebake flag if the package is
-        # available for the  buildhash (either in tmpdir or an external
-        # prebake repository)
-        # 2. delete all runq_depend's where all runq_depend rows with
-        # the same depend_task has prebake flag set
 
         self.db.mark_primary_runq_depends()
         self.db.prune_runq_depends_nobuild()
         self.db.prune_runq_depends_with_nobody_depending_on_it()
         self.db.prune_runq_tasks()
 
-        remaining = self.db.number_of_runq_tasks()
+        remaining = self.db.number_of_tasks_to_build()
         debug("%d tasks remains"%remaining)
 
         recipes = self.db.get_recipes_with_tasks_to_build()
         if not recipes:
             info("Nothing to do")
             return 0
+
+        if self.options.rmwork:
+            for recipe in recipes:
+                if (tasks_todo != ["build"]
+                    and self.db.is_runq_recipe_primary(recipe[0])):
+                    debug("skipping...")
+                    continue
+                debug("adding %s:do_rmwork"%(recipe[1]))
+                runq._add_recipe(recipe[0], "do_rmwork")
+                self.db.set_runq_task_build({"recipe": recipe[0], "task": "do_rmwork"})
+            self.db.propagate_runq_task_build()
+            remaining = self.db.number_of_tasks_to_build()
+            debug("%d tasks remains after adding rmwork"%remaining)
+            recipes = self.db.get_recipes_with_tasks_to_build()
 
         print "The following will be build:"
         text = []
@@ -512,6 +582,37 @@ class OEliteBaker:
         if os.path.exists(hashpath):
             os.remove(hashpath)
 
+
+    def find_prebaked_package(self, package):
+        """return full-path filename string or None"""
+        prebake_path = self.config.getVar("PREBAKE_PATH", True) or []
+        if prebake_path:
+            prebake_path = prebake_path.split(":")
+        package_deploy_dir = self.config.getVar("PACKAGE_DEPLOY_DIR", True)
+        if not package_deploy_dir:
+            die("PACKAGE_DEPLOY_DIR not defined")
+        prebake_path.insert(0, package_deploy_dir)
+        debug("package=%s"%(repr(package)))
+        recipe = self.db.get_recipe({"package": package})
+        if not recipe:
+            raise NoSuchRecipe()
+        (recipe, version) = recipe
+        metahash = self.db.get_runq_package_metahash(package)
+        debug("got metahash=%s"%(metahash))
+        package = self.db.get_package(package)
+        if not package:
+            raise NoSuchPackage()
+        (name, arch) = package
+        filename = "%s_%s_%s.tar"%(name, version, metahash)
+        debug("prebake_path=%s"%(prebake_path))
+        for base_dir in prebake_path:
+            debug("base_dir=%s, arch=%s, filename=%s"%(base_dir, arch, filename))
+            path = os.path.join(base_dir, arch, filename)
+            debug("checking for prebake: %s"%(path))
+            if os.path.exists(path):
+                debug("found prebake: %s"%(path))
+                return path
+        return None
 
 def exec_func(func, data):
 
