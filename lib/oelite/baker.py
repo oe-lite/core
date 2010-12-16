@@ -574,6 +574,8 @@ class OEliteBaker:
 
 
     def task_build_started(self, task, data):
+        if self.db.is_task_nostamp(task):
+            return
         (stampdir, stampfile) = self.stampfile_path(task, data)
         if not os.path.exists(stampdir):
             os.makedirs(stampdir)
@@ -582,6 +584,8 @@ class OEliteBaker:
 
 
     def task_build_done(self, task, data, buildhash):
+        if self.db.is_task_nostamp(task):
+            return
         (stampdir, stampfile) = self.stampfile_path(task, data)
         if not os.path.exists(stampdir):
             os.makedirs(stampdir)
