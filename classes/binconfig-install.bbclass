@@ -7,30 +7,36 @@ python binconfig_fixup () {
 	tempdir = bb.data.getVar('TEMP_STAGE_DIR', d, True)
 	import glob
 	os.chdir(tempdir)
-        type_dir = ''.join(glob.glob('*'))
-        os.chdir(type_dir)
+        type_dir = glob.glob('*')
+        os.chdir(type_dir[0])
 
-	sd = bb.data.getVar('STAGE_DIR', d, True)+'/'+type_dir
+	sd = bb.data.getVar('STAGE_DIR', d, True)+'/'+type_dir[0]
 
 	files = []
 	try:
-		f = open('.'+bb.data.getVar('binconfiglist', d, True), "r")
+		filename = '.'+bb.data.getVar('binconfiglist', d, True)
+		f = open(filename, "r")
 		files = f.readlines()
-		f.close
+		f.close()
+		os.unlink(filename)
 	except IOError as exc:
 		if exc.errno == errno.ENOENT:
 			return
-		else: raise
-
+		else: raise Exception("binconfg %s"%(repr(exc)))
+                  
 	binconfigmangle = bb.data.getVar('binconfigmangle', d, True)
 
 	import ConfigParser
-	fname = open('.'+binconfigmangle,"r")
-	config = ConfigParser.ConfigParser()
+	try:
+            fd = open('.'+binconfigmangle,"r")
+            config = ConfigParser.ConfigParser()
 
-        config.readfp(fname)
-        fname.close()
-        os.unlink(fname)
+            config.readfp(fd)
+            fd.close()
+            os.unlink('.'+binconfigmangle)
+	except Exception as exc:
+            raise Exception("binconfg %s"%(repr(exc)))
+        
 
 	prefix = config.get("paths","prefix")
 	exec_prefix = config.get("paths","exec_prefix")
