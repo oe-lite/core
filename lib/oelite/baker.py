@@ -50,6 +50,10 @@ def add_show_parser_options(parser):
     parser.add_option("--nohash",
                       action="store_true",
                       help="don't show variables that will be ignored when computing data hash")
+    parser.add_option("-t", "--task",
+                      action="store", type="str", default=None,
+                      metavar="TASK",
+                      help="prepare recipe for TASK before showing")
 
     return
 
@@ -181,6 +185,14 @@ class OEliteBaker:
             chosen = recipes[0]
 
         recipe = self.cookbook[chosen]
+
+        if self.options.task:
+            task_name = "do_" + self.options.task
+            runq = OEliteRunQueue(self.db, self.cookbook, self.config)
+            task_name = self.db.task_name_id(task_name)
+            runq._add_recipe(chosen, task_name)
+
+            recipe.prepare(runq, task_name)
 
         oelite.data.dump(d=recipe.data, pretty=True,
                          nohash=(not self.options.nohash))
