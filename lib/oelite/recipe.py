@@ -81,6 +81,12 @@ class OEliteRecipe:
                 pass
 
             try:
+                for recadeptask in task_deps["recadeptask"][task].split():
+                    self.db.add_task_recadeptask(task_id, recadeptask)
+            except KeyError, e:
+                pass
+
+            try:
                 for depend in task_deps["depends"][task].split():
                     depend_split = depend.split(":")
                     if len(depend_split) != 2:

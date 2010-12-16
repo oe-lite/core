@@ -101,6 +101,10 @@ class OEliteDB:
                   "task INTEGER, "
                   "recrdeptask INTEGER )")
 
+        c.execute("CREATE TABLE IF NOT EXISTS task_recadeptask ( "
+                  "task INTEGER, "
+                  "recadeptask INTEGER )")
+
         c.execute("CREATE TABLE IF NOT EXISTS task_depend ( "
                   "task INTEGER, "
                   "parent_item INTEGER, "
@@ -602,6 +606,21 @@ class OEliteDB:
         task = self.task_id(task)
         return flatten_single_column_rows(self.db.execute(
             "SELECT recrdeptask FROM task_recrdeptask WHERE task=?", (task,)))
+
+
+    def add_task_recadeptask(self, task, recadeptask):
+        task = self.task_id(task)
+        recdeptask = self.task_name_id(recadeptask)
+        self.db.execute(
+            "INSERT INTO task_recadeptask (task, recadeptask) "
+            "VALUES (?, ?)", (task, recadeptask))
+        return
+
+
+    def get_task_recadeptasks(self, task):
+        task = self.task_id(task)
+        return flatten_single_column_rows(self.db.execute(
+            "SELECT recadeptask FROM task_recadeptask WHERE task=?", (task,)))
 
 
     def add_task_depend(self, task, parent_item, parent_task):

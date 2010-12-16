@@ -212,6 +212,20 @@ class OEliteRunQueue:
             # add each recdeptask of each (recipe, package)
             add_rpackage_depends(recrdeptasks, rdepends)
 
+        # add recursive all depends tasks
+        # (ie. do_sometask[recadeptask] = "do_someothertask")
+        recadeptasks = self.db.get_task_recadeptasks(task)
+        if recadeptasks:
+            # get all inclusive cumulative list of (recipe, package)
+            # involved in a full build, including recursively all
+            # ${DEPENDS}, ${RDEPENDS}, ${PACKAGE_DEPENDS_*} and
+            # ${PACKAGE_RDEPENDS_*}
+            depends = self.get_adepends(recipe_id, recursive=True)
+            # get distinct recipe list
+            depends = dict(depends).keys()
+            # add each recdeptask for each (recipe, package)
+            add_task_depends(recadeptasks, depends)
+
         # add inter-task dependencies
         # (ie. do_sometask[depends] = "itemname:do_someothertask")
         taskdepends = self.db.get_task_depends(task) or []
@@ -367,6 +381,10 @@ class OEliteRunQueue:
             recdepends.update(_recdepends)
 
         return recdepends
+
+
+    def get_adepends(self, recipe, recursive=True):
+        return set()
 
 
     def get_recipe_provider(self, item):
