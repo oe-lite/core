@@ -312,6 +312,13 @@ class OEliteBaker:
             hasher.update(dephash)
             metahash = hasher.hexdigest()
 
+            #if oebakery.DEBUG:
+            #    recipe_name = self.db.get_recipe(recipe_id)
+            #    task_name = self.db.get_task(task=task)
+            #    debug(" %d %s:%s data=%s src=%s dep=%s meta=%s"%(
+            #            task, "_".join(recipe_name), task_name,
+            #            datahash, srchash, dephash, metahash))
+
             recipe_name = self.db.get_recipe_name(recipe_id)
             task_name = self.db.get_task(task=task)
 
