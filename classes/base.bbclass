@@ -277,6 +277,8 @@ install_strip \
 
 python do_fixup () {
 	for f in (bb.data.getVar('FIXUP_FUNCS', d, 1) or '').split():
+                if not d.getVarFlag(f, 'dirs'):
+                        d.setVarFlag(f, 'dirs', '${D}')
 		bb.build.exec_func(f, d)
 }
 do_fixup[dirs] = "${D}"
