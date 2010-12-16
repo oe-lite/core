@@ -732,6 +732,27 @@ class OEliteDB:
         return
 
 
+    def get_tasks_to_build_description(self, hashinfo=False):
+        tasks = []
+        if hashinfo:
+            hashinfo = ", runq_task.metahash, runq_task.tmphash"
+        else:
+            hashinfo = ""
+        for row in self.db.execute(
+            "SELECT recipe.name, recipe.version, task_name.name%s "
+            "FROM runq_task, task, recipe, task_name "
+            "WHERE runq_task.build IS NOT NULL "
+            "AND runq_task.task=task.id "
+            "AND task.recipe=recipe.id "
+            "AND task.name=task_name.id "
+            "ORDER BY recipe.id DESC,task_name.id"%(hashinfo)):
+            if hashinfo:
+                tasks.append("%s_%s:%s meta=%s tmp=%s"%row)
+            else:
+                tasks.append("%s_%s:%s"%row)
+        return tasks
+
+
     def print_runq_depends(self):
         runq_depends = self.db.execute(
             "SELECT prime,task,parent_task,parent_package,parent_rpackage FROM runq_depend").fetchall()

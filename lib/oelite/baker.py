@@ -433,10 +433,27 @@ class OEliteBaker:
         print oelite.util.format_textblock(" ".join(text))
 
         if os.isatty(sys.stdin.fileno()) and not self.options.yes:
-            response = raw_input("Do you want to continue [Y/n]? ")
-            if response and not response[0] in ("y", "Y"):
-                info("Maybe next time")
-                return 0
+            while True:
+                try:
+                    response = raw_input("Do you want to continue [Y/n/?/??]? ")
+                except KeyboardInterrupt:
+                    response = "n"
+                    print ""
+                if response == "" or response[0] in ("y", "Y"):
+                    break
+                elif response == "?":
+                    tasks = self.db.get_tasks_to_build_description()
+                    for task in tasks:
+                        print "  " + task
+                    continue
+                elif response == "??":
+                    tasks = self.db.get_tasks_to_build_description(hashinfo=True)
+                    for task in tasks:
+                        print "  " + task
+                    continue
+                else:
+                    info("Maybe next time")
+                    return 0
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
