@@ -3,8 +3,7 @@ PACKAGES = "${PN}-dbg ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
 BINCONFIG_GLOB += "${bindir}/*-config"
 FILES_${PN}-dev += "${bindir}/*-config ${binconfigmetadir}"
 
-INSTALL_FIXUP_FUNCS += "binconfig_metagen"
-
+FIXUP_FUNCS += "binconfig_metagen"
 
 python binconfig_metagen () {
 	def mkdir_p(path):

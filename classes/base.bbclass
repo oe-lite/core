@@ -12,8 +12,8 @@ inherit fetch
 addtask configure after do_unpack do_patch
 addtask compile after do_configure
 addtask install after do_compile
-addtask install_fixup after do_install
-addtask build after do_install_fixup
+addtask fixup after do_install
+addtask build after do_fixup
 addtask buildall after do_build
 addtask clean
 
@@ -270,16 +270,16 @@ base_do_install() {
 	:
 }
 
-INSTALL_FIXUP_FUNCS += "\
+FIXUP_FUNCS += "\
 install_strip \
 #install_refactor \
 "
 
-python do_install_fixup () {
-	for f in (bb.data.getVar('INSTALL_FIXUP_FUNCS', d, 1) or '').split():
+python do_fixup () {
+	for f in (bb.data.getVar('FIXUP_FUNCS', d, 1) or '').split():
 		bb.build.exec_func(f, d)
 }
-do_install_fixup[dirs] = "${D}"
+do_fixup[dirs] = "${D}"
 
 python install_strip () {
     import stat

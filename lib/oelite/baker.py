@@ -310,6 +310,19 @@ class OEliteBaker:
         if (build_count + nobuild_count) != total:
             die("build_count + nobuild_count != total")
 
+
+        deploy_dir = self.config.getVar("PACKAGE_DEPLOY_DIR", True)
+        packages = self.db.get_runq_packages_to_build()
+        for package in packages:
+            (package_name, package_arch) = self.db.get_package(package)
+            (recipe_name, recipe_version) = self.db.get_recipe(
+                {"package": package})
+            buildhash = self.db.get_runq_package_buildhash(package)
+            filename = os.path.join(
+                deploy_dir, package_arch,
+                "%s_%s_%s.tar"%(package_name, recipe_version, buildhash))
+            debug("will use from build: %s"%(filename))
+            self.db.set_runq_package_filename(package, filename)
         # FIXME: this is where prebake support should be added.
         # 1. check all runq_depend's with depend_package or
         # depend_rpackage and set prebake flag if the package is

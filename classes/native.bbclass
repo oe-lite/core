@@ -4,7 +4,6 @@ RECIPE_ARCH			 = "native/${BUILD_ARCH}"
 RECIPE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
 # Native packages does not runtime provide anything
-RPACKAGES		= ""
 RPROVIDES_${PN}		= ""
 RDEPENDS_${PN}-dev 	= ""
 
