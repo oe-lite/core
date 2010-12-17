@@ -37,7 +37,7 @@ python do_stage () {
             dstdir = os.path.join(cwd, subdir)
         else:
             dstdir = cwd
-        
+
         bb.debug(1, "unpacking %s to %s"%(filename, dstdir))
 
         if not os.path.isdir(dstdir):
@@ -54,6 +54,14 @@ python do_stage () {
 
         # FIXME: do better
         for root, dirs, files in os.walk("."):
+            for f in dirs:
+                srcfile = os.path.join(root, f)
+                dstfile = os.path.join(dstdir, srcfile)
+                if os.path.isdir(dstfile):
+                    continue
+                if os.path.exists(dstfile):
+                    warn("file exist in stage: %s" % dstfile)
+                os.renames(srcfile, dstfile)
             for f in files:
                 srcfile = os.path.join(root, f)
                 dstfile = os.path.join(dstdir, srcfile)
