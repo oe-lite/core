@@ -3,7 +3,7 @@
 #
 # To leave entire workdir after succeussful builds, add the following
 # line to conf/local.conf:
-#   RMWORK = False
+#   RMWORK = "0"
 # or use --no-rmwork command-line option
 #
 

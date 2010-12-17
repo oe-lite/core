@@ -94,9 +94,11 @@ class OEliteBaker:
             inherits.append("rmwork")
             if rmwork is None:
                 rmwork = self.config.getVar("RMWORK", True)
+                if rmwork == "0":
+                    rmwork = False
             if rmwork:
+                die("rmwork=%s"%(repr(rmwork)))
                 self.options.rmwork = True
-                inherits.append("rmwork")
         except AttributeError:
             pass
         for inherit in inherits:
