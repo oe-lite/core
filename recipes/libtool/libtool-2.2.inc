@@ -4,9 +4,6 @@ the complexity of generating special library types (such as shared \
 libraries) behind a consistent interface."
 HOMEPAGE = "http://www.gnu.org/software/libtool/libtool.html"
 LICENSE = "GPL"
-SECTION = "devel"
-
-INC_PR = "r1"
 
 BBCLASSEXTEND = "native cross sdk-cross"
 
@@ -16,9 +13,9 @@ S = "${WORKDIR}/${BPN}-${PV}"
 
 inherit autotools
 
-AUTOTOOLS_DEPENDS_recipe-native		= "autoconf-native automake-native"
-AUTOTOOLS_DEPENDS_recipe-cross		= "autoconf-native automake-native"
-AUTOTOOLS_DEPENDS_recipe-sdk-cross	= "autoconf-native automake-native"
+LIBTOOL_DEPENDS_recipe-native		= ""
+LIBTOOL_DEPENDS_recipe-cross		= ""
+LIBTOOL_DEPENDS_recipe-sdk-cross	= ""
 
 SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libltdl \
@@ -43,7 +40,11 @@ FILES_${PN}-sysroot-libltdl = "${libdir}/libltdl.so.*"
 FILES_${PN}-sysroot-libltdl-dev = "${libdir}/libltdl.* ${includedir}/ltdl.h"
 FILES_${PN}-sysroot-libltdl-dbg = "${libdir}/.debug/"
 
-EXTRA_OECONF_append += "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF_PROGRAM_PREFIX = ""
+EXTRA_OECONF_PROGRAM_PREFIX_recipe-cross += "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF_PROGRAM_PREFIX_recipe-sdk-cross += "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF_PROGRAM_PREFIX_recipe-canadian-cross += "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF += "${EXTRA_OECONF_PROGRAM_PREFIX}"
 
 # When cross compiling libtool, we need to lie a bit, telling
 # configure that host=target
@@ -65,3 +66,8 @@ HOST_OPTIMIZATION_recipe-sdk-cross	= "${TARGET_OPTIMIZATION}"
 HOST_CFLAGS_recipe-sdk-cross		= "${TARGET_CFLAGS}"
 HOST_CXXFLAGS_recipe-sdk-cross		= "${TARGET_CXXFLAGS}"
 HOST_LDFLAGS_recipe-sdk-cross		= "${TARGET_LDFLAGS}"
+
+do_install_append () {
+    ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
+    ln -sf ../config ${D}${datadir}/libtool/libltdl/config
+}
