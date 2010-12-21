@@ -61,6 +61,14 @@ python do_siteinfo () {
     host_config_site = bb.data.getVar('HOST_CONFIG_SITE', d, True)
     target_config_site = bb.data.getVar('TARGET_CONFIG_SITE', d, True)
 
+    def generate_siteinfo(d, arch, output_filename):
+        import bb, fileinput
+        input_files = list_sitefiles(d, bb.data.getVar(arch+'_SITEFILES', d, True))
+        output_file = open(output_filename, 'w')
+        for line in fileinput.input(input_files):
+            output_file.write(line)
+        output_file.close()
+
     generate_siteinfo(d, 'BUILD', build_config_site)
 
     if build_arch == target_arch:
@@ -75,14 +83,6 @@ python do_siteinfo () {
     else:
         generate_siteinfo(d, 'HOST', host_config_site)
 }
-
-def generate_siteinfo(d, arch, output_filename):
-    import bb, fileinput
-    input_files = list_sitefiles(d, bb.data.getVar(arch+'_SITEFILES', d, True))
-    output_file = open(output_filename, 'w')
-    for line in fileinput.input(input_files):
-        output_file.write(line)
-    output_file.close()
 
 #
 # Return list of sitefiles found by searching for sitefiles in the
