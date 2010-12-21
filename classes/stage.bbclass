@@ -1,4 +1,5 @@
 inherit binconfig-install
+inherit libtool-stage
 addtask stage before do_fetch
 addtask stage_fixup after do_stage
 
@@ -75,5 +76,4 @@ python do_stage () {
         shutil.rmtree(tempdir)
 }
 
-STAGE_FIXUP_FUNCS += " \
-"
+STAGE_FIXUP_FUNCS ?= ""
