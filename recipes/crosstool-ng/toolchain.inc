@@ -542,3 +542,11 @@ split_sysroot_mangle_sdk () {
 	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
 }
 split_sysroot_mangle_sdk[dirs] = "${PKGD}"
+
+inherit libtool
+LIBTOOL_DEPENDS = ""
+LIBTOOL_FIXUP_SEARCH_DIRS += "\
+${D}/${TARGET_ARCH}/sys-root${target_libdir} \
+${D}/${TARGET_ARCH}/sys-root${target_base_libdir}"
+LIBTOOL_FIXUP_STRIP_DIRS += "\
+/targets/arm-cortexa8-linux-gnueabi/build/build-binutils-for-target/bfd/../libiberty/pic"
