@@ -81,6 +81,12 @@ class OEliteRecipe:
                 pass
 
             try:
+                for recadeptask in task_deps["recadeptask"][task].split():
+                    self.db.add_task_recadeptask(task_id, recadeptask)
+            except KeyError, e:
+                pass
+
+            try:
                 for depend in task_deps["depends"][task].split():
                     depend_split = depend.split(":")
                     if len(depend_split) != 2:
@@ -138,31 +144,56 @@ class OEliteRecipe:
 
         data = self.data.createCopy()
 
-        def set_pkgproviders(self_db_get_runq_package_depends,
+        buildhash = self.db.get_runq_task_buildhash(task)
+        debug("buildhash=%s"%(repr(buildhash)))
+        data.setVar("TASK_BUILDHASH", buildhash)
+
+        deploy_dir = data.getVar("PACKAGE_DEPLOY_DIR", True) 
+
+        recipe_type = data.getVar("RECIPE_TYPE", False)
+        
+        if recipe_type == "canadian-cross":
+            host_arch = bb.data.getVar('HOST_ARCH', d, True)
+
+        def set_pkgproviders(self_db_get_runq_depend_packages,
                              PKGPROVIDER_, RECDEPENDS):
             recdepends = []
 
-            packages = self_db_get_runq_package_depends(task) or []
+            packages = self_db_get_runq_depend_packages(task) or []
             for package in packages:
                 if package in recdepends:
                     continue
 
                 (package_name, package_arch) = self.db.get_package(package)
-                (recipe_name, recipe_version) = self.db.get_recipe(
-                        {"package": package})
-                pkgprovider = "%s/%s-%s"%(
-                        package_arch, package_name, recipe_version)
+                filename = self.db.get_runq_package_filename(package)
                 recdepends.append(package_name)
                 debug("setting %s%s=%s"%(
-                        PKGPROVIDER_, package_name, pkgprovider))
-                data.setVar(PKGPROVIDER_ + package_name, pkgprovider)
+                        PKGPROVIDER_, package_name, filename))
+                data.setVar(PKGPROVIDER_ + package_name, filename)
 
+                if package_arch.startswith("native/"):
+                    subdir = "native"
+                else:
+                    subdir = package_arch.split("/", 1)[0]
+                    if recipe_type == "canadian-cross":
+                        if package_arch.startswith('cross/%s/'%host_arch):
+                            subdir = os.path.join('host', subdir)
+                        elif package_arch.startswith('sysroot/%s/'%host_arch):
+                            subdir = os.path.join('host', subdir)
+                        elif package_arch.startswith('sysroot/%s--'%host_arch):
+                            subdir = os.path.join('host', subdir)
+                        else:
+                            subdir = os.path.join('target', subdir)
+                data.setVar("PKGSUBDIR_" + package_name, subdir)
+
+            if recdepends:
+                debug("setting %s=%s"%(RECDEPENDS, " ".join(recdepends)))
             data.setVar(RECDEPENDS, " ".join(recdepends))
 
-        set_pkgproviders(self.db.get_runq_package_depends,
+        set_pkgproviders(self.db.get_runq_depend_packages,
                          "PKGPROVIDER_", "RECDEPENDS")
 
-        set_pkgproviders(self.db.get_runq_rpackage_depends,
+        set_pkgproviders(self.db.get_runq_rdepend_packages,
                          "PKGRPROVIDER_", "RECRDEPENDS")
 
         return data

@@ -19,6 +19,7 @@ builtin_nohash = [
     "BBFILES_PRETTY",
     "BBRECIPES",
     "FILE",
+    "_task_deps",
 ]
 
 builtin_nohash_prefix = [
@@ -27,7 +28,7 @@ builtin_nohash_prefix = [
 ]
 
 def dump_var(key, o=sys.__stdout__, d=bb.data.init(), pretty=True,
-             topdir=None, workdir=None):
+             dynvars = {}):
     if pretty:
         eol = "\n\n"
     else:
@@ -40,10 +41,8 @@ def dump_var(key, o=sys.__stdout__, d=bb.data.init(), pretty=True,
 
     val = str(val)
 
-    if workdir:
-        val = string.replace(val, workdir, "${WORKDIR}")
-    if topdir:
-        val = string.replace(val, topdir, "${TOPDIR}")
+    for varname in dynvars.keys():
+        val = string.replace(val, dynvars[varname], "${%s}"%(varname))
 
     if d.getVarFlag(key, "func"):
         o.write("%s() {\n%s}%s"%(key, val, eol))
@@ -59,8 +58,9 @@ def dump_var(key, o=sys.__stdout__, d=bb.data.init(), pretty=True,
 
 def dump(o=sys.__stdout__, d=bb.data.init(), pretty=True, nohash=False):
 
-    topdir = d.getVar("TOPDIR", True)
-    workdir = d.getVar("WORKDIR", True)
+    dynvars = {}
+    for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
+        dynvars[varname] = d.getVar(varname, True) or None
 
     keys = sorted((key for key in d.keys() if not key.startswith("__")))
     for key in keys:
@@ -69,7 +69,11 @@ def dump(o=sys.__stdout__, d=bb.data.init(), pretty=True, nohash=False):
                 continue
             if d.getVarFlag(key, "nohash"):
                 continue
+            nohash_prefixed = False
             for prefix in builtin_nohash_prefix:
                 if key.startswith(prefix):
-                    continue
-        dump_var(key, o, d, pretty, topdir, workdir)
+                    nohash_prefixed = True
+                    break
+            if nohash_prefixed:
+                continue
+        dump_var(key, o, d, pretty, dynvars)

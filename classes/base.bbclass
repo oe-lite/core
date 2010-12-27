@@ -12,8 +12,8 @@ inherit fetch
 addtask configure after do_unpack do_patch
 addtask compile after do_configure
 addtask install after do_compile
-addtask install_fixup after do_install
-addtask build after do_install_fixup
+addtask fixup after do_install
+addtask build after do_fixup
 addtask buildall after do_build
 addtask clean
 
@@ -47,24 +47,18 @@ DEPENDS_prepend = "${CLASS_DEPENDS} "
 
 OE_IMPORTS += "oe.path oe.utils oe.packagegroup sys os time"
 
-python oe_import () {
-    if isinstance(e, bb.event.ConfigParsed):
-        import os, sys
-        bbpath = e.data.getVar("BBPATH", True).split(":")
-        sys.path[0:0] = [os.path.join(dir, "lib") for dir in bbpath]
+python () {
+    def inject(name, value):
+        """Make a python object accessible from the metadata"""
+        if hasattr(bb.utils, "_context"):
+            bb.utils._context[name] = value
+        else:
+            __builtins__[name] = value
 
-        def inject(name, value):
-            """Make a python object accessible from the metadata"""
-            if hasattr(bb.utils, "_context"):
-                bb.utils._context[name] = value
-            else:
-                __builtins__[name] = value
-
-        for toimport in e.data.getVar("OE_IMPORTS", True).split():
-            imported = __import__(toimport)
-            inject(toimport.split(".", 1)[0], imported)
+    for toimport in d.getVar("OE_IMPORTS", True).split():
+        imported = __import__(toimport)
+        inject(toimport.split(".", 1)[0], imported)
 }
-
 
 #
 # Shell functions for printing out messages in the BitBake output
@@ -102,8 +96,8 @@ oedebug() {
 
 oe_runmake() {
 	if [ x"$MAKE" = x ]; then MAKE=make; fi
-	oenote ${MAKE} ${EXTRA_OEMAKE} "$@"
-	${MAKE} ${EXTRA_OEMAKE} "$@" || die "oe_runmake failed"
+	oenote ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
+	${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@" || die "oe_runmake failed"
 }
 
 
@@ -165,18 +159,14 @@ python do_checkuri() {
 }
 
 
-do_checkuriall[recrdeptask] = "do_checkuri"
-do_checkuriall[nostamp] = "1"
-do_checkuriall() {
-	:
-}
+do_checkuriall[recadeptask] = "do_checkuri"
+do_checkuriall[nostamp] = True
+do_checkuriall[func] = True
+do_checkuriall = ""
 
-
-do_buildall[recrdeptask] = "do_build"
-do_buildall() {
-	:
-}
-
+do_buildall[recadaptask] = "do_build"
+do_buildall[func] = True
+do_buildall = ""
 
 def subprocess_setup():
 	import signal
@@ -272,16 +262,18 @@ base_do_install() {
 	:
 }
 
-INSTALL_FIXUP_FUNCS += "\
+FIXUP_FUNCS += "\
 install_strip \
 #install_refactor \
 "
 
-python do_install_fixup () {
-	for f in (bb.data.getVar('INSTALL_FIXUP_FUNCS', d, 1) or '').split():
+python do_fixup () {
+	for f in (bb.data.getVar('FIXUP_FUNCS', d, 1) or '').split():
+                if not d.getVarFlag(f, 'dirs'):
+                        d.setVarFlag(f, 'dirs', '${D}')
 		bb.build.exec_func(f, d)
 }
-do_install_fixup[dirs] = "${D}"
+do_fixup[dirs] = "${D}"
 
 python install_strip () {
     import stat
@@ -601,3 +593,6 @@ python () {
 }
 
 EXPORT_FUNCTIONS do_configure do_compile do_install
+
+REBUILDALL_SKIP[nohash] = True
+RELAXED[nohash] = True

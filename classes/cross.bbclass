@@ -6,12 +6,7 @@ RECIPE_ARCH_MACHINE	= "cross/${MACHINE}"
 # Default packages is stage (cross) packages
 PACKAGES_append		+= "${SYSROOT_PACKAGES}"
 SYSROOT_PACKAGES	?= ""
-RPACKAGES		 = "${SYSROOT_PACKAGES}"
 RPROVIDES_${PN}          = ""
-
-# No reason to build target packages for internal cross packages
-RPACKAGES_recipe-cross		= "${SYSROOT_PACKAGES}"
-RPACKAGES_recipe-sdk-cross	= "${SYSROOT_PACKAGES}"
 
 DEFAULT_DEPENDS = "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
 

@@ -2,7 +2,7 @@
 # OE-lite class for handling crontab files
 #
 
-addtask install_crontab after do_install before do_install_fixup
+addtask install_crontab after do_install before do_fixup
 
 RECIPE_OPTIONS_append += "crontab"
 

@@ -1,4 +1,4 @@
-addtask install_makedevs after do_install before do_install_fixup
+addtask install_makedevs after do_install before do_fixup
 
 RECIPE_OPTIONS_append += "makedevs"
 

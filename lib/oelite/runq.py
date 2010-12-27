@@ -6,7 +6,7 @@ class OEliteRunQueue:
 
 
     def __init__(self, db, cookbook, config, rebuild=None, relax=None,
-                 depth_first=False):
+                 depth_first=True):
         self.db = db
         self.cookbook = cookbook
         self.config = config
@@ -50,14 +50,14 @@ class OEliteRunQueue:
 
 
     def add_recipe(self, name, task_name):
-        recipe = self.db.get_recipe_id(name)
+        recipe = self.db.get_recipe_id(name=name)
         if not recipe:
             return False
-        return self._add_recipe(recipe, task_name)
+        return self._add_recipe(recipe, task_name, primary=True)
 
 
     def add_package(self, name, task_name):
-        package = self.db.get_package_id(name)
+        package = self.db.get_package_id(name=name)
         return self._add_package(package, task_name)
 
 
@@ -65,14 +65,17 @@ class OEliteRunQueue:
         if not package_id:
             return False
         return self._add_recipe(
-            self.db.get_recipe_id(package=package_id), task_name)
+            self.db.get_recipe_id(package=package_id), task_name, primary=True)
 
 
-    def _add_recipe(self, recipe_id, task_name):
-        primary_recipe_id = recipe_id
+    def _add_recipe(self, recipe_id, task_name, primary=False):
+        if primary:
+            primary_recipe_id = recipe_id
+        else:
+            primary_recipe_id = None
         primary_task = self.db.get_task_id(recipe_id, task_name)
         if not primary_task:
-            raise NoSuchTask("recipe %s do not have a %s task"%(
+            raise NoSuchTask("%s:%s"%(
                     self.db.get_recipe_name(recipe_id),
                     self.db.get_task(task_name)))
 
@@ -98,29 +101,30 @@ class OEliteRunQueue:
                 # --rebuild/--rebuildall/--reallyrebuildall)
                 if ((self.rebuild >= 1 and is_primary_recipe) or
                     (self.rebuild == 2 and
-                     recipe_data.getVar("REBUILDALL_SKIP") != "1") or
+                     recipe_data.getVar("REBUILDALL_SKIP", True) != "1") or
                     (self.rebuild == 3)):
                     self.db.set_runq_task_build(task)
 
                 # set relax flag (based on --sloppy/--relaxed)
-                if ((self.relax == 2 and is_primary_recipe or
+                if ((self.relax == 2 and not is_primary_recipe) or
                     (self.relax == 1 and
-                     (not is_primary and recipe_data.getVar("RELAXED"))))):
+                     (not is_primary_recipe and
+                      recipe_data.getVar("RELAXED", True)))):
                     self.db.set_runq_task_relax(task)
 
                 try:
                     # task_dependencies should return tuple:
                     # task_depends: list of task_id's
                     # package_depends: list of (task_id, package_id)
-                    # rpackage_depends: list of (task_id, package_id)
-                    (task_depends, package_depends, rpackage_depends) = \
+                    # package_rdepends: list of (task_id, package_id)
+                    (task_depends, package_depends, package_rdepends) = \
                         self.task_dependencies(task)
                     self.db.add_runq_task_depends(task, task_depends)
                     self.db.add_runq_package_depends(task, package_depends)
-                    self.db.add_runq_rpackage_depends(task, rpackage_depends)
+                    self.db.add_runq_package_rdepends(task, package_rdepends)
                     newtasks.update(task_depends)
                     newtasks.update([d[0] for d in package_depends])
-                    newtasks.update([d[0] for d in rpackage_depends])
+                    newtasks.update([d[0] for d in package_rdepends])
                 except RecursiveDepends, e:
                     recipe = self.db.get_recipe_name({"task":task})
                     task = self.db.get_task(task=task)
@@ -141,7 +145,7 @@ class OEliteRunQueue:
         task_depends = set(parents)
 
         package_depends = set()
-        rpackage_depends = set()
+        package_rdepends = set()
 
         # helper to add multipe task_depends
         def add_task_depends(task_names, recipes):
@@ -154,12 +158,12 @@ class OEliteRunQueue:
                         debug("not adding unsupported task %s:%s"%(
                                 recipe, task_name))
 
-        # helpers to add multipe package_depends / rpackage_depends
+        # helpers to add multipe package_depends / package_rdepends
         def add_package_depends(task_names, depends):
             return _add_package_depends(task_names, depends, package_depends)
 
-        def add_rpackage_depends(task_names, rdepends):
-            return _add_package_depends(task_names, rdepends, rpackage_depends)
+        def add_package_rdepends(task_names, rdepends):
+            return _add_package_depends(task_names, rdepends, package_rdepends)
 
         def _add_package_depends(task_names, depends, package_depends):
             for task_name in task_names:
@@ -187,9 +191,9 @@ class OEliteRunQueue:
             # get list of (recipe, package) providing ${RDEPENDS}
             rdepends = self.get_rdepends(recipe_id)
             # add each rdeptask for each (recipe, package)
-            add_rpackage_depends(rdeptasks, rdepends)
+            add_package_rdepends(rdeptasks, rdepends)
 
-        # add recdeptask dependencies
+        # add recursive (build) depends tasks
         # (ie. do_sometask[recdeptask] = "do_someothertask")
         recdeptasks = self.db.get_task_recdeptasks(task)
         if recdeptasks:
@@ -200,7 +204,7 @@ class OEliteRunQueue:
             # add each recdeptask for each (recipe, package)
             add_package_depends(recdeptasks, depends)
 
-        # add recrdeptask dependencies
+        # add recursive run-time depends tasks
         # (ie. do_sometask[recrdeptask] = "do_someothertask")
         recrdeptasks = self.db.get_task_recrdeptasks(task)
         if recrdeptasks:
@@ -209,7 +213,21 @@ class OEliteRunQueue:
             # ${PACKAGE_RDEPENDS_*}
             rdepends = self.get_rdepends(recipe_id, recursive=True)
             # add each recdeptask of each (recipe, package)
-            add_rpackage_depends(recrdeptasks, rdepends)
+            add_package_rdepends(recrdeptasks, rdepends)
+
+        # add recursive all depends tasks
+        # (ie. do_sometask[recadeptask] = "do_someothertask")
+        recadeptasks = self.db.get_task_recadeptasks(task)
+        if recadeptasks:
+            # get all inclusive cumulative list of (recipe, package)
+            # involved in a full build, including recursively all
+            # ${DEPENDS}, ${RDEPENDS}, ${PACKAGE_DEPENDS_*} and
+            # ${PACKAGE_RDEPENDS_*}
+            depends = self.get_adepends(recipe_id, recursive=True)
+            # get distinct recipe list
+            depends = dict(depends).keys()
+            # add each recdeptask for each (recipe, package)
+            add_task_depends(recadeptasks, depends)
 
         # add inter-task dependencies
         # (ie. do_sometask[depends] = "itemname:do_someothertask")
@@ -239,9 +257,9 @@ class OEliteRunQueue:
         # add task dependency information to runq db
         self.db.add_runq_task_depends(task, task_depends)
         self.db.add_runq_package_depends(task, package_depends)
-        self.db.add_runq_rpackage_depends(task, rpackage_depends)
+        self.db.add_runq_package_rdepends(task, package_rdepends)
 
-        return (task_depends, package_depends, rpackage_depends)
+        return (task_depends, package_depends, package_rdepends)
 
 
     def get_depends(self, recipe, recursive=False):
@@ -368,6 +386,10 @@ class OEliteRunQueue:
         return recdepends
 
 
+    def get_adepends(self, recipe, recursive=True):
+        return set()
+
+
     def get_recipe_provider(self, item):
         return self._get_recipe_provider(self.get_provider(item))
 
@@ -454,7 +476,7 @@ class OEliteRunQueue:
             if len(latest) > 1:
                 multiple_providers = []
                 for provider in latest.itervalues():
-                    multiple_providers.append(provider[1])
+                    multiple_providers.append(provider[0][1])
                 raise MultipleProviders(
                     "multiple providers: " + " ".join(multiple_providers))
             raise Exception("code path should never go here...")

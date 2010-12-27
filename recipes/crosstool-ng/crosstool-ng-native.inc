@@ -1,23 +1,26 @@
 inherit native
 
 do_configure () {
-	if [ -x ${S}/configure ] ; then
-		cfgcmd="${S}/configure --prefix=${D}${prefix} "
-		oenote "Running $cfgcmd..."
-		$cfgcmd || oefatal "configure failed"
-	else
-		oefatal "no configure script found"
-	fi
+    if [ -x ${S}/configure ] ; then
+        cfgcmd="${S}/configure --prefix=${D}${prefix} "
+        oenote "Running $cfgcmd..."
+        $cfgcmd || oefatal "configure failed"
+    else
+        oefatal "no configure script found"
+    fi
 }
 
 FILES_${PN} += "${libdir}/ct-ng-*"
 
-stage_package_fixup () {
-	mv ${PN}/${stage_bindir}/ct-ng \
-	   ${PN}${stage_bindir}/ct-ng.orig
-	sed -e 's%${D}%$(shell dirname $(MAKEFILE_LIST))/..%' \
-	    < ${PN}${stage_bindir}/ct-ng.orig \
-	    > ${PN}${stage_bindir}/ct-ng
-	rm ${PN}${stage_bindir}/ct-ng.orig
-	chmod +x ${PN}${stage_bindir}/ct-ng
+FIXUP_FUNCS += "crosstool_ng_native_fixup"
+
+crosstool_ng_native_fixup () {
+    pwd
+    mv .${stage_bindir}/ct-ng \
+       .${stage_bindir}/ct-ng.orig
+    sed -e 's%${D}%$(shell dirname $(MAKEFILE_LIST))/..%' \
+        < .${stage_bindir}/ct-ng.orig \
+        > .${stage_bindir}/ct-ng
+    rm .${stage_bindir}/ct-ng.orig
+    chmod +x .${stage_bindir}/ct-ng
 }

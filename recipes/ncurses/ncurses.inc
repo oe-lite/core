@@ -3,8 +3,6 @@ HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
 SECTION = "libs"
 
-PR = "r1"
-
 BBCLASSEXTEND = "native sdk"
 
 PACKAGES_prepend =+ "\
@@ -50,7 +48,7 @@ inherit autotools c++
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
 
-EXTRA_OECONF = "\
+EXTRA_OECONF += "\
 --with-shared \
 --with-libtool=`which ${LIBTOOL}` \
 --without-profile \

@@ -3,554 +3,124 @@
 addtask patch after do_unpack
 
 # Point to an empty file so any user's custom settings don't break things
-QUILTRCFILE ?= "${STAGING_BINDIR_NATIVE}/quiltrc"
+QUILTRCFILE ?= "${STAGE_DIR}/etc/quiltrc"
 
-def patch_init(d):
-	import os, sys
-
-	class NotFoundError(Exception):
-		def __init__(self, path):
-			self.path = path
-		def __str__(self):
-			return "Error: %s not found." % self.path
-
-	def md5sum(fname):
-		import sys
-
-		# when we move to Python 2.5 as minimal supported
-		# we can kill that try/except as hashlib is 2.5+
-		try:
-			import hashlib
-			m = hashlib.md5()
-		except ImportError:
-			import md5
-			m = md5.new()
-
-		try:
-			f = file(fname, 'rb')
-		except IOError:
-			raise NotFoundError(fname)
-
-		while True:
-			d = f.read(8096)
-			if not d:
-				break
-			m.update(d)
-		f.close()
-		return m.hexdigest()
-
-	class CmdError(Exception):
-		def __init__(self, exitstatus, output):
-			self.status = exitstatus
-			self.output = output
-
-		def __str__(self):
-			return "Command Error: exit status: %d  Output:\n%s" % (self.status, self.output)
-
-
-	def runcmd(args, dir = None):
-		import commands
-
-		if dir:
-			olddir = os.path.abspath(os.curdir)
-			if not os.path.exists(dir):
-				raise NotFoundError(dir)
-			os.chdir(dir)
-			# print("cwd: %s -> %s" % (olddir, dir))
-
-		try:
-			args = [ commands.mkarg(str(arg)) for arg in args ]
-			cmd = " ".join(args)
-			# print("cmd: %s" % cmd)
-			(exitstatus, output) = commands.getstatusoutput(cmd)
-			if exitstatus != 0:
-				raise CmdError(exitstatus >> 8, output)
-			return output
-
-		finally:
-			if dir:
-				os.chdir(olddir)
-
-	class PatchError(Exception):
-		def __init__(self, msg):
-			self.msg = msg
-
-		def __str__(self):
-			return "Patch Error: %s" % self.msg
-
-	import bb, bb.data, bb.fetch
-
-	class PatchSet(object):
-		defaults = {
-			"strippath": 1
-		}
-
-		def __init__(self, dir, d):
-			self.dir = dir
-			self.d = d
-			self.patches = []
-			self._current = None
-
-		def current(self):
-			return self._current
-
-		def Clean(self):
-			"""
-			Clean out the patch set.  Generally includes unapplying all
-			patches and wiping out all associated metadata.
-			"""
-			raise NotImplementedError()
-
-		def Import(self, patch, force):
-			if not patch.get("file"):
-				if not patch.get("remote"):
-					raise PatchError("Patch file must be specified in patch import.")
-				else:
-					patch["file"] = bb.fetch.localpath(patch["remote"], self.d)
-
-			for param in PatchSet.defaults:
-				if not patch.get(param):
-					patch[param] = PatchSet.defaults[param]
-
-			if patch.get("remote"):
-				patch["file"] = bb.data.expand(bb.fetch.localpath(patch["remote"], self.d), self.d)
-
-			patch["filemd5"] = md5sum(patch["file"])
-
-		def Push(self, force):
-			raise NotImplementedError()
-
-		def Pop(self, force):
-			raise NotImplementedError()
-
-		def Refresh(self, remote = None, all = None):
-			raise NotImplementedError()
-
-
-	class PatchTree(PatchSet):
-		def __init__(self, dir, d):
-			PatchSet.__init__(self, dir, d)
-
-		def Import(self, patch, force = None):
-			""""""
-			PatchSet.Import(self, patch, force)
-
-			if self._current is not None:
-				i = self._current + 1
-			else:
-				i = 0
-			self.patches.insert(i, patch)
-
-		def _applypatch(self, patch, force = False, reverse = False, run = True):
-			shellcmd = ["cat", patch['file'], "|", "patch", "-p", patch['strippath']]
-			if reverse:
-				shellcmd.append('-R')
-
-			if not run:
-				return "sh" + "-c" + " ".join(shellcmd)
-
-			if not force:
-				shellcmd.append('--dry-run')
-
-			output = runcmd(["sh", "-c", " ".join(shellcmd)], self.dir)
-
-			if force:
-				return
-
-			shellcmd.pop(len(shellcmd) - 1)
-			output = runcmd(["sh", "-c", " ".join(shellcmd)], self.dir)
-			return output
-
-		def Push(self, force = False, all = False, run = True):
-			bb.note("self._current is %s" % self._current)
-			bb.note("patches is %s" % self.patches)
-			if all:
-				for i in self.patches:
-					if self._current is not None:
-						self._current = self._current + 1
-					else:
-						self._current = 0
-					bb.note("applying patch %s" % i)
-					self._applypatch(i, force)
-			else:
-				if self._current is not None:
-					self._current = self._current + 1
-				else:
-					self._current = 0
-				bb.note("applying patch %s" % self.patches[self._current])
-				return self._applypatch(self.patches[self._current], force)
-
-
-		def Pop(self, force = None, all = None):
-			if all:
-				for i in self.patches:
-					self._applypatch(i, force, True)
-			else:
-				self._applypatch(self.patches[self._current], force, True)
-
-		def Clean(self):
-			""""""
-
-	class GitApplyTree(PatchTree):
-		def __init__(self, dir, d):
-			PatchTree.__init__(self, dir, d)
-
-		def _applypatch(self, patch, force = False, reverse = False, run = True):
-			shellcmd = ["git", "--git-dir=.", "apply", "-p%s" % patch['strippath']]
-
-			if reverse:
-				shellcmd.append('-R')
-
-			shellcmd.append(patch['file'])
-
-			if not run:
-				return "sh" + "-c" + " ".join(shellcmd)
-
-			return runcmd(["sh", "-c", " ".join(shellcmd)], self.dir)
-
-
-	class QuiltTree(PatchSet):
-		def _runcmd(self, args, run = True):
-			quiltrc = bb.data.getVar('QUILTRCFILE', self.d, 1)
-			if not run:
-				return ["quilt"] + ["--quiltrc"] + [quiltrc] + args
-			runcmd(["quilt"] + ["--quiltrc"] + [quiltrc] + args, self.dir)
-
-		def _quiltpatchpath(self, file):
-			return os.path.join(self.dir, "patches", os.path.basename(file))
-
-
-		def __init__(self, dir, d):
-			PatchSet.__init__(self, dir, d)
-			self.initialized = False
-			p = os.path.join(self.dir, 'patches')
-			if not os.path.exists(p):
-				os.makedirs(p)
-
-		def Clean(self):
-			try:
-				self._runcmd(["pop", "-a", "-f"])
-			except Exception:
-				pass
-			self.initialized = True
-
-		def InitFromDir(self):
-			# read series -> self.patches
-			seriespath = os.path.join(self.dir, 'patches', 'series')
-			if not os.path.exists(self.dir):
-				raise Exception("Error: %s does not exist." % self.dir)
-			if os.path.exists(seriespath):
-				series = file(seriespath, 'r')
-				for line in series.readlines():
-					patch = {}
-					parts = line.strip().split()
-					patch["quiltfile"] = self._quiltpatchpath(parts[0])
-					patch["quiltfilemd5"] = md5sum(patch["quiltfile"])
-					if len(parts) > 1:
-						patch["strippath"] = parts[1][2:]
-					self.patches.append(patch)
-				series.close()
-
-				# determine which patches are applied -> self._current
-				try:
-					output = runcmd(["quilt", "applied"], self.dir)
-				except CmdError:
-					if sys.exc_value.output.strip() == "No patches applied":
-						return
-					else:
-						raise sys.exc_value
-				output = [val for val in output.split('\n') if not val.startswith('#')]
-				for patch in self.patches:
-					if os.path.basename(patch["quiltfile"]) == output[-1]:
-						self._current = self.patches.index(patch)
-			self.initialized = True
-
-		def Import(self, patch, force = None):
-			if not self.initialized:
-				self.InitFromDir()
-			PatchSet.Import(self, patch, force)
-
-			args = ["import", "-p", patch["strippath"]]
-			if force:
-				args.append("-f")
-				args.append("-dn")
-			args.append(patch["file"])
-
-			self._runcmd(args)
-
-			patch["quiltfile"] = self._quiltpatchpath(patch["file"])
-			patch["quiltfilemd5"] = md5sum(patch["quiltfile"])
-
-			# TODO: determine if the file being imported:
-			#	   1) is already imported, and is the same
-			#	   2) is already imported, but differs
-
-			self.patches.insert(self._current or 0, patch)
-
-
-		def Push(self, force = False, all = False, run = True):
-			# quilt push [-f]
-
-			args = ["push"]
-			if force:
-				args.append("-f")
-			if all:
-				args.append("-a")
-			if not run:
-				return self._runcmd(args, run)
-
-			self._runcmd(args)
-
-			if self._current is not None:
-				self._current = self._current + 1
-			else:
-				self._current = 0
-
-		def Pop(self, force = None, all = None):
-			# quilt pop [-f]
-			args = ["pop"]
-			if force:
-				args.append("-f")
-			if all:
-				args.append("-a")
-
-			self._runcmd(args)
-
-			if self._current == 0:
-				self._current = None
-
-			if self._current is not None:
-				self._current = self._current - 1
-
-		def Refresh(self, **kwargs):
-			if kwargs.get("remote"):
-				patch = self.patches[kwargs["patch"]]
-				if not patch:
-					raise PatchError("No patch found at index %s in patchset." % kwargs["patch"])
-				(type, host, path, user, pswd, parm) = bb.decodeurl(patch["remote"])
-				if type == "file":
-					import shutil
-					if not patch.get("file") and patch.get("remote"):
-						patch["file"] = bb.fetch.localpath(patch["remote"], self.d)
-
-					shutil.copyfile(patch["quiltfile"], patch["file"])
-				else:
-					raise PatchError("Unable to do a remote refresh of %s, unsupported remote url scheme %s." % (os.path.basename(patch["quiltfile"]), type))
-			else:
-				# quilt refresh
-				args = ["refresh"]
-				if kwargs.get("quiltfile"):
-					args.append(os.path.basename(kwargs["quiltfile"]))
-				elif kwargs.get("patch"):
-					args.append(os.path.basename(self.patches[kwargs["patch"]]["quiltfile"]))
-				self._runcmd(args)
-
-	class Resolver(object):
-		def __init__(self, patchset):
-			raise NotImplementedError()
-
-		def Resolve(self):
-			raise NotImplementedError()
-
-		def Revert(self):
-			raise NotImplementedError()
-
-		def Finalize(self):
-			raise NotImplementedError()
-
-	class NOOPResolver(Resolver):
-		def __init__(self, patchset):
-			self.patchset = patchset
-
-		def Resolve(self):
-			olddir = os.path.abspath(os.curdir)
-			os.chdir(self.patchset.dir)
-			try:
-				self.patchset.Push()
-			except Exception:
-				os.chdir(olddir)
-				raise sys.exc_value
-
-	# Patch resolver which relies on the user doing all the work involved in the
-	# resolution, with the exception of refreshing the remote copy of the patch
-	# files (the urls).
-	class UserResolver(Resolver):
-		def __init__(self, patchset):
-			self.patchset = patchset
-
-		# Force a push in the patchset, then drop to a shell for the user to
-		# resolve any rejected hunks
-		def Resolve(self):
-
-			olddir = os.path.abspath(os.curdir)
-			os.chdir(self.patchset.dir)
- 			try:
- 				self.patchset.Push(False)
- 			except CmdError, v:
- 				# Patch application failed
- 				patchcmd = self.patchset.Push(True, False, False)
- 
- 				t = bb.data.getVar('T', d, 1)
- 				if not t:
- 					bb.msg.fatal(bb.msg.domain.Build, "T not set")
- 				bb.mkdirhier(t)
- 				import random
- 				rcfile = "%s/bashrc.%s.%s" % (t, str(os.getpid()), random.random())
- 				f = open(rcfile, "w")
- 				f.write("echo '*** Manual patch resolution mode ***'\n")
- 				f.write("echo 'Dropping to a shell, so patch rejects can be fixed manually.'\n")
- 				f.write("echo 'Run \"quilt refresh\" when patch is corrected, press CTRL+D to exit.'\n")
- 				f.write("echo ''\n")
- 				f.write(" ".join(patchcmd) + "\n")
- 				f.write("#" + bb.data.getVar('TERMCMDRUN', d, 1))
- 				f.close()
- 				os.chmod(rcfile, 0775)
- 
- 				os.environ['TERMWINDOWTITLE'] = "Bitbake: Please fix patch rejects manually"
- 				os.environ['TERMRCFILE'] = rcfile
- 				rc = os.system(bb.data.getVar('TERMCMDRUN', d, 1))
-				if os.WIFEXITED(rc) and os.WEXITSTATUS(rc) != 0:
- 					bb.msg.fatal(bb.msg.domain.Build, ("Cannot proceed with manual patch resolution - '%s' not found. " \
-					    + "Check TERMCMDRUN variable.") % bb.data.getVar('TERMCMDRUN', d, 1))
-
-				# Construct a new PatchSet after the user's changes, compare the
-				# sets, checking patches for modifications, and doing a remote
-				# refresh on each.
-				oldpatchset = self.patchset
-				self.patchset = oldpatchset.__class__(self.patchset.dir, self.patchset.d)
-
-				for patch in self.patchset.patches:
-					oldpatch = None
-					for opatch in oldpatchset.patches:
-						if opatch["quiltfile"] == patch["quiltfile"]:
-							oldpatch = opatch
-
-					if oldpatch:
-						patch["remote"] = oldpatch["remote"]
-						if patch["quiltfile"] == oldpatch["quiltfile"]:
-							if patch["quiltfilemd5"] != oldpatch["quiltfilemd5"]:
-								bb.note("Patch %s has changed, updating remote url %s" % (os.path.basename(patch["quiltfile"]), patch["remote"]))
-								# user change?  remote refresh
-								self.patchset.Refresh(remote=True, patch=self.patchset.patches.index(patch))
-							else:
-								# User did not fix the problem.  Abort.
-								raise PatchError("Patch application failed, and user did not fix and refresh the patch.")
-			except Exception:
-				os.chdir(olddir)
-				raise
-			os.chdir(olddir)
-
-	g = globals()
-	g["PatchSet"] = PatchSet
-	g["PatchTree"] = PatchTree
-	g["QuiltTree"] = QuiltTree
-	g["GitApplyTree"] = GitApplyTree
-	g["Resolver"] = Resolver
-	g["UserResolver"] = UserResolver
-	g["NOOPResolver"] = NOOPResolver
-	g["NotFoundError"] = NotFoundError
-	g["CmdError"] = CmdError
+PATCH_DEPENDS = "${PATCHTOOL}-native"
+CLASS_DEPENDS += "${PATCH_DEPENDS}"
 
 do_patch[dirs] = "${WORKDIR}"
 
-PATCH_DEPENDS = "${PATCHTOOL}-native"
-DEPENDS += "${PATCH_DEPENDS}"
+python do_patch() {
+    import oe.patch
+    import oe.unpack
 
-python patch_do_patch() {
-	import re
-	import bb.fetch
+    src_uri = (bb.data.getVar('SRC_URI', d, 1) or '').split()
+    if not src_uri:
+        return
 
-	patch_init(d)
+    patchsetmap = {
+        "patch": oe.patch.PatchTree,
+        "quilt": oe.patch.QuiltTree,
+        "git": oe.patch.GitApplyTree,
+    }
 
-	src_uri = (bb.data.getVar('SRC_URI', d, 1) or '').split()
-	if not src_uri:
-		return
+    cls = patchsetmap[bb.data.getVar('PATCHTOOL', d, 1) or 'quilt']
 
-	patchsetmap = {
-		"patch": PatchTree,
-		"quilt": QuiltTree,
-		"git": GitApplyTree,
-	}
+    resolvermap = {
+        "noop": oe.patch.NOOPResolver,
+        "user": oe.patch.UserResolver,
+    }
 
-	cls = patchsetmap[bb.data.getVar('PATCHTOOL', d, 1) or 'quilt']
+    rcls = resolvermap[bb.data.getVar('PATCHRESOLVE', d, 1) or 'user']
 
-	resolvermap = {
-		"noop": NOOPResolver,
-		"user": UserResolver,
-	}
+    s = bb.data.getVar('S', d, 1)
 
-	rcls = resolvermap[bb.data.getVar('PATCHRESOLVE', d, 1) or 'user']
+    path = os.getenv('PATH')
+    os.putenv('PATH', bb.data.getVar('PATH', d, 1))
 
-	s = bb.data.getVar('S', d, 1)
+    classes = {}
 
-	path = os.getenv('PATH')
-	os.putenv('PATH', bb.data.getVar('PATH', d, 1))
-	patchset = cls(s, d)
-	patchset.Clean()
+    src_uri = d.getVar("SRC_URI", True).split()
+    srcurldata = bb.fetch.init(src_uri, d, True)
+    workdir = bb.data.getVar('WORKDIR', d, 1)
+    for url in d.getVar("SRC_URI", True).split():
+        urldata = srcurldata[url]
 
-	resolver = rcls(patchset)
+        local = urldata.localpath
+        if not local:
+            raise bb.build.FuncFailed('Unable to locate local file for %s' % url)
 
-	workdir = bb.data.getVar('WORKDIR', d, 1)
-	for url in src_uri:
-		(type, host, path, user, pswd, parm) = bb.decodeurl(url)
-		if not "patch" in parm:
-			continue
+        base, ext = os.path.splitext(os.path.basename(local))
+        if ext in ('.gz', '.bz2', '.Z'):
+            local = oe.path.join(workdir, base)
 
-		bb.fetch.init([url],d)
-		url = bb.encodeurl((type, host, path, user, pswd, []))
-		local = os.path.join('/', bb.fetch.localpath(url, d))
+        if not oe.unpack.is_patch(local, urldata.parm):
+            continue
 
-		# did it need to be unpacked?
-		dots = os.path.basename(local).split(".")
-		if dots[-1] in ['gz', 'bz2', 'Z']:
-			unpacked = os.path.join(bb.data.getVar('WORKDIR', d),'.'.join(dots[0:-1]))
-		else:
-			unpacked = local
-		unpacked = bb.data.expand(unpacked, d)
+        parm = urldata.parm
 
-		if "pnum" in parm:
-			pnum = parm["pnum"]
-		else:
-			pnum = "1"
+        if "striplevel" in parm:
+            striplevel = parm["striplevel"]
+        elif "pnum" in parm:
+            bb.msg.warn(None, "Deprecated usage of 'pnum' url parameter in '%s', please use 'striplevel'" % url)
+            striplevel = parm["pnum"]
+        else:
+            striplevel = '1'
 
-		if "pname" in parm:
-			pname = parm["pname"]
-		else:
-			pname = os.path.basename(unpacked)
+        if "pname" in parm:
+            pname = parm["pname"]
+        else:
+            pname = os.path.basename(local)
 
-                if "mindate" in parm or "maxdate" in parm:
-			pn = bb.data.getVar('PN', d, 1)
-			srcdate = bb.data.getVar('SRCDATE_%s' % pn, d, 1)
-			if not srcdate:
-				srcdate = bb.data.getVar('SRCDATE', d, 1)
+        if "mindate" in parm or "maxdate" in parm:
+            pn = bb.data.getVar('PN', d, 1)
+            srcdate = bb.data.getVar('SRCDATE_%s' % pn, d, 1)
+            if not srcdate:
+                srcdate = bb.data.getVar('SRCDATE', d, 1)
 
-			if srcdate == "now":
-				srcdate = bb.data.getVar('DATE', d, 1)
+            if srcdate == "now":
+                srcdate = bb.data.getVar('DATE', d, 1)
 
-			if "maxdate" in parm and parm["maxdate"] < srcdate:
-				bb.note("Patch '%s' is outdated" % pname)
-				continue
+            if "maxdate" in parm and parm["maxdate"] < srcdate:
+                bb.note("Patch '%s' is outdated" % pname)
+                continue
 
-			if "mindate" in parm and parm["mindate"] > srcdate:
-				bb.note("Patch '%s' is predated" % pname)
-				continue
+            if "mindate" in parm and parm["mindate"] > srcdate:
+                bb.note("Patch '%s' is predated" % pname)
+                continue
 
 
-		if "minrev" in parm:
-			srcrev = bb.data.getVar('SRCREV', d, 1)
-			if srcrev and srcrev < parm["minrev"]:
-				bb.note("Patch '%s' applies to later revisions" % pname)
-				continue
+        if "minrev" in parm:
+            srcrev = bb.data.getVar('SRCREV', d, 1)
+            if srcrev and srcrev < parm["minrev"]:
+                bb.note("Patch '%s' applies to later revisions" % pname)
+                continue
 
-		if "maxrev" in parm:
-			srcrev = bb.data.getVar('SRCREV', d, 1)		
-			if srcrev and srcrev > parm["maxrev"]:
-				bb.note("Patch '%s' applies to earlier revisions" % pname)
-				continue
+        if "maxrev" in parm:
+            srcrev = bb.data.getVar('SRCREV', d, 1)     
+            if srcrev and srcrev > parm["maxrev"]:
+                bb.note("Patch '%s' applies to earlier revisions" % pname)
+                continue
 
-		bb.note("Applying patch '%s'" % (pname))
-		patchset.Import({"file":unpacked, "remote":url, "strippath": pnum}, True)
-		resolver.Resolve()
+        if "patchdir" in parm:
+            patchdir = parm["patchdir"]
+            if not os.path.isabs(patchdir):
+                patchdir = os.path.join(s, patchdir)
+        else:
+            patchdir = s
+
+        if not patchdir in classes:
+            patchset = cls(patchdir, d)
+            resolver = rcls(patchset)
+            classes[patchdir] = (patchset, resolver)
+            patchset.Clean()
+        else:
+            patchset, resolver = classes[patchdir]
+
+        bb.note("Applying patch '%s' (%s)" % (pname, oe.path.format_display(local, d)))
+        try:
+            patchset.Import({"file":local, "remote":url, "strippath": striplevel}, True)
+            resolver.Resolve()
+        except Exception, exc:
+            bb.fatal(str(exc))
 }
-
-EXPORT_FUNCTIONS do_patch
