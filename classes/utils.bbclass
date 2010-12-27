@@ -1,67 +1,48 @@
 # Various utility functions
 
-# like os.path.join but doesn't treat absolute RHS specially
+# For compatibility
+def uniq(iterable):
+    import oe.utils
+    return oe.utils.uniq(iterable)
+
 def base_path_join(a, *p):
-    path = a
-    for b in p:
-	if path == '' or path.endswith('/'):
-	    path +=  b
-	else:
-	    path += '/' + b
-    return path
+    return oe.path.join(a, *p)
+
+def base_path_relative(src, dest):
+    return oe.path.relative(src, dest)
+
+def base_path_out(path, d):
+    return oe.path.format_display(path, d)
 
 def base_read_file(filename):
-	try:
-		f = file( filename, "r" )
-	except IOError, reason:
-		return "" # WARNING: can't raise an error now because of the new RDEPENDS handling. This is a bit ugly. :M:
-	else:
-		return f.read().strip()
-	return None
+    return oe.utils.read_file(filename)
+
+def base_ifelse(condition, iftrue = True, iffalse = False):
+    return oe.utils.ifelse(condition, iftrue, iffalse)
 
 def base_conditional(variable, checkvalue, truevalue, falsevalue, d):
-	if bb.data.getVar(variable,d,1) == checkvalue:
-		return truevalue
-	else:
-		return falsevalue
+    return oe.utils.conditional(variable, checkvalue, truevalue, falsevalue, d)
 
 def base_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
-	if float(bb.data.getVar(variable,d,1)) <= float(checkvalue):
-		return truevalue
-	else:
-		return falsevalue
+    return oe.utils.less_or_equal(variable, checkvalue, truevalue, falsevalue, d)
 
 def base_version_less_or_equal(variable, checkvalue, truevalue, falsevalue, d):
-    result = bb.vercmp(bb.data.getVar(variable,d,True), checkvalue)
-    if result <= 0:
-	return truevalue
-    else:
-	return falsevalue
+    return oe.utils.version_less_or_equal(variable, checkvalue, truevalue, falsevalue, d)
 
 def base_contains(variable, checkvalues, truevalue, falsevalue, d):
-	matches = 0
-	if type(checkvalues).__name__ == "str":
-		checkvalues = [checkvalues]
-	for value in checkvalues:
-		if bb.data.getVar(variable,d,1).find(value) != -1:
-			matches = matches + 1
-	if matches == len(checkvalues):
-		return truevalue
-	return falsevalue
+    return oe.utils.contains(variable, checkvalues, truevalue, falsevalue, d)
 
 def base_both_contain(variable1, variable2, checkvalue, d):
-       if bb.data.getVar(variable1,d,1).find(checkvalue) != -1 and bb.data.getVar(variable2,d,1).find(checkvalue) != -1:
-	       return checkvalue
-       else:
-	       return ""
+    return oe.utils.both_contain(variable1, variable2, checkvalue, d)
 
 def base_prune_suffix(var, suffixes, d):
-    # See if var ends with any of the suffixes listed and
-    # remove it if found
-    for suffix in suffixes:
-	if var.endswith(suffix):
-	    return var.replace(suffix, "")
-    return var
+    return oe.utils.prune_suffix(var, suffixes, d)
+
+def oe_filter(f, str, d):
+    return oe.utils.str_filter(f, str, d)
+
+def oe_filter_out(f, str, d):
+    return oe.utils.str_filter_out(f, str, d)
 
 def base_set_filespath(path, d):
 	filespath = []
