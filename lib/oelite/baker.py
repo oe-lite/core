@@ -97,7 +97,7 @@ class OEliteBaker:
                 if rmwork == "0":
                     rmwork = False
             if rmwork:
-                die("rmwork=%s"%(repr(rmwork)))
+                debug("rmwork")
                 self.options.rmwork = True
         except AttributeError:
             pass
