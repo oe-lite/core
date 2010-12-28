@@ -7,7 +7,7 @@ TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc-${CT_LIBC_VERSION}"
 TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc-${CT_LIBC_VERSION}"
 TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
 
-PR = "${TOOLCHAIN_VERSION}-"
+PR = "${TOOLCHAIN_VERSION}-r0"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${TOOLCHAIN_VERSION}"
@@ -106,18 +106,22 @@ CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 
 # FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
-CT_KERNEL_VERSION	?= "custom"
-CT_KERNEL_VERSION_CROSS	?= "${CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION_recipe-sdk-cross	= "${CT_KERNEL_VERSION_CROSS}"
-CT_KERNEL_VERSION_recipe-sdk		= "${CT_KERNEL_VERSION_CROSS}"
+CT_KERNEL_VERSION			= "${MACHINE_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION_recipe-native		= "${BUILD_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION_recipe-sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION_recipe-sdk		= "${SDK_CT_KERNEL_VERSION}"
+
+CT_LIBC_GLIBC_MIN_KERNEL		= "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_recipe-native	= "${BUILD_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk-cross = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk	= "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
 python () {
-	import bb
-	kernel_version = bb.data.getVar("CT_KERNEL_VERSION", d, True)
+	kernel_version = d.getVar("CT_KERNEL_VERSION", True)
 	if kernel_version == "custom":
-		bb.data.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers", d)
+		d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
 }
 
 addtask mangle after do_patch before do_configure
