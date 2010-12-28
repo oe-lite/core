@@ -15,9 +15,8 @@ builtin_nohash = [
     "TMPDIR",
     "BBPATH",
     "BBPATH_PRETTY",
-    "BBFILES",
-    "BBFILES_PRETTY",
     "BBRECIPES",
+    "BBRECIPES_PRETTY",
     "FILE",
     "_task_deps",
 ]
