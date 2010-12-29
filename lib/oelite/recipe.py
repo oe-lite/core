@@ -153,7 +153,7 @@ class OEliteRecipe:
         recipe_type = data.getVar("RECIPE_TYPE", False)
         
         if recipe_type == "canadian-cross":
-            host_arch = bb.data.getVar('HOST_ARCH', d, True)
+            host_arch = data.getVar("HOST_ARCH", True)
 
         def set_pkgproviders(self_db_get_runq_depend_packages,
                              PKGPROVIDER_, RECDEPENDS):
@@ -176,14 +176,14 @@ class OEliteRecipe:
                 else:
                     subdir = package_arch.split("/", 1)[0]
                     if recipe_type == "canadian-cross":
-                        if package_arch.startswith('cross/%s/'%host_arch):
-                            subdir = os.path.join('host', subdir)
-                        elif package_arch.startswith('sysroot/%s/'%host_arch):
-                            subdir = os.path.join('host', subdir)
-                        elif package_arch.startswith('sysroot/%s--'%host_arch):
-                            subdir = os.path.join('host', subdir)
+                        if package_arch == "cross/%s"%(host_arch):
+                            subdir = os.path.join("host", subdir)
+                        elif package_arch == "sysroot/%s"%(host_arch):
+                            subdir = os.path.join("host", subdir)
+                        elif package_arch.startswith("sysroot/%s--"%(host_arch)):
+                            subdir = os.path.join("host", subdir)
                         else:
-                            subdir = os.path.join('target', subdir)
+                            subdir = os.path.join("target", subdir)
                 data.setVar("PKGSUBDIR_" + package_name, subdir)
 
             if recdepends:
