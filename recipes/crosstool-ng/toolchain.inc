@@ -90,6 +90,7 @@ _CT_KERNEL_VERSION	= "CT_KERNEL_V_"
 _CT_BINUTILS_VERSION	= "CT_BINUTILS_V_"
 _CT_CC_VERSION		= "CT_CC_V_"
 _CT_LIBC_VERSION	= "CT_LIBC_V_"
+_CT_LIBC_GLIBC_VERSION	= "CT_LIBC_GLIBC_V_"
 _CT_GDB_VERSION		= "CT_GDB_V_"
 _CT_GMP_VERSION		= "CT_GMP_V_"
 _CT_MPFR_VERSION	= "CT_MPFR_V_"
@@ -136,6 +137,7 @@ do_mangle () {
 	ct_binutils_version=${_CT_BINUTILS_VERSION}`echo ${CT_BINUTILS_VERSION}|tr . _`=y
 	ct_cc_version=${_CT_CC_VERSION}`echo ${CT_CC_VERSION}|tr . _`=y
 	ct_libc_version=${_CT_LIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`=y
+	ct_libc_glibc_version=${_CT_LIBC_GLIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`=y
 	ct_gdb_version=${_CT_GDB_VERSION}`echo ${CT_GDB_VERSION}|tr . _`=y
 	ct_gmp_version=${_CT_GMP_VERSION}`echo ${CT_GMP_VERSION}|tr . _`=y
 	ct_mpfr_version=${_CT_MPFR_VERSION}`echo ${CT_MPFR_VERSION}|tr . _`=y
@@ -167,7 +169,7 @@ do_mangle () {
     	    -e "s%# __${_CT_KERNEL_VERSION}%$ct_kernel_version%" \
     	    -e "s%# __${_CT_BINUTILS_VERSION}%$ct_binutils_version%" \
     	    -e "s%# __${_CT_CC_VERSION}%$ct_cc_version%" \
-    	    -e "s%# __${_CT_LIBC_VERSION}%$ct_libc_version%" \
+    	    -e "s%# __${_CT_LIBC_VERSION}%$ct_libc_version\n$ct_libc_glibc_version%" \
     	    -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%" \
     	    -e "s%# __${_CT_GDB_VERSION}%$ct_gdb_version%" \
     	    -e "s%# __${_CT_GMP_VERSION}%$ct_gmp_version%" \
