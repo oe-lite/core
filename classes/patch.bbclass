@@ -13,6 +13,7 @@ do_patch[dirs] = "${WORKDIR}"
 python do_patch() {
     import oe.patch
     import oe.unpack
+    from oebakery import die, err, warn, info, debug
 
     src_uri = (bb.data.getVar('SRC_URI', d, 1) or '').split()
     if not src_uri:
@@ -121,6 +122,7 @@ python do_patch() {
         else:
             patchset, resolver = classes[patchdir]
 
+        debug("applying patch %s"%(pname))
         bb.note("Applying patch '%s' (%s)" % (pname, oe.path.format_display(local, d)))
         try:
             patchset.Import({"file":local, "remote":url, "strippath": striplevel}, True)
