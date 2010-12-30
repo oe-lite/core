@@ -18,7 +18,7 @@ python do_fetch() {
         return 1
 
     try:
-        bb.fetch.init(src_uri.split(),d)
+        bb.fetch.init(src_uri.split(), localdata)
     except bb.fetch.NoMethodError:
         (type, value, traceback) = sys.exc_info()
         raise bb.build.FuncFailed("No method: %s" % value)
@@ -55,11 +55,15 @@ do_unpack[cleandirs] = "${S}"
 python do_unpack() {
     from glob import glob
 
-    src_uri = d.getVar("SRC_URI", True)
+    localdata = bb.data.createCopy(d)
+    bb.data.update_data(localdata)
+
+    dl_dir = localdata.getVar("DL_DIR", True)
+    src_uri = localdata.getVar("SRC_URI", True)
     if not src_uri:
         return
-    srcurldata = bb.fetch.init(src_uri.split(), d, True)
-    filespath = d.getVar("FILESPATH", True).split(":")
+    srcurldata = bb.fetch.init(src_uri.split(), localdata)
+    filespath = localdata.getVar("FILESPATH", True).split(":")
 
     def oe_unpack(d, local, urldata):
         from oe.unpack import unpack_file, is_patch, UnpackError
@@ -111,11 +115,16 @@ python do_unpack() {
 
             for filename in glob(oe.path.join(srcdir,
                                               os.path.basename(urldata.path))):
-                oe_unpack(d, filename, urldata)
+                oe_unpack(localdata, filename, urldata)
         else:
             local = urldata.localpath
             if not local:
                 raise bb.build.FuncFailed('Unable to locate local file for %s' % url)
 
-            oe_unpack(d, local, urldata)
+            # FIXME: I don't think it _should_ be needed, but we have
+            # to prepend DL_DIR in some cases (ie. calling do_unpack
+            # after do_fetch).
+            #local = os.path.join(dl_dir, local)
+
+            oe_unpack(localdata, local, urldata)
 }
