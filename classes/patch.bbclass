@@ -3,7 +3,7 @@
 addtask patch after do_unpack
 
 # Point to an empty file so any user's custom settings don't break things
-QUILTRCFILE ?= "${STAGE_DIR}/etc/quiltrc"
+QUILTRCFILE ?= "${WORKDIR}/.quiltrc"
 
 PATCH_DEPENDS = "${PATCHTOOL}-native"
 CLASS_DEPENDS += "${PATCH_DEPENDS}"
@@ -17,6 +17,10 @@ python do_patch() {
     src_uri = (bb.data.getVar('SRC_URI', d, 1) or '').split()
     if not src_uri:
         return
+
+    quiltrcfilename = d.getVar("QUILTRCFILE", True)
+    with open(quiltrcfilename, "w") as quiltrcfile:
+        pass
 
     patchsetmap = {
         "patch": oe.patch.PatchTree,
