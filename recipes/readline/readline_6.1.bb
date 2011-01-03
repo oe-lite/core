@@ -11,7 +11,6 @@ RPROVIDES_${PN} += "readline${RE}"
 SRC_URI = "\
   ftp://ftp.gnu.org/gnu/readline/readline-${PV}.tar.gz \
 "
-S = "${WORKDIR}/readline-${PV}"
 
 inherit autotools
 
