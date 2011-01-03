@@ -13,7 +13,6 @@ addtask package after do_split before do_build
 python package_split () {
     import bb, glob, errno, re, stat
 
-    workdir = bb.data.getVar("WORKDIR", d, True)
     ddir = bb.data.getVar("D", d, True)
     pkgd = bb.data.getVar("PKGD", d, True)
     pn = bb.data.getVar("PN", d, True)
