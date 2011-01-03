@@ -8,7 +8,7 @@ QUILTRCFILE ?= "${WORKDIR}/.quiltrc"
 PATCH_DEPENDS = "${PATCHTOOL}-native"
 CLASS_DEPENDS += "${PATCH_DEPENDS}"
 
-do_patch[dirs] = "${WORKDIR}"
+do_patch[dirs] = "${SRCDIR}"
 
 python do_patch() {
     import oe.patch
@@ -47,7 +47,7 @@ python do_patch() {
 
     src_uri = d.getVar("SRC_URI", True).split()
     srcurldata = bb.fetch.init(src_uri, d, True)
-    workdir = bb.data.getVar('WORKDIR', d, 1)
+    srcdir = bb.data.getVar('SRCDIR', d, 1)
     for url in d.getVar("SRC_URI", True).split():
         urldata = srcurldata[url]
 
@@ -57,7 +57,7 @@ python do_patch() {
 
         base, ext = os.path.splitext(os.path.basename(local))
         if ext in ('.gz', '.bz2', '.Z'):
-            local = oe.path.join(workdir, base)
+            local = oe.path.join(srcdir, base)
 
         if not oe.unpack.is_patch(local, urldata.parm):
             continue
