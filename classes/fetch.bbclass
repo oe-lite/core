@@ -65,33 +65,34 @@ python do_unpack() {
         from oe.unpack import unpack_file, is_patch, UnpackError
         if is_patch(local, urldata.parm):
             return
-    
+
         subdirs = []
         if "subdir" in urldata.parm:
             subdirs.append(urldata.parm["subdir"])
-    
+
         if urldata.type == "file":
             if not urldata.host:
                 urlpath = urldata.path
             else:
                 urlpath = "%s%s" % (urldata.host, urldata.path)
-    
+
             if not os.path.isabs(urlpath):
                 subdirs.append(os.path.dirname(urlpath))
-    
+
         srcdir = d.getVar("SRCDIR", True)
+
         if subdirs:
             destdir = oe.path.join(srcdir, *subdirs)
             bb.mkdirhier(destdir)
         else:
             destdir = srcdir
         dos = urldata.parm.get("dos")
-    
+
         bb.note("Unpacking %s to %s/" % (base_path_out(local, d),
                                          base_path_out(destdir, d)))
         try:
             unpack_file(local, destdir, env={"PATH": d.getVar("PATH", True)},
-			dos=dos)
+                        dos=dos)
         except UnpackError, exc:
             bb.fatal(str(exc))
 
@@ -119,4 +120,3 @@ python do_unpack() {
 
             oe_unpack(d, local, urldata)
 }
-
