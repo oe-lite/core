@@ -1,6 +1,4 @@
 DESCRIPTION = "GCC testsuite - a collection of compile and runtime tests for GCC."
-SECTION = "unknown"
-PR = "r2"
 LICENSE = "GPL"
 
 # Note: Requires DejaGNU test framework installed on host (apt-get install dejagnu).
