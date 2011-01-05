@@ -1,7 +1,4 @@
-LIBTOOL_DEPENDS = "${HOST_ARCH}/libtool"
-LIBTOOL_DEPENDS_recipe-native = "libtool-native"
-LIBTOOL_DEPENDS_cross = "${TARGET_ARCH}/libtool"
-LIBTOOL_DEPENDS_sdk-cross = "${TARGET_ARCH}/libtool"
+LIBTOOL_DEPENDS = "${TARGET_ARCH}/libtool"
 LIBTOOL_DEPENDS_canadian-cross = "${HOST_ARCH}/libtool ${TARGET_ARCH}/libtool"
 CLASS_DEPENDS += "${LIBTOOL_DEPENDS}"
 
@@ -13,11 +10,11 @@ LIBTOOL		= "${HOST_LIBTOOL}"
 #export LIBTOOL
 
 LIBTOOL_NATIVE_SCRIPTS				= ""
-LIBTOOL_HOST_SCRIPTS				= "libtool"
-LIBTOOL_TARGET_SCRIPTS				= ""
+LIBTOOL_HOST_SCRIPTS				= ""
+LIBTOOL_TARGET_SCRIPTS				= "libtool"
 
 LIBTOOL_NATIVE_SCRIPTS_recipe-native		= "libtool"
-LIBTOOL_HOST_SCRIPTS_recipe-native		= ""
+LIBTOOL_TARGET_SCRIPTS_recipe-native		= ""
 
 LIBTOOL_NATIVE_SCRIPT_FIXUP			= "0"
 LIBTOOL_HOST_SCRIPT_FIXUP			= "0"
