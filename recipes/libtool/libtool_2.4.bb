@@ -1,7 +1,5 @@
 require libtool-2.4.inc
 
-DEFAULT_PREFERENCE = "-1"
-
 SRC_URI += "\
     file://trailingslash.patch \
     file://prefix-manpage-fix.patch \
