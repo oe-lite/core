@@ -3,20 +3,25 @@
 addtask patch after do_unpack
 
 # Point to an empty file so any user's custom settings don't break things
-QUILTRCFILE ?= "${STAGE_DIR}/etc/quiltrc"
+QUILTRCFILE ?= "${WORKDIR}/.quiltrc"
 
 PATCH_DEPENDS = "${PATCHTOOL}-native"
 CLASS_DEPENDS += "${PATCH_DEPENDS}"
 
-do_patch[dirs] = "${WORKDIR}"
+do_patch[dirs] = "${SRCDIR}"
 
 python do_patch() {
     import oe.patch
     import oe.unpack
+    from oebakery import die, err, warn, info, debug
 
     src_uri = (bb.data.getVar('SRC_URI', d, 1) or '').split()
     if not src_uri:
         return
+
+    quiltrcfilename = d.getVar("QUILTRCFILE", True)
+    with open(quiltrcfilename, "w") as quiltrcfile:
+        pass
 
     patchsetmap = {
         "patch": oe.patch.PatchTree,
@@ -42,7 +47,7 @@ python do_patch() {
 
     src_uri = d.getVar("SRC_URI", True).split()
     srcurldata = bb.fetch.init(src_uri, d, True)
-    workdir = bb.data.getVar('WORKDIR', d, 1)
+    srcdir = bb.data.getVar('SRCDIR', d, 1)
     for url in d.getVar("SRC_URI", True).split():
         urldata = srcurldata[url]
 
@@ -52,7 +57,7 @@ python do_patch() {
 
         base, ext = os.path.splitext(os.path.basename(local))
         if ext in ('.gz', '.bz2', '.Z'):
-            local = oe.path.join(workdir, base)
+            local = oe.path.join(srcdir, base)
 
         if not oe.unpack.is_patch(local, urldata.parm):
             continue
@@ -117,6 +122,7 @@ python do_patch() {
         else:
             patchset, resolver = classes[patchdir]
 
+        debug("applying patch %s"%(pname))
         bb.note("Applying patch '%s' (%s)" % (pname, oe.path.format_display(local, d)))
         try:
             patchset.Import({"file":local, "remote":url, "strippath": striplevel}, True)

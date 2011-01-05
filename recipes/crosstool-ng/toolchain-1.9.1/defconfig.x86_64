@@ -1,8 +1,4 @@
 #
-# crosstool-NG version: 1.8.0 -- x86_64 configuration
-#
-
-#
 # Target options
 #
 CT_ARCH="x86"
@@ -37,6 +33,7 @@ CT_TARGET_LDFLAGS=""
 # CT_ARCH_alpha is not set
 # CT_ARCH_arm is not set
 # CT_ARCH_avr32 is not set
+# CT_ARCH_blackfin is not set
 # CT_ARCH_ia64 is not set
 # CT_ARCH_m68k is not set
 # CT_ARCH_mips is not set
@@ -44,8 +41,20 @@ CT_TARGET_LDFLAGS=""
 # CT_ARCH_s390 is not set
 # CT_ARCH_sh is not set
 CT_ARCH_x86=y
+CT_ARCH_alpha_AVAILABLE=y
+CT_ARCH_arm_AVAILABLE=y
+CT_ARCH_avr32_AVAILABLE=y
+CT_ARCH_blackfin_AVAILABLE=y
+CT_ARCH_ia64_AVAILABLE=y
+CT_ARCH_m68k_AVAILABLE=y
+CT_ARCH_mips_AVAILABLE=y
+CT_ARCH_powerpc_AVAILABLE=y
+CT_ARCH_s390_AVAILABLE=y
+CT_ARCH_sh_AVAILABLE=y
+CT_ARCH_x86_AVAILABLE=y
 CT_ARCH_USE_MMU=y
 
 #
 # Target optimisations
 #
+

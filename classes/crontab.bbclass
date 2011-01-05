@@ -26,7 +26,7 @@ python do_install_crontab () {
     crontabdir = bb.data.getVar('crontabdir', d, True)
     crontabdir = '%s%s'%(ddir, crontabdir)
     bb.note('crontabdir=%s'%crontabdir)
-    workdir = bb.data.getVar('WORKDIR', d, True)
+    srcdir = bb.data.getVar('SRCDIR', d, True)
 
     for option in options:
 
@@ -41,7 +41,7 @@ python do_install_crontab () {
 
 	crontab_file = bb.data.getVar('CRONTAB_FILE_'+name, d, True)
 	if not crontab_file:
-	    crontab_file = os.path.join(workdir, name + '.crontab')
+	    crontab_file = os.path.join(srcdir, name + '.crontab')
 
 	crontab_user = bb.data.getVar('CRONTAB_USER_'+name, d, True) or 'root'
 

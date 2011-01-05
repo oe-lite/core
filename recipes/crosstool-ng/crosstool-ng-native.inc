@@ -1,5 +1,7 @@
 inherit native
 
+SRC_URI = "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${PV}.tar.bz2"
+
 do_configure () {
     if [ -x ${S}/configure ] ; then
         cfgcmd="${S}/configure --prefix=${D}${prefix} "

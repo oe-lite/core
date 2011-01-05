@@ -1,8 +1,4 @@
 #
-# crosstool-NG version: 1.8.0 -- linux-gnu configuration
-#
-
-#
 # Operating System
 #
 # CT_BARE_METAL is not set
@@ -16,19 +12,7 @@ CT_KERNEL_linux=y
 CT_KERNEL_bare_metal_AVAILABLE=y
 CT_KERNEL_linux_AVAILABLE=y
 # CT_KERNEL_LINUX_INSTALL is not set
-# CT_KERNEL_V_2_6_34_1 is not set
-# CT_KERNEL_V_2_6_34 is not set
-# CT_KERNEL_V_2_6_33_6 is not set
-# CT_KERNEL_V_2_6_33_5 is not set
-# CT_KERNEL_V_2_6_33_4 is not set
-# CT_KERNEL_V_2_6_33_3 is not set
-# CT_KERNEL_V_2_6_33_2 is not set
-# CT_KERNEL_V_2_6_33_1 is not set
-# CT_KERNEL_V_2_6_33 is not set
-# CT_KERNEL_V_2_6_32_16 is not set
-# CT_KERNEL_V_2_6_31_14 is not set
-# CT_KERNEL_V_2_6_30_10 is not set
-# CT_KERNEL_V_2_6_27_48 is not set
+# __CT_KERNEL_V_
 CT_KERNEL_LINUX_VERBOSITY_0=y
 # CT_KERNEL_LINUX_VERBOSITY_1 is not set
 # CT_KERNEL_LINUX_VERBOSITY_2 is not set
@@ -54,24 +38,12 @@ CT_ARCH_BINFMT_ELF=y
 #
 # GNU binutils
 #
-# CT_BINUTILS_V_2_20_1 is not set
-# CT_BINUTILS_V_2_20 is not set
-# CT_BINUTILS_V_2_19_1 is not set
-# CT_BINUTILS_V_2_19 is not set
-# CT_BINUTILS_V_2_18 is not set
-# CT_BINUTILS_V_2_17 is not set
-# CT_BINUTILS_V_2_16_1 is not set
+# __CT_BINUTILS_V_
 CT_BINUTILS_VERSION=""
 CT_BINUTILS_EXTRA_CONFIG=""
 CT_BINUTILS_FOR_TARGET=y
 CT_BINUTILS_FOR_TARGET_IBERTY=y
 CT_BINUTILS_FOR_TARGET_BFD=y
-# CT_BINUTILS_TARGET_USE_GMP_MPFR is not set
-
-#
-# sstrip
-#
-# CT_SSTRIP is not set
 
 #
 # C compiler
@@ -79,43 +51,12 @@ CT_BINUTILS_FOR_TARGET_BFD=y
 CT_CC="gcc"
 CT_CC_VERSION=""
 CT_CC_gcc=y
-# CT_CC_V_4_5_1 is not set
-# CT_CC_V_4_5_0 is not set
-# CT_CC_V_4_4_4 is not set
-# CT_CC_V_4_4_3 is not set
-# CT_CC_V_4_4_2 is not set
-# CT_CC_V_4_4_1 is not set
-# CT_CC_V_4_4_0 is not set
-# CT_CC_V_4_3_4 is not set
-# CT_CC_V_4_3_3 is not set
-# CT_CC_V_4_3_2 is not set
-# CT_CC_V_4_3_1 is not set
-# CT_CC_V_4_2_4 is not set
-# CT_CC_V_4_2_3 is not set
-# CT_CC_V_4_2_2 is not set
-# CT_CC_V_4_2_1 is not set
-# CT_CC_V_4_2_0 is not set
-# CT_CC_V_4_1_2 is not set
-# CT_CC_V_4_0_4 is not set
-# CT_CC_V_3_4_6 is not set
-# CT_CC_GCC_4_2_or_later is not set
-# CT_CC_GCC_4_3_or_later is not set
-# CT_CC_GCC_4_4_or_later is not set
-# CT_CC_GCC_4_5_or_later is not set
-CT_CC_GCC_USE_GMP_MPFR=y
-# CT_CC_GCC_USE_PPL_CLOOG_MPC is not set
-# CT_CC_GCC_USE_MPC_LIBELF is not set
-CT_CC_CXA_ATEXIT=y
-CT_CC_SJLJ_EXCEPTIONS_CONFIGURE=y
-# CT_CC_SJLJ_EXCEPTIONS_USE is not set
-# CT_CC_SJLJ_EXCEPTIONS_DONT_USE is not set
+# __CT_CC_V_
+CT_CC_PKGVERSION="crosstool-NG-${CT_VERSION}"
+CT_CC_BUGURL=""
 CT_CC_ENABLE_CXX_FLAGS=""
 CT_CC_CORE_EXTRA_CONFIG=""
 CT_CC_EXTRA_CONFIG=""
-# CT_CC_GCC_ENABLE_TARGET_OPTSPACE is not set
-CT_CC_GCC_DISABLE_PCH=y
-CT_CC_PKGVERSION="crosstool-NG-${CT_VERSION}"
-CT_CC_BUGURL=""
 CT_CC_SUPPORT_CXX=y
 CT_CC_SUPPORT_FORTRAN=y
 CT_CC_SUPPORT_JAVA=y
@@ -135,6 +76,25 @@ CT_CC_LANG_CXX=y
 CT_CC_LANG_OTHERS=""
 
 #
+# gcc other options
+#
+# CT_CC_GCC_ENABLE_TARGET_OPTSPACE is not set
+# CT_CC_GCC_USE_GRAPHITE is not set
+# CT_CC_GCC_USE_LTO is not set
+CT_CC_STATIC_LIBSTDCXX=y
+# CT_CC_GCC_LIBMUDFLAP is not set
+# CT_CC_GCC_LIBGOMP is not set
+# CT_CC_GCC_LIBSSP is not set
+
+#
+# Misc. obscure options.
+#
+CT_CC_CXA_ATEXIT=y
+CT_CC_GCC_DISABLE_PCH=y
+CT_CC_GCC_SJLJ_EXCEPTIONS=m
+CT_CC_GCC_LDBL_128=m
+
+#
 # C-library
 #
 CT_LIBC="glibc"
@@ -148,17 +108,7 @@ CT_LIBC_glibc=y
 CT_LIBC_eglibc_AVAILABLE=y
 CT_LIBC_glibc_AVAILABLE=y
 CT_LIBC_GLIBC_TARBALL=y
-# CT_LIBC_GLIBC_V_2_11_1 is not set
-# CT_LIBC_GLIBC_V_2_11 is not set
-# CT_LIBC_V_2_10_1 is not set
-# CT_LIBC_V_2_9 is not set
-# CT_LIBC_V_2_8 is not set
-# CT_LIBC_V_2_7 is not set
-# CT_LIBC_V_2_6_1 is not set
-# CT_LIBC_V_2_6 is not set
-# CT_LIBC_V_2_5_1 is not set
-# CT_LIBC_V_2_5 is not set
-# CT_LIBC_V_2_3_6 is not set
+# __CT_LIBC_V_
 CT_LIBC_mingw_AVAILABLE=y
 CT_LIBC_newlib_AVAILABLE=y
 CT_LIBC_none_AVAILABLE=y
@@ -206,20 +156,10 @@ CT_GDB_CROSS=y
 # CT_GDB_NATIVE_USE_GMP_MPFR=y
 CT_GDB_GDBSERVER=y
 # CT_GDB_GDBSERVER_STATIC is not set
-# CT_GDB_V_7_1 is not set
-# CT_GDB_V_7_0_1 is not set
-# CT_GDB_V_7_0 is not set
-# CT_GDB_V_6_8 is not set
-# CT_GDB_V_7_0_or_later is not set
+# __CT_GDB_V_
 # CT_GDB_VERSION=""
 # CT_DEBUG_ltrace is not set
 # CT_DEBUG_strace is not set
-
-#
-# Tools facilities
-#
-# CT_TOOL_libelf is not set
-# CT_TOOL_sstrip is not set
 
 #
 # Companion libraries
@@ -231,39 +171,24 @@ CT_MPFR=y
 CT_PPL=y
 CT_CLOOG=y
 CT_MPC=y
-CT_GMP_TARGET=y
-CT_MPFR_TARGET=y
-# CT_GMP_V_5_0_1 is not set
-# CT_GMP_V_4_3_2 is not set
-# CT_GMP_V_4_3_1 is not set
-# CT_GMP_V_4_3_0 is not set
-# CT_GMP_V_4_2_4 is not set
-# CT_GMP_V_4_2_2 is not set
+CT_LIBELF=y
+# __CT_GMP_V_
 CT_GMP_VERSION=""
-# CT_MPFR_V_2_4_2 is not set
-# CT_MPFR_V_2_4_1 is not set
-# CT_MPFR_V_2_4_0 is not set
-# CT_MPFR_V_2_3_2 is not set
-# CT_MPFR_V_2_3_1 is not set
+# __CT_MPFR_V_
 CT_MPFR_VERSION=""
-# CT_PPL_V_0_10_2 is not set
+# __CT_PPL_V_
 CT_PPL_VERSION=""
-# CT_CLOOG_V_0_15_9 is not set
-# CT_CLOOG_V_0_15_8 is not set
-# CT_CLOOG_V_0_15_7 is not set
-# CT_CLOOG_V_0_15_6 is not set
-# CT_CLOOG_V_0_15_5 is not set
-# CT_CLOOG_V_0_15_4 is not set
-# CT_CLOOG_V_0_15_3 is not set
+# __CT_CLOOG_V_
 CT_CLOOG_VERSION=""
-# CT_MPC_V_0_8_1 is not set
-# CT_MPC_V_0_7 is not set
-# CT_MPC_V_0_6 is not set
+# __CT_MPC_V_
 CT_MPC_VERSION=""
+# __CT_LIBELF_V_
+CT_LIBELF_VERSION=""
 
 #
 # Companion libraries common options
 #
+# CT_COMPLIBS_BACKUP is not set
 # CT_COMPLIBS_CHECK is not set
 # CT_COMPLIBS_SHARED is not set
 
@@ -275,3 +200,10 @@ CT_MPC_VERSION=""
 # READ HELP before you say 'Y' below !!!
 #
 # CT_COMP_TOOLS is not set
+
+#
+# Test suite
+#
+# CT_TEST_SUITE is not set
+# CT_TEST_SUITE_GCC is not set
+

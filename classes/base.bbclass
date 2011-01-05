@@ -566,11 +566,14 @@ def base_apply_recipe_options(d):
 	overrides_changed = False
 	for option in recipe_options.split():
 		recipe_val = bb.data.getVar('RECIPE_CONFIG_'+option, d, 1)
+		local_val = bb.data.getVar('LOCAL_CONFIG_'+option, d, 1)
 		machine_val = bb.data.getVar('MACHINE_CONFIG_'+option, d, 1)
 		distro_val = bb.data.getVar('DISTRO_CONFIG_'+option, d, 1)
 		default_val = bb.data.getVar('DEFAULT_CONFIG_'+option, d, 1)
 		if recipe_val:
 			val = recipe_val
+                elif local_val:
+			val = local_val
 		elif machine_val:
 			if recipe_arch != recipe_arch_mach:
 				bb.data.setVar('RECIPE_ARCH', '${RECIPE_ARCH_MACHINE}', d)

@@ -8,7 +8,7 @@ LICENSE = "GPL"
 SRC_URI = "ftp://gcc.gnu.org/pub/gcc/releases/gcc-${PV}/gcc-testsuite-${PV}.tar.gz \
 	file://board.exp"
 
-S = "${WORKDIR}/gcc-${PV}"
+S = "${SRCDIR}/gcc-${PV}"
 
 # DejaGnu configuration
 DG_TOOLNAME ?= "gcc"
@@ -25,7 +25,7 @@ do_configure () {
 	echo "set target_alias ${TARGET_SYS}" >> site.exp
 
 	# Create board configuration
-	cp ${WORKDIR}/board.exp board.exp
+	cp ${SRCDIR}/board.exp board.exp
 	echo "set_board_info hostname ${DG_TARGET_HOSTNAME}" >> board.exp
 	echo "set_board_info username ${DG_TARGET_USERNAME}" >> board.exp
 }
