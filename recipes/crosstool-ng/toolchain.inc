@@ -126,7 +126,7 @@ python () {
 }
 
 addtask mangle after do_patch before do_configure
-do_mangle[dirs] = "${WORKDIR}"
+do_mangle[dirs] = "${SRCDIR}"
 do_mangle () {
 
 	if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
@@ -205,7 +205,7 @@ do_fetch_tarballs () {
 	    -e 's%\(CT_SAVE_TARBALLS\)=.*%\1=n%' \
 	    -e 's%.*\(CT_ONLY_DOWNLOAD\).*%\1=y%' \
 	    -e 's%.*\(CT_CROSS\).*%\1=y%' \
-    	< ${WORKDIR}/defconfig > .config
+    	< ${SRCDIR}/defconfig > .config
 	ct-ng oldconfig
 	ct-ng build
 }
@@ -267,7 +267,7 @@ DOT_CONFIG_MANGLING_recipe-canadian-cross = "\
 
 do_configure[dirs] = "${B}"
 do_configure () {
-	${DOT_CONFIG_MANGLING} <${WORKDIR}/defconfig > .config
+	${DOT_CONFIG_MANGLING} <${SRCDIR}/defconfig > .config
 	ct-ng oldconfig
 }
 

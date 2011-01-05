@@ -49,8 +49,8 @@ do_fetchall[nostamp] = True
 do_fetchall[func] = True
 do_fetchall = ""
 
-do_unpack[dirs] = "${WORKDIR}"
-do_unpack[cleandirs] = "${S}"
+do_unpack[dirs] = "${SRCDIR}"
+do_unpack[cleandirs] = "${SRCDIR}"
 
 python do_unpack() {
     from glob import glob
@@ -83,12 +83,13 @@ python do_unpack() {
             if not os.path.isabs(urlpath):
                 subdirs.append(os.path.dirname(urlpath))
 
-        workdir = d.getVar("WORKDIR", True)
+        srcdir = d.getVar("SRCDIR", True)
+
         if subdirs:
-            destdir = oe.path.join(workdir, *subdirs)
+            destdir = oe.path.join(srcdir, *subdirs)
             bb.mkdirhier(destdir)
         else:
-            destdir = workdir
+            destdir = srcdir
         dos = urldata.parm.get("dos")
 
         bb.note("Unpacking %s to %s/" % (base_path_out(local, d),
