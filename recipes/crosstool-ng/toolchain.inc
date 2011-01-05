@@ -647,7 +647,6 @@ split_sysroot_mangle () {
 	for pkg in ${SYSROOT_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
 			(
-			echo doing $pkg
 			cd $pkg/${TARGET_ARCH}
 			if [ -d debug-root ] ; then
 				mv debug-root/* ../
