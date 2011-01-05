@@ -13,13 +13,15 @@ ${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 DEPENDS = "ncurses-native"
 DEPENDS_recipe-native = ""
 
+inherit library
+
 # Package build dependencies
 DEPENDS_${PN}-dev	= "${PN}-libncurses \
-	${PN}-libform ${PN}-libmenu ${PN}-libpanel"
+    ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
 
 # Package build provides
 PROVIDES_${PN}-dev	= "libncurses${RE} libncurses5${RE} libtermcap${RE} \
-	libform${RE} libmenu${RE} libpanel${RE}"
+    libform${RE} libmenu${RE} libpanel${RE}"
 
 # Library package build and run-time dependencies
 RDEPENDS_${PN}-libform	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
@@ -34,10 +36,11 @@ RDEPENDS_${PN}		= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 RDEPENDS_${PN}-tools	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
 
 # Package run-time provides
-RPROVIDES_${PN}-libncurses	= "libncurses${RE} libncurses5${RE}"
-RPROVIDES_${PN}-libform		= "libform{RE}"
-RPROVIDES_${PN}-libmenu		= "libmenu{RE}"
-RPROVIDES_${PN}-libpanel	= "libpanel{RE}"
+RPROVIDES_${PN}-libncurses	= "${PN}-libncurses \
+    libncurses${RE} libncurses5${RE} libtermcap${RE}"
+RPROVIDES_${PN}-libform		= "${PN}-libform libform${RE}"
+RPROVIDES_${PN}-libmenu		= "${PN}-libmenu libmenu${RE}"
+RPROVIDES_${PN}-libpanel	= "${PN}-libpanel libpanel${RE}"
 
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
