@@ -488,14 +488,12 @@ def base_after_parse(d):
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
     # Special handling of BBCLASSEXTEND recipes
-    # FIXME: let's rename BBCLASSEXTEND to RECIPE_EXTEND as it makes much
-    # more sense
     recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
-    if recipe_type in (bb.data.getVar('BBCLASSEXTEND', d, True) or "").split():
-	# Set ${RE} for use in fx. DEPENDS and RDEPENDS
-	bb.data.setVar('RE', '-' + recipe_type, d)
-	# Add recipe-${RECIPE_TYPE} to OVERRIDES
-	bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
+    # Set ${RE} for use in fx. DEPENDS and RDEPENDS
+    if recipe_type != "machine":
+        bb.data.setVar('RE', '-' + recipe_type, d)
+    # Add recipe-${RECIPE_TYPE} to OVERRIDES
+    bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
 
     # FIXME: move to insane.bbclass
     provides = bb.data.getVar('PROVIDES', d, True)
