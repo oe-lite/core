@@ -406,13 +406,17 @@ class OEliteRunQueue:
 
 
     def get_provider(self, item, allow_no_provider=False):
-        return self._get_provider(item, allow_no_provider,
-                                  self.db.item_id,
-                                  self.db.get_item,
-                                  self.db.get_runq_provider,
-                                  self.db.set_runq_provider,
-                                  self.db.get_providers,
-                                  "PREFERRED_PROVIDER_")
+        try:
+            return self._get_provider(item, allow_no_provider,
+                                      self.db.item_id,
+                                      self.db.get_item,
+                                      self.db.get_runq_provider,
+                                      self.db.set_runq_provider,
+                                      self.db.get_providers,
+                                      "PREFERRED_PROVIDER_")
+        except MultipleProviders, e:
+            die("multiple providers for %s: %s"%(
+                    self.db.get_item(item), e))
 
 
     def get_rprovider(self, ritem, allow_no_provider=False):
