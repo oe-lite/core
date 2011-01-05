@@ -42,7 +42,7 @@ RPROVIDES_${PN}-libpanel	= "libpanel{RE}"
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 
-inherit autotools c++
+inherit autotools make-vpath c++
 
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
