@@ -14,8 +14,8 @@ S = "${WORKDIR}/${BPN}-${PV}"
 inherit autotools
 
 LIBTOOL_DEPENDS_recipe-native		= ""
-LIBTOOL_DEPENDS_recipe-cross		= ""
-LIBTOOL_DEPENDS_recipe-sdk-cross	= ""
+LIBTOOL_DEPENDS_recipe-cross		= "${BUILD_ARCH}/libtool"
+LIBTOOL_DEPENDS_recipe-sdk-cross	= "${BUILD_ARCH}/libtool"
 
 SYSROOT_PACKAGES = "\
 	${PN}-sysroot-libltdl \
@@ -24,8 +24,9 @@ SYSROOT_PACKAGES = "\
 "
 PACKAGES_append_recipe-native += "${SYSROOT_PACKAGES}"
 
-PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/libtool"
-PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/libtool"
+CROSS_PROVIDES			= "${TARGET_ARCH}/libtool"
+CROSS_PROVIDES_recipe-machine	= ""
+PROVIDES_${PN}			+= "${CROSS_PROVIDES}"
 
 DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"
 DEPENDS_${PN}-sysroot-libltdl-dbg	= "${PN}-sysroot-libltdl"
@@ -41,6 +42,7 @@ FILES_${PN}-sysroot-libltdl-dev = "${libdir}/libltdl.* ${includedir}/ltdl.h"
 FILES_${PN}-sysroot-libltdl-dbg = "${libdir}/.debug/"
 
 EXTRA_OECONF_PROGRAM_PREFIX = ""
+EXTRA_OECONF_PROGRAM_PREFIX_recipe-native += "--program-prefix=${TARGET_PREFIX}"
 EXTRA_OECONF_PROGRAM_PREFIX_recipe-cross += "--program-prefix=${TARGET_PREFIX}"
 EXTRA_OECONF_PROGRAM_PREFIX_recipe-sdk-cross += "--program-prefix=${TARGET_PREFIX}"
 EXTRA_OECONF_PROGRAM_PREFIX_recipe-canadian-cross += "--program-prefix=${TARGET_PREFIX}"
