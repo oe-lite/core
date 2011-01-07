@@ -33,7 +33,7 @@ RE = ""
 
 # FIXME: this should be moved to a c.bbclass, renamed to C_DEPENDS and
 # added to CLASS_DEPENDS.
-DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain ${HOST_ARCH}/sysroot-dev"
+DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain"
 CLASS_DEPENDS = "${DEFAULT_DEPENDS}"
 DEPENDS_prepend = "${CLASS_DEPENDS} "
 
