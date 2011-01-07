@@ -505,6 +505,10 @@ def base_after_parse(d):
     if rprovides:
         bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
+    auto_packages = d.getVar("AUTO_PACKAGES_FUNC", True)
+    if auto_packages:
+        eval(auto_packages)(d)
+
     # Fixup package PACKAGE_ARCH (recipe type dependant)
     fixup_package_arch = bb.data.getVar('FIXUP_PACKAGE_ARCH', d, False)
     if fixup_package_arch is not '':
