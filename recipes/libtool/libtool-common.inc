@@ -27,6 +27,10 @@ CROSS_PROVIDES			= "${TARGET_ARCH}/libtool"
 CROSS_PROVIDES_recipe-machine	= ""
 PROVIDES_${PN}			+= "${CROSS_PROVIDES}"
 
+SYSROOT_DEPENDS = "${TARGET_ARCH}/sysroot-libgcc"
+SYSROOT_DEPENDS_recipe-native = ""
+DEPENDS += "${SYSROOT_DEPENDS}"
+
 DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"
 DEPENDS_${PN}-sysroot-libltdl-dbg	= "${PN}-sysroot-libltdl"
 
