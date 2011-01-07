@@ -125,6 +125,44 @@ python () {
 		d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
 }
 
+AUTO_LIB_PACKAGES = "\
+  libgcc libdl libstdc++ libresolv libutil libcrypt libpthread libm librt \
+  libanl libBrokenLocale libnsl libmemusage libpcprofile libSegFault \
+  libthread_db libnss-files libnss-dns libnss-compat \
+  libnss-nis libnss-nisplus libnss-hesiod \
+"
+
+AUTO_PACKAGES_FUNC = "toolchain_auto_packages_func"
+def toolchain_auto_packages_func (d):
+    pn = d.getVar("PN", True)
+    auto_lib_packages = d.getVar("AUTO_LIB_PACKAGES", False).split()
+    lib_packages = []
+    def get_extra_files(pkg):
+        extra_files = d.getVar("EXTRA_FILES_" + pkg, False)
+        if extra_files:
+            return " " + extra_files
+        return ""
+    for lib in auto_lib_packages:
+        pkg = "%s-sysroot-%s"%(pn, lib.replace("_", "-"))
+        lib_packages += [ pkg, pkg + "-dev" ]
+        extra_files = get_extra_files(pkg)
+        d.setVar("FILES_" + pkg,
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so "%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so.* "%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s-*.so"%(lib) +
+                 extra_files)
+        pkg += "-dev"
+        extra_files = get_extra_files(pkg)
+        d.setVar("FILES_" + pkg,
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.so "%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.a "%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s_nonshared.a"%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.la "%(lib) +
+                 extra_files)
+    sysroot_packages = (lib_packages +
+                        (d.getVar("SYSROOT_PACKAGES", False) or "").split())
+    d.setVar("SYSROOT_PACKAGES", " ".join(sysroot_packages))
+
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${SRCDIR}"
 do_mangle () {
@@ -409,21 +447,16 @@ do_compile () {
 	ct-ng build
 }
 
-# Stub out do_install
-do_install () {
-	:
-}
-do_install_recipe-cross () {
-	:
-}
-do_install_recipe-sdk-cross () {
-	:
-}
-do_install_recipe-canadian-cross () {
-	:
-}
-# And as do_compile actually installs into D, don't clean it on do_install
+# as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
+do_install[dirs] = "${D}"
+
+# everything is already installed in do_compile, but let's rearrange it a bit
+do_install () {
+    mv ${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
+       ${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
+       ${TARGET_ARCH}/sys-root${target_libdir}/ || true
+}
 
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
@@ -431,38 +464,28 @@ do_install[cleandirs] = ""
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
 
 SYSROOT_PACKAGES = "\
-	${PN}-sysroot-gdbserver \
-	${PN}-sysroot-gdbserver-dbg \
-	${PN}-sysroot-dbg \
-	${PN}-sysroot-dev \
-	${PN}-sysroot-doc \
-	${PN}-sysroot-locale \
-	${PN}-sysroot-libc \
-	${PN}-sysroot-libdl \
-	${PN}-sysroot-libnss-files \
-	${PN}-sysroot-libnss-dns \
-	${PN}-sysroot-libresolv \
-	${PN}-sysroot-libutil \
-	${PN}-sysroot-libcrypt \
-	${PN}-sysroot-libpthread \
-	${PN}-sysroot-libm \
-	${PN}-sysroot-librt \
-	${PN}-sysroot-libstdc++ \
-	${PN}-sysroot-libgcc \
-	${PN}-sysroot-garbage \
+    ${PN}-sysroot-libc ${PN}-sysroot-libc-dev \
+    ${PN}-sysroot-gdbserver ${PN}-sysroot-gdbserver-dbg \
+    ${PN}-sysroot-dbg ${PN}-sysroot-dev ${PN}-sysroot-doc \
+    ${PN}-sysroot-locale \
+    ${PN}-sysroot-garbage \
 "
 
-PROVIDES_${PN} += "toolchain${RE}"
+PROVIDES_${PN} = "toolchain${RE}"
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/toolchain"
 PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/toolchain"
+DEPENDS_${PN} = "${PN}-sysroot-dev"
 
-DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
-RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
+RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
+DEPENDS_${PN}-sysroot-libnss-dns-dev	= "${PN}-sysroot-libresolv-dev"
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
+DEPENDS_${PN}-sysroot-librt-dev		= "${PN}-sysroot-libpthread-dev"
 DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 RDEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
+DEPENDS_${PN}-sysroot-libstdc++-dev	= "${PN}-sysroot-libgcc-dev ${PN}-sysroot-libm-dev"
 DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
 RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
 
@@ -553,12 +576,6 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/locale \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/i18n \
 "
 
-# libc can depend on libnss_files libnss_dns
-# dropbear libc libcrypt libutil
-# ethercat libstdc++ libm libgcc_s
-# performance-test-suite librt libm
-# libnss_dns libresolv
-
 FILES_${PN}-sysroot-libc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
@@ -569,58 +586,22 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
 "
 # FIXME: the lib64 symlink should be in separate package!
-
-FILES_${PN}-sysroot-libdl = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libdl.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libdl-*.so \
+FILES_${PN}-sysroot-libc-dev = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
 "
 
-FILES_${PN}-sysroot-libcrypt = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libcrypt.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libcrypt-*.so \
+EXTRA_FILES_${PN}-sysroot-libgcc = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so.* \
 "
 
-FILES_${PN}-sysroot-libutil = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libutil-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns-*.so \
+EXTRA_FILES_${PN}-sysroot-libgcc-dev = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so \
 "
 
-FILES_${PN}-sysroot-libnss-files = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_files-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_files.so.* \
-"
-
-FILES_${PN}-sysroot-libnss-dns = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libnss_dns.so.* \
-"
-
-FILES_${PN}-sysroot-libresolv = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libresolv-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libresolv.so.* \
-"
-
-FILES_${PN}-sysroot-libpthread = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libpthread.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libpthread-*.so \
-"
-
-FILES_${PN}-sysroot-libm = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libm.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libm-*.so \
-"
-
-FILES_${PN}-sysroot-librt = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/librt.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/librt-*.so \
-"
-
-FILES_${PN}-sysroot-libstdc++ = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libstdc++.so* \
-"
-
-FILES_${PN}-sysroot-libgcc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so* \
+EXTRA_FILES_${PN}-sysroot-libm-dev = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libieee.a \
 "
 
 FILES_${PN}-sysroot-garbage = "\
