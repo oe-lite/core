@@ -79,26 +79,47 @@ def cross_fixup_provides(d):
         rprovides_changed = False
 
         provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
+        rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
+
         if not pkg in provides:
             provides = [pkg] + provides
             provides_changed = True
 
+        if not pkg in rprovides:
+            rprovides = [pkg] + rprovides
+            rprovides_changed = True
+
 	if pkg in sysroot_packages:
 
-            rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
-            if not pkg in rprovides:
-                rprovides = [pkg] + rprovides
-                rprovides_changed = True
+            if pkg.endswith("-dev"):
+                base_pkg = pkg[:-4]
+                if base_pkg in sysroot_packages:
+                    cross_provides = base_pkg.replace(pn, target_arch, 1)
+                    if not cross_provides in provides:
+                        provides += [cross_provides]
+                        provides_changed = True
+                    depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
+                    if not base_pkg in depends:
+                        depends.append(base_pkg)
+                    d.setVar("DEPENDS_" + pkg, " ".join(depends))
+                else:
+                    cross_provides = pkg.replace(pn, target_arch, 1)
+                    if not cross_provides in provides:
+                        provides += [cross_provides]
+                        provides_changed = True
+                    if not cross_provides in rprovides:
+                        rprovides += [cross_provides]
+                        rprovides_changed = True
 
-            cross_provides = pkg.replace(pn, target_arch, 1)
-
-            if not cross_provides in provides:
-                provides += [cross_provides]
-                provides_changed = True
-
-            if not cross_provides in rprovides:
-                rprovides += [cross_provides]
-                rprovides_changed = True
+            else:
+                cross_provides = pkg.replace(pn, target_arch, 1)
+                if not cross_provides in rprovides:
+                    rprovides += [cross_provides]
+                    rprovides_changed = True
+                if not pkg + "-dev" in sysroot_packages:
+                    if not cross_provides in provides:
+                        provides += [cross_provides]
+                        provides_changed = True
 
         if provides_changed:
             bb.data.setVar('PROVIDES_%s'%pkg, ' '.join(provides), d)
