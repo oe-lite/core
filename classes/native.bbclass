@@ -101,8 +101,6 @@ def native_fixup_package_arch(d):
 FIXUP_PROVIDES = native_fixup_provides
 def native_fixup_provides(d):
     target_arch = bb.data.getVar('TARGET_ARCH', d, True) + '/'
-    pn = bb.data.getVar('PN', d, True)
-    bpn = bb.data.getVar('BPN', d, True)
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
     	provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
         if not pkg in provides:
