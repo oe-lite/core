@@ -221,6 +221,9 @@ class OEliteBaker:
         oelite.data.dump(d=recipe.data, pretty=True,
                          nohash=(not self.options.nohash))
 
+        return 0
+
+
     def bake(self):
 
         self.setup_tmpdir()
@@ -470,6 +473,7 @@ class OEliteBaker:
         start = datetime.datetime.now()
         total = self.db.number_of_tasks_to_build()
         count = 0
+        exitcode = 0
         while task:
             count += 1
             recipe_id = self.db.get_recipe_id(task=task)
@@ -486,7 +490,8 @@ class OEliteBaker:
                                      self.db.get_runq_buildhash(task))
                 runq.mark_done(task)
             else:
-                warn("%s:%s failed"%(recipe_name, task_name))
+                error("%s:%s failed"%(recipe_name, task_name))
+                exitcode = 1
                 self.task_build_failed(task, data)
                 # FIXME: support command-line option to abort on first
                 # failed task
