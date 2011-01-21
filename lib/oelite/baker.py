@@ -490,7 +490,7 @@ class OEliteBaker:
                                      self.db.get_runq_buildhash(task))
                 runq.mark_done(task)
             else:
-                error("%s:%s failed"%(recipe_name, task_name))
+                err("%s:%s failed"%(recipe_name, task_name))
                 exitcode = 1
                 self.task_build_failed(task, data)
                 # FIXME: support command-line option to abort on first
