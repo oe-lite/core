@@ -463,21 +463,10 @@ do_install () {
 # (almost) the same
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
 
-SYSROOT_PACKAGES = "\
-    ${PN}-sysroot-libc ${PN}-sysroot-libc-dev \
-    ${PN}-sysroot-gdbserver ${PN}-sysroot-gdbserver-dbg \
-    ${PN}-sysroot-dbg ${PN}-sysroot-dev ${PN}-sysroot-doc \
-    ${PN}-sysroot-locale \
-    ${PN}-sysroot-garbage \
-"
-
 PROVIDES_${PN} = "toolchain${RE}"
 PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/toolchain"
 PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/toolchain"
 DEPENDS_${PN} = "${PN}-sysroot-dev"
-
-DEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
-RDEPENDS_${PN}-sysroot-dev		= "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
 DEPENDS_${PN}-sysroot-libnss-dns-dev	= "${PN}-sysroot-libresolv-dev"
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -518,10 +507,31 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/*/.debug \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-libc"
+FILES_${PN}-sysroot-libc = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so.* \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
+"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-libc-dev"
+# FIXME: the lib64 symlink should be in separate package!
+FILES_${PN}-sysroot-libc-dev = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
+"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
 FILES_${PN}-sysroot-gdbserver-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
@@ -529,6 +539,7 @@ ${datadir}/gdb \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
+SYSROOT_PACKAGES += "${PN}-sysroot-dbg"
 FILES_${PN}-sysroot-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/.debug \
@@ -541,6 +552,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libexecdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-dev"
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_includedir} \
@@ -555,11 +567,14 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
 "
+DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
+RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
 FILES_${PN}-sysroot-dev_append_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/*.dll \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-doc"
 FILES_${PN}-sysroot-doc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_infodir} \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_mandir} \
@@ -571,25 +586,10 @@ FILES_${PN}-sysroot-doc_append_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/doc/runtime \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-locale"
 FILES_${PN}-sysroot-locale = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/locale \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/i18n \
-"
-
-FILES_${PN}-sysroot-libc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
-"
-# FIXME: the lib64 symlink should be in separate package!
-FILES_${PN}-sysroot-libc-dev = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
 "
 
 EXTRA_FILES_${PN}-sysroot-libgcc = "\
@@ -604,6 +604,47 @@ EXTRA_FILES_${PN}-sysroot-libm-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libieee.a \
 "
 
+SYSROOT_PACKAGES += "${PN}-sysroot-nscd"
+FILES_${PN}-sysroot-nscd = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/nscd"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-rpc"
+FILES_${PN}-sysroot-rpc = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/rpcgen \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/rpcinfo \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sysconfdir}/rpc"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-ldconfig"
+FILES_${PN}-sysroot-ldconfig = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/ldconfig"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-ldd"
+FILES_${PN}-sysroot-ldd = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/ldd"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-catchsegv"
+FILES_${PN}-sysroot-catchsegv = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/catchsegv"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-sprof"
+FILES_${PN}-sysroot-sprof = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/sprof"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-timezone-utils"
+FILES_${PN}-sysroot-timezone-utils = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/tzselect \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zdump \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zic \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/zoneinfo \
+"
+
+SYSROOT_PACKAGES += "${PN}-sysroot-iconv-utils"
+FILES_${PN}-sysroot-iconv-utils = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/iconv \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/iconvconfig"
+
+# throw everything else in this garbage package, which is to be considered a WIP package aimed at being empty
+SYSROOT_PACKAGES += "${PN}-sysroot-garbage"
 FILES_${PN}-sysroot-garbage = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root \
 "
