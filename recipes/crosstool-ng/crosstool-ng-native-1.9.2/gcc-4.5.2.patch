@@ -1,0 +1,35 @@
+# HG changeset patch
+# User Bryan Hundven <bryanhundven@gmail.com>
+# Date 1293469297 28800
+# Node ID a51773badb1e0e46ea8ddd152b14a3d2d852e948
+# Parent  8bcae97e8fd541545375f38146978289054cee82
+config/gcc: Add gcc 4.5.2
+
+Add gcc 4.5.2.
+
+Signed-off-by: Bryan Hundven <bryanhundven@gmail.com>
+
+diff -r 8bcae97e8fd5 -r a51773badb1e config/cc/gcc.in
+--- a/config/cc/gcc.in  Wed Dec 22 22:42:28 2010 +0100
++++ b/config/cc/gcc.in  Mon Dec 27 09:01:37 2010 -0800
+@@ -19,6 +19,12 @@
+ # Don't remove next line
+ # CT_INSERT_VERSION_BELOW
+ 
++config CC_V_4_5_2
++    bool
++    prompt "4.5.2 (EXPERIMENTAL)"
++    depends on EXPERIMENTAL
++    select CC_GCC_4_5_or_later
++
+ config CC_V_4_5_1
+     bool
+     prompt "4.5.1 (EXPERIMENTAL)"
+@@ -188,6 +194,7 @@
+     string
+ # Don't remove next line
+ # CT_INSERT_VERSION_STRING_BELOW
++    default "4.5.2" if CC_V_4_5_2
+     default "4.5.1" if CC_V_4_5_1
+     default "4.5.0" if CC_V_4_5_0
+     default "4.4.5" if CC_V_4_4_5
