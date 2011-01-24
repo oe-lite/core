@@ -128,8 +128,8 @@ python () {
 AUTO_LIB_PACKAGES = "\
   libgcc libdl libstdc++ libresolv libutil libcrypt libpthread libm librt \
   libanl libBrokenLocale libnsl libmemusage libpcprofile libSegFault \
-  libthread_db libnss-files libnss-dns libnss-compat \
-  libnss-nis libnss-nisplus libnss-hesiod \
+  libthread_db libnss_files libnss_dns libnss_compat \
+  libnss_nis libnss_nisplus libnss_hesiod \
 "
 
 AUTO_PACKAGES_FUNC = "toolchain_auto_packages_func"
