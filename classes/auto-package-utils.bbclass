@@ -21,10 +21,10 @@ def auto_package_utils (d):
         packages += [ pkg, docpkg ]
 
         d.setVar("FILES_" + pkg,
-                 "${base_sbindir}/%s"%(util) +
-                 "${base_bindir}/%s"%(util) +
-                 "${sbindir}/%s"%(util) +
-                 "${bindir}/%s"%(util) +
+                 "${base_sbindir}/%s "%(util) +
+                 "${base_bindir}/%s "%(util) +
+                 "${sbindir}/%s "%(util) +
+                 "${bindir}/%s "%(util) +
                  get_extra_files(pkg))
 
         d.setVar("FILES_" + docpkg,
