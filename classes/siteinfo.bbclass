@@ -114,9 +114,7 @@ def list_sitefiles(d, arch):
                 found.append(filepath)
 
     # 2) Recipe specified files (ie. in ${SRCDIR})
-    print "SRC_%s_SITEFILES"%(arch)
     sitefiles = (d.getVar("SRC_%s_SITEFILES"%(arch), True) or "").split()
-    print "sitefiles = %s"%(sitefiles)
     for filepath in sitefiles:
         if filepath not in found and os.path.exists(filepath):
             found.append(filepath)
