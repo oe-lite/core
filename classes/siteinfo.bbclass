@@ -53,17 +53,17 @@ do_siteinfo[dirs]	= "${STAGE_SITE_DIR}"
 python do_siteinfo () {
     import os
 
-    build_arch = bb.data.getVar('BUILD_ARCH', d, True)
-    host_arch = bb.data.getVar('HOST_ARCH', d, True)
-    target_arch = bb.data.getVar('TARGET_ARCH', d, True)
+    build_arch = d.getVar('BUILD_ARCH', True)
+    host_arch = d.getVar('HOST_ARCH', True)
+    target_arch = d.getVar('TARGET_ARCH', True)
 
-    build_config_site = bb.data.getVar('BUILD_CONFIG_SITE', d, True)
-    host_config_site = bb.data.getVar('HOST_CONFIG_SITE', d, True)
-    target_config_site = bb.data.getVar('TARGET_CONFIG_SITE', d, True)
+    build_config_site = d.getVar('BUILD_CONFIG_SITE', True)
+    host_config_site = d.getVar('HOST_CONFIG_SITE', True)
+    target_config_site = d.getVar('TARGET_CONFIG_SITE', True)
 
     def generate_siteinfo(d, arch, output_filename):
         import bb, fileinput
-        input_files = list_sitefiles(d, bb.data.getVar(arch+'_SITEFILES', d, True))
+        input_files = list_sitefiles(d, arch)
         output_file = open(output_filename, 'w')
         for line in fileinput.input(input_files):
             output_file.write(line)
@@ -71,30 +71,26 @@ python do_siteinfo () {
 
     generate_siteinfo(d, 'BUILD', build_config_site)
 
-    if build_arch == target_arch:
-        os.symlink(build_config_site, target_config_site)
-    else:
-        generate_siteinfo(d, 'TARGET', target_config_site)
-
-    if build_arch == host_arch:
+    if host_arch == build_arch:
         os.symlink(build_config_site, host_config_site)
-    elif target_arch == host_arch:
-        os.symlink(target_config_site, host_config_site)
     else:
         generate_siteinfo(d, 'HOST', host_config_site)
+
+    if target_arch == build_arch:
+        os.symlink(build_config_site, target_config_site)
+    elif target_arch == host_arch:
+        os.symlink(host_config_site, target_config_site)
+    else:
+        generate_siteinfo(d, 'TARGET', TARGET_config_site)
 }
 
 #
 # Return list of sitefiles found by searching for sitefiles in the
-# following directories:
+# ${BBPATH}/site directories and any files listed in
+# ${SRC_*_SITEFILES} for * in BUILD, HOST, TARGET.
 #
-# 1) ${BBPATH}/site
-# 2) ${FILE_DIRNAME}/site
-# 3) ${FILE_DIRNAME}/site-${PV}
-#
-# The app and version specific sitefiles can thus override the app
-# specific and site wide sitefiles, and the app specific sitefiles can
-# override the site wide sitefiles.
+# The SRC_*_SITEFILES come last, so they override any variables from
+# common sitefiles.
 #
 # TODO: could be extended with searching in stage dir, so build
 # dependencies could provide sitefiles instead of piling everything
@@ -103,32 +99,26 @@ python do_siteinfo () {
 # dependency should then install their files into it's own config.site
 # subdir.
 #
-# TODO: could also be extended to search in site-${PN} and site-${P}
-# if needed, but will obviosly require even more file stat'ing, so
-# let's wait until the need for this is demonstrated
-#
-def list_sitefiles(d, sitefiles):
+def list_sitefiles(d, arch):
     import bb, os
     found = []
-    sitefiles = sitefiles.split()
-    bbpath = bb.data.getVar('BBPATH', d, True) or ''
-    file_dirname = bb.data.getVar('FILE_DIRNAME', d, True)
-    pv = bb.data.getVar('PV', d, True)
+    sitefiles = d.getVar(arch+'_SITEFILES', True).split()
+    bbpath = d.getVar('BBPATH', True) or ''
+    pv = d.getVar('PV', True)
 
-    def siteinfo_search_dir(path, found):
+    # 1) ${BBPATH}/site
+    for path in bbpath.split(':'):
         for filename in sitefiles:
             filepath = os.path.join(path, 'site', filename)
             if filepath not in found and os.path.exists(filepath):
                 found.append(filepath)
 
-    # 1) ${BBPATH}/site
-    for path in bbpath.split(':'):
-        siteinfo_search_dir(path, found)
-
-    # 2) ${FILE_DIRNAME}/site
-    siteinfo_search_dir(os.path.join(file_dirname, 'site'), found)
-
-    # 3) ${FILE_DIRNAME}/site-${PV}
-    siteinfo_search_dir(os.path.join(file_dirname, 'site-' + pv), found)
+    # 2) Recipe specified files (ie. in ${SRCDIR})
+    print "SRC_%s_SITEFILES"%(arch)
+    sitefiles = (d.getVar("SRC_%s_SITEFILES"%(arch), True) or "").split()
+    print "sitefiles = %s"%(sitefiles)
+    for filepath in sitefiles:
+        if filepath not in found and os.path.exists(filepath):
+            found.append(filepath)
 
     return found
