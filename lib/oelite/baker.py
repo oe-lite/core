@@ -498,7 +498,7 @@ class OEliteBaker:
             task = runq.get_runabletask()
         timing_info("Build", start)
 
-        return 0
+        return exitcode
 
 
     def setup_tmpdir(self):
