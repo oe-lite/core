@@ -38,3 +38,6 @@ target_sbindir		= "${sdk_sbindir}"
 target_libexecdir	= "${sdk_libexecdir}"
 target_libdir		= "${sdk_libdir}"
 target_includedir	= "${sdk_includedir}"
+
+PKG_CONFIG_LIBDIR	= "${SDK_PKG_CONFIG_DIR}"
+PKG_CONFIG_PATH		= "${SDK_PKG_CONFIG_PATH}"

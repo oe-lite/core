@@ -23,6 +23,9 @@ TARGET_LDFLAGS		= "${SDK_LDFLAGS}"
 
 TARGET_SYSROOT		= "${SDK_SYSROOT}"
 
+PKG_CONFIG_LIBDIR	= "${SDK_PKG_CONFIG_DIR}"
+PKG_CONFIG_PATH		= "${SDK_PKG_CONFIG_PATH}"
+
 # Use sdk_* path variables for host paths
 base_prefix		= "${sdk_base_prefix}"
 prefix			= "${sdk_prefix}"
