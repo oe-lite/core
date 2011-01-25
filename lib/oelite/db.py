@@ -1322,8 +1322,6 @@ class OEliteDB:
                 "WHERE build IS NULL AND relax IS NULL AND tmphash != metahash")
             rowcount += c.rowcount
         debug("set build flag on %d tasks with tmphash != metahash"%(rowcount))
-        #hest = c.execute("SELECT metahash,tmphash FROM runq_task").fetchall()
-        #info("hest=%s"%(repr(hest)))
         return
 
 
