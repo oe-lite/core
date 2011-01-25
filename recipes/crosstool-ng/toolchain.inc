@@ -132,7 +132,7 @@ AUTO_LIB_PACKAGES = "\
   libnss_nis libnss_nisplus libnss_hesiod \
 "
 
-AUTO_PACKAGES_FUNC = "toolchain_auto_packages_func"
+AUTO_PACKAGE_FUNCS += "toolchain_auto_packages_func"
 def toolchain_auto_packages_func (d):
     pn = d.getVar("PN", True)
     auto_lib_packages = d.getVar("AUTO_LIB_PACKAGES", False).split()

@@ -192,3 +192,5 @@ python do_package () {
         os.symlink(srcfile, symlink)
         os.chdir("..")
 }
+
+AUTO_PACKAGE_FUNCS ?= ""
