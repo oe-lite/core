@@ -3,7 +3,7 @@ IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 inherit image image_mdev image_crontab image_makedevs
 require conf/makedevs.conf
 
-JFFS2_IMAGE_DEPENDS = "mtd-utils-native-mkfs"
+JFFS2_IMAGE_DEPENDS = "mtd-utils-native-mkfs-jffs2"
 CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
