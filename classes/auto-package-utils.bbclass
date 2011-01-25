@@ -5,7 +5,6 @@ AUTO_PACKAGE_UTILS ?= ""
 AUTO_PACKAGE_FUNCS += "auto_package_utils"
 
 def auto_package_utils (d):
-    return
     pn = d.getVar("PN", True)
     utils = (d.getVar("AUTO_PACKAGE_UTILS", False) or "").split()
     packages = []
