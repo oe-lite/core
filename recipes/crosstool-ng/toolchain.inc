@@ -143,7 +143,7 @@ def toolchain_auto_packages_func (d):
             return " " + extra_files
         return ""
     for lib in auto_lib_packages:
-        pkg = "%s-sysroot-%s"%(pn, lib.replace("_", "-"))
+        pkg = "%s-sysroot-%s"%(pn, lib.replace("_", "-").lower())
         lib_packages += [ pkg, pkg + "-dev" ]
         extra_files = get_extra_files(pkg)
         d.setVar("FILES_" + pkg,

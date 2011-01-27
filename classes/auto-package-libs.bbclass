@@ -17,7 +17,7 @@ def auto_package_libs (d):
         return ""
 
     for lib in libs:
-        pkg = "%s-lib%s"%(pn, lib.replace("_", "-"))
+        pkg = "%s-lib%s"%(pn, lib.replace("_", "-").lower())
         devpkg = pkg + "-dev"
         packages += [ pkg, pkg + "-dev" ]
 

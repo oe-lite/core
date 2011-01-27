@@ -16,7 +16,7 @@ def auto_package_utils (d):
         return ""
 
     for util in utils:
-        pkg = "%s-%s"%(pn, util.replace("_", "-").replace(".", "-"))
+        pkg = "%s-%s"%(pn, util.replace("_", "-").replace(".", "-").lower())
         docpkg = pkg + "-doc"
         packages += [ pkg, docpkg ]
 
