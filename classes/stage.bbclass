@@ -1,4 +1,4 @@
-inherit binconfig-install
+inherit binconfig-stage
 inherit libtool-stage
 addtask stage before do_fetch
 addtask stage_fixup after do_stage
