@@ -1,67 +1,64 @@
-require conf/oe-lite-meta.conf
-STAGE_FIXUP_FUNCS += "binconfig_fixup"
+require conf/meta.conf
 
-python binconfig_fixup () {
-    import errno
+STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 
-    tempdir = bb.data.getVar('TEMP_STAGE_DIR', d, True)
-    import glob
-    os.chdir(tempdir)
-    type_dir = glob.glob('*')
-    if not type_dir:
+python binconfig_stage_fixup () {
+    import re, fileinput, os
+
+    metafile = d.getVar("binconfigfilelist", True).lstrip("/")
+    if not os.path.exists(metafile):
         return
-    os.chdir(type_dir[0])
-    
-    sd = bb.data.getVar('STAGE_DIR', d, True)+'/'+type_dir[0]
 
-    files = []
-    try:
-        filename = '.'+bb.data.getVar('binconfiglist', d, True)
-        f = open(filename, "r")
-        files = f.readlines()
-        f.close()
-        os.unlink(filename)
-    except IOError as exc:
-        if exc.errno == errno.ENOENT:
-            return
-        else: raise Exception("binconfg %s"%(repr(exc)))
-    
-    binconfigmangle = bb.data.getVar('binconfigmangle', d, True)
-    
-    import ConfigParser
-    try:
-        fd = open('.'+binconfigmangle,"r")
-        config = ConfigParser.ConfigParser()
-    
-        config.readfp(fd)
-        fd.close()
-        os.unlink('.'+binconfigmangle)
-    except Exception as exc:
-        raise Exception("binconfg %s"%(repr(exc)))
-    
-    prefix = config.get("paths","prefix")
-    exec_prefix = config.get("paths","exec_prefix")
-    datadir = config.get("paths","datadir")
-    bindir = config.get("paths","bindir")
-    sbindir = config.get("paths","sbindir")
-    libexecdir = config.get("paths","libexecdir")
-    libdir = config.get("paths","libdir")
-    includedir = config.get("paths","includedir")
-    
-    STAGE_DIR = bb.data.getVar('STAGE_DIR', d, True)
+    binconfig_files = open(metafile, "r")
 
-    import re, fileinput,sys
-    for fn in files:
-        for line in fileinput.FileInput(fn.rstrip(),inplace=1):
-            line = re.sub(r'^(prefix=).*',r'\1'+sd+prefix,line)
-            line = re.sub(r'^(exec_prefix=).*',r'\1'+sd+exec_prefix,line)
-            line = re.sub(r'^(datadir=).*',r'\1'+sd+datadir,line)
-            line = re.sub(r'^(bindir=).*',r'\1'+sd+bindir,line)
-            line = re.sub(r'^(sbindir=).*',r'\1'+sd+sbindir,line)
-            line = re.sub(r'^(libexecdir=).*',r'\1'+sd+libexecdir,line)
-            line = re.sub(r'^(libdir=).*',r'\1'+sd+libdir,line)
-            line = re.sub(r'^(includedir=).*',r'\1'+sd+includedir,line)
-            # line = re.sub(r'-I'+includedir+'/',r'I'sd+includedir+'/',line)
-            # line = re.sub(r'-L'+libdir+'/',r'-L'sd+libdir+'/',line)
-            sys.stdout.write(line)
+    stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
+    subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
+    sysroot = os.path.join(stage_dir, subdir)
+    
+    if subdir == "native":
+        dirname_prefix = "stage_"
+    elif subdir == "target/sysroot":
+        dirname_prefix = "target_"
+    else:
+        dirname_prefix = ""
+    
+    dirnames = ("prefix", "exec_prefix", "bindir", "sbindir",
+                "libdir", "includedir", "libexecdir",
+                "datadir", "sysconfdir", "sharedstatedir", "localstatedir",
+                "infodir", "mandir")
+    dirpaths = {}
+    for dirname in dirnames:
+        dirpaths[dirname] = d.getVar(dirname_prefix + dirname, True)
+
+    for filename in binconfig_files:
+        filename = filename.strip()
+
+        with open(filename, "r") as input_file:
+            binconfig_file = input_file.read()
+    
+        for dirname in dirnames:
+            binconfig_file = re.sub(r"^(%s=).*"%(dirname),
+                                    r"\g<1>%s/%s"%(sysroot, dirpaths[dirname]),
+                                    binconfig_file)
+    
+        for flagvar in ("CPPFLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
+            binconfig_file = re.sub("^(%s=[\"'])"%(flagvar),
+                                    r"\g<1>--sysroot=%s "%(sysroot),
+                                    binconfig_file)
+    
+        for option in ("-isystem ", "-I", "-iquote"):
+            binconfig_file = re.sub("^(%s)(%s)"%(option,
+                                                 dirpaths["includedir"]),
+                                    r"\g<1>%s\g<2>"%(sysroot),
+                                    binconfig_file)
+    
+        for option in ("-L"):
+            binconfig_file = re.sub("^(%s)(%s)"%(option, dirpaths["libdir"]),
+                                    r"\g<1>%s\g<2>"%(sysroot),
+                                    binconfig_file)
+    
+        with open(filename, "w") as output_file:
+            output_file.write(binconfig_file)
+
+    os.unlink(metafile)
 }
