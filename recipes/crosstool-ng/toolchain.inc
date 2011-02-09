@@ -718,5 +718,12 @@ LIBTOOL_DEPENDS = ""
 LIBTOOL_FIXUP_SEARCH_DIRS += "\
 ${D}/${TARGET_ARCH}/sys-root${target_libdir} \
 ${D}/${TARGET_ARCH}/sys-root${target_base_libdir}"
-LIBTOOL_FIXUP_STRIP_DIRS += "\
-/targets/arm-cortexa8-linux-gnueabi/build/build-binutils-for-target/bfd/../libiberty/pic"
+LIBTOOL_FIXUP_STRIP_DIRS += "${D}/${TARGET_ARCH}/lib"
+
+FIXUP_FUNCS =+ "toolchain_lafile_fixup"
+toolchain_lafile_fixup () {
+    for lafile in ${D}/${TARGET_ARCH}/sys-root${target_libdir}/*.la ; do
+        sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
+            -i $lafile
+    done
+}
