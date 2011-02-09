@@ -368,8 +368,16 @@ def arch_fixup(arch, gcc):
 	    (cpu, vendor) = mapto
 	else:
 	    vendor = mapto
-    elif cpu in cpuspecs and vendor in cpuspecs[cpu]:
-	pass
+
+    if cpu == "powerpc":
+        if vendor in ('e300c1', 'e300c4'):
+            vendor = '603e'
+        if vendor == 'e300c3':
+            if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
+                vendor = '603e'
+
+    if cpu in cpuspecs and vendor in cpuspecs[cpu]:
+        pass
     elif vendor == 'unknown':
 	pass
     else:
