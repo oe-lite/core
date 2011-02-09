@@ -8,11 +8,10 @@ do_stage[dirs] =	"${STAGE_DIR}"
 do_stage[recdeptask] =	"do_package"
 
 python do_stage () {
-    import bb, tempfile
+    import bb, tempfile, shutil
     from oebakery import debug, info, warn, err, die
 
     recdepends = d.getVar("RECDEPENDS", False)
-    bb.debug(1, "RECDEPENDS=%s"%recdepends)
     recdepends = recdepends.split()
     cwd = os.getcwd()
     for dep in recdepends:
@@ -41,17 +40,17 @@ python do_stage () {
 
         bb.debug(1, "unpacking %s to %s"%(filename, dstdir))
 
-        if not os.path.isdir(dstdir):
-            os.makedirs(dstdir)
-
-        tempdir = tempfile.mkdtemp(dir=dstdir)
-        os.chdir(tempdir)
-        bb.data.setVar("TEMP_STAGE_DIR", tempdir, d)
-        # FIXME: do error handling on tar command
+        unpackdir = d.getVar("STAGE_UNPACKDIR", True)
+        bb.utils.mkdirhier(unpackdir)
+        os.chdir(unpackdir)
         os.system("tar xpf %s"%filename)
+        d.setVar("STAGE_FIXUP_SUBDIR", subdir)
 
         for f in (bb.data.getVar("STAGE_FIXUP_FUNCS", d, 1) or "").split():
+            os.chdir(unpackdir)
             bb.build.exec_func(f, d)
+
+        bb.utils.mkdirhier(dstdir)
 
         # FIXME: do better
         for root, dirs, files in os.walk("."):
@@ -71,9 +70,7 @@ python do_stage () {
                 os.renames(srcfile, dstfile)
 
         os.chdir(dstdir)
-
-        import shutil
-        shutil.rmtree(tempdir)
+        shutil.rmtree(unpackdir)
 }
 
 STAGE_FIXUP_FUNCS ?= ""
