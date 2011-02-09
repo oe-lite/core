@@ -1,45 +1,41 @@
 STAGE_FIXUP_FUNCS += "libtool_stage_fixup"
 
 python libtool_stage_fixup () {
-    import glob, sys, os
-    #print >>sys.stderr, "libtool_stage_fixup"
-    tempdir = bb.data.getVar('TEMP_STAGE_DIR', d, True)
-    os.chdir(tempdir)
-    recipe_type = d.getVar("RECIPE_TYPE", True)
+    import glob, sys, os, re
+
     stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
-    stage_libdir = d.getVar("stage_libdir", True).lstrip("/")
-    stage_base_libdir = d.getVar("stage_base_libdir", True).lstrip("/")
-    target_libdir = d.getVar("target_libdir", True).lstrip("/")
-    target_base_libdir = d.getVar("target_base_libdir", True).lstrip("/")
-    libdir = d.getVar("libdir", True).lstrip("/")
-    base_libdir = d.getVar("base_libdir", True).lstrip("/")
-
-    def lafile_fixup(stage_subdir, libdir, base_libdir):
-        sysroot = "%s/%s"%(stage_dir, stage_subdir)
-        lafiles = set(glob.glob("%s/*.la"%(libdir))).union(
-                      glob.glob("%s/*.la"%(base_libdir)))
-        for filename in lafiles:
-            #print >>sys.stderr, "lafile_fixup %s"%(filename)
-            fixed = ""
-            with open(filename) as lafile:
-                for line in lafile.readlines():
-                    line = line.replace("-L/%s"%(libdir),
-                                        "-L%s/%s"%(sysroot, libdir))
-                    line = line.replace("-L/%s"%(base_libdir),
-                                        "-L%s/%s"%(sysroot, base_libdir))
-                    line = line.replace("libdir='/%s'"%(libdir),
-                                        "libdir='%s/%s'"%(sysroot, libdir))
-                    line = line.replace("libdir='/%s'"%(base_libdir),
-                                        "libdir='%s/%s'"%(sysroot, base_libdir))
-                    fixed += line
-            with open(filename, "w") as lafile:
-                lafile.write(fixed)
-        return
-
-    lafile_fixup("native", stage_libdir, stage_base_libdir)
-    if recipe_type == "canadian-cross":
-        lafile_fixup("host/sysroot", libdir, base_libdir)
-        lafile_fixup("target/sysroot", target_libdir, target_base_libdir)
-    elif recipe_type != "native":
-        lafile_fixup("sysroot", libdir, base_libdir)
+    subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
+    sysroot = os.path.join(stage_dir, subdir)
+    
+    if subdir == "native":
+        libdir = d.getVar("stage_libdir", True)
+        base_libdir = d.getVar("stage_base_libdir", True)
+    elif subdir == "target/sysroot":
+        libdir = d.getVar("target_libdir", True)
+        base_libdir = d.getVar("target_base_libdir", True)
+    else:
+        libdir = d.getVar("libdir", True)
+        base_libdir = d.getVar("base_libdir", True)
+    
+    lafiles = set(glob.glob("%s/*.la"%(libdir.lstrip("/")))).union(
+                  glob.glob("%s/*.la"%(base_libdir.lstrip("/"))))
+    for filename in lafiles:
+        with open(filename, "r") as input_file:
+            lafile = input_file.read()
+        lafile = re.sub("-L%s"%(libdir),
+                        "-L%s%s"%(sysroot, libdir), lafile)
+        lafile = re.sub("-L%s"%(base_libdir),
+                        "-L%s%s"%(sysroot, base_libdir), lafile)
+        lafile = re.sub("libdir='%s'"%(libdir),
+                        "libdir='%s%s'"%(sysroot, libdir), lafile)
+        lafile = re.sub("libdir='%s'"%(base_libdir),
+                        "libdir='%s%s'"%(sysroot, base_libdir), lafile)
+        lafile = re.sub("([' ])%s"%(libdir),
+                        r"\g<1>%s%s"%(sysroot, libdir), lafile)
+        lafile = re.sub("([' ])%s"%(base_libdir),
+                        r"\g<1>%s%s"%(sysroot, base_libdir), lafile)
+        pattern = re.compile("^installed=yes", re.MULTILINE)
+        la_file = re.sub(pattern, "installed=no", la_file)
+        with open(filename, "w") as output_file:
+            output_file.write(lafile)
 }

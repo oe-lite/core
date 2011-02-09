@@ -70,25 +70,26 @@ libtool_lafile_fixup[dirs] = "${D}"
 python libtool_lafile_fixup () {
     import glob, sys, os
 
-    la_files = []
+    lafiles = []
     for la_dir in d.getVar("LIBTOOL_FIXUP_SEARCH_DIRS", True).split():
-        la_files += glob.glob("%s/*.la"%(la_dir))
+        lafiles += glob.glob("%s/*.la"%(la_dir))
 
     strip_dirs = set()
     for strip_dir in d.getVar("LIBTOOL_FIXUP_STRIP_DIRS", True).split():
         strip_dirs.add(strip_dir)
         strip_dirs.add(os.path.realpath(strip_dir))
 
-    for filename in la_files:
-        fixed = ""
-        with open(filename) as la_file:
-            for line in la_file.readlines(): 
-                #print "line: %s"%(repr(line))
-                #line = line.replace("installed=yes", "installed=no")
-                for strip_dir in strip_dirs:
-                    line = line.replace("-L" + strip_dir, "-L")
-                #print "fixed line: %s"%(repr(line))
-                fixed += line
-        with open(filename, "w") as la_file:
-            la_file.write(fixed)
+    import re
+    for filename in lafiles:
+        with open(filename, "r") as input_file:
+            lafile = input_file.read()
+        for strip_dir in strip_dirs:
+            lafile = re.sub("-L%s"%(strip_dir),
+                             "-L", lafile)
+            lafile = re.sub("([' ])%s"%(strip_dir),
+                             "\g<1>", lafile)
+        pattern = re.compile("^installed=no", re.MULTILINE)
+        lafile = re.sub(pattern, "installed=yes", lafile)
+        with open(filename, "w") as output_file:
+            output_file.write(lafile)
 }
