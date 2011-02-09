@@ -96,9 +96,10 @@ python do_rstage () {
     for f in (bb.data.getVar("RSTAGE_FIXUP_FUNCS", d, 1) or "").split():
         bb.build.exec_func(f, d)
 
-    import shutil
-    # FIXME: change oelitemetadir var to not start with slash!
-    shutil.rmtree(d.getVar("oelitemetadir", True))
+    metadir = d.getVar("metadir", True).lstrip("/")
+    if os.path.exists(metadir):
+        import shutil
+        shutil.rmtree(metadir)
 }
 
 RSTAGE_FIXUP_FUNCS ?= ""
