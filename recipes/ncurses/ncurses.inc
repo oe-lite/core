@@ -1,18 +1,17 @@
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
-SECTION = "libs"
 
 BBCLASSEXTEND = "native sdk"
 
-inherit autotools make-vpath c++ auto-package-libs
+require conf/fetch/gnu.conf
+SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 
 # Recipe build dependencies
 DEPENDS = "libncurses-native"
 DEPENDS_recipe-native = ""
 
-require conf/fetch/gnu.conf
-SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
+inherit autotools make-vpath c++
 
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
@@ -31,10 +30,6 @@ EXTRA_OECONF += "\
 --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
 --enable-overwrite \
 "
-
-# This is necessary so that the "tic" command executed during the install can
-# link with the correct libary in staging.
-#export LD_LIBRARY_PATH = "${STAGING_LIBDIR_NATIVE}"
 
 do_install() {
 	autotools_do_install
@@ -68,6 +63,8 @@ do_install() {
 }
 
 PACKAGES =+ "${PN}-tools ${PN}-terminfo"
+
+inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "form menu ncurses panel termcap"
 
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
@@ -87,19 +84,14 @@ DEPENDS_${PN}-tools += "libncurses${RE}"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
 
 # Library package build and run-time dependencies
-#RDEPENDS_${PN}-libform	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 RDEPENDS_${PN}-libform	= "${PN}-libncurses"
 DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
-#RDEPENDS_${PN}-libmenu	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 RDEPENDS_${PN}-libmenu	= "${PN}-libncurses"
 DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
-#RDEPENDS_${PN}-libpanel= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
 RDEPENDS_${PN}-libpanel = "${PN}-libncurses"
 DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
 
 # Package run-time dependencies
-#RDEPENDS_${PN}		= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-#RDEPENDS_${PN}-tools	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
 RDEPENDS_${PN}		= "${PN}-libncurses"
 RDEPENDS_${PN}-tools	= "${PN}-libncurses ${PN}"
 
