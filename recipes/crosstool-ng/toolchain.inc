@@ -20,12 +20,13 @@ DEFAULT_DEPENDS_recipe-cross		= ""
 DEFAULT_DEPENDS_recipe-sdk-cross	= ""
 
 DEPENDS += "${TUI_DEPENDS}"
-TUI_DEPENDS				= "ncurses-dev readline-dev"
-TUI_DEPENDS_recipe-native		= ""
-TUI_DEPENDS_recipe-cross		= ""
-TUI_DEPENDS_recipe-sdk-cross		= ""
-TUI_DEPENDS_recipe-sdk			= "ncurses-sdk-dev readline-sdk-dev"
-TUI_DEPENDS_recipe-canadian-cross	= "ncurses-sdk-dev readline-sdk-dev"
+TUI_DEPENDS				= ""
+TUI_DEPENDS_recipe-machine		= "libtermcap${RE} libreadline${RE}"
+TUI_DEPENDS_recipe-sdk			= "libtermcap${RE} libreadline${RE}"
+TUI_DEPENDS_recipe-canadian-cross	= "libtermcap-sdk libreadline-sdk"
+
+# FIXME: allow machine/sdk/canadian-cross toolchains are built
+# statically, to make it more robust against host machine differences
 
 # FIXME: this looks REALLY wrong!
 DEPENDS_append_recipe-canadian-cross += "\
@@ -221,7 +222,7 @@ do_mangle () {
     	> defconfig
 
 	mv defconfig defconfig.tmp
-	if [ x${CT_KERNEL_VERSION} == xcustom ] ; then
+	if [ "${CT_KERNEL_VERSION}" == "custom" ] ; then
 		sed -e 's%.*\(CT_KERNEL_LINUX_USE_CUSTOM_HEADERS\).*%\1=y%' \
 		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${target_includedir}/.."%' \
 		< defconfig.tmp > defconfig

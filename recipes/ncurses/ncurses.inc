@@ -1,49 +1,15 @@
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
-SECTION = "libs"
 
 BBCLASSEXTEND = "native sdk"
 
-PACKAGES_prepend =+ "\
-${PN}-tools ${PN}-terminfo \
-${PN}-libncurses ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
-
-# Recipe build dependencies
-DEPENDS = "ncurses-native"
-DEPENDS_recipe-native = ""
-
-inherit library
-
-# Package build dependencies
-DEPENDS_${PN}-dev	= "${PN}-libncurses \
-    ${PN}-libform ${PN}-libmenu ${PN}-libpanel"
-
-# Package build provides
-PROVIDES_${PN}-dev	= "libncurses${RE} libncurses5${RE} libtermcap${RE} \
-    libform${RE} libmenu${RE} libpanel${RE}"
-
-# Library package build and run-time dependencies
-RDEPENDS_${PN}-libform	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
-RDEPENDS_${PN}-libmenu	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
-RDEPENDS_${PN}-libpanel	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
-
-# Package run-time dependencies
-RDEPENDS_${PN}		= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses"
-RDEPENDS_${PN}-tools	= "${HOST_ARCH}/sysroot-libdl ${PN}-libncurses ${PN}"
-
-# Package run-time provides
-RPROVIDES_${PN}-libncurses	= "${PN}-libncurses \
-    libncurses${RE} libncurses5${RE} libtermcap${RE}"
-RPROVIDES_${PN}-libform		= "${PN}-libform libform${RE}"
-RPROVIDES_${PN}-libmenu		= "${PN}-libmenu libmenu${RE}"
-RPROVIDES_${PN}-libpanel	= "${PN}-libpanel libpanel${RE}"
-
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
+
+# Recipe build dependencies
+DEPENDS = "libncurses-native"
+DEPENDS_recipe-native = ""
 
 inherit autotools make-vpath c++
 
@@ -64,10 +30,6 @@ EXTRA_OECONF += "\
 --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
 --enable-overwrite \
 "
-
-# This is necessary so that the "tic" command executed during the install can
-# link with the correct libary in staging.
-#export LD_LIBRARY_PATH = "${STAGING_LIBDIR_NATIVE}"
 
 do_install() {
 	autotools_do_install
@@ -100,14 +62,38 @@ do_install() {
 	fi
 }
 
-FILES_${PN}_append = " ${datadir}/tabset"
+PACKAGES =+ "${PN}-tools ${PN}-terminfo"
+
+inherit auto-package-libs
+AUTO_PACKAGE_LIBS = "form menu ncurses panel termcap"
 
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
 FILES_${PN} = "${bindir}/tput ${bindir}/tset ${datadir}/tabset ${sysconfdir}/terminfo"
 FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack "
-FILES_${PN}-terminfo = "${datadir}/terminfo"
+FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
-FILES_${PN}-libncurses = "${libdir}/libncurses${SOLIBS}"
-FILES_${PN}-libform = "${libdir}/libform${SOLIBS}"
-FILES_${PN}-libmenu = "${libdir}/libmenu${SOLIBS}"
-FILES_${PN}-libpanel = "${libdir}/libpanel${SOLIBS}"
+
+EXTRA_FILES_${PN}-libncurses-dev = "\
+    ${libdir}/libtermcap.a \
+    ${libdir}/libtermcap${SOLIBSDEV}"
+
+DEPENDS_${PN} += "libncurses${RE}"
+DEPENDS_${PN}-dev = ""
+DEPENDS_${PN}-tools += "libncurses${RE}"
+
+AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
+
+# Library package build and run-time dependencies
+RDEPENDS_${PN}-libform	= "${PN}-libncurses"
+DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
+RDEPENDS_${PN}-libmenu	= "${PN}-libncurses"
+DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
+RDEPENDS_${PN}-libpanel = "${PN}-libncurses"
+DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
+
+# Package run-time dependencies
+RDEPENDS_${PN}		= "${PN}-libncurses"
+RDEPENDS_${PN}-tools	= "${PN}-libncurses ${PN}"
+
+PROVIDES_${PN}-libncurses-dev = "libncurses5${RE} libtermcap${RE}"
+RPROVIDES_${PN}-libncurses = "libncurses5${RE} libtermcap${RE}"
