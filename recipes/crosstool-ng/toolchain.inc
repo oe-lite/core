@@ -149,14 +149,14 @@ def toolchain_auto_packages_func (d):
         d.setVar("FILES_" + pkg,
                  "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so "%(lib) +
                  "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so.* "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s-*.so"%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s-*.so "%(lib) +
                  extra_files)
         pkg += "-dev"
         extra_files = get_extra_files(pkg)
         d.setVar("FILES_" + pkg,
                  "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.so "%(lib) +
                  "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.a "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s_nonshared.a"%(lib) +
+                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s_nonshared.a "%(lib) +
                  "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.la "%(lib) +
                  extra_files)
     sysroot_packages = (lib_packages +
