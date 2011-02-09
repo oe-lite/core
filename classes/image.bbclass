@@ -93,4 +93,12 @@ python do_rstage () {
                          "image_stage_install(%s) failed"%(rdep))
             return False
 
+    for f in (bb.data.getVar("RSTAGE_FIXUP_FUNCS", d, 1) or "").split():
+        bb.build.exec_func(f, d)
+
+    import shutil
+    # FIXME: change oelitemetadir var to not start with slash!
+    shutil.rmtree(d.getVar("oelitemetadir", True))
 }
+
+RSTAGE_FIXUP_FUNCS ?= ""
