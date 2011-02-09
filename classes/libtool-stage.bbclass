@@ -35,7 +35,7 @@ python libtool_stage_fixup () {
         lafile = re.sub("([' ])%s"%(base_libdir),
                         r"\g<1>%s%s"%(sysroot, base_libdir), lafile)
         pattern = re.compile("^installed=yes", re.MULTILINE)
-        la_file = re.sub(pattern, "installed=no", la_file)
+        lafile = re.sub(pattern, "installed=no", lafile)
         with open(filename, "w") as output_file:
             output_file.write(lafile)
 }
