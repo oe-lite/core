@@ -222,7 +222,7 @@ do_mangle () {
     	> defconfig
 
 	mv defconfig defconfig.tmp
-	if [ x${CT_KERNEL_VERSION} == xcustom ] ; then
+	if [ "${CT_KERNEL_VERSION}" == "custom" ] ; then
 		sed -e 's%.*\(CT_KERNEL_LINUX_USE_CUSTOM_HEADERS\).*%\1=y%' \
 		    -e 's%.*\(CT_KERNEL_LINUX_CUSTOM_PATH\).*%\1="${TARGET_SYSROOT}${target_includedir}/.."%' \
 		< defconfig.tmp > defconfig
