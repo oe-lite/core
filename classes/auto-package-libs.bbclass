@@ -67,11 +67,11 @@ def auto_package_libs (d):
         d.setVar("FILES_" + devpkg, " ".join(files))
 
         pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
-        pkg_rprovides.append("%s%s${RE} "%(provideprefix, lib))
+        pkg_rprovides.append("%s%s${RE}"%(provideprefix, lib))
         d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
 
         devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
-        devpkg_provides.append("%s%s${RE} "%(provideprefix, lib))
+        devpkg_provides.append("%s%s${RE}"%(provideprefix, lib))
         d.setVar("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
         devpkg_rprovides = (d.getVar("RPROVIDES_" + devpkg, True) or "").split()
