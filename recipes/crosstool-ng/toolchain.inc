@@ -127,10 +127,11 @@ python () {
 }
 
 AUTO_LIB_PACKAGES = "\
-  libgcc libdl libstdc++ libresolv libutil libcrypt libpthread libm librt \
-  libanl libBrokenLocale libnsl libmemusage libpcprofile libSegFault \
+  libgcc libdl libstdc++ libsupc++ libresolv libutil libcrypt libpthread \
+  libm librt libanl libBrokenLocale libnsl libmemusage \
+  libpcprofile libSegFault \
   libthread_db libnss_files libnss_dns libnss_compat \
-  libnss_nis libnss_nisplus libnss_hesiod \
+  libnss_nis libnss_nisplus libnss_hesiod libbfd \
 "
 
 AUTO_PACKAGE_FUNCS += "toolchain_auto_packages_func"
@@ -604,6 +605,10 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so \
 EXTRA_FILES_${PN}-sysroot-libm-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libieee.a \
 "
+
+EXTRA_FILES_${PN}-sysroot-libbfd = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd-*.so \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd.so"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
