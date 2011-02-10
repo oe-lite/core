@@ -16,7 +16,8 @@ def auto_package_utils (d):
         return ""
 
     for util in utils:
-        pkg = "%s-%s"%(pn, util.replace("_", "-").replace(".", "-").lower())
+        utilname = util.replace("_", "-").replace(".", "-").lower()
+        pkg = "%s-%s"%(pn, utilname)
         docpkg = pkg + "-doc"
         packages += [ pkg, docpkg ]
 
@@ -30,5 +31,9 @@ def auto_package_utils (d):
         d.setVar("FILES_" + docpkg,
                  "${mandir}/man?/%s.* "%(util) +
                  get_extra_files(docpkg))
+
+        pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
+        pkg_rprovides.append("util/%s"%(utilname))
+        d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
     
     d.setVar("UTILS_AUTO_PACKAGES", " ".join(packages))
