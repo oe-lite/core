@@ -113,7 +113,9 @@ CT_KERNEL_VERSION_recipe-native		= "${BUILD_CT_KERNEL_VERSION}"
 CT_KERNEL_VERSION_recipe-sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
 CT_KERNEL_VERSION_recipe-sdk		= "${SDK_CT_KERNEL_VERSION}"
 
-CT_LIBC_GLIBC_MIN_KERNEL		= "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
+#FIXME: revisit _VERSION below in CT-NG 1.10!
+#(CT_LIBC_GLIBC_MIN_KERNEL=eglibc, CT_LIBC_GLIBC_MIN_KERNEL_VERSION=glibc).
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION        = "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
 CT_LIBC_GLIBC_MIN_KERNEL_recipe-native	= "${BUILD_CT_LIBC_GLIBC_MIN_KERNEL}"
 CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk-cross = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
 CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk	= "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
@@ -210,7 +212,7 @@ do_mangle () {
     	    -e "s%# __${_CT_BINUTILS_VERSION}%$ct_binutils_version%" \
     	    -e "s%# __${_CT_CC_VERSION}%$ct_cc_version%" \
     	    -e "s%# __${_CT_LIBC_VERSION}%$ct_libc_version\n$ct_libc_glibc_version%" \
-    	    -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1="${CT_LIBC_GLIBC_MIN_KERNEL}"%" \
+            -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1_VERSION=\"${CT_LIBC_GLIBC_MIN_KERNEL_VERSION}\"%" \
     	    -e "s%# __${_CT_GDB_VERSION}%$ct_gdb_version%" \
     	    -e "s%# __${_CT_GMP_VERSION}%$ct_gmp_version%" \
     	    -e "s%# __${_CT_MPFR_VERSION}%$ct_mpfr_version%" \
@@ -221,6 +223,14 @@ do_mangle () {
     	    -e "s%# __${_CT_W32API_VERSION}%$ct_w32api_version%" \
     	    -e "s%# __${_CT_MINGWRT_VERSION}%$ct_mingwrt_version%" \
     	> defconfig
+
+    if [ CT_KERNEL_VERSION != CT_LIBC_GLIBC_MIN_KERNEL_VERSION ]; then
+        mv defconfig defconfig.tmp
+        cat defconfig.tmp |
+           sed -e 's%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=y%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=n%' \
+               -e 's%\# CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set%CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN=y%' \
+           > defconfig
+    fi
 
 	mv defconfig defconfig.tmp
 	if [ "${CT_KERNEL_VERSION}" == "custom" ] ; then
