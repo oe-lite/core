@@ -549,8 +549,8 @@ def base_after_parse(d):
 
 #
 # RECIPE_OPTIONS are to be defined in recipes, and should be a
-# space-separated list of upper-case options, preferably prefixed with
-# the recipe name (in upper-case).
+# space-separated list of lower-case options, preferably prefixed with
+# the recipe name (in lower-case).
 #
 # Distro configuration files can then define these as needed, and set
 # them to the desired values, enabling distro customization of recipes
