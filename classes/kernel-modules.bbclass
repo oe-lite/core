@@ -1,0 +1,35 @@
+KERNEL_MODULES_DEPENDS ?= "linux-headers"
+DEPENDS += "${KERNEL_MODULES_DEPENDS}"
+
+EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
+
+KERNEL_MODULES_COMPILE_MAKE_TARGETS ?= "modules"
+
+kernel_modules_do_compile () {
+    unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
+    oe_runmake \
+	KERNEL_PATH=${KERNEL_STAGE} \
+        KERNEL_SRC=${KERNEL_STAGE} \
+        ${KERNEL_MODULES_COMPILE_MAKE_TARGETS}
+}
+
+do_compile () {
+    kernel_modules_do_compile
+}
+
+KERNEL_MODULES_INSTALL_MAKE_TARGETS ?= "modules_install"
+
+kernel_modules_do_install() {
+    unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
+    oe_runmake DEPMOD=echo INSTALL_MOD_PATH="${D}" \
+        ${KERNEL_MODULES_INSTALL_MAKE_TARGETS}
+}
+
+do_install () {
+    kernel_modules_do_install
+}
+
+inherit kernel-modules-strip
+
+PACKAGES += "${PN}-modules"
+FILES_${PN}-modules = "/lib/modules"
