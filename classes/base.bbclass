@@ -592,9 +592,27 @@ def base_apply_recipe_options(d):
         bb.data.setVar('OVERRIDES', overrides, d)
     return
 
+def blacklist(d):
+    import re
+    blacklist_var = (d.getVar("BLACKLIST_VAR", True) or "").split()
+    blacklist_prefix = (d.getVar("BLACKLIST_PREFIX", True) or "").split()
+    if blacklist_prefix:
+        blacklist_prefix = re.compile("(%s)"%("|".join(blacklist_prefix.split)))
+    for var in d.keys():
+        if var in blacklist_var:
+            d.delVar(var)
+            continue
+        if re.match("(RECIPE|LOCAL|MACHINE|DISTRO|DEFAULT)_CONFIG_", var):
+            d.delVar(var)
+            continue
+        if blacklist_prefix and re.match(blacklist_prefix, var):
+            d.delVar(var)
+            continue
+
 python () {
     base_after_parse(d)
     base_apply_recipe_options(d)
+    blacklist(d)
 }
 
 EXPORT_FUNCTIONS do_configure do_compile do_install
