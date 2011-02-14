@@ -597,7 +597,7 @@ def blacklist(d):
     blacklist_var = (d.getVar("BLACKLIST_VAR", True) or "").split()
     blacklist_prefix = (d.getVar("BLACKLIST_PREFIX", True) or "").split()
     if blacklist_prefix:
-        blacklist_prefix = re.compile("(%s)"%("|".join(blacklist_prefix.split)))
+        blacklist_prefix = re.compile("(%s)"%("|".join(blacklist_prefix)))
     for var in d.keys():
         if var in blacklist_var:
             d.delVar(var)
