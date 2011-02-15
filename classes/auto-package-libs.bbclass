@@ -21,12 +21,17 @@ def auto_package_libs (d):
 
     def split_libdir(libdir):
         libdir = libdir.split(":")
-        if len(libdir) > 3:
+        if len(libdir) > 5:
             bb.fatal("invalid libdir in AUTO_PACKAGE_LIBS_LIBDIR: %s"%(libdir))
         if len(libdir) < 2:
             libdir.append("lib")
         if len(libdir) < 3:
             libdir.append("")
+        if len(libdir) < 4:
+	    libdir.append("${SOLIBS}")
+        if len(libdir) < 5:
+    	    libdir.append("${SOLIBSDEV}")
+
         return libdir
 
     for lib in libs:
@@ -37,22 +42,22 @@ def auto_package_libs (d):
         files = []
         pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, solibs, solibsdev) = split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            files.append("%s/%s${SOLIBS}"%(libdir, libname))
+            files.append("%s/%s%s"%(libdir, libname, solibs))
         files += get_extra_files(pkg)
         d.setVar("FILES_" + pkg, " ".join(files))
 
         files = []
         pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, solibs, solibsdev) = split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            files.append("%s/%s${SOLIBSDEV}"%(libdir, libname))
+            files.append("%s/%s%s"%(libdir, libname, solibsdev))
             files.append("%s/%s.la"%(libdir, libname))
             files.append("%s/%s.a"%(libdir, libname))
             if pkg_libsuffix is None:
