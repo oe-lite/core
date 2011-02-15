@@ -1,6 +1,6 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
-inherit image image_mdev image_crontab image_makedevs image_inittab
+inherit image image_mdev image_crontab image_makedevs image_inittab image_fstab
 require conf/makedevs.conf
 
 IMAGE_CREATE_FUNCS += "cpio_image"
