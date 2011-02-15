@@ -30,6 +30,8 @@ TARGET_CFLAGS		= "${BUILD_CFLAGS}"
 TARGET_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 TARGET_LDFLAGS		= "${BUILD_LDFLAGS}"
 
+TARGET_SYSROOT		= "${STAGE_DIR}/native"
+
 # Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
 OECONF_ARCHTUPLE = "--build=${BUILD_ARCH}"
 
