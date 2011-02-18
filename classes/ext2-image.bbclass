@@ -1,6 +1,6 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
-inherit image image_mdev image_crontab image_makedevs
+inherit image image_mdev image_crontab image_makedevs image_inittab image_fstab
 
 EXT2_IMAGE_DEPENDS = "genext2fs-native"
 CLASS_DEPENDS += "${EXT2_IMAGE_DEPENDS}"

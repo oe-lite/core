@@ -1,4 +1,4 @@
-inherit image image_mdev image_crontab image_makedevs
+inherit image image_mdev image_crontab image_makedevs image_inittab image_fstab
 require conf/makedevs.conf
 
 IMAGE_CREATE_FUNCS += "tar_image"
