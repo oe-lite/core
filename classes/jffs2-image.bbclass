@@ -8,7 +8,8 @@ CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
 
-JFFS2_IMAGE_OPTIONS ?= "-x lzo --faketime"
+# Use lzo compression with fallback to none if low compression achieved
+JFFS2_IMAGE_OPTIONS ?= "--enable-compressor=lzo --disable-compressor=zlib --disable-compressor=rtime"
 
 jffs2_image () {
 	mkfs.jffs2 ${JFFS2_IMAGE_OPTIONS} \
