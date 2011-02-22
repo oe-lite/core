@@ -23,4 +23,5 @@ PROVIDES_${PN} += "\
 	crosstool-ng-native-gcc-4.5.2-glibc-2.11.1 \
 	crosstool-ng-native-gcc-4.5.2-glibc-2.11.2 \
 	crosstool-ng-native-gcc-4.5.1-mingwrt-3.18 \
+	crosstool-ng-native-gcc-4.5.2-mingwrt-3.18 \
 "
