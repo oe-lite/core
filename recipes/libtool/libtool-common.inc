@@ -72,6 +72,11 @@ HOST_CFLAGS_recipe-sdk-cross		= "${TARGET_CFLAGS}"
 HOST_CXXFLAGS_recipe-sdk-cross		= "${TARGET_CXXFLAGS}"
 HOST_LDFLAGS_recipe-sdk-cross		= "${TARGET_LDFLAGS}"
 
+# As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
+# host), we need to fixup the mingw32 override to avoid the invalid
+# --hash-style option.
+SDK_LDFLAGS_HASH_STYLE_mingw32 = ""
+
 do_install_append () {
     ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
     ln -sf ../config ${D}${datadir}/libtool/libltdl/config
