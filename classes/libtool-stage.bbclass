@@ -3,6 +3,8 @@ STAGE_FIXUP_FUNCS += "libtool_stage_fixup"
 python libtool_stage_fixup () {
     import glob, sys, os, re
 
+    os.chdir(d.getVar("STAGE_UNPACKDIR", True))
+
     stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
     subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
     sysroot = os.path.join(stage_dir, subdir)

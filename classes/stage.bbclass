@@ -47,7 +47,6 @@ python do_stage () {
         d.setVar("STAGE_FIXUP_SUBDIR", subdir)
 
         for f in (bb.data.getVar("STAGE_FIXUP_FUNCS", d, 1) or "").split():
-            os.chdir(unpackdir)
             bb.build.exec_func(f, d)
 
         bb.utils.mkdirhier(dstdir)
