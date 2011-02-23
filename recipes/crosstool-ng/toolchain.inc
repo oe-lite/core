@@ -125,9 +125,10 @@ CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk	= "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
 python () {
-	kernel_version = d.getVar("CT_KERNEL_VERSION", True)
-	if kernel_version == "custom":
-		d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
+    kernel_version = d.getVar("CT_KERNEL_VERSION", True)
+    recipe_type = d.getVar("RECIPE_TYPE", True)
+    if kernel_version == "custom" and recipe_type in ("cross", "sdk-cross", "native"):
+        d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
 }
 
 AUTO_LIB_PACKAGES = "\
