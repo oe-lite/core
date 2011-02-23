@@ -64,6 +64,10 @@ def arch_init():
             'cortexa8'		: {
                 'mcpu'		: 'cortex-a8',
                 'mtune'		: 'cortex-a8',
+                },
+            'cortexa8neon'		: {
+                'mcpu'		: 'cortex-a8',
+                'mtune'		: 'cortex-a8',
                 'fpu'		: 'neon',
                 },
             },
@@ -264,7 +268,7 @@ def arch_init():
         'arm'		: {
             'at91rm9200'	: '920t',
             'at91sam9260'	: '926ejs',
-            'omap3520'		: 'cortexa8',
+            'omap3520'		: 'cortexa8neon',
             'imx21'		: '926ejs',
             'imx23'		: '926ejs',
             'imx25'		: '926ejs',
@@ -272,12 +276,12 @@ def arch_init():
             'imx28'		: '926ejs',
             'imx31'		: '1136jfs',
             'imx35'		: '1136jfs',
-            'imx51'		: 'cortexa8',
-            'imx512'		: 'cortexa8',
-            'imx513'		: 'cortexa8',
-            'imx514'		: 'cortexa8',
-            'imx515'		: 'cortexa8',
-            'imx516'		: 'cortexa8',
+            'imx51'		: 'cortexa8neon',
+            'imx512'		: 'cortexa8neon',
+            'imx513'		: 'cortexa8neon',
+            'imx514'		: 'cortexa8neon',
+            'imx515'		: 'cortexa8neon',
+            'imx516'		: 'cortexa8neon',
             },
 
         'x86'		: {
