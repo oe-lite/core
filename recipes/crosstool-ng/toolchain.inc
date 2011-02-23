@@ -22,8 +22,10 @@ DEFAULT_DEPENDS_recipe-sdk-cross	= ""
 DEPENDS += "${TUI_DEPENDS}"
 TUI_DEPENDS				= ""
 TUI_DEPENDS_recipe-machine		= "libtermcap${RE} libreadline${RE}"
-TUI_DEPENDS_recipe-sdk			= "libtermcap${RE} libreadline${RE}"
-TUI_DEPENDS_recipe-canadian-cross	= "libtermcap-sdk libreadline-sdk"
+SDK_TUI_DEPENDS				= "libtermcap-sdk libreadline-sdk"
+SDK_TUI_DEPENDS_host-mingw32		= ""
+TUI_DEPENDS_recipe-sdk			= "${SDK_TUI_DEPENDS}"
+TUI_DEPENDS_recipe-canadian-cross	= "${SDK_TUI_DEPENDS}"
 
 # FIXME: allow machine/sdk/canadian-cross toolchains are built
 # statically, to make it more robust against host machine differences
