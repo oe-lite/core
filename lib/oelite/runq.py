@@ -488,8 +488,20 @@ class OEliteRunQueue:
         # first try with preferred provider and version
         # then try with prerred provider
         # and last any provider
-        preferred_provider = self.config.getVar(
-            PREFERRED_PROVIDER_ + item, 1) or None
+
+        # in self.config, the variable names have not been extended yet...
+        preferred_provider = PREFERRED_PROVIDER_ + item
+        sdk_arch = self.config.getVar("SDK_ARCH", True)
+        if item.startswith(sdk_arch + "/"):
+            preferred_provider = PREFERRED_PROVIDER_ + item.replace(sdk_arch, "${SDK_ARCH}", 1)
+        machine_arch = self.config.getVar("MACHINE_ARCH", True)
+        if item.startswith(machine_arch + "/"):
+            preferred_provider = PREFERRED_PROVIDER_ + item.replace(machine_arch, "${MACHINE_ARCH}", 1)
+        build_arch = self.config.getVar("BUILD_ARCH", True)
+        if item.startswith(build_arch + "/"):
+            preferred_provider = PREFERRED_PROVIDER_ + item.replace(build_arch, "${BUILD_ARCH}", 1)
+        preferred_provider = self.config.getVar(preferred_provider, True) or None
+
         if preferred_provider:
             preferred_version = self.config.getVar(
                 "PREFERRED_VERSION_" + preferred_provider, 1) or None
