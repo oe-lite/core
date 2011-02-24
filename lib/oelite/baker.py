@@ -17,6 +17,26 @@ BB_ENV_WHITELIST = [
     "TERM",
 ]
 
+OE_IMPORTS = [
+    "oe.path",
+    "oe.utils",
+    "oe.packagegroup",
+    "sys",
+    "os",
+    "time"
+]
+
+def setup_oeImports():
+    def inject(name, value):
+        """Make a python object accessible from the metadata"""
+        if hasattr(bb.utils, "_context"):
+            bb.utils._context[name] = value
+        else:
+            __builtins__[name] = value
+    for toimport in OE_IMPORTS:
+        imported = __import__(toimport)
+        inject(toimport.split(".", 1)[0], imported)
+
 def add_bake_parser_options(parser):
     parser.add_option("-t", "--task",
                       action="store", type="str", default=None,
@@ -155,6 +175,9 @@ class OEliteBaker:
         # collect all available .bb files
         bbrecipes = self.list_bbrecipes()
 
+        #setup oe-lite imports
+        setup_oeImports()
+        
         # parse all .bb files
         total = len(bbrecipes)
         parsed = 0
@@ -171,9 +194,7 @@ class OEliteBaker:
             progress_info("Parsing recipe files", total, parsed)
         if oebakery.DEBUG:
             timing_info("Parsing", start)
-
         return
-
 
     def show(self):
 
