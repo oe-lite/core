@@ -6,7 +6,7 @@ import sys, os, glob, shutil, datetime
 from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
-import oelite.data, oelite.util
+import oelite.data, oelite.util, oelite.arch
 
 import bb.parse, bb.utils, bb.build, bb.fetch
 
@@ -85,6 +85,8 @@ class OEliteBaker:
         self.config = config.createCopy()
         self.import_env()
         self.config = _parse("conf/bitbake.conf", self.config)
+
+        oelite.arch.init(self.config)
 
         # Handle any INHERITs and inherit the base class
         inherits  = ["base"] + (self.config.getVar("INHERIT", 1) or "").split()
