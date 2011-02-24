@@ -9,6 +9,16 @@ TARGET_LIBTOOL	= "${TARGET_PREFIX}libtool"
 LIBTOOL		= "${HOST_LIBTOOL}"
 #export LIBTOOL
 
+python () {
+    build_arch = d.getVar("BUILD_ARCH", True)
+    host_arch = d.getVar("HOST_ARCH", True)
+    target_arch = d.getVar("TARGET_ARCH", True)
+    if host_arch == build_arch:
+        d.setVar("HOST_LIBTOOL", "${BUILD_LIBTOOL}")
+    if target_arch == build_arch:
+        d.setVar("TARGET_LIBTOOL", "${BUILD_LIBTOOL}")
+}
+
 LIBTOOL_NATIVE_SCRIPTS				= ""
 LIBTOOL_HOST_SCRIPTS				= ""
 LIBTOOL_TARGET_SCRIPTS				= "libtool"
