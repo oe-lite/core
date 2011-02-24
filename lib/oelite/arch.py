@@ -349,12 +349,9 @@ def arch_set_cross_arch(d, prefix, gcc_version):
 
 
 def arch_update(d, prefix, gcc_version):
-    print "arch_update %s %s"%(prefix, gcc_version)
     arch = bb.data.getVar(prefix+'_ARCH', d, True)
-    print "got %s_ARCH=%s (%s)"%(prefix, arch, d.getVar(prefix+'_ARCH', False))
     gccspec = arch_gccspec(arch, gcc_version)
     (cpu, vendor, os) = arch_split(arch)
-    print "setting %s_CPU=%s"%(prefix, cpu)
     bb.data.setVar(prefix+'_CPU', cpu, d)
     bb.data.setVar(prefix+'_VENDOR', vendor, d)
     bb.data.setVar(prefix+'_OS', os, d)
