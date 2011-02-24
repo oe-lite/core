@@ -725,6 +725,13 @@ split_sysroot_mangle_cross () {
 }
 split_sysroot_mangle_cross[dirs] = "${PKGD}"
 
+split_sysroot_mangle_cross_append_mingw32 () {
+	(
+	cd ${PN}-sysroot-dev
+	ln -s . mingw
+	)
+}
+
 # Add empty sys-root dir in sdk packages
 split_sysroot_mangle_sdk () {
 	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
