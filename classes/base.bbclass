@@ -45,21 +45,6 @@ DEPENDS_prepend = "${CLASS_DEPENDS} "
 
 #addhandler oe_import
 
-OE_IMPORTS += "oe.path oe.utils oe.packagegroup sys os time"
-
-python () {
-    def inject(name, value):
-        """Make a python object accessible from the metadata"""
-        if hasattr(bb.utils, "_context"):
-            bb.utils._context[name] = value
-        else:
-            __builtins__[name] = value
-
-    for toimport in d.getVar("OE_IMPORTS", True).split():
-        imported = __import__(toimport)
-        inject(toimport.split(".", 1)[0], imported)
-}
-
 #
 # Shell functions for printing out messages in the BitBake output
 #
