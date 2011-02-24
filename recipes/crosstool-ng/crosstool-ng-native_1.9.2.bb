@@ -12,6 +12,9 @@ SRC_URI += "file://glibc-march-i686.patch"
 SRC_URI += "file://gcc-4.5.2.patch"
 SRC_URI += "file://glibc-2.11.2.patch"
 
+# Fixup glibc-2.9 a bit
+SRC_URI += "file://glibc-2.9-typedef-caddr.patch"
+
 # Add the TOOLCHAIN_VERSION's that is known to be working
 PROVIDES_${PN} += "\
 	crosstool-ng-native-gcc-4.3.4-glibc-2.9 \

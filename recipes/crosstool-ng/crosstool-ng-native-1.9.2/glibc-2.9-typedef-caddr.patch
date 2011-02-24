@@ -1,0 +1,17 @@
+diff -uprN crosstool-ng-1.7.1.org/patches/glibc/2.9/610-2.9-typedef-caddr.patch crosstool-ng-1.7.1/patches/glibc/2.9/610-2.9-typedef-caddr.patch
+--- crosstool-ng-1.7.1.org/patches/glibc/2.9/610-2.9-typedef-caddr.patch	1970-01-01 01:00:00.000000000 +0100
++++ crosstool-ng-1.7.1/patches/glibc/2.9/610-2.9-typedef-caddr.patch	2010-07-27 20:54:40.000000000 +0200
+@@ -0,0 +1,13 @@
++diff -uprN glibc-2.9.org/posix/sys/types.h glibc-2.9/posix/sys/types.h
++--- glibc-2.9.org/posix/sys/types.h	2006-02-28 20:11:24.000000000 +0100
+++++ glibc-2.9/posix/sys/types.h	2010-07-27 16:22:22.000000000 +0200
++@@ -114,7 +114,9 @@ typedef __ssize_t ssize_t;
++ #ifdef	__USE_BSD
++ # ifndef __daddr_t_defined
++ typedef __daddr_t daddr_t;
+++#  ifndef caddr_t
++ typedef __caddr_t caddr_t;
+++#  endif
++ #  define __daddr_t_defined
++ # endif
++ #endif
