@@ -10,7 +10,7 @@ TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
 PR = "${TOOLCHAIN_VERSION}-r0"
 
 # Depend on the right version of the ct-ng tool
-DEPENDS = "crosstool-ng-native-${TOOLCHAIN_VERSION}"
+DEPENDS = "crosstool-ng-native-${PV}"
 
 S = "${WORKDIR}/build"
 B = "${S}"
