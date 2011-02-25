@@ -1,0 +1,78 @@
+diff -urN crosstool-ng-1.9.2.orig//config/libc/glibc.in crosstool-ng-1.9.2//config/libc/glibc.in
+--- crosstool-ng-1.9.2.orig//config/libc/glibc.in	2011-01-08 18:49:07.000000000 +0100
++++ crosstool-ng-1.9.2//config/libc/glibc.in	2011-01-24 10:27:19.074006279 +0100
+@@ -42,6 +42,11 @@
+ # Don't remove next line
+ # CT_INSERT_VERSION_BELOW
+ 
++config LIBC_GLIBC_V_2_11_2
++    bool
++    prompt "2.11.2 (EXPERIMENTAL)"
++    depends on EXPERIMENTAL
++
+ config LIBC_GLIBC_V_2_11_1
+     bool
+     prompt "2.11.1 (EXPERIMENTAL)"
+@@ -102,6 +107,7 @@
+     string
+ # Don't remove next line
+ # CT_INSERT_VERSION_STRING_BELOW
++    default "2.11.2" if LIBC_GLIBC_V_2_11_2
+     default "2.11.1" if LIBC_GLIBC_V_2_11_1
+     default "2.11" if LIBC_GLIBC_V_2_11
+     default "2.10.1" if LIBC_V_2_10_1
+diff -urN crosstool-ng-1.9.2.orig/patches/glibc/2.11.2/100-march-i686.patch crosstool-ng-1.9.2/patches/glibc/2.11.2/100-march-i686.patch
+--- crosstool-ng-1.9.2.orig/patches/glibc/2.11.2/100-march-i686.patch	1970-01-01 01:00:00.000000000 +0100
++++ crosstool-ng-1.9.2/patches/glibc/2.11.2/100-march-i686.patch	2011-01-24 10:26:27.211575529 +0100
+@@ -0,0 +1,34 @@
++2007-02-15  Khem Raj  <kraj@xxxxxxxxxx>
++
++       * sysdeps/unix/sysv/linux/i386/sysdep.h: Re-define __i686.
++       * nptl/sysdeps/pthread/pt-initfini.c: Ditto.
++
++diff -urN glibc-2.11.1.orig/nptl/sysdeps/pthread/pt-initfini.c glibc-2.11.2/nptl/sysdeps/pthread/pt-initfini.c
++--- glibc-2.11.2.orig/nptl/sysdeps/pthread/pt-initfini.c	2009-12-08 21:10:20.000000000 +0100
+++++ glibc-2.11.2/nptl/sysdeps/pthread/pt-initfini.c	2010-12-30 11:33:31.520855595 +0100
++@@ -45,6 +45,11 @@
++ /* Embed an #include to pull in the alignment and .end directives. */
++ asm ("\n#include \"defs.h\"");
++ 
+++asm ("\n#if defined __i686 && defined __ASSEMBLER__");
+++asm ("\n#undef __i686");
+++asm ("\n#define __i686 __i686");
+++asm ("\n#endif");
+++
++ /* The initial common code ends here. */
++ asm ("\n/*@HEADER_ENDS*/");
++ 
++diff -urN glibc-2.11.2.orig/sysdeps/unix/sysv/linux/i386/sysdep.h glibc-2.11.2/sysdeps/unix/sysv/linux/i386/sysdep.h
++--- glibc-2.11.2.orig/sysdeps/unix/sysv/linux/i386/sysdep.h	2009-12-08 21:10:20.000000000 +0100
+++++ glibc-2.11.2/sysdeps/unix/sysv/linux/i386/sysdep.h	2010-12-30 11:33:31.520855595 +0100
++@@ -29,6 +29,10 @@
++ #include <dl-sysdep.h>
++ #include <tls.h>
++ 
+++#if defined __i686 && defined __ASSEMBLER__
+++#undef __i686
+++#define __i686 __i686
+++#endif
++ 
++ /* For Linux we can use the system call table in the header file
++ 	/usr/include/asm/unistd.h
+diff -uprN crosstool-ng-1.7.1.org/patches/glibc/2.11.2/610-typedef-caddr.patch crosstool-ng-1.7.1/patches/glibc/2.11.2/610-typedef-caddr.patch
+--- crosstool-ng-1.9.2.org/patches/glibc/2.11.2/610-typedef-caddr.patch	1970-01-01 01:00:00.000000000 +0100
++++ crosstool-ng-1.9.2/patches/glibc/2.11.2/610-typedef-caddr.patch	2010-07-27 20:54:40.000000000 +0200
+@@ -0,0 +1,13 @@
++diff -uprN glibc-2.11.2.org/posix/sys/types.h glibc-2.11.2/posix/sys/types.h
++--- glibc-2.11.2.org/posix/sys/types.h	2006-02-28 20:11:24.000000000 +0100
+++++ glibc-2.11.2/posix/sys/types.h	2010-07-27 16:22:22.000000000 +0200
++@@ -114,7 +114,9 @@ typedef __ssize_t ssize_t;
++ #ifdef	__USE_BSD
++ # ifndef __daddr_t_defined
++ typedef __daddr_t daddr_t;
+++#  ifndef caddr_t
++ typedef __caddr_t caddr_t;
+++#  endif
++ #  define __daddr_t_defined
++ # endif
++ #endif
