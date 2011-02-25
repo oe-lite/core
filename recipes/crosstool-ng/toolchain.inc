@@ -580,6 +580,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
+${base_prefix}/${TARGET_ARCH}/sys-root/mingw \
 "
 DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
@@ -719,18 +720,23 @@ split_sysroot_mangle () {
 }
 split_sysroot_mangle[dirs] = "${PKGD}"
 
+split_sysroot_mangle_append_mingw32 () {
+    # Move object files (*.o) to usr/lib so that ld can find them through
+    # the mingw/lib dir (mingw symlinks to /usr)
+    for pkg in ${SYSROOT_PACKAGES} ; do
+        if [ -d $pkg/lib ] ; then
+            for f in $pkg/lib/*.o ; do
+		test -f $f && mv $f $pkg${target_libdir}/
+            done
+	fi
+    done
+}
+
 # Add symlinks to get sys-root back on stage for internal cross packages
 split_sysroot_mangle_cross () {
 	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
 }
 split_sysroot_mangle_cross[dirs] = "${PKGD}"
-
-split_sysroot_mangle_cross_append_mingw32 () {
-	(
-	cd ${PN}-sysroot-dev
-	ln -s . mingw
-	)
-}
 
 # Add empty sys-root dir in sdk packages
 split_sysroot_mangle_sdk () {
