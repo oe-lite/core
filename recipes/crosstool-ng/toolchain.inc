@@ -2,12 +2,12 @@ FILESPATHPKG = "${PF}:${P}:${PN}:${BP}:${BPN}:toolchain-${PV}:toolchain:files"
 
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
-TOOLCHAIN_VERSION			= "gcc-${CT_CC_VERSION}"
-TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc-${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc-${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt-${CT_MINGWRT_VERSION}"
+TOOLCHAIN_VERSION			= "gcc${CT_CC_VERSION}"
+TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt${CT_MINGWRT_VERSION}"
 
-PR = "${TOOLCHAIN_VERSION}-r0"
+PR = "${TOOLCHAIN_VERSION}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
