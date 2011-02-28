@@ -11,13 +11,13 @@ def auto_package_libs (d):
     pn = d.getVar("PN", True)
     libs = (d.getVar("AUTO_PACKAGE_LIBS", True) or "").split()
     libdirs = (d.getVar("AUTO_PACKAGE_LIBS_LIBDIR", True) or "").split()
-    pkgprefix = d.getVar("AUTO_PACKAGE_LIBS_PKGPREFIX", False) or ""
-    provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", False) or ""
+    pkgprefix = d.getVar("AUTO_PACKAGE_LIBS_PKGPREFIX", True) or ""
+    provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", True) or ""
     packages = []
     dev_depends = d.getVar("AUTO_PACKAGE_LIBS_DEV_DEPENDS", True) or ""
 
     def get_extra_files(pkg):
-        return (d.getVar("EXTRA_FILES_" + pkg, False) or "").split()
+        return (d.getVar("EXTRA_FILES_" + pkg, True) or "").split()
 
     def split_libdir(libdir):
         libdir = libdir.split(":")
