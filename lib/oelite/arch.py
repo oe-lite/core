@@ -72,6 +72,15 @@ cpuspecs = {
             'mtune'		: 'cortex-a8',
             'fpu'		: 'neon',
             },
+        'cortexa9'		: {
+            'mcpu'		: 'cortex-a9',
+            'mtune'		: 'cortex-a9',
+            },
+        'cortexa9neon'		: {
+            'mcpu'		: 'cortex-a9',
+            'mtune'		: 'cortex-a9',
+            'fpu'		: 'neon',
+            },
         },
 
     'armeb'		: {
@@ -270,7 +279,9 @@ cpumap = {
     'arm'		: {
         'at91rm9200'	: '920t',
         'at91sam9260'	: '926ejs',
-        'omap3520'		: 'cortexa8neon',
+        'omap3520'	: 'cortexa8neon',
+        'omap4430'	: 'cortexa9neon',
+        'omap4440'	: 'cortexa9neon',
         'imx21'		: '926ejs',
         'imx23'		: '926ejs',
         'imx25'		: '926ejs',
