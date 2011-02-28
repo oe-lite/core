@@ -4,6 +4,8 @@ AUTO_PACKAGE_LIBS ?= ""
 AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir}"
 AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
+AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
+AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
 AUTO_PACKAGE_FUNCS += "auto_package_libs"
 
@@ -15,6 +17,7 @@ def auto_package_libs (d):
     provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", True) or ""
     packages = []
     dev_depends = d.getVar("AUTO_PACKAGE_LIBS_DEV_DEPENDS", True) or ""
+    dev_rdepends = d.getVar("AUTO_PACKAGE_LIBS_DEV_RDEPENDS", True) or ""
 
     def get_extra_files(pkg):
         return (d.getVar("EXTRA_FILES_" + pkg, True) or "").split()
@@ -71,21 +74,31 @@ def auto_package_libs (d):
         files += get_extra_files(devpkg)
         d.setVar("FILES_" + devpkg, " ".join(files))
 
-        pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
-        pkg_rprovides.append("%s%s${RE}"%(provideprefix, lib))
-        d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
+        pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
+        pkg_provides.append("%s%s${RE}_${PF}"%(provideprefix, lib))
+        d.setVar("PROVIDES_" + pkg, " ".join(pkg_provides))
 
         devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
         devpkg_provides.append("%s%s${RE}"%(provideprefix, lib))
         d.setVar("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
-        devpkg_rprovides = (d.getVar("RPROVIDES_" + devpkg, True) or "").split()
-        devpkg_rprovides.append("%s%s${RE}_${PF}"%(provideprefix, lib))
-        d.setVar("PROVIDES_" + pkg, " ".join(devpkg_rprovides))
-
         devpkg_depends = (d.getVar("DEPENDS_" + devpkg, True) or "").split()
         devpkg_depends.append("%s%s${RE}_${PF}"%(provideprefix, lib))
         devpkg_depends += dev_depends.split()
         d.setVar("DEPENDS_" + devpkg, " ".join(devpkg_depends))
+
+        pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
+        pkg_rprovides.append("%s%s${RE}_${PF}"%(provideprefix, lib))
+        pkg_rprovides.append("%s%s${RE}"%(provideprefix, lib))
+        d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
+
+        devpkg_rprovides = (d.getVar("RPROVIDES_" + devpkg, True) or "").split()
+        devpkg_rprovides.append("%s%s${RE}-dev"%(provideprefix, lib))
+        d.setVar("PROVIDES_" + pkg, " ".join(devpkg_rprovides))
+
+        devpkg_rdepends = (d.getVar("RDEPENDS_" + devpkg, True) or "").split()
+        devpkg_rdepends.append("%s%s${RE}_${PF}"%(provideprefix, lib))
+        devpkg_rdepends += dev_rdepends.split()
+        d.setVar("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
 
     d.setVar("LIBS_AUTO_PACKAGES", " ".join(packages))
