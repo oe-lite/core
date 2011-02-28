@@ -98,6 +98,10 @@ def cross_fixup_provides(d):
                     if not cross_provides in provides:
                         provides += [cross_provides]
                         provides_changed = True
+                    cross_rprovides = pkg.replace(pn, target_arch, 1)
+                    if not cross_rprovides in rprovides:
+                        rprovides += [cross_rprovides]
+                        rprovides_changed = True
                     depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
                     if not base_pkg in depends:
                         depends.append(base_pkg)
