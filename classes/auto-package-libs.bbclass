@@ -94,7 +94,7 @@ def auto_package_libs (d):
 
         devpkg_rprovides = (d.getVar("RPROVIDES_" + devpkg, True) or "").split()
         devpkg_rprovides.append("%s%s${RE}-dev"%(provideprefix, lib))
-        d.setVar("RPROVIDES_" + pkg, " ".join(devpkg_rprovides))
+        d.setVar("RPROVIDES_" + devpkg, " ".join(devpkg_rprovides))
 
         devpkg_rdepends = d.getVar("RDEPENDS_" + devpkg, True)
         if devpkg_rdepends is None:
