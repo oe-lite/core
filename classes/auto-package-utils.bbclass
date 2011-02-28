@@ -7,6 +7,7 @@ AUTO_PACKAGE_FUNCS += "auto_package_utils"
 def auto_package_utils (d):
     pn = d.getVar("PN", True)
     utils = (d.getVar("AUTO_PACKAGE_UTILS", False) or "").split()
+    exeext = d.getVar("HOST_EXEEXT", True) or ""
     packages = []
 
     def get_extra_files(pkg):
@@ -22,10 +23,10 @@ def auto_package_utils (d):
         packages += [ pkg, docpkg ]
 
         d.setVar("FILES_" + pkg,
-                 "${base_sbindir}/%s "%(util) +
-                 "${base_bindir}/%s "%(util) +
-                 "${sbindir}/%s "%(util) +
-                 "${bindir}/%s "%(util) +
+                 "${base_sbindir}/%s%s "%(util, exeext) +
+                 "${base_bindir}/%s%s "%(util, exeext) +
+                 "${sbindir}/%s%s "%(util, exeext) +
+                 "${bindir}/%s%s "%(util, exeext) +
                  get_extra_files(pkg))
 
         d.setVar("FILES_" + docpkg,
