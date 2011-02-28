@@ -96,7 +96,17 @@ def auto_package_libs (d):
         devpkg_rprovides.append("%s%s${RE}-dev"%(provideprefix, lib))
         d.setVar("PROVIDES_" + pkg, " ".join(devpkg_rprovides))
 
-        devpkg_rdepends = (d.getVar("RDEPENDS_" + devpkg, True) or "").split()
+        devpkg_rdepends = d.getVar("RDEPENDS_" + devpkg, True)
+        if devpkg_rdepends is None:
+            pkg_rdepends = (d.getVar("RDEPENDS_" + pkg, True) or "").split()
+            devpkg_rdepends = []
+            for dep in pkg_rdepends:
+                if dep.endswith("-dev"):
+                    devpkg_rdepends.append(dep)
+                else:
+                    devpkg_rdepends.append(dep + "-dev")
+        else:
+            devpkg_rdepends = devpkg_rdepends.split()
         devpkg_rdepends.append("%s%s${RE}_${PF}"%(provideprefix, lib))
         devpkg_rdepends += dev_rdepends.split()
         d.setVar("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
