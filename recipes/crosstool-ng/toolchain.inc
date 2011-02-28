@@ -208,8 +208,8 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_ARCH\)=.*%\1="${CT_ARCH_ARCH}"%' \
 	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${CT_ARCH_CPU}"%' \
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@['n','y']["${TARGET_FPU}"!="0"]}%' \
-	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@['y','n']["${TARGET_FPU}"!="0"]}%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@["n","y"]["${TARGET_FPU}"!="0"]}%' \
+	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@["y","n"]["${TARGET_FPU}"!="0"]}%' \
     	    -e "s%# __${_CT_KERNEL_VERSION}%$ct_kernel_version%" \
     	    -e "s%# __${_CT_BINUTILS_VERSION}%$ct_binutils_version%" \
     	    -e "s%# __${_CT_CC_VERSION}%$ct_cc_version%" \
