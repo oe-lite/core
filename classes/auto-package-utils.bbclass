@@ -6,12 +6,12 @@ AUTO_PACKAGE_FUNCS += "auto_package_utils"
 
 def auto_package_utils (d):
     pn = d.getVar("PN", True)
-    utils = (d.getVar("AUTO_PACKAGE_UTILS", False) or "").split()
+    utils = (d.getVar("AUTO_PACKAGE_UTILS", True) or "").split()
     exeext = d.getVar("HOST_EXEEXT", True) or ""
     packages = []
 
     def get_extra_files(pkg):
-        extra_files = d.getVar("EXTRA_FILES_" + pkg, False)
+        extra_files = d.getVar("EXTRA_FILES_" + pkg, True)
         if extra_files:
             return " " + extra_files
         return ""
