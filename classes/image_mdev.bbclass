@@ -12,4 +12,5 @@ image_preprocess_mdev () {
 		cat $f >> ./${mdevconf}
 		rm $f
 	done
+        rm -rf ./${mdevdir}
 }
