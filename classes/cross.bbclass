@@ -78,8 +78,8 @@ def cross_fixup_provides(d):
         provides_changed = False
         rprovides_changed = False
 
-        provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
-        rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
+        provides = (bb.data.getVar('PROVIDES_'+pkg, d, False) or '').split()
+        rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, False) or '').split()
 
         if not pkg in provides:
             provides = [pkg] + provides
