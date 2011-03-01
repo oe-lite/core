@@ -1,7 +1,7 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
-inherit image image_mdev image_crontab image_makedevs image_inittab image_fstab
 require conf/makedevs.conf
+inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
 UBIFS_IMAGE_DEPENDS = "mtd-utils-native-mkfs-ubifs"
 CLASS_DEPENDS += "${UBIFS_IMAGE_DEPENDS}"

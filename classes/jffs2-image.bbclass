@@ -1,7 +1,7 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
-inherit image image_mdev image_crontab image_makedevs image_inittab image_fstab
 require conf/makedevs.conf
+inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
 JFFS2_IMAGE_DEPENDS = "mtd-utils-native-mkfs-jffs2"
 CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
