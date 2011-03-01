@@ -1,6 +1,5 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
-require conf/makedevs.conf
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
 UBIFS_IMAGE_DEPENDS = "mtd-utils-native-mkfs-ubifs"
