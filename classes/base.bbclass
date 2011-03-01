@@ -415,10 +415,20 @@ def base_fixup_provides(d):
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
         provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
         if not pkg in provides:
-            bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
+            #bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
+            if provides:
+                d.setVar('PROVIDES_'+pkg, d.getVar('PROVIDES_'+pkg, False) + \
+                             ' ' + pkg)
+            else:
+                d.setVar('PROVIDES_'+pkg, pkg)
         rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
         if not pkg in rprovides:
-            bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
+            #bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
+            if rprovides:
+                d.setVar('RPROVIDES_'+pkg, d.getVar('RPROVIDES_'+pkg, False) + \
+                             ' ' + pkg)
+            else:
+                d.setVar('RPROVIDES_'+pkg, pkg)
 
 
 def base_after_parse(d):
