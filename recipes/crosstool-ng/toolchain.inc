@@ -27,6 +27,13 @@ SDK_TUI_DEPENDS_host-mingw32		= ""
 TUI_DEPENDS_recipe-sdk			= "${SDK_TUI_DEPENDS}"
 TUI_DEPENDS_recipe-canadian-cross	= "${SDK_TUI_DEPENDS}"
 
+SYSROOT_RE = ""
+SYSROOT_RE_append_recipe-native		= "-native"
+SYSROOT_RE_append_recipe-machine	= "-machine-garbage"
+SYSROOT_RE_append_recipe-sdk-cross	= "-sdk"
+SYSROOT_RE_append_recipe-sdk		= "-sdk-garbage"
+SYSROOT_RE_append_recipe-canadian-cross	= "-canadian-garbage"
+
 # FIXME: allow machine/sdk/canadian-cross toolchains are built
 # statically, to make it more robust against host machine differences
 
@@ -626,28 +633,34 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd.so"
 SYSROOT_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/nscd"
+RPROVIDES_${PN}-sysroot-nscd = "util/rpcgen${SYSROOT_RE} util/nscd${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-rpc"
 FILES_${PN}-sysroot-rpc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/rpcgen \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/rpcinfo \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sysconfdir}/rpc"
+RPROVIDES_${PN}-sysroot-rpc = "util/rpcgen${SYSROOT_RE} util/rpcinfo${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-ldconfig"
 FILES_${PN}-sysroot-ldconfig = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/ldconfig"
+RPROVIDES_${PN}-sysroot-ldconfig = "util/ldconfig${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/ldd"
+RPROVIDES_${PN}-sysroot-ldd = "util/ldd${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/catchsegv"
+RPROVIDES_${PN}-sysroot-catchsegv = "util/catchsegv${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/sprof"
+RPROVIDES_${PN}-sysroot-sprof = "util/sprof${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-timezone-utils"
 FILES_${PN}-sysroot-timezone-utils = "\
@@ -656,11 +669,14 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zdump \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zic \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/zoneinfo \
 "
+RPROVIDES_${PN}-sysroot-timezone-utils = "\
+    util/tzselect${SYSROOT_RE} util/zdump${SYSROOT_RE} util/zic${SYSROOT_RE} util/zoneinfo${SYSROOT_RE}"
 
 SYSROOT_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/iconv \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/iconvconfig"
+RPROVIDES_${PN}-sysroot-iconv-utils = "util/iconv${SYSROOT_RE} util/iconvconfig${SYSROOT_RE}"
 
 # throw everything else in this garbage package, which is to be considered a WIP package aimed at being empty
 SYSROOT_PACKAGES += "${PN}-sysroot-garbage"
