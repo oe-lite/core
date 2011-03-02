@@ -16,13 +16,15 @@ addtask install_inetd after do_install before do_fixup
 do_install_inetd[dirs] = "${D}"
 
 do_install_inetd () {
-	i=0
-        test -z "${RECIPE_OPTION_inetd}" -o "${RECIPE_OPTION_inetd}"="0" || return
-	for f in ${INETD_CONF_FILES} ; do
-		# only create inetddir when needed, and let it fail silently when
-		# called more than once
-		mkdir -p ./${inetddir}
-		let i=$i+1
-		cp $f ./${inetddir}/${PN}.$i
-	done
+    i=0
+    test -z "${RECIPE_OPTION_inetd}" -o "${RECIPE_OPTION_inetd}"="0" || return
+    for f in ${INETD_CONF_FILES} ; do
+        if [ -f $f ] ; then
+            # only create inetddir when needed, and let it fail silently when
+            # called more than once
+            mkdir -p ./${inetddir}
+            let i=$i+1
+            cp $f ./${inetddir}/${PN}.$i
+        fi
+    done
 }
