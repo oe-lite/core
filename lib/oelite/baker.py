@@ -331,7 +331,7 @@ class OEliteBaker:
             import hashlib
 
             hasher = hashlib.md5()
-            hasher.update(str(dephashes))
+            hasher.update(str(dephashes.values()))
             dephash = hasher.hexdigest()
 
             hasher = hashlib.md5()
