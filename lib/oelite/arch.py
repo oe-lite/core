@@ -21,7 +21,7 @@ cpuspecs = {
             'elf'		: 'PowerPC or cisco 4500',
             },
         '603e'		: {
-            'mcpu'		: 'e300c1',
+            'mcpu'		: '603e',
             'fpu'		: '1',
             },
         'e300c1'		: {
@@ -391,7 +391,7 @@ def arch_fixup(arch, gcc):
     if cpu == "powerpc":
         if vendor in ('e300c1', 'e300c4'):
             vendor = '603e'
-        if vendor == 'e300c3':
+        if vendor in ('e300c2', 'e300c3'):
             if gccv[0] < 4 or (gccv[0] == 4 and gccv[1] < 4):
                 vendor = '603e'
 
