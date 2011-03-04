@@ -93,7 +93,7 @@ DEFAULT_CXX_DEPENDS_recipe-sdk-cross	= ""
 
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)
-CT_PARALLEL_JOBS	?= "1"
+export CT_PARALLEL_JOBS	?= "1"
 CT_LOAD			= "0"
 
 _CT_KERNEL_VERSION	= "CT_KERNEL_V_"
@@ -204,7 +204,7 @@ do_mangle () {
 	cat defconfig.misc ${DEFCONFIG_CPU} defconfig.toolchain ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
-	    -e 's%\(CT_PARALLEL_JOBS\)=.*%\1=${CT_PARALLEL_JOBS}%' \
+	    -e "s%\(CT_PARALLEL_JOBS\)=.*%\1=$CT_PARALLEL_JOBS%" \
 	    -e 's%\(CT_LOAD\)=.*%\1=${CT_LOAD}%' \
 	    -e 's%\(CT_BUILD\)=.*%\1="${BUILD_ARCH}"%' \
 	    -e 's%\(CT_BUILD_PREFIX\)=.*%\1="${BUILD_PREFIX}"%' \
