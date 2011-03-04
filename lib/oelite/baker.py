@@ -526,7 +526,7 @@ class OEliteBaker:
 
     def setup_tmpdir(self):
 
-        tmpdir = os.path.abspath(self.config.getVar("TMPDIR", 1) or "tmp")
+        tmpdir = os.path.realpath(self.config.getVar("TMPDIR", 1) or "tmp")
         #debug("TMPDIR = %s"%tmpdir)
 
         try:
