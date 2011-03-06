@@ -65,7 +65,9 @@ do_autoreconf () {
 
         mkdir -p m4
 
-        export _lt_pkgdatadir="${pkgltdldir}"
+        if [ -d "${pkgltdldir}" ] ; then
+            export _lt_pkgdatadir="${pkgltdldir}"
+        fi
         oenote Executing autoreconf
         autoreconf --verbose --install --force \
             ${EXTRA_AUTORECONF} $acpaths \
