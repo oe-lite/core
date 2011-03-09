@@ -1,4 +1,4 @@
-PACKAGES =+ "${UTILS_AUTO_PACKAGES}"
+PACKAGES =+ "${AUTO_PACKAGES_UTILS_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""
 
@@ -40,5 +40,5 @@ def auto_package_utils (d):
         pkg_rprovides.append(utilname)
         d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
     
-    d.setVar("UTILS_AUTO_PACKAGES", " ".join(packages))
+    d.setVar("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
     d.setVar("AUTO_PACKAGE_UTILS_RPROVIDES", " ".join(rprovides))
