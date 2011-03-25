@@ -13,7 +13,7 @@ DEFCONFIG = "${@d.getVar('RECIPE_OPTION_kernel_defconfig', 1) or ''}"
 kernel_do_configure () {
     if [ -e "${DEFCONFIG_FILE}" ]; then
 	cp "${DEFCONFIG_FILE}" "${S}/.config"
-        yes '' | oe_runmake oldconfig
+	yes '' | oe_runmake oldconfig
     else
 	if [ -n "${DEFCONFIG}" ] ; then
 	    oe_runmake ${DEFCONFIG}
@@ -59,7 +59,7 @@ do_compile () {
     kernel_do_compile
 }
 
-KERNEL_UIMAGE_DEPENDS = "${@['', 'u-boot-mkimage-native']['${RECIPE_OPTION_kernel_imagetype}' == 'uImage']}"
+KERNEL_UIMAGE_DEPENDS = "${@['', 'u-boot-tools-native-mkimage']['${RECIPE_OPTION_kernel_imagetype}' == 'uImage']}"
 DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
 
 RECIPE_OPTIONS += "kernel_uimage \
@@ -73,12 +73,12 @@ DEFAULT_CONFIG_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
     ENTRYPOINT=${RECIPE_OPTION_kernel_uimage_entrypoint}
-    if test -n "${UBOOT_ENTRYSYMBOL}"; then
+    if [ -n "$UBOOT_ENTRYSYMBOL" ] ; then
 	ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
 	    awk '$3=="${RECIPE_OPTION_kernel_uimage_entrypoint}" {print $1}'`
     fi
 
-    if test -e arch/${ARCH}/boot/compressed/vmlinux ; then
+    if [ -e "arch/${ARCH}/boot/compressed/vmlinux" ] ; then
 	${OBJCOPY} -O binary -R .note -R .comment \
 	-S arch/${ARCH}/boot/compressed/vmlinux linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
@@ -105,24 +105,29 @@ UIMAGE_KERNEL_OUTPUT = ""
 UIMAGE_KERNEL_OUTPUT_append_RECIPE_OPTION_kernel_uimage = "arch/${ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
-RECIPE_OPTIONS += "kernel_dtc kernel_dtc_flags kernel_dtc_source"
+RECIPE_OPTIONS += "kernel_dtb kernel_dtc kernel_dtc_flags kernel_dtc_source"
 DEFAULT_CONFIG_kernel_dtc_flags = "-R 8 -p 0x3000"
 DEFAULT_CONFIG_kernel_dtc_source = "arch/${KERNEL_ARCH}/boot/dts/${MACHINE}.dts"
 
-kernel_devicetree () {
-    if [ -n "${KERNEL_DEVICETREE}" ] ; then
-        echo "${KERNEL_DEVICETREE}"
-    elif [ "${RECIPE_OPTION_kernel_dtc}" = "1" ] ; then
-        echo `basename ${RECIPE_OPTION_kernel_dtc_source} .dts`.dtb
-    fi
+python () {
+    kernel_dtc = d.getVar('RECIPE_OPTION_kernel_dtc', True)
+    kernel_dtb = d.getVar('RECIPE_OPTION_kernel_dtb', True)
+    if kernel_dtc and kernel_dtc != 0:
+	kernel_dtc_source = d.getVar('RECIPE_OPTION_kernel_dtc_source', True)
+	dts = os.path.basename(kernel_dtc_source)
+	(dts_name, dts_ext) = os.path.splitext(dts)
+	if dts_ext != '.dts':
+	    dts_name = dts
+	d.setVar('KERNEL_DEVICETREE', dts_name + ".dtb")
+    elif kernel_dtb:
+	d.setVar('KERNEL_DEVICETREE', kernel_dtb)
+    else:
+	d.setVar('KERNEL_DEVICETREE', '')
 }
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_dtc () {
-    devicetree=`kernel_devicetree`
-    if [ -n "$devicetree" ] ; then
-        scripts/dtc/dtc -I dts -O dtb ${RECIPE_OPTION_kernel_dtc_flags} \
-            -o $devicetree ${RECIPE_OPTION_kernel_dtc_source}
-    fi
+    scripts/dtc/dtc -I dts -O dtb ${RECIPE_OPTION_kernel_dtc_flags} \
+	-o ${KERNEL_DEVICETREE} ${RECIPE_OPTION_kernel_dtc_source}
 }
 
 kernel_do_install () {
@@ -130,14 +135,13 @@ kernel_do_install () {
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
     install -m 0644 .config ${D}${bootdir}/config
 
-    devicetree=`kernel_devicetree`
-    if [ -n "$devicetree" ] ; then
-        install -m 0644 $devicetree ${D}${bootdir}/${KERNEL_DEVICETREE_FILENAME}
+    if [ -n "${KERNEL_DEVICETREE}" ] ; then
+	install -m 0644 ${KERNEL_DEVICETREE} ${D}${bootdir}/${KERNEL_DEVICETREE_FILENAME}
     fi
 
     if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
 	oe_runmake DEPMOD=echo INSTALL_MOD_PATH="${D}" modules_install
-        rm ${D}/lib/modules/*/build ${D}/lib/modules/*/source
+	rm ${D}/lib/modules/*/build ${D}/lib/modules/*/source
     else
 	oenote "no modules to install"
     fi
@@ -198,21 +202,27 @@ do_deploy() {
     md5sum <${KERNEL_IMAGE} \
 	>${IMAGE_DEPLOY_DIR}/${KERNEL_IMAGE_DEPLOY_FILE}.md5
 
-    devicetree=`kernel_devicetree`
-    if [ -n "$devicetree" ] ; then
-	install -m 0644 $devicetree \
+    if [ -n "${KERNEL_DEVICETREE}" ] ; then
+	install -m 0644 ${KERNEL_DEVICETREE} \
 	    ${IMAGE_DEPLOY_DIR}/${KERNEL_DEVICETREE_DEPLOY_FILE}
-	md5sum <$devicetree \
+	md5sum <${KERNEL_DEVICETREE} \
 	    >${IMAGE_DEPLOY_DIR}/${KERNEL_DEVICETREE_DEPLOY_FILE}.md5
     fi
 
     cd ${IMAGE_DEPLOY_DIR}
     if [ -n "${KERNEL_IMAGE_DEPLOY_LINK}" ] ; then
-	rm -f ${KERNEL_IMAGE_DEPLOY_LINK}
-	ln -sf ${KERNEL_IMAGE_DEPLOY_FILE} ${KERNEL_IMAGE_DEPLOY_LINK}
+	for ext in "" ".md5"; do
+	    rm -f ${KERNEL_IMAGE_DEPLOY_LINK}$ext
+	    ln -sf ${KERNEL_IMAGE_DEPLOY_FILE}$ext \
+		   ${KERNEL_IMAGE_DEPLOY_LINK}$ext
+	done
     fi
-    if [ -n "${KERNEL_DEVICETREE_DEPLOY_LINK}" ] ; then
-	rm -f ${KERNEL_DEVICETREE_DEPLOY_LINK}
-	ln -sf ${KERNEL_DEVICETREE_DEPLOY_FILE} ${KERNEL_DEVICETREE_DEPLOY_LINK}
+    if [ -n "${KERNEL_DEVICETREE}" -a \
+	 -n "${KERNEL_DEVICETREE_DEPLOY_LINK}" ] ; then
+	for ext in "" ".md5"; do
+	    rm -f ${KERNEL_DEVICETREE_DEPLOY_LINK}$ext
+	    ln -sf ${KERNEL_DEVICETREE_DEPLOY_FILE}$ext \
+		   ${KERNEL_DEVICETREE_DEPLOY_LINK}$ext
+	done
     fi
 }
