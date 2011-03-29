@@ -1,6 +1,5 @@
-DESCRIPTION = "Sanitized Linux kernel headers"
-SECTION = "devel"
-LICENSE = "GPL"
+DESCRIPTION ?= "Sanitized Linux kernel headers"
+LICENSE ?= "GPL"
 
 DEFAULT_DEPENDS = ""
 
@@ -13,11 +12,11 @@ do_configure() {
 do_compile () {
 }
 
-INSTALL_HDR_PATH ?= "${D}${includedir}"
+INSTALL_HDR_PATH ?= "${D}${includedir}/.."
 
 do_install() {
-    oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" \
-        headers_install
+    mkdir -p ${D}${includedir}
+    oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" headers_install
 }
 
 PACKAGES = "${PN}"

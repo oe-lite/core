@@ -1,3 +1,6 @@
+DESCRIPTION ?= "Linux kernel"
+LICENSE ?= "GPL"
+
 #RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
 
 require conf/kernel.conf
@@ -157,9 +160,11 @@ kernel_do_install () {
     install_kernel_headers
 }
 
+INSTALL_HDR_PATH ?= "${D}${includedir}/.."
+
 install_kernel_headers () {
     mkdir -p ${D}${includedir}
-    oe_runmake headers_install INSTALL_HDR_PATH=${D}${includedir}
+    oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" headers_install
 }
 
 do_install () {
@@ -212,7 +217,7 @@ do_deploy() {
     cd ${IMAGE_DEPLOY_DIR}
     if [ -n "${KERNEL_IMAGE_DEPLOY_LINK}" ] ; then
 	for ext in "" ".md5"; do
-	    rm -f ${KERNEL_IMAGE_DEPLOY_LINK}$ext
+	    rm -f  ${KERNEL_IMAGE_DEPLOY_LINK}$ext
 	    ln -sf ${KERNEL_IMAGE_DEPLOY_FILE}$ext \
 		   ${KERNEL_IMAGE_DEPLOY_LINK}$ext
 	done
@@ -220,7 +225,7 @@ do_deploy() {
     if [ -n "${KERNEL_DEVICETREE}" -a \
 	 -n "${KERNEL_DEVICETREE_DEPLOY_LINK}" ] ; then
 	for ext in "" ".md5"; do
-	    rm -f ${KERNEL_DEVICETREE_DEPLOY_LINK}$ext
+	    rm -f  ${KERNEL_DEVICETREE_DEPLOY_LINK}$ext
 	    ln -sf ${KERNEL_DEVICETREE_DEPLOY_FILE}$ext \
 		   ${KERNEL_DEVICETREE_DEPLOY_LINK}$ext
 	done
