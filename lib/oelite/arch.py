@@ -18,7 +18,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'b',
-            'elf'		: 'PowerPC or cisco 4500',
+            'elf'		: 'ELF 32-bit MSB .*, PowerPC or cisco 4500, version 1 \(SYSV\)',
             },
         '603e'		: {
             'mcpu'		: '603e',
@@ -52,7 +52,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'ELF 32-bit LSB shared object, ARM, version 1 (SYSV)',
+            'elf'		: 'ELF 32-bit LSB .*, ARM, version 1 \(SYSV\)',
             },
         '920t'		: {
             'mcpu'		: 'arm920t',
@@ -143,7 +143,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'Intel 80386',
+            'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i386',
             'fpu'		: '387',
             },
@@ -153,7 +153,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'Intel 80386',
+            'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i486',
             'fpu'		: '387',
             },
@@ -175,7 +175,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'Intel 80386',
+            'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i586',
             'fpu'		: '387',
             },
@@ -197,7 +197,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'Intel 80386',
+            'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i686',
             'fpu'		: '387',
             },
@@ -225,7 +225,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'Intel 80386',
+            'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'pentium4',
             'fpu'		: 'sse',
             },
@@ -307,6 +307,7 @@ osspecs = {
 
     'mingw32'	: {
         'exeext'		: '.exe',
+        'elf'			: 'PE32 .* for MS Windows .* Intel 80386 32-bit',
         },
 
     }
