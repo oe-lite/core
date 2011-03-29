@@ -5,6 +5,9 @@ STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 python binconfig_stage_fixup () {
     import re, fileinput, os
 
+    unpackdir = d.getVar("STAGE_UNPACKDIR", True)
+    os.chdir(unpackdir)
+
     metafile = d.getVar("binconfigfilelist", True).lstrip("/")
     if not os.path.exists(metafile):
         return
@@ -14,14 +17,14 @@ python binconfig_stage_fixup () {
     stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
     subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
     sysroot = os.path.join(stage_dir, subdir)
-    
+
     if subdir == "native":
         dirname_prefix = "stage_"
     elif subdir == "target/sysroot":
         dirname_prefix = "target_"
     else:
         dirname_prefix = ""
-    
+
     dirnames = ("prefix", "exec_prefix", "bindir", "sbindir",
                 "libdir", "includedir", "libexecdir",
                 "datadir", "sysconfdir", "sharedstatedir", "localstatedir",
