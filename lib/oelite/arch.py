@@ -277,19 +277,19 @@ cpumap = {
         },
 
     'arm'		: {
-        'at91rm9200'	: '920t',
-        'at91sam9260'	: '926ejs',
-        'omap3520'	: 'cortexa8neon',
-        'omap4430'	: 'cortexa9neon',
-        'omap4440'	: 'cortexa9neon',
-        'imx21'		: '926ejs',
-        'imx23'		: '926ejs',
-        'imx25'		: '926ejs',
-        'imx27'		: '926ejs',
-        'imx28'		: '926ejs',
-        'imx31'		: '1136jfs',
-        'imx35'		: '1136jfs',
-        'imx51'		: 'cortexa8neon',
+        'at91rm9200'		: '920t',
+        'at91sam9260'		: '926ejs',
+        'omap3520'		: 'cortexa8neon',
+        'omap4430'		: 'cortexa9neon',
+        'omap4440'		: 'cortexa9neon',
+        'imx21'			: '926ejs',
+        'imx23'			: '926ejs',
+        'imx25'			: '926ejs',
+        'imx27'			: '926ejs',
+        'imx28'			: '926ejs',
+        'imx31'			: '1136jfs',
+        'imx35'			: '1136jfs',
+        'imx51'			: 'cortexa8neon',
         'imx512'		: 'cortexa8neon',
         'imx513'		: 'cortexa8neon',
         'imx514'		: 'cortexa8neon',
@@ -298,7 +298,7 @@ cpumap = {
         },
 
     'x86'		: {
-        'celeronm575'	: ('i686', 'sse2'),
+        'celeronm575'		: ('i686', 'sse2'),
         },
 
     }
