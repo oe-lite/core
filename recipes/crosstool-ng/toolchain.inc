@@ -185,8 +185,9 @@ CT_ARCH_TUNE			= "${TARGET_MTUNE}"
 
 # FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
-CT_LIBC_GLIBC_FORCE_UNWIND		= "n"
-CT_LIBC_GLIBC_FORCE_UNWIND_powerpc	= "y"
+CT_LIBC_GLIBC_FORCE_UNWIND			= "n"
+CT_LIBC_GLIBC_FORCE_UNWIND_linux-gnu		= "y"
+CT_LIBC_GLIBC_FORCE_UNWIND_linux-gnueabi	= "y"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
