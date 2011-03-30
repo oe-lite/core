@@ -51,7 +51,10 @@ do_deploy () {
 
     cd ${IMAGE_DEPLOY_DIR}
     if [ -n "${UBOOT_IMAGE_DEPLOY_LINK}" ] ; then
-	rm -f ${UBOOT_IMAGE_DEPLOY_LINK}
-	ln -sf ${UBOOT_IMAGE_DEPLOY_FILE} ${UBOOT_IMAGE_DEPLOY_LINK}
+	for ext in "" ".md5"; do
+	    rm -f  ${UBOOT_IMAGE_DEPLOY_LINK}$ext
+	    ln -sf ${UBOOT_IMAGE_DEPLOY_FILE}$ext \
+		   ${UBOOT_IMAGE_DEPLOY_LINK}$ext
+	done
     fi
 }
