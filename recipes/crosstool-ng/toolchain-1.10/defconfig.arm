@@ -37,7 +37,6 @@ CT_TARGET_LDFLAGS=""
 CT_ARCH_arm=y
 # CT_ARCH_avr32 is not set
 # CT_ARCH_blackfin is not set
-# CT_ARCH_ia64 is not set
 # CT_ARCH_m68k is not set
 # CT_ARCH_mips is not set
 # CT_ARCH_powerpc is not set
@@ -48,7 +47,6 @@ CT_ARCH_alpha_AVAILABLE=y
 CT_ARCH_arm_AVAILABLE=y
 CT_ARCH_avr32_AVAILABLE=y
 CT_ARCH_blackfin_AVAILABLE=y
-CT_ARCH_ia64_AVAILABLE=y
 CT_ARCH_m68k_AVAILABLE=y
 CT_ARCH_mips_AVAILABLE=y
 CT_ARCH_powerpc_AVAILABLE=y
