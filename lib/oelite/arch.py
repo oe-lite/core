@@ -18,7 +18,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'b',
-            'elf'		: 'ELF 32-bit MSB .*, PowerPC or cisco 4500, version 1 \(SYSV\)',
+            'elf'		: 'ELF 32-bit MSB .*, PowerPC or cisco 4500',
             },
         '603e'		: {
             'mcpu'		: '603e',
@@ -52,7 +52,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'	: '32',
             'endian'	: 'l',
-            'elf'		: 'ELF 32-bit LSB .*, ARM, version 1 \(SYSV\)',
+            'elf'		: 'ELF 32-bit LSB .*, ARM',
             },
         '920t'		: {
             'mcpu'		: 'arm920t',
