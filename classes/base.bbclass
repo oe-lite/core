@@ -273,7 +273,9 @@ python install_strip () {
         for root, dirs, files in os.walk(os.getcwd()):
             for f in files:
                file = os.path.join(root, f)
-               if not os.path.islink(file) and not os.path.isdir(file) and isexec(file):
+               if os.path.islink(file) or os.path.isdir(file):
+                   continue
+               if isexec(file) or ".so" in os.path.basename(file):
                    runstrip(file, d)
 }
 install_strip[dirs] = "${D}"
@@ -283,42 +285,51 @@ def runstrip(file, d):
     # A working 'file' (one which works on the target architecture)
     # is necessary for this stuff to work, hence the addition to do_package[depends]
 
-    import commands, stat
+    import commands, stat, re, magic
 
     pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
 
-    ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
+    filemagic = magic.open(magic.MAGIC_NONE)
+    filemagic.load()
+    filetype = filemagic.file(file)
 
-    if ret:
-        bb.fatal("runstrip() 'file %s' failed" % file)
-
-    if "not stripped" not in result:
+    if "not stripped" not in filetype:
         bb.debug(1, "runstrip() skip %s" % file)
         return
 
-    target_elf = bb.data.getVar('TARGET_ELF', d, True)
-    if not target_elf:
-        bb.debug(1, "TARGET_ELF not defined, you might want to fix this...")
+    target_elf = d.getVar('TARGET_ELF', True)
+    if target_elf:
+        target_elf = re.compile(target_elf)
+    host_elf = d.getVar('HOST_ELF', True)
+    if host_elf:
+        host_elf = re.compile(host_elf)
+    build_elf = d.getVar('BUILD_ELF', True)
+    if build_elf:
+        build_elf = re.compile(build_elf)
+
+    if host_elf and host_elf.match(filetype):
+        varprefix = ""
+    elif target_elf and target_elf.match(filetype):
+        varprefix = "TARGET_"
+    elif build_elf and build_elf.match(filetype):
+        varprefix = "BUILD_"
+    else:
         return
 
-    if target_elf not in result:
-        bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
+    strip = d.getVar("%sSTRIP"%(varprefix), True)
+    if not strip:
+        bb.error("runstrip() no or empty %sSTRIP var"%(varprefix))
+        return
+
+    objcopy = d.getVar("%sOBJCOPY"%(varprefix), True)
+    if not objcopy:
+        bb.error("runstrip() no or empty %sOBJCOPY var"%(varprefix))
         return
 
     # If the file is in a .debug directory it was already stripped,
     # don't do it again...
     if os.path.dirname(file).endswith(".debug"):
         bb.note("Already ran strip")
-        return
-
-    strip = bb.data.getVar("STRIP", d, True)
-    if not len(strip) >0:
-        bb.note("runstrip() STRIP var empty")
-        return
-
-    objcopy = bb.data.getVar("OBJCOPY", d, True)
-    if not len(objcopy) >0:
-        bb.note("runstrip() OBJCOPY var empty")
         return
 
     newmode = None
@@ -328,9 +339,9 @@ def runstrip(file, d):
         os.chmod(file, newmode)
 
     extraflags = ""
-    if ".so" in file and "shared" in result:
+    if ".so" in file and "shared" in filetype:
         extraflags = "--remove-section=.comment --remove-section=.note --strip-unneeded"
-    elif "shared" in result or "executable" in result:
+    elif "shared" in filetype or "executable" in filetype:
         extraflags = "--remove-section=.comment --remove-section=.note"
 
     bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
