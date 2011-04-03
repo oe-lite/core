@@ -7,8 +7,9 @@ from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
 import oelite.data, oelite.util, oelite.arch
+from oebakery.parse import *
 
-import bb.parse, bb.utils, bb.build, bb.fetch
+import bb.utils, bb.build, bb.fetch
 
 BB_ENV_WHITELIST = [
     "PATH",
@@ -89,13 +90,6 @@ def add_show_parser_options(parser):
     return
 
 
-def _parse(f, data, include=False):
-    try:
-        return bb.parse.handle(f, data, include)
-    except (IOError, bb.parse.ParseError) as exc:
-        die("unable to parse %s: %s" % (f, exc))
-
-
 class OEliteBaker:
 
     def __init__(self, options, args, config):
@@ -104,7 +98,11 @@ class OEliteBaker:
 
         self.config = config.createCopy()
         self.import_env()
-        self.config = _parse("conf/bitbake.conf", self.config)
+
+        self.confparser = confparse.ConfParser(self.config)
+        self.bbparser = bbparse.BBParser(self.config)
+
+        self.confparser.parse("conf/bitbake.conf")
 
         oelite.arch.init(self.config)
 
@@ -124,8 +122,7 @@ class OEliteBaker:
         except AttributeError:
             pass
         for inherit in inherits:
-            self.config = _parse("classes/%s.bbclass"%(inherit),
-                                 self.config, 1)
+            self.bbparser.parse("classes/%s.bbclass"%(inherit), require=True)
 
         bb.fetch.fetcher_init(self.config)
 

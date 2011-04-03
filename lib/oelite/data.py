@@ -26,8 +26,8 @@ builtin_nohash_prefix = [
     "OE_MODULE_",
 ]
 
-def dump_var(key, o=sys.__stdout__, d=bb.data.init(), pretty=True,
-             dynvars = {}):
+def dump_var(key, o=sys.__stdout__, d=oebakery.data.dict.DictData(),
+             pretty=True, dynvars = {}):
     if pretty:
         eol = "\n\n"
     else:
@@ -55,7 +55,8 @@ def dump_var(key, o=sys.__stdout__, d=bb.data.init(), pretty=True,
     o.write("%s=%s%s"%(key, repr(val), eol))
     return
 
-def dump(o=sys.__stdout__, d=bb.data.init(), pretty=True, nohash=False):
+def dump(o=sys.__stdout__, d=oebakery.data.dict.DictData(),
+         pretty=True, nohash=False):
 
     dynvars = {}
     for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
