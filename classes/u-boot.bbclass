@@ -35,10 +35,12 @@ do_sizecheck_append_RECIPE_OPTION_uboot_maxsize () {
 do_install () {
     install -d ${D}${bootdir}
     install -m 0644 ${UBOOT_IMAGE} ${D}${bootdir}
+    install -m 0644 u-boot ${D}${bootdir}
 }
 
-PACKAGES = "${PN}"
+PACKAGES = "${PN} ${PN}-elf"
 FILES_${PN} = "${bootdir}/${UBOOT_IMAGE_FILENAME}"
+FILES_${PN}-elf = "${bootdir}/u-boot"
 
 addtask deploy before do_build after do_compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
