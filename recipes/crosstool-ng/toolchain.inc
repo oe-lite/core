@@ -74,9 +74,11 @@ CT_LIBELF_VERSION	= "${RECIPE_OPTION_toolchain_libelf_version}"
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
 TOOLCHAIN_VERSION		= "${CT_CC}${CT_CC_VERSION}"
-TOOLCHAIN_VERSION_append	= "-${CT_LIBC}${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION_append	= "-${CT_LIBC}${@d.getVar('CT_LIBC_VERSION',1).replace('_','.')}"
 
 PR = "${TOOLCHAIN_VERSION}"
+
+CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_OPTIMIZATION', 1).split()]}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
@@ -171,7 +173,7 @@ _CT_KERNEL_V		= "CT_KERNEL_V"
 _CT_KERNEL_V_mingw32	= "CT_W32API_V"
 _CT_BINUTILS_V		= "CT_BINUTILS_V"
 _CT_CC_V		= "CT_CC_V"
-_CT_LIBC_V		= "CT_LIBC_V"
+_CT_LIBC_V		= "CT_LIBC_${@d.getVar('CT_LIBC',1).upper()}_V"
 _CT_LIBC_V_mingw32	= "CT_MINGWRT_V"
 _CT_GDB_V		= "CT_GDB_V"
 _CT_GMP_V		= "CT_GMP_V"
@@ -180,6 +182,9 @@ _CT_PPL_V		= "CT_PPL_V"
 _CT_CLOOG_V		= "CT_CLOOG_V"
 _CT_MPC_V		= "CT_MPC_V"
 _CT_LIBELF_V		= "CT_LIBELF_V"
+
+_CT_LIBC_VERSION	= "CT_LIBC_VERSION"
+_CT_LIBC_VERSION_mingw32= "CT_MINGWRT_VERSION"
 
 CT_ARCH_ARCH			= "${TARGET_MARCH}"
 CT_ARCH_CPU			= "${TARGET_MCPU}"
@@ -275,10 +280,12 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@["n","y"]["${TARGET_FPU}"!="0"]}%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@["y","n"]["${TARGET_FPU}"!="0"]}%' \
+    	    -e "s%# \(CT_LIBC_${CT_LIBC}\).*%\1=y%" \
+    	    -e "s%.*\(CT_EGLIBC_OPT_SIZE\).*%\1=${CT_EGLIBC_OPT_SIZE}%" \
     	    -e "s%# __${_CT_KERNEL_V}_%$ct_kernel_version%" \
     	    -e "s%# __${_CT_BINUTILS_V}_%$ct_binutils_version%" \
     	    -e "s%# __${_CT_CC_V}_%$ct_cc_version%" \
-    	    -e "s%# __${_CT_LIBC_V}_%$ct_libc_version%" \
+    	    -e "s%# __CT_LIBC_V_%$ct_libc_version%" \
             -e "s%.*\(CT_LIBC_GLIBC_FORCE_UNWIND\).*%\1=${CT_LIBC_GLIBC_FORCE_UNWIND}%" \
     	    -e "s%# __${_CT_GDB_V}_%$ct_gdb_version%" \
     	    -e "s%# __${_CT_GMP_V}_%$ct_gmp_version%" \
@@ -419,12 +426,12 @@ do_configure_qa () {
 		oenote "CT_CC_VERSION = $cc_version"
 	fi
 
-	libc_version=`grep ${_CT_LIBC_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	libc_version=`grep ${_CT_LIBC_VERSION} .config|awk -F= '{ print $2 }'|tr -d '"'`
 	if [ "$libc_version" != "${CT_LIBC_VERSION}" ]; then
-		oewarn "CT_LIBC_VERSION = $libc_version (should be ${CT_LIBC_VERSION})"
+		oewarn "${_CT_LIBC_VERSION} = $libc_version (should be ${CT_LIBC_VERSION})"
 		fail=1
 	else
-		oenote "CT_LIBC_VERSION = $libc_version"
+		oenote "${_CT_LIBC_VERSION} = $libc_version"
 	fi
 
 	if grep "CT_KERNEL_linux=y" .config >/dev/null; then
