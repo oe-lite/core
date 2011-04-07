@@ -97,22 +97,26 @@ CT_CC_GCC_LDBL_128=m
 #
 # C-library
 #
-CT_LIBC="glibc"
+CT_LIBC=""
 CT_LIBC_VERSION=""
 # CT_LIBC_eglibc is not set
-CT_LIBC_glibc=y
+# CT_LIBC_glibc is not set
 # CT_LIBC_mingw is not set
 # CT_LIBC_newlib is not set
 # CT_LIBC_none is not set
 # CT_LIBC_uClibc is not set
 CT_LIBC_eglibc_AVAILABLE=y
+CT_EGLIBC_REVISION="HEAD"
+# CT_EGLIBC_CHECKOUT is not set
+# CT_EGLIBC_OPT_SIZE is not set
+# CT_EGLIBC_CUSTOM_CONFIG is not set
 CT_LIBC_glibc_AVAILABLE=y
 CT_LIBC_GLIBC_TARBALL=y
-# __CT_LIBC_V_
 CT_LIBC_mingw_AVAILABLE=y
 CT_LIBC_newlib_AVAILABLE=y
 CT_LIBC_none_AVAILABLE=y
 CT_LIBC_uClibc_AVAILABLE=y
+# __CT_LIBC_V_
 
 #
 # glibc/eglibc common options
