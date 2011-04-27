@@ -145,8 +145,8 @@ AUTO_LIB_PACKAGES = "\
   libnss_nis libnss_nisplus libnss_hesiod libbfd \
 "
 
-AUTO_PACKAGE_FUNCS += "toolchain_auto_packages_func"
-def toolchain_auto_packages_func (d):
+addhook toolchain_auto_package to post_recipe_parse after base_after_parse before base_detect_machine_override
+def toolchain_auto_packages_func ():
     pn = d.getVar("PN", True)
     auto_lib_packages = d.getVar("AUTO_LIB_PACKAGES", False).split()
     lib_packages = []
@@ -293,10 +293,10 @@ python do_save_tarballs () {
 
 DOT_CONFIG_MANGLING = "\
 	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
-	    -e 's%\(CT_HOST\)=.*%\1="${HOST_ARCH}"%' \
-	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
-	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_ARCH}"%' \
+	    -e 's%\(CT_HOST\)=.*%\1=\"${HOST_ARCH}\"%' \
+	    -e 's%\(CT_HOST_PREFIX\)=.*%\1=\"${HOST_PREFIX}\"%' \
+	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=\"\"%' \
+	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1=\"--enable-targets=${TARGET_ARCH}\"%' \
 	    -e 's%\(CT_BINUTILS_FOR_TARGET\)=.*%\1=n%' \
 	    -e 's%\(CT_COMP_LIBS_TARGET\)=.*%\1=n%' \
 	    -e 's%\(CT_DEBUG_gdb\)=.*%\1=n%' \
@@ -314,10 +314,10 @@ DOT_CONFIG_MANGLING_recipe-sdk-cross = "\
 
 DOT_CONFIG_MANGLING_recipe-canadian-cross = "\
 	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
-	    -e 's%\(CT_HOST\)=.*%\1="${HOST_ARCH}"%' \
-	    -e 's%\(CT_HOST_PREFIX\)=.*%\1="${HOST_PREFIX}"%' \
-	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=""%' \
-	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1="--enable-targets=${TARGET_ARCH}"%' \
+	    -e 's%\(CT_HOST\)=.*%\1=\"${HOST_ARCH}\"%' \
+	    -e 's%\(CT_HOST_PREFIX\)=.*%\1=\"${HOST_PREFIX}\"%' \
+	    -e 's%\(CT_HOST_SUFFIX\)=.*%\1=\"\"%' \
+	    -e 's%\(CT_BINUTILS_EXTRA_CONFIG\)=.*%\1=\"--enable-targets=${TARGET_ARCH}\"%' \
 	    -e 's%\(CT_BINUTILS_FOR_TARGET\)=.*%\1=n%' \
 	    -e 's%\(CT_COMP_LIBS_TARGET\)=.*%\1=n%' \
 	    -e 's%\(CT_GDB_NATIVE\)=.*%\1=n%' \

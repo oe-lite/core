@@ -1,7 +1,9 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
-import oelite.data
+from oelite.data.sqlite import SqliteData
 import sys, string
+
+#__all__ = [ 'sqlite' ]
 
 builtin_nohash = [
     "OE_REMOTES",
@@ -26,8 +28,7 @@ builtin_nohash_prefix = [
     "OE_MODULE_",
 ]
 
-def dump_var(key, o=sys.__stdout__, d=oebakery.data.dict.DictData(),
-             pretty=True, dynvars = {}):
+def dump_var(key, o=sys.__stdout__, d=SqliteData(), pretty=True, dynvars = {}):
     if pretty:
         eol = "\n\n"
     else:
@@ -55,7 +56,7 @@ def dump_var(key, o=sys.__stdout__, d=oebakery.data.dict.DictData(),
     o.write("%s=%s%s"%(key, repr(val), eol))
     return
 
-def dump(o=sys.__stdout__, d=oebakery.data.dict.DictData(),
+def dump(o=sys.__stdout__, d=SqliteData(),
          pretty=True, nohash=False):
 
     dynvars = {}

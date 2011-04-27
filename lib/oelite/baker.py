@@ -7,7 +7,7 @@ from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
 import oelite.data, oelite.util, oelite.arch
-from oebakery.parse import *
+from oelite.parse import *
 
 import bb.utils, bb.build, bb.fetch
 
@@ -18,25 +18,8 @@ BB_ENV_WHITELIST = [
     "TERM",
 ]
 
-OE_IMPORTS = [
-    "oe.path",
-    "oe.utils",
-    "oe.packagegroup",
-    "sys",
-    "os",
-    "time"
-]
-
-def setup_oeImports():
-    def inject(name, value):
-        """Make a python object accessible from the metadata"""
-        if hasattr(bb.utils, "_context"):
-            bb.utils._context[name] = value
-        else:
-            __builtins__[name] = value
-    for toimport in OE_IMPORTS:
-        imported = __import__(toimport)
-        inject(toimport.split(".", 1)[0], imported)
+#INITIAL_OE_IMPORTS = "oe.path oe.utils oe.packagegroup sys os time"
+INITIAL_OE_IMPORTS = "sys os time"
 
 def add_bake_parser_options(parser):
     parser.add_option("-t", "--task",
@@ -93,16 +76,17 @@ def add_show_parser_options(parser):
 class OEliteBaker:
 
     def __init__(self, options, args, config):
-
         self.options = options
 
         self.config = config.createCopy()
+        self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
         self.import_env()
+        self.config.pythonfunc_init()
 
         self.confparser = confparse.ConfParser(self.config)
-        self.bbparser = bbparse.BBParser(self.config)
-
         self.confparser.parse("conf/bitbake.conf")
+
+        #oelite.pyexec.exechooks(self.config, "post_conf_parse")
 
         oelite.arch.init(self.config)
 
@@ -121,6 +105,7 @@ class OEliteBaker:
                 self.options.rmwork = True
         except AttributeError:
             pass
+        self.bbparser = bbparse.BBParser(self.config)
         for inherit in inherits:
             self.bbparser.parse("classes/%s.bbclass"%(inherit), require=True)
 
@@ -173,7 +158,6 @@ class OEliteBaker:
         bbrecipes = self.list_bbrecipes()
 
         #setup oe-lite imports
-        setup_oeImports()
         
         # parse all .bb files
         total = len(bbrecipes)
@@ -583,7 +567,17 @@ class OEliteBaker:
 
     def parse_recipe(self, recipe):
         path = os.path.abspath(recipe)
-        return bb.parse.handle(path, self.config.createCopy())
+        recipe = {}
+        self.bbparser.setData(self.config.createCopy())
+        base_recipe = self.bbparser.parse(path)
+        recipe[""] = base_recipe
+        extends = recipe[""].getVar("BBCLASSEXTEND") or ""
+        for extend in extends.split():
+            data = base_recipe.createCopy()
+            self.bbparser.setData(data)
+            print >>sys.stderr, "parsing extend=%s"%(extend)
+            recipe[extend] = self.bbparser.parse("classes/%s.bbclass"%(extend))
+        return recipe
 
 
     def stampfile_path(self, task, data):

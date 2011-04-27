@@ -97,8 +97,7 @@ includedir		= "${sdk_includedir}"
 #}
 
 
-FIXUP_PACKAGE_ARCH = canadian_fixup_package_arch
-def canadian_fixup_package_arch(d):
+def fixup_package_arch(d):
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition('canadian/')
     sdk_arch = None
     if not arch[0] and arch[1]:

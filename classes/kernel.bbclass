@@ -180,6 +180,7 @@ FILES_${PN}-modules = "/lib/modules"
 # transferring the kernel to memory
 addtask sizecheck before do_install after do_compile
 do_sizecheck () {
+    :
 }
 do_sizecheck_append_RECIPE_OPTION_kernel_maxsize () {
     size=`ls -l ${KERNEL_IMAGE} | awk '{ print $5}'`

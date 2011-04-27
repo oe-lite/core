@@ -11,6 +11,7 @@ do_configure() {
 }
 
 do_compile () {
+    :
 }
 
 INSTALL_HDR_PATH ?= "${D}${includedir}"

@@ -3,6 +3,7 @@ from oebakery import die, err, warn, info, debug
 from oelite import InvalidRecipe
 import oelite.data
 
+
 class OEliteRecipe:
 
     def __init__(self, filename, extend, data, db):
@@ -13,6 +14,8 @@ class OEliteRecipe:
         self._srchash = "FOOBAR"
         self._hash = None
 
+
+        oelite.pyexec.exechooks(self.data, "post_recipe_parse")
         name = data.getVar("PN", 1)
         if not name:
             raise InvalidRecipe("no PN in %s:%s"%(
@@ -44,66 +47,42 @@ class OEliteRecipe:
 
         task_deps = data.getVar("_task_deps", 0)
 
-        for task in task_deps["tasks"]:
+        tasks = self.data.getVarsWithFlag("task")
+        for task in tasks:
             self.db.add_task(recipe_id, task)
 
-        for task in task_deps["tasks"]:
+        for task in tasks:
             task_id = self.db.get_task_id(recipe_id, task)
 
-            try:
-                for parent in task_deps["parents"][task]:
-                    self.db.add_task_parent(task_id, parent, recipe=recipe_id)
-            except KeyError, e:
-                pass
+            for parent in self.data.getVarFlagSplit(task, "deps"):
+                self.db.add_task_parent(task_id, parent, recipe=recipe_id)
 
-            try:
-                for deptask in task_deps["deptask"][task].split():
-                    self.db.add_task_deptask(task_id, deptask)
-            except KeyError, e:
-                pass
+            for deptask in self.data.getVarFlagSplit(task, "deptask"):
+                self.db.add_task_deptask(task_id, deptask)
 
-            try:
-                for rdeptask in task_deps["rdeptask"][task].split():
-                    self.db.add_task_rdeptask(task_id, rdeptask)
-            except KeyError, e:
-                pass
+            for rdeptask in self.data.getVarFlagSplit(task, "rdeptask"):
+                self.db.add_task_rdeptask(task_id, rdeptask)
 
-            try:
-                for recdeptask in task_deps["recdeptask"][task].split():
-                    self.db.add_task_recdeptask(task_id, recdeptask)
-            except KeyError, e:
-                pass
+            for recdeptask in self.data.getVarFlagSplit(task, "recdeptask"):
+                self.db.add_task_recdeptask(task_id, recdeptask)
 
-            try:
-                for recrdeptask in task_deps["recrdeptask"][task].split():
-                    self.db.add_task_recrdeptask(task_id, recrdeptask)
-            except KeyError, e:
-                pass
+            for recrdeptask in self.data.getVarFlagSplit(task, "recrdeptask"):
+                self.db.add_task_recrdeptask(task_id, recrdeptask)
 
-            try:
-                for recadeptask in task_deps["recadeptask"][task].split():
-                    self.db.add_task_recadeptask(task_id, recadeptask)
-            except KeyError, e:
-                pass
+            for recadeptask in self.data.getVarFlagSplit(task, "recadeptask"):
+                self.db.add_task_recadeptask(task_id, recadeptask)
 
-            try:
-                for depend in task_deps["depends"][task].split():
-                    depend_split = depend.split(":")
-                    if len(depend_split) != 2:
-                        err("invalid task 'depends' value "
-                            "(valid syntax is item:task): %s"%(depend))
-                    self.db.add_task_depend(task_id,
-                                            depend_item=depend_split[0],
-                                            depend_task=depend_split[1])
-            except KeyError, e:
-                pass
+            for depends in self.data.getVarFlagSplit(task, "depends"):
+                depends_split = depends.split(":")
+                if len(depends_split) != 2:
+                    err("invalid task 'depends' value "
+                        "(valid syntax is item:task): %s"%(depends))
+                self.db.add_task_depend(task_id,
+                                        depend_item=depends_split[0],
+                                        depend_task=depends_split[1])
 
-            try:
-                if task_deps["nostamp"][task]:
-                    self.db.set_task_nostamp(task_id)
-            except KeyError, e:
-                pass
-
+            if self.data.getVarFlag(task, "nostamp", 0):
+                self.db.set_task_nostamp(task_id)
 
         packages = data.getVar("PACKAGES", 1)
         if not packages:
@@ -132,8 +111,6 @@ class OEliteRecipe:
             rdepends = data.getVar("RDEPENDS_" + package, 1) or ""
             for ritem in rdepends.split():
                 self.db.add_package_rdepend(package_id, ritem)
-
-        #self.db.commit()
 
         self.id = recipe_id
 

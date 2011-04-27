@@ -2,7 +2,7 @@ PACKAGES =+ "${UTILS_AUTO_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""
 
-AUTO_PACKAGE_FUNCS += "auto_package_utils"
+addhook auto_package_utils to post_recipe_parse after base_after_parse before base_detect_machine_override fixup_package_arch fixup_provides
 
 def auto_package_utils (d):
     pn = d.getVar("PN", True)

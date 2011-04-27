@@ -7,7 +7,7 @@ AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
-AUTO_PACKAGE_FUNCS += "auto_package_libs"
+addhook auto_package_libs to post_recipe_parse after base_after_parse before base_detect_machine_override fixup_package_arch fixup_provides
 
 def auto_package_libs (d):
     pn = d.getVar("PN", True)

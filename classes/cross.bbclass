@@ -48,8 +48,7 @@ libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
 # Fixup PACKAGE_ARCH_* variables for sysroot packages
-FIXUP_PACKAGE_ARCH = cross_fixup_package_arch
-def cross_fixup_package_arch(d):
+def fixup_package_arch(d):
     arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
     if not arch[0] and arch[1]:
@@ -67,8 +66,7 @@ def cross_fixup_package_arch(d):
                 pkg_arch = 'cross/'+arch
             bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
 
-FIXUP_PROVIDES = cross_fixup_provides
-def cross_fixup_provides(d):
+def fixup_provides(d):
     pn = bb.data.getVar('PN', d, True) + '-'
     target_arch = bb.data.getVar('TARGET_ARCH', d, True) + '/'
     packages = bb.data.getVar('PACKAGES', d, True).split()

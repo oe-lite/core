@@ -143,7 +143,6 @@ python do_checkuri() {
         raise bb.build.FuncFailed("Unknown fetch Error: %s" % value)
 }
 
-
 do_checkuriall[recadeptask] = "do_checkuri"
 do_checkuriall[nostamp] = True
 do_checkuriall[func] = True
@@ -153,74 +152,6 @@ do_buildall[recadaptask] = "do_build"
 do_buildall[func] = True
 do_buildall = ""
 
-def subprocess_setup():
-    import signal
-    # Python installs a SIGPIPE handler by default. This is usually not what
-    # non-Python subprocesses expect.
-    # SIGPIPE errors are known issues with gzip/bash
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-
-
-addhandler base_eventhandler
-python base_eventhandler() {
-    from bb import note, error, data
-    from bb.event import Handled, NotHandled, getName
-
-    messages = {}
-    messages["Completed"] = "completed"
-    messages["Succeeded"] = "completed"
-    messages["Started"] = "started"
-    messages["Failed"] = "failed"
-
-    name = getName(e)
-    msg = ""
-    if name.startswith("Pkg"):
-        msg += "package %s: " % data.getVar("P", e.data, 1)
-        msg += messages.get(name[3:]) or name[3:]
-    elif name.startswith("Task"):
-        msg += "package %s: task %s: " % (data.getVar("PF", e.data, 1), e.task)
-        msg += messages.get(name[4:]) or name[4:]
-    elif name.startswith("Build"):
-        msg += "build %s: " % e.name
-        msg += messages.get(name[5:]) or name[5:]
-    elif name == "UnsatisfiedDep":
-        msg += "package %s: dependency %s %s" % (e.pkg, e.dep, name[:-3].lower())
-
-    # Only need to output when using 1.8 or lower, the UI code handles it
-    # otherwise
-    if (int(bb.__version__.split(".")[0]) <= 1 and int(bb.__version__.split(".")[1]) <= 8):
-        if msg:
-            note(msg)
-
-    if name.startswith("BuildStarted"):
-        bb.data.setVar( 'BB_VERSION', bb.__version__, e.data )
-        statusvars = ['BB_VERSION', 'MACHINE', 'MACHINE_CPU', 'MACHINE_OS', 'SDK_CPU', 'SDK_OS', 'DISTRO', 'DISTRO_VERSION']
-        statuslines = ["%-17s = \"%s\"" % (i, bb.data.getVar(i, e.data, 1) or '') for i in statusvars]
-        statusmsg = "\nOE Build Configuration:\n%s\n" % '\n'.join(statuslines)
-        print statusmsg
-
-        needed_vars = [ "MACHINE_CPU", "MACHINE_OS" ]
-        pesteruser = []
-        for v in needed_vars:
-            val = bb.data.getVar(v, e.data, 1)
-            if not val or val == 'INVALID':
-                pesteruser.append(v)
-        if pesteruser:
-            bb.fatal('The following variable(s) were not set: %s\nPlease set them directly, or choose a MACHINE or DISTRO that sets them.' % ', '.join(pesteruser))
-
-    if not data in e.__dict__:
-        #return NotHandled
-        return None
-
-    log = data.getVar("EVENTLOG", e.data, 1)
-    if log:
-        logfile = file(log, "a")
-        logfile.write("%s\n" % msg)
-        logfile.close()
-
-    #return NotHandled
-    return None
-}
 
 do_configure[dirs] = "${S} ${B}"
 base_do_configure() {
@@ -374,29 +305,8 @@ MACHINE[unexport] = "1"
 DISTRO[unexport] = "1"
 
 
-def srcuri_machine_override(d, srcuri):
-    import bb
-    import os
-
-    paths = []
-    # FIXME: this should use FILESPATHPKG
-    for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
-        path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
-        if os.path.isdir(path):
-            paths.append(path)
-    if len(paths) != 0:
-        for s in srcuri.split():
-            if not s.startswith("file://"):
-                continue
-            local = bb.data.expand(bb.fetch.localpath(s, d), d)
-            for mp in paths:
-                if local.startswith(mp):
-                    return True
-    return False
-
-
-FIXUP_PACKAGE_ARCH = base_fixup_package_arch
-def base_fixup_package_arch(d):
+addhook fixup_package_arch to post_recipe_parse first after base_after_parse
+def fixup_package_arch(d):
     arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
     arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
     # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
@@ -410,8 +320,8 @@ def base_fixup_package_arch(d):
             bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
 
 
-FIXUP_PROVIDES = base_fixup_provides
-def base_fixup_provides(d):
+addhook fixup_provides to post_recipe_parse first after base_after_parse
+def fixup_provides(d):
     for pkg in bb.data.getVar('PACKAGES', d, True).split():
         provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
         if not pkg in provides:
@@ -500,19 +410,9 @@ def base_after_parse(d):
     if rprovides:
         bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
-    # Run any auto package functions inherited (ie. auto-package-*.bbclass)
-    for func in (d.getVar('AUTO_PACKAGE_FUNCS', True) or '').split():
-        eval(func)(d)
 
-    # Fixup package PACKAGE_ARCH (recipe type dependant)
-    fixup_package_arch = bb.data.getVar('FIXUP_PACKAGE_ARCH', d, False)
-    if fixup_package_arch is not '':
-        eval(fixup_package_arch)(d)
-
-    # Fixup package PROVIDES and RPROVIDES (recipe type dependant)
-    fixup_provides = bb.data.getVar('FIXUP_PROVIDES', d, False)
-    if fixup_provides is not '':
-        eval(fixup_provides)(d)
+addhook base_detect_machine_override to post_recipe_parse first after base_after_parse
+def base_detect_machine_override(d):
 
     # RECIPE_ARCH override detection
     recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
@@ -522,8 +422,28 @@ def base_after_parse(d):
     # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
     override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
 
+    def srcuri_machine_override(d, srcuri):
+        import bb
+        import os
+    
+        paths = []
+        # FIXME: this should use FILESPATHPKG
+        for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
+            path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
+            if os.path.isdir(path):
+                paths.append(path)
+        if len(paths) != 0:
+            for s in srcuri.split():
+                if not s.startswith("file://"):
+                    continue
+                local = bb.data.expand(bb.fetch.localpath(s, d), d)
+                for mp in paths:
+                    if local.startswith(mp):
+                        return True
+        return False
+
     if (recipe_arch != recipe_arch_mach and override != '0' and
-        srcuri_machine_override(d, srcuri)):
+        srcuri_machine_override(d, d.getVar('SRC_URI'))):
         bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
                  (pn, recipe_arch, recipe_arch_mach))
         bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
@@ -587,6 +507,7 @@ def base_apply_recipe_options(d):
         bb.data.setVar('OVERRIDES', overrides, d)
     return
 
+
 def blacklist(d):
     import re
     blacklist_var = (d.getVar("BLACKLIST_VAR", True) or "").split()
@@ -604,13 +525,9 @@ def blacklist(d):
             d.delVar(var)
             continue
 
-python () {
-    base_after_parse(d)
-    base_apply_recipe_options(d)
-    blacklist(d)
-}
-
-EXPORT_FUNCTIONS do_configure do_compile do_install
+addhook base_after_parse to post_recipe_parse first
+addhook base_apply_recipe_options to post_recipe_parse first after base_after_parse
+addhook blacklist to post_recipe_parse first after base_apply_recipe_options
 
 REBUILDALL_SKIP[nohash] = True
 RELAXED[nohash] = True
