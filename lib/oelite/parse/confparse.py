@@ -2,7 +2,6 @@ import ply.lex
 import ply.yacc
 from oelite.parse import ParseError
 from oelite.parse.bbparse import BBParser
-from oelite.data.sqlite import SqliteData
 
 
 class StatementNotAllowedInConf(ParseError):

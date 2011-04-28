@@ -1,22 +1,23 @@
 import ply.lex
 
 __all__ = [
-    'expandparse', 'confparse', 'bbparse',
-    'ParseError', 'ExpandError',
-    'bblexer', 'expandlexer',
+#    'expandparse',
+    'confparse', 'bbparse',
+    'ParseError', #'ExpandError',
+    'bblexer', #'expandlexer',
     ]
 
 
 bblexer = None
-expandlexer = None
+#expandlexer = None
 
 def init():
     import oelite.parse.bblex
     global bblexer
     bblexer = ply.lex.lex(module=oelite.parse.bblex)
-    import oelite.parse.expandlex
-    global expandlexer
-    expandlexer = ply.lex.lex(module=oelite.parse.expandlex)
+    #import oelite.parse.expandlex
+    #global expandlexer
+    #expandlexer = ply.lex.lex(module=oelite.parse.expandlex)
     return
 
 

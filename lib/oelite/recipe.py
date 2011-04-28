@@ -47,32 +47,32 @@ class OEliteRecipe:
 
         task_deps = data.getVar("_task_deps", 0)
 
-        tasks = self.data.getVarsWithFlag("task")
+        tasks = self.data.get_vars(flag="task")
         for task in tasks:
             self.db.add_task(recipe_id, task)
 
         for task in tasks:
             task_id = self.db.get_task_id(recipe_id, task)
 
-            for parent in self.data.getVarFlagSplit(task, "deps"):
+            for parent in self.data.get_flag_list(task, "deps"):
                 self.db.add_task_parent(task_id, parent, recipe=recipe_id)
 
-            for deptask in self.data.getVarFlagSplit(task, "deptask"):
+            for deptask in self.data.get_flag_list(task, "deptask"):
                 self.db.add_task_deptask(task_id, deptask)
 
-            for rdeptask in self.data.getVarFlagSplit(task, "rdeptask"):
+            for rdeptask in self.data.get_flag_list(task, "rdeptask"):
                 self.db.add_task_rdeptask(task_id, rdeptask)
 
-            for recdeptask in self.data.getVarFlagSplit(task, "recdeptask"):
+            for recdeptask in self.data.get_flag_list(task, "recdeptask"):
                 self.db.add_task_recdeptask(task_id, recdeptask)
 
-            for recrdeptask in self.data.getVarFlagSplit(task, "recrdeptask"):
+            for recrdeptask in self.data.get_flag_list(task, "recrdeptask"):
                 self.db.add_task_recrdeptask(task_id, recrdeptask)
 
-            for recadeptask in self.data.getVarFlagSplit(task, "recadeptask"):
+            for recadeptask in self.data.get_flag_list(task, "recadeptask"):
                 self.db.add_task_recadeptask(task_id, recadeptask)
 
-            for depends in self.data.getVarFlagSplit(task, "depends"):
+            for depends in self.data.get_flag_list(task, "depends"):
                 depends_split = depends.split(":")
                 if len(depends_split) != 2:
                     err("invalid task 'depends' value "
@@ -119,7 +119,7 @@ class OEliteRecipe:
 
     def prepare(self, runq, task):
 
-        data = self.data.createCopy()
+        data = self.data.copy()
 
         buildhash = self.db.get_runq_task_buildhash(task)
         debug("buildhash=%s"%(repr(buildhash)))
@@ -177,7 +177,7 @@ class OEliteRecipe:
 
 
     def datahash(self):
-        import bb.data
+        #import bb.data
         import hashlib
 
         if self._datahash:

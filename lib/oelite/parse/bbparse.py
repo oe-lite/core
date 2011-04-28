@@ -3,7 +3,7 @@ import os
 import string
 import bb.utils
 import oelite.parse
-from oelite.data.sqlite import SqliteData
+import oelite.data
 from oelite.parse import ParseError, ExpandError
 from oelite.parse.bblex import tokens
 
@@ -17,7 +17,7 @@ class BBParser(object):
         if data is not None:
             self.data = data
         else:
-            self.data = SqliteData()
+            self.data = oelite.data.Data()
         self.parent = parent
         return
 
@@ -469,5 +469,5 @@ class BBParser(object):
 
 
     def yacctest(self, s):
-        self.data = SqliteData()
+        self.data = oelite.data.Data()
         return self._parse(s)

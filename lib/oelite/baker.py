@@ -78,7 +78,7 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
 
-        self.config = config.createCopy()
+        self.config = config.copy()
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
         self.import_env()
         self.config.pythonfunc_init()
@@ -568,12 +568,12 @@ class OEliteBaker:
     def parse_recipe(self, recipe):
         path = os.path.abspath(recipe)
         recipe = {}
-        self.bbparser.setData(self.config.createCopy())
+        self.bbparser.setData(self.config.copy())
         base_recipe = self.bbparser.parse(path)
         recipe[""] = base_recipe
         extends = recipe[""].getVar("BBCLASSEXTEND") or ""
         for extend in extends.split():
-            data = base_recipe.createCopy()
+            data = base_recipe.copy()
             self.bbparser.setData(data)
             print >>sys.stderr, "parsing extend=%s"%(extend)
             recipe[extend] = self.bbparser.parse("classes/%s.bbclass"%(extend))
