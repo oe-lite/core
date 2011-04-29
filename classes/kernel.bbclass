@@ -43,6 +43,10 @@ do_configure () {
 #addtask menuconfig after do_patch
 
 kernel_do_compile () {
+    if [ -n "${BUILD_TAG}" ]; then
+        export KBUILD_BUILD_VERSION="${BUILD_TAG}"
+    fi
+
     oe_runmake include/linux/version.h
     oe_runmake ${RECIPE_OPTION_kernel_imagetype}
 
