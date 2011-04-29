@@ -180,6 +180,7 @@ FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
     ${bootdir}/config"
 FILES_${PN}-headers = "${includedir}"
 FILES_${PN}-modules = "/lib/modules"
+PROVIDES_${PN} = "kernel"
 
 # FIXME: implement auto-package-kernel-modules.bbclass to split out
 # modules into separate packages
