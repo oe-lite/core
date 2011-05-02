@@ -1050,11 +1050,19 @@ class OEliteDB:
                 "FROM"
                 "  runq_task "
                 "WHERE"
-                "  build=1 AND status IS NULL AND NOT EXISTS"
-                "  (SELECT * FROM runq_depend"
-                "   WHERE runq_depend.task=runq_task.task"
-                "   AND runq_depend.parent_task IS NOT NULL"
-                "   LIMIT 1)"))
+                "  build=1 AND status IS NULL "
+                "  AND ("
+                "    NOT EXISTS"
+                "    (SELECT * FROM runq_depend, runq_task AS parent_task"
+                "     WHERE runq_depend.task=runq_task.task"
+                "     AND runq_depend.parent_task IS NOT NULL"
+                "     LIMIT 1)"
+                "    OR NOT EXISTS"
+                "    (SELECT * FROM runq_depend, runq_task AS parent_task"
+                "     WHERE runq_depend.task=runq_task.task"
+                "     AND runq_depend.parent_task=parent_task.task"
+                "     AND parent_task.build IS NOT NULL"
+                "     LIMIT 1))"))
 
 
     def get_metahashable_tasks(self):
