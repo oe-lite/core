@@ -4,6 +4,7 @@ import bb.utils
 import oelite.pyexec
 from oelite.parse import ExpandError
 from oelite.parse.expandlex import tokens
+import oelite.data
 
 class ExpandParser(object):
 
@@ -121,8 +122,7 @@ class ExpandParser(object):
 
 
     def yacctest(self, s):
-        from oelite.data.sqlite import SqliteData as Data
-        self.data = Data()
+        self.data = oelite.data.Data()
         self.parse(s)
         return self.data
 

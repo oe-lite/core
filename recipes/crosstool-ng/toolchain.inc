@@ -146,7 +146,7 @@ AUTO_LIB_PACKAGES = "\
 "
 
 addhook toolchain_auto_package to post_recipe_parse after base_after_parse before base_detect_machine_override
-def toolchain_auto_packages_func ():
+def toolchain_auto_package (d):
     pn = d.getVar("PN", True)
     auto_lib_packages = d.getVar("AUTO_LIB_PACKAGES", False).split()
     lib_packages = []

@@ -32,6 +32,9 @@ class ExpansionStack:
     def pop(self):
         del self.stack[-1:]
         return
+
+
+pythonfunc_code_cache = {}
     
 
 class Data(MutableMapping):
@@ -115,7 +118,7 @@ class Data(MutableMapping):
 
 
     def __delitem__(self, key): # required by MutableMapping
-        print "del %s"%(key)
+        #print "del %s"%(key)
         var_id = self.var_id(key)
         self.dbc.execute(
             "DELETE FROM var_val WHERE var_val.var=:var_id", locals())
@@ -234,8 +237,7 @@ class Data(MutableMapping):
 
 
     def set_flag(self, var, flag, val):
-        if var == "arch_update":
-            print "set_flag %s[%s]=%s"%(var, flag, val)
+        #print "set_flag %s[%s]=%s"%(var, flag, val)
         var_id = self.var_id(var)
         self.dbc.execute(
             "INSERT INTO var_flag (var, flag, val) "
@@ -313,6 +315,17 @@ class Data(MutableMapping):
                 "SELECT name FROM var"))
 
 
+    def get_flags(self, var):
+        flags = {}
+        for (flag, val) in self.dbc.execute(
+            "SELECT var_flag.flag,var_flag.val "
+            "FROM var,var_flag "
+            "WHERE var.name=:var AND var_flag.var=var.id",
+            locals()):
+            flags[flag] = val
+        return flags
+
+
     def pythonfunc_init(self):
         self.pythonfunc_cache = {}
         imports = (self.get("OE_IMPORTS", expand=0) or "")
@@ -370,15 +383,15 @@ class Data(MutableMapping):
 
 
     def get_pythonfunc_code(self, var):
-        # FIXME: implement code/compile cache here
-        is_python = self.get_flag(var, "python")
-        if not is_python:
+        if not self.get_flag(var, "python"):
             raise Exception("%s is not a python function"%(var))
         args = self.get_flag(var, "args") or ""
         body = self.get(var, expand=0)
         if not body or body.strip() == "":
             body = "    pass"
         source = "def %s(%s):\n%s\n"%(var, args, body)
+        if source in pythonfunc_code_cache:
+            return pythonfunc_code_cache[source]
         try:
             code = codeop.compile_command(source, "<%s>"%(var))
         except SyntaxError, e:
@@ -388,6 +401,7 @@ class Data(MutableMapping):
             raise
         if not code:
             raise Exception("%s is not valid Python code"%(var))
+        pythonfunc_code_cache[source] = code
         return code
 
 
@@ -483,7 +497,7 @@ class Data(MutableMapping):
         EXPAND_PARTIAL -- partial, allow unknown variables to remain unexpanded
         EXPAND_CLEAN -- clean, expand unknown variables to empty string
         """
-        print "expand method=%s string=%s"%(method, repr(string))
+        #print "expand method=%s string=%s"%(method, repr(string))
         (new_string, deps) = self._expand(string, method)
         return new_string
 

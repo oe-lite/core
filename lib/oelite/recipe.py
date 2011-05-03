@@ -14,8 +14,8 @@ class OEliteRecipe:
         self._srchash = "FOOBAR"
         self._hash = None
 
+        self.post_recipe_parse()
 
-        oelite.pyexec.exechooks(self.data, "post_recipe_parse")
         name = data.getVar("PN", 1)
         if not name:
             raise InvalidRecipe("no PN in %s:%s"%(
@@ -115,6 +115,10 @@ class OEliteRecipe:
         self.id = recipe_id
 
         return
+
+
+    def post_recipe_parse(self):
+        oelite.pyexec.exechooks(self.data, "post_recipe_parse")
 
 
     def prepare(self, runq, task):

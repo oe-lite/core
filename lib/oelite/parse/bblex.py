@@ -178,7 +178,7 @@ def t_include_NEWLINE(t):
 t_inherit_ignore = ' \t'
 
 def t_inherit_INHERITCLASS(t):
-    r'[a-zA-Z0-9\-_\+]+'
+    r'\S+'
     return t
 
 def t_inherit_NEWLINE(t):

@@ -669,7 +669,7 @@ def exec_func(func, data):
     if not body:
         return True
 
-    flags = data.getVarFlags(func)
+    flags = data.get_flags(func)
     for item in ['deps', 'check', 'interactive', 'python', 'fakeroot',
                  'cleandirs', 'dirs']:
         if not item in flags:
