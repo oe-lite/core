@@ -16,8 +16,8 @@ LDFLAGS[unexport]  = "1"
 
 do_configure () {
     if [ ! -z "${RECIPE_OPTION_uboot_extra_env}" ]; then
-      sed -i -e '/\#define CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/[^\]$/& \\/' include/configs/${RECIPE_OPTION_uboot_config_file}
-      sed -i -e '/\#define CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/^$/& ${RECIPE_OPTION_uboot_extra_env} \n/' include/configs/${RECIPE_OPTION_uboot_config_file}
+      sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/[^\]$/& \\/' include/configs/${RECIPE_OPTION_uboot_config_file}
+      sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/^$/& ${RECIPE_OPTION_uboot_extra_env} \n/' include/configs/${RECIPE_OPTION_uboot_config_file}
     fi
     oe_runmake ${RECIPE_OPTION_uboot_config}
 }
