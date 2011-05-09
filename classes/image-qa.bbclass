@@ -12,8 +12,8 @@ IMAGE_QA_TARGET_READELF_recipe-cross ?= ""
 IMAGE_QA_TARGET_READELF_recipe-machine ?= ""
 IMAGE_QA_TARGET_READELF_recipe-sdk-cross ?= ""
 IMAGE_QA_TARGET_READELF_recipe-sdk ?= ""
-IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "${TARGET_ARCH}/sys-root${target_base_sbindir} ${TARGET_ARCH}/sys-root${target_base_bindir} ${TARGET_ARCH}/sys-root${target_sbindir} ${TARGET_ARCH}/sys-root${target_bindir} ${TARGET_ARCH}/sys-root${target_base_libdir} ${TARGET_ARCH}/sys-root${target_libdir}"
-IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "${IMAGE_DIR}/${TARGET_ARCH}/sys-root${target_base_libdir} ${IMAGE_DIR}/${TARGET_ARCH}/sys-root${target_libdir}"
+IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "${TARGET_ARCH}/sysroot${target_base_sbindir} ${TARGET_ARCH}/sysroot${target_base_bindir} ${TARGET_ARCH}/sysroot${target_sbindir} ${TARGET_ARCH}/sysroot${target_bindir} ${TARGET_ARCH}/sysroot${target_base_libdir} ${TARGET_ARCH}/sysroot${target_libdir}"
+IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_base_libdir} ${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_libdir}"
 
 python do_image_qa () {
     import os, magic, re
