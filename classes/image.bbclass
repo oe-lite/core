@@ -73,7 +73,7 @@ python do_rstage () {
         subdir = d.getVar("PKGSUBDIR_%s"%rdep, False)
         if (bb.data.inherits_class("canadian-cross", d) and
             subdir.startswith("target/")):
-            subdir = os.path.join(target_arch, "sys-root")
+            subdir = os.path.join(target_arch, "sysroot")
         else:
             subdir = ""
 
