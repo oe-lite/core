@@ -4,7 +4,7 @@ DEFAULT_CONFIG_toolchain_cc			= "gcc"
 DEFAULT_CONFIG_toolchain_cc_version		= "${GCC_VERSION}"
 
 DEFAULT_CONFIG_toolchain_libc			= "glibc"
-DEFAULT_CONFIG_toolchain_libc_version		= "2.9"
+DEFAULT_CONFIG_toolchain_libc_version		= "2.12.2"
 
 DEFAULT_CONFIG_toolchain_libc_linux-uclibc	= "uclibc"
 #DEFAULT_CONFIG_toolchain_libc_version_linux-uclibc = ???
