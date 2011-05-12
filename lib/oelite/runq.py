@@ -507,7 +507,7 @@ class OEliteRunQueue:
                 "PREFERRED_VERSION_" + preferred_provider, 1) or None
             if preferred_version:
                 providers = self_db_get_providers(
-                    item, prefferred_provider, preferred_version)
+                    item, preferred_provider, preferred_version)
                 if len(providers) == 1:
                     self_db_set_runq_provider(item, providers[0][0])
                     return providers[0][0]
