@@ -1,5 +1,6 @@
 DESCRIPTION ?= "Sanitized Linux kernel headers"
 LICENSE ?= "GPL"
+require conf/kernel.conf
 
 DEFAULT_DEPENDS = ""
 
