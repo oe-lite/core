@@ -160,6 +160,14 @@ kernel_do_install () {
 
     install -d ${D}/kernel
     cp -fR scripts ${D}/kernel/
+    cp -fR include ${D}/kernel/
+    cp -fR Makefile ${D}/kernel
+    cp -fR .config ${D}/kernel
+    mkdir -p ${D}/kernel/arch/${KERNEL_ARCH}
+    cp -fR arch/${KERNEL_ARCH}/lib ${D}/kernel/arch/${KERNEL_ARCH}
+    cp -fR arch/${KERNEL_ARCH}/include ${D}/kernel/arch/${KERNEL_ARCH}
+    cp -fR arch/${KERNEL_ARCH}/Makefile ${D}/kernel/arch/${KERNEL_ARCH}
+    
 
     install_kernel_headers
 }
@@ -175,7 +183,7 @@ do_install () {
     kernel_do_install
 }
 
-PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb"
+PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-kernel-headers"
 
 FILES_${PN} = "${bootdir}/${KERNEL_IMAGE_FILENAME}"
 FILES_${PN}-dtb = "${bootdir}/${KERNEL_DEVICETREE_FILENAME}"
@@ -184,6 +192,7 @@ FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
     ${bootdir}/config"
 FILES_${PN}-headers = "${includedir}"
 FILES_${PN}-modules = "/lib/modules"
+FILES_${PN}-kernel-headers = "kernel"
 PROVIDES_${PN} = "kernel"
 
 # FIXME: implement auto-package-kernel-modules.bbclass to split out
