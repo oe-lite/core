@@ -20,16 +20,17 @@ do_install_append () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
 }
 
-RSTAGE_FIXUP_FUNCS += "dupdate_uimage_move"
 RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_version += "dupdate_version"
 RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_script += "dupdate_script_symlink"
 
-dupdate_uimage_move () {
-	pwd
-	mv boot/uImage .
-	rmdir boot
+RSTAGE_FIXUP_FUNCS += "dupdate_flatten_bootdir"
+dupdate_flatten_bootdir () {
+    if [ -d boot ]; then
+	  mv boot/* .
+	  rmdir boot
+    fi
 }
-dupdate_uimage_move[dirs] = "${IMAGE_STAGE}"
+dupdate_flatten_bootdir[dirs] = "${IMAGE_STAGE}"
 
 dupdate_version () {
 	echo "${RECIPE_OPTION_dupdate_version}" > VERSION
