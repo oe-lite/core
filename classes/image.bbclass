@@ -1,4 +1,4 @@
-addtask rstage before do_compile
+addtask rstage after do_patch before do_compile
 addtask deploy after do_fixup before do_build
 
 IMAGE_BASENAME ?= "${PN}"
