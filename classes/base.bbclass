@@ -535,7 +535,7 @@ def base_after_parse(d):
 
     if (recipe_arch != recipe_arch_mach and override != '0' and
         srcuri_machine_override(d, srcuri)):
-        bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
+        bb.debug(1,"%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
                  (pn, recipe_arch, recipe_arch_mach))
         bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
         recipe_arch = recipe_arch_mach
