@@ -460,13 +460,11 @@ class OEliteRunQueue:
                     preferred_versions[providers[i][1]] = preferred_version
                 else:
                     preferred_version = preferred_versions[providers[i][1]]
-                print "i=%d preferred_version=%s provider=%s"%(i, preferred_version, providers[i])
-                if preferred_version != providers[i][2]:
+                if preferred_version and preferred_version != providers[i][2]:
                     filter_out.append(i)
-            print "preferred_versions = %s"%(preferred_versions)
             for i in reversed(filter_out):
-                print "dropping non preferred version: %s %s"%(
-                    providers[i][1], providers[i][2])
+                #print "dropping non preferred version: %s %s"%(
+                #    providers[i][1], providers[i][2])
                 del providers[i]
 
             # filter out all but the highest priority providers
