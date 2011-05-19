@@ -21,7 +21,7 @@ do_install_append () {
 }
 
 RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_version += "dupdate_version"
-RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_script += "dupdate_script_symlink"
+RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_script += "dupdate_script"
 
 RSTAGE_FIXUP_FUNCS += "dupdate_flatten_bootdir"
 dupdate_flatten_bootdir () {
@@ -37,13 +37,13 @@ dupdate_version () {
 }
 dupdate_version[dirs] = "${IMAGE_STAGE}"
 
-dupdate_script_symlink () {
+dupdate_script () {
 	script="${RECIPE_OPTION_dupdate_script}"
 	if [ "$script" != "run_update.sh" ] ; then
-		ln -s $script run_update.sh
+		mv $script run_update.sh
 	fi
 }
-dupdate_script_symlink[dirs] = "${IMAGE_STAGE}"
+dupdate_script[dirs] = "${IMAGE_STAGE}"
 
 do_deploy_append () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} \
