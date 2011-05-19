@@ -27,15 +27,11 @@ do_compile () {
 }
 
 # Support checking the u-boot image size
-addtask sizecheck before do_install after do_compile
-do_sizecheck () {
-}
-do_sizecheck_append_RECIPE_OPTION_uboot_maxsize () {
-    size=`ls -l ${UBOOT_IMAGE} | awk '{ print $5}'`
-    if [ "$size" -ge "${RECIPE_OPTION_uboot_maxsize}" ]; then
-	die  "The U-Boot image (size=$size > ${RECIPE_OPTION_uboot_maxsize}) is too big."
-    fi
-}
+inherit sizecheck
+UBOOT_SIZECHECK = ""
+UBOOT_SIZECHECK_append_RECIPE_OPTION_uboot_maxsize = "${UBOOT_IMAGE}:${RECIPE_OPTION_uboot_maxsize}"
+SIZECHECK += "${UBOOT_SIZECHECK}"
+
 do_install () {
     install -d ${D}${bootdir}
     install -m 0644 ${UBOOT_IMAGE} ${D}${bootdir}

@@ -201,16 +201,10 @@ PROVIDES_${PN} = "kernel"
 # Support checking the kernel size since some kernels need to reside
 # in partitions with a fixed length or there is a limit in
 # transferring the kernel to memory
-addtask sizecheck before do_install after do_compile
-do_sizecheck () {
-}
-do_sizecheck_append_RECIPE_OPTION_kernel_maxsize () {
-    size=`ls -l ${KERNEL_IMAGE} | awk '{ print $5}'`
-    if [ "$size" -ge "${RECIPE_OPTION_kernel_maxsize}" ]; then
-	die  "This kernel (size=$size > ${RECIPE_OPTION_kernel_maxsize}) is too big for your device. Please reduce the size of the kernel, fx. by making more of it modular."
-    fi
-}
-
+inherit sizecheck
+KERNEL_SIZECHECK = ""
+KERNEL_SIZECHECK_append_RECIPE_OPTION_kernel_maxsize = "${KERNEL_IMAGE}:${RECIPE_OPTION_kernel_maxsize}"
+SIZECHECK += "${KERNEL_SIZECHECK}"
 
 addtask deploy after do_fixup before do_build
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
