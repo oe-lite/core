@@ -1,5 +1,3 @@
-#RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
-
 require conf/u-boot.conf
 
 inherit kernel-arch
