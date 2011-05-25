@@ -83,6 +83,12 @@ CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_OPTIMIZATION', 1).s
 # Depend on the right version of the ct-ng tool
 DEPENDS = "crosstool-ng-native-${PV}"
 
+RECIPE_OPTIONS += "extra_toolchain_patch"
+EXTRA_TOOLCHAIN_DEPENDS = ""
+EXTRA_TOOLCHAIN_DEPENDS_append_RECIPE_OPTION_extra_toolchain_patch = "${RECIPE_OPTION_extra_toolchain_patch}"
+DEPENDS_append_recipe-machine = "${EXTRA_TOOLCHAIN_DEPENDS}"
+DEPENDS_append_recipe-canadian-cross = "${EXTRA_TOOLCHAIN_DEPENDS}"
+
 S = "${WORKDIR}/build"
 B = "${S}"
 
