@@ -2,7 +2,7 @@ DESCRIPTION = "A set of functions for use by applications that allow users to ed
 HOMEPAGE = "http://www.gnu.org/software/readline/"
 LICENSE = "GPLv2"
 
-BBCLASSEXTEND = "native sdk"
+RECIPE_TYPES = "machine native sdk"
 
 SRC_URI = "ftp://ftp.gnu.org/gnu/readline/readline-${PV}.tar.gz"
 

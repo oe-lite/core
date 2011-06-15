@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 inherit arch
 inherit utils
 inherit stage
@@ -30,13 +32,7 @@ do_build[func] = "1"
 RECIPE_TYPE = "machine"
 RE = ""
 
-
-# FIXME: this should be moved to a c.bbclass, renamed to C_DEPENDS and
-# added to CLASS_DEPENDS.
-DEFAULT_DEPENDS = "${HOST_ARCH}/toolchain"
-CLASS_DEPENDS = "${DEFAULT_DEPENDS}"
-DEPENDS_prepend = "${CLASS_DEPENDS} "
-
+CLASS_DEPENDS = ""
 
 #
 # Import standard Python modules as well as custom OE modules
@@ -77,6 +73,7 @@ oedebug() {
         echo "DEBUG:" $*
     }
 }
+oedebug[expand] = "0"
 
 
 oe_runmake() {
@@ -209,6 +206,7 @@ python install_strip () {
 }
 install_strip[dirs] = "${D}"
 
+
 def runstrip(file, d):
     # Function to strip a single file, called from populate_packages below
     # A working 'file' (one which works on the target architecture)
@@ -331,19 +329,10 @@ def fixup_provides(d):
                              ' ' + pkg)
             else:
                 d.setVar('PROVIDES_'+pkg, pkg)
-        rprovides = (bb.data.getVar('RPROVIDES_'+pkg, d, True) or '').split()
-        if not pkg in rprovides:
-            #bb.data.setVar('RPROVIDES_'+pkg, ' '.join([pkg] + rprovides), d)
-            if rprovides:
-                d.setVar('RPROVIDES_'+pkg, d.getVar('RPROVIDES_'+pkg, False) + \
-                             ' ' + pkg)
-            else:
-                d.setVar('RPROVIDES_'+pkg, pkg)
 
 
+addhook base_after_parse to post_recipe_parse first
 def base_after_parse(d):
-    import bb
-
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
 
     if not source_mirror_fetch:
@@ -416,7 +405,7 @@ def base_detect_machine_override(d):
 
     # RECIPE_ARCH override detection
     recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
-    recipe_arch_mach = bb.data.getVar('RECIPE_ARCH_MACHINE', d, 1)
+    recipe_arch_mach = d.get('RECIPE_ARCH_MACHINE', 3)
 
     # Scan SRC_URI for urls with machine overrides unless the package
     # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
@@ -425,10 +414,14 @@ def base_detect_machine_override(d):
     def srcuri_machine_override(d, srcuri):
         import bb
         import os
-    
+
+        machine = d.get("MACHINE")
+        if not machine:
+            return False
         paths = []
         # FIXME: this should use FILESPATHPKG
-        for p in [ "${PF}", "${P}", "${PN}", "files", "" ]:
+        #for p in [ "${P}", "${PN}", "files", "" ]:
+        for p in d.get("FILESPATHPKG").split(":"):
             path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
             if os.path.isdir(path):
                 paths.append(path)
@@ -462,72 +455,52 @@ def base_detect_machine_override(d):
                 bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
             break
 
-#
-# RECIPE_OPTIONS are to be defined in recipes, and should be a
-# space-separated list of lower-case options, preferably prefixed with
-# the recipe name (in lower-case).
-#
-# Distro configuration files can then define these as needed, and set
-# them to the desired values, enabling distro customization of recipes
-# without the need to include anything about the distros in the
-# meta-data repository holding the repository.
-#
-def base_apply_recipe_options(d):
-    import bb
-    recipe_options = (bb.data.getVar('RECIPE_OPTIONS', d, 1) or "")
-    if not recipe_options:
-        return
-    recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
-    recipe_arch_mach = bb.data.getVar('RECIPE_ARCH_MACHINE', d, 1)
-    overrides = (bb.data.getVar('OVERRIDES', d, 1) or "")
-    overrides_changed = False
-    for option in recipe_options.split():
-        recipe_val = bb.data.getVar('RECIPE_CONFIG_'+option, d, 1)
-        local_val = bb.data.getVar('LOCAL_CONFIG_'+option, d, 1)
-        machine_val = bb.data.getVar('MACHINE_CONFIG_'+option, d, 1)
-        distro_val = bb.data.getVar('DISTRO_CONFIG_'+option, d, 1)
-        default_val = bb.data.getVar('DEFAULT_CONFIG_'+option, d, 1)
-        if recipe_val:
-            val = recipe_val
-        elif local_val:
-            val = local_val
-        elif machine_val:
-            if recipe_arch != recipe_arch_mach:
-                bb.data.setVar('RECIPE_ARCH', '${RECIPE_ARCH_MACHINE}', d)
-            val = machine_val
-        elif distro_val:
-            val = distro_val
-        else:
-            val = default_val
-        if val and val != "0":
-            bb.data.setVar('RECIPE_OPTION_'+option, val, d)
-            overrides += ':RECIPE_OPTION_'+option
-            overrides_changed = True
-    if overrides_changed:
-        bb.data.setVar('OVERRIDES', overrides, d)
-    return
-
-
+addhook blacklist to post_recipe_parse first after base_apply_recipe_options
 def blacklist(d):
     import re
     blacklist_var = (d.getVar("BLACKLIST_VAR", True) or "").split()
     blacklist_prefix = (d.getVar("BLACKLIST_PREFIX", True) or "").split()
+    blacklist = "$|".join(blacklist_var) + "$"
     if blacklist_prefix:
-        blacklist_prefix = re.compile("(%s)"%("|".join(blacklist_prefix)))
+        blacklist += "|" + "|".join(blacklist_prefix)
+    if not blacklist:
+        return
+    sre = re.compile(blacklist)
     for var in d.keys():
-        if var in blacklist_var:
+        if sre.match(var):
             d.delVar(var)
-            continue
-        if re.match("(RECIPE|LOCAL|MACHINE|DISTRO|DEFAULT)_CONFIG_", var):
-            d.delVar(var)
-            continue
-        if blacklist_prefix and re.match(blacklist_prefix, var):
-            d.delVar(var)
-            continue
 
-addhook base_after_parse to post_recipe_parse first
-addhook base_apply_recipe_options to post_recipe_parse first after base_after_parse
-addhook blacklist to post_recipe_parse first after base_apply_recipe_options
+inherit useflags
+inherit sanity
+
+addhook core_varname_expansion to post_recipe_parse first
+def core_varname_expansion(d):
+    for varname in d.keys():
+        try:
+            expanded_varname = d.expand(varname)
+        except oelite.meta.ExpansionError as e:
+            print "Unable to expand variable name:", varname
+            e.print_details()
+            raise Exception(42)
+        if expanded_varname != varname:
+            #print "foobar %s != %s"%(expanded_varname, varname)
+            flags = d.get_flags(varname, prune_var_value=False)
+            #print "flags =",flags
+            for flag in flags:
+                if flag == "__overrides":
+                    overrides = flags[flag]
+                    old_overrides = d.get_flag(expanded_varname, flag)
+                    if not old_overrides:
+                        d.set_flag(expanded_varname, flag, overrides)
+                        continue
+                    for type in overrides:
+                        for override_name in overrides[type]:
+                            old_overrides[type][override_name] = \
+                                overrides[type][override_name]
+                    d.set_flag(expanded_varname, flag, old_overrides)
+                    continue
+                d.set_flag(expanded_varname, flag, flags[flag])
+            del d[varname]
 
 REBUILDALL_SKIP[nohash] = True
 RELAXED[nohash] = True

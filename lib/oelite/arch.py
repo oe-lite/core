@@ -1,7 +1,7 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
 import os
-import bb
+#import bb
 
 # Handle all the arhicture related variables.
 
@@ -317,6 +317,7 @@ def init(d):
     arch_set_build_arch(d, gcc_version)
     arch_set_cross_arch(d, 'MACHINE', gcc_version)
     arch_set_cross_arch(d, 'SDK', gcc_version)
+    return
 
 
 def update(d):
@@ -331,12 +332,12 @@ def arch_set_build_arch(d, gcc_version):
     try:
         guess = globals()['config_guess_cache']
     except KeyError:
-        bb.debug(1, "config.guess")
+        #bb.debug(1, "config.guess")
         script = arch_find_script(d, 'config.guess')
         try:
             guess = arch_split(os.popen(script).readline().strip())
         except OSError, e:
-            bb.fatal('config.guess failed: '+e)
+            #bb.fatal('config.guess failed: '+e)
             return None
         config_guess_cache = guess
         globals()['config_guess_cache'] = config_guess_cache
@@ -346,31 +347,31 @@ def arch_set_build_arch(d, gcc_version):
         if guess[1] == 'pc':
             guess[1] = 'unknown'
 
-    bb.data.setVar('BUILD_ARCH', '-'.join(guess), d)
+    d.set('BUILD_ARCH', '-'.join(guess))
     return
 
 
 def arch_set_cross_arch(d, prefix, gcc_version):
-    cross_arch = '%s-%s'%(bb.data.getVar(prefix+'_CPU', d, True),
-                          bb.data.getVar(prefix+'_OS', d, True))
+    cross_arch = '%s-%s'%(d.get(prefix+'_CPU', True),
+                          d.get(prefix+'_OS', True))
     cross_arch = arch_config_sub(d, cross_arch)
     cross_arch = arch_fixup(cross_arch, gcc_version)
-    bb.data.setVar(prefix+'_ARCH', cross_arch, d)
+    d[prefix+'_ARCH'] = cross_arch
     return
 
 
 def arch_update(d, prefix, gcc_version):
-    arch = bb.data.getVar(prefix+'_ARCH', d, True)
+    arch = d.get(prefix+'_ARCH', True)
     gccspec = arch_gccspec(arch, gcc_version)
     (cpu, vendor, os) = arch_split(arch)
-    bb.data.setVar(prefix+'_CPU', cpu, d)
-    bb.data.setVar(prefix+'_VENDOR', vendor, d)
-    bb.data.setVar(prefix+'_OS', os, d)
+    d[prefix+'_CPU'] = cpu
+    d[prefix+'_VENDOR'] = vendor
+    d[prefix+'_OS'] = os
     ost = os.split('-',1)
     if len(ost) > 1:
-        bb.data.setVar(prefix+'_BASEOS', ost[0], d)
+        d[prefix+'_BASEOS'] = ost[0]
     for spec in gccspec:
-        bb.data.setVar(prefix+'_'+spec.upper(), gccspec[spec], d)
+        d[prefix+'_'+spec.upper()] = gccspec[spec]
     return
 
 
@@ -444,7 +445,8 @@ def arch_gccspec(arch, gcc):
                 gccspec['mtune'] = '603e'
 
     except KeyError, e:
-        bb.debug(1, 'KeyError in arch_gccspec: ')
+        #bb.debug(1, 'KeyError in arch_gccspec: ')
+        pass
 
     gccspecs[gcc][arch] = gccspec
     return gccspec
@@ -463,7 +465,7 @@ def arch_config_sub(d, arch):
     except KeyError:
         script = arch_find_script(d, 'config.sub')
         try:
-            bb.debug(1, "config.sub")
+            #bb.debug(1, "config.sub")
             canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
             config_sub_cache[arch] = canonical_arch
         except OSError, e:
@@ -489,10 +491,10 @@ def arch_find_script(d, filename):
         scripts = {}
         globals()['arch_scripts'] = scripts
     if not filename in scripts:
-        for bbpath in bb.data.getVar('BBPATH', d, 1).split(':'):
+        for bbpath in d.get('BBPATH', 1).split(':'):
             filepath = os.path.join(bbpath, 'scripts', filename)
             if os.path.isfile(filepath):
-                bb.debug(1, 'found %s: %s'%(filename, filepath))
+                #bb.debug(1, 'found %s: %s'%(filename, filepath))
                 scripts[filename] = filepath
                 break
         if not filename in scripts:

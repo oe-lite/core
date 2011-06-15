@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 B = "${WORKDIR}/build"
 do_configure[cleandirs] = "${B}"
 

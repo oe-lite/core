@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 PACKAGES =+ "${UTILS_AUTO_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""

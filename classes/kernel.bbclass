@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 #RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
 
 require conf/kernel.conf
@@ -6,9 +8,11 @@ inherit kernel-common kernel-modules-strip
 
 EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
 
-RECIPE_OPTIONS += "kernel_defconfig"
+CLASS_FLAGS += "kernel_defconfig"
 DEFCONFIG_FILE ?= "${SRCDIR}/defconfig"
-DEFCONFIG = "${@d.getVar('RECIPE_OPTION_kernel_defconfig', 1) or ''}"
+#DEFCONFIG = "${@d.getVar('RECIPE_OPTION_kernel_defconfig', 1) or ''}"
+DEFCONFIG = "${USE_kernel_defconfig}"
+DEFCONFIG[expand] = 3
 
 kernel_do_configure () {
     if [ -e "${DEFCONFIG_FILE}" ]; then
@@ -41,7 +45,7 @@ do_configure () {
 
 kernel_do_compile () {
     oe_runmake include/linux/version.h
-    oe_runmake ${RECIPE_OPTION_kernel_imagetype}
+    oe_runmake ${USE_kernel_imagetype}
 
     if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
 	oe_runmake modules
@@ -59,32 +63,31 @@ do_compile () {
     kernel_do_compile
 }
 
-KERNEL_UIMAGE_DEPENDS = "${@['', 'u-boot-mkimage-native']['${RECIPE_OPTION_kernel_imagetype}' == 'uImage']}"
 DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
+KERNEL_UIMAGE_DEPENDS = "${@['', 'u-boot-mkimage-native']['${USE_kernel_imagetype}' == 'uImage']}"
 
-RECIPE_OPTIONS += "kernel_uimage \
+CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
-KERNEL_UIMAGE_DEPENDS_RECIPE_OPTION_kernel_uimage = "u-boot-mkimage-native"
-DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
-DEFAULT_CONFIG_kernel_uimage = "0"
-DEFAULT_CONFIG_kernel_uimage_entrypoint = "20008000"
-DEFAULT_CONFIG_kernel_uimage_loadaddress = "${RECIPE_OPTION_kernel_image_entrypoint}"
-DEFAULT_CONFIG_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
+KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "u-boot-mkimage-native"
+DEFAULT_USE_kernel_uimage = "0"
+DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
+DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_image_entrypoint}"
+DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
-    ENTRYPOINT=${RECIPE_OPTION_kernel_uimage_entrypoint}
+    ENTRYPOINT=${USE_kernel_uimage_entrypoint}
     if test -n "${UBOOT_ENTRYSYMBOL}"; then
 	ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
-	    awk '$3=="${RECIPE_OPTION_kernel_uimage_entrypoint}" {print $1}'`
+	    awk '$3=="${USE_kernel_uimage_entrypoint}" {print $1}'`
     fi
 
     if test -e arch/${ARCH}/boot/compressed/vmlinux ; then
 	${OBJCOPY} -O binary -R .note -R .comment \
 	-S arch/${ARCH}/boot/compressed/vmlinux linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
-	-a ${RECIPE_OPTION_kernel_uimage_loadaddress} \
+	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
-	-n ${RECIPE_OPTION_kernel_uimage_name} \
+	-n ${USE_kernel_uimage_name} \
 	-d linux.bin arch/${ARCH}/boot/uImage
 	rm -f linux.bin
 
@@ -93,35 +96,35 @@ kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
 	rm -f linux.bin.gz
 	gzip -9 linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C gzip \
-	-a ${RECIPE_OPTION_kernel_uimage_loadaddress} \
+	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
-	-n ${RECIPE_OPTION_kernel_uimage_name} \
+	-n ${USE_kernel_uimage_name} \
 	-d linux.bin.gz arch/${ARCH}/boot/uImage
 	rm -f linux.bin.gz
     fi
 }
 
 UIMAGE_KERNEL_OUTPUT = ""
-UIMAGE_KERNEL_OUTPUT_append_RECIPE_OPTION_kernel_uimage = "arch/${ARCH}/boot/uImage"
+UIMAGE_KERNEL_OUTPUT:USE_kernel_uimage = "arch/${ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
-RECIPE_OPTIONS += "kernel_dtc kernel_dtc_flags kernel_dtc_source"
-DEFAULT_CONFIG_kernel_dtc_flags = "-R 8 -p 0x3000"
-DEFAULT_CONFIG_kernel_dtc_source = "arch/${KERNEL_ARCH}/boot/dts/${MACHINE}.dts"
+CLASS_FLAGS += "kernel_dtc kernel_dtc_flags kernel_dtc_source"
+DEFAULT_USE_kernel_dtc_flags = "-R 8 -p 0x3000"
+DEFAULT_USE_kernel_dtc_source = "arch/${KERNEL_ARCH}/boot/dts/${MACHINE}.dts"
 
 kernel_devicetree () {
     if [ -n "${KERNEL_DEVICETREE}" ] ; then
         echo "${KERNEL_DEVICETREE}"
-    elif [ "${RECIPE_OPTION_kernel_dtc}" = "1" ] ; then
-        echo `basename ${RECIPE_OPTION_kernel_dtc_source} .dts`.dtb
+    elif [ "${USE_kernel_dtc}" = "1" ] ; then
+        echo `basename ${USE_kernel_dtc_source} .dts`.dtb
     fi
 }
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_dtc () {
     devicetree=`kernel_devicetree`
     if [ -n "$devicetree" ] ; then
-        scripts/dtc/dtc -I dts -O dtb ${RECIPE_OPTION_kernel_dtc_flags} \
-            -o $devicetree ${RECIPE_OPTION_kernel_dtc_source}
+        scripts/dtc/dtc -I dts -O dtb ${USE_kernel_dtc_flags} \
+            -o $devicetree ${USE_kernel_dtc_source}
     fi
 }
 
@@ -184,8 +187,8 @@ do_sizecheck () {
 }
 do_sizecheck_append_RECIPE_OPTION_kernel_maxsize () {
     size=`ls -l ${KERNEL_IMAGE} | awk '{ print $5}'`
-    if [ "$size" -ge "${RECIPE_OPTION_kernel_maxsize}" ]; then
-	die  "This kernel (size=$size > ${RECIPE_OPTION_kernel_maxsize}) is too big for your device. Please reduce the size of the kernel, fx. by making more of it modular."
+    if [ "$size" -ge "${USE_kernel_maxsize}" ]; then
+	die  "This kernel (size=$size > ${USE_kernel_maxsize}) is too big for your device. Please reduce the size of the kernel, fx. by making more of it modular."
     fi
 }
 

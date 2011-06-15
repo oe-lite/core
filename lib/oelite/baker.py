@@ -1,15 +1,25 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
 from oelite import *
-import sys, os, glob, shutil, datetime
-
-from db import OEliteDB
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
-import oelite.data, oelite.util, oelite.arch
+import oelite.meta
+import oelite.util
+import oelite.arch
+import oelite.parse
+import oelite.task
+import oelite.item
 from oelite.parse import *
+from oelite.cookbook import CookBook
 
-import bb.utils, bb.build, bb.fetch
+import bb.utils
+#import bb.fetch
+
+import sys
+import os
+import glob
+import shutil
+import datetime
 
 BB_ENV_WHITELIST = [
     "PATH",
@@ -78,26 +88,29 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
 
-        self.config = config.copy()
+        self.config = oelite.meta.DictMeta(meta=config)
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
         self.import_env()
         self.config.pythonfunc_init()
+        self.topdir = self.config.get("TOPDIR", True)
+        # FIXME: self.config.freeze("TOPDIR")
 
         self.confparser = confparse.ConfParser(self.config)
         self.confparser.parse("conf/bitbake.conf")
 
-        #oelite.pyexec.exechooks(self.config, "post_conf_parse")
+        oelite.pyexec.exechooks(self.config, "post_conf_parse")
 
+        # FIXME: refactor oelite.arch.init to a post_conf_parse hook
         oelite.arch.init(self.config)
 
         # Handle any INHERITs and inherit the base class
-        inherits  = ["base"] + (self.config.getVar("INHERIT", 1) or "").split()
+        inherits  = ["core"] + (self.config.get("INHERIT", 1) or "").split()
         # and inherit rmwork when needed
         try:
             rmwork = self.options.rmwork
             inherits.append("rmwork")
             if rmwork is None:
-                rmwork = self.config.getVar("RMWORK", True)
+                rmwork = self.config.get("RMWORK", True)
                 if rmwork == "0":
                     rmwork = False
             if rmwork:
@@ -107,21 +120,27 @@ class OEliteBaker:
             pass
         self.bbparser = bbparse.BBParser(self.config)
         for inherit in inherits:
+            self.bbparser.reset_lexstate()
             self.bbparser.parse("classes/%s.bbclass"%(inherit), require=True)
 
-        bb.fetch.fetcher_init(self.config)
+        oelite.pyexec.exechooks(self.config, "post_common_inherits")
+
+        # FIXME: when rewriting the bb fetcher, this init should
+        # probably be called from a hook function
+        #bb.fetch.fetcher_init(self.config)
 
         # things (ritem, item, recipe, or package) to do
         if args:
             self.things_todo = args
         elif "BB_DEFAULT_THING" in self.config:
-            self.things_todo = self.config.getVar("BB_DEFAULT_THING", 1).split()
+            self.things_todo = self.config.get("BB_DEFAULT_THING", 1).split()
         else:
             self.things_todo = [ "base-rootfs" ]
 
         self.appendlist = {}
-        self.db = OEliteDB()
-        self.prepare_cookbook()
+        #self.db = OEliteDB()
+
+        self.cookbook = CookBook(self)
 
         return
 
@@ -135,7 +154,7 @@ class OEliteBaker:
         if "BB_ENV_WHITELIST" in os.environ:
             whitelist += os.environ["BB_ENV_WHITELIST"].split()
         if "BB_ENV_WHITELIST" in self.config:
-            whitelist += self.config.getVar("BB_ENV_WHITELIST", True).split()
+            whitelist += self.config.get("BB_ENV_WHITELIST", True).split()
         debug("whitelist=%s"%(whitelist))
         for var in set(os.environ).difference(whitelist):
             del os.environ[var]
@@ -155,9 +174,7 @@ class OEliteBaker:
         self.cookbook = {}
 
         # collect all available .bb files
-        bbrecipes = self.list_bbrecipes()
-
-        #setup oe-lite imports
+        bbrecipes = self.list_bbfiles()
         
         # parse all .bb files
         total = len(bbrecipes)
@@ -166,9 +183,21 @@ class OEliteBaker:
         for bbrecipe in bbrecipes:
             if not self.options.quiet:
                 progress_info("Parsing recipe files", total, parsed)
+            # check for tmp/cache/path/to/recipe/recipe.sqlite file
+            # if found, check for all parsed files and their mtime's
+            # for each parsed file,
+            # find the corresponding file (using BBPATH) and check the mtime
+            # if all files are found, and with identical mtime,
+            # assume recipe is unchanged,
+            # and just use the sqlite file for instantiating OEliteRecipe
+            # objects.
+            # otherwise:
             data = self.parse_recipe(bbrecipe)
-            for extend in data:
-                recipe = OEliteRecipe(bbrecipe, extend, data[extend], self.db)
+            # hmm...  and now run the post_recipe_parse hooks
+            # and add to "cookbook" sqlite db
+            for recipe_type in data:
+                recipe = OEliteRecipe(bbrecipe, recipe_type, data[recipe_type],
+                                      self.cookbook)
                 self.cookbook[recipe.id] = recipe
             parsed += 1
         if not self.options.quiet:
@@ -177,53 +206,43 @@ class OEliteBaker:
             timing_info("Parsing", start)
         return
 
+    def split_thing(self, thing):
+        thing = thing.split(":", 1)
+        if len(thing) == 1:
+            type = None
+            thing = thing[0]
+        else:
+            type = thing[0]
+            thing = thing[1]
+        thing = thing.split("_", 1)
+        name = thing[0]
+        if len(thing) == 1:
+            version = None
+        else:
+            version = thing[1]
+        return (type, name, version)
+
+
     def show(self):
 
         if len(self.things_todo) == 0:
             die("you must specify something to show")
-        elif len(self.things_todo) > 1:
-            die("can only show one thing at a time")
 
-        search = self.things_todo[0].split("_", 1)
-
-        if len(search) == 1:
-            search.append(None)
-
-        debug("looking for %s"%(repr(search)))
-        recipes = self.db.get_recipe_id(name=search[0], version=search[1],
-                                        multiple=True)
-        debug("recipes=%s %s"%(repr(recipes),
-                               repr(self.db.get_recipe(recipes[0]))))
-
-        if not recipes:
-            die("no recipe found")
-        elif len(recipes) > 1:
-            chosen = (recipes[0], self.db.get_recipe(recipes[0])[1])
-            for other in recipes[1:]:
-                debug("chosen=%s other=%s"%(chosen, other))
-                version = self.db.get_recipe(other)[1]
-                vercmp = bb.utils.vercmp_part(chosen[1], version)
-                if vercmp < 0:
-                    chosen = (other, version)
-                if vercmp == 0:
-                    debug("chosen=%s\nother=%s version=%s"%(chosen, other, version))
-                    die("you have to be more precise")
-            chosen = chosen[0]
-        else:
-            chosen = recipes[0]
-
-        recipe = self.cookbook[chosen]
+        thing = oelite.item.OEliteItem(self.things_todo[0])
+        recipe = self.cookbook.get_recipe(
+            type=thing.type, name=thing.name, version=thing.version,
+            strict=False)
+        if not recipe:
+            die("Cannot find %s"%(thing))
 
         if self.options.task:
-            task_name = "do_" + self.options.task
-            runq = OEliteRunQueue(self.db, self.cookbook, self.config)
-            task_name = self.db.task_name_id(task_name)
-            runq._add_recipe(chosen, task_name)
+            task_name = oelite.task.task_name(self.options.task)
+            self.runq = OEliteRunQueue(self.config, self.cookbook)
+            self.runq._add_recipe(recipe, task_name)
+            recipe.prepare(self.runq, task_name)
 
-            recipe.prepare(runq, task_name)
-
-        oelite.data.dump(d=recipe.data, pretty=True,
-                         nohash=(not self.options.nohash))
+        recipe.meta.dump(pretty=True, nohash=(not self.options.nohash),
+                         only=(self.things_todo[1:] or None))
 
         return 0
 
@@ -236,7 +255,7 @@ class OEliteBaker:
         if self.options.task:
             tasks_todo = self.options.task
         elif "BB_DEFAULT_TASK" in self.config:
-            tasks_todo = self.config.getVar("BB_DEFAULT_TASK", 1)
+            tasks_todo = self.config.get("BB_DEFAULT_TASK", 1)
         else:
             #tasks_todo = "all"
             tasks_todo = "build"
@@ -250,25 +269,26 @@ class OEliteBaker:
         if self.options.relax:
             self.options.relax = max(self.options.relax)
         else:
-            default_relax = self.config.getVar("DEFAULT_RELAX", 1)
+            default_relax = self.config.get("DEFAULT_RELAX", 1)
             if default_relax and default_relax != "0":
                 self.options.relax = int(default_relax)
             else:
                 self.options.relax = None
 
         # init build quue
-        runq = OEliteRunQueue(self.db, self.cookbook, self.config,
-                              self.options.rebuild, self.options.relax)
+        self.runq = OEliteRunQueue(self.config, self.cookbook,
+                                   self.options.rebuild, self.options.relax)
 
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
         start = datetime.datetime.now()
         for thing in self.things_todo:
+            thing = oelite.item.OEliteItem(thing)
             for task in self.tasks_todo:
-                task = "do_" + task
+                task = oelite.task.task_name(task)
                 try:
-                    if not runq.add_something(thing, task):
+                    if not self.runq.add_something(thing, task):
                         die("No such thing: %s"%(thing))
                 except RecursiveDepends, e:
                     die("dependency loop: %s\n\t--> %s"%(
@@ -282,18 +302,17 @@ class OEliteBaker:
         # determining which tasks needs to be run
         # examing each task, computing it's hash, and checking if the
         # task has already been built, and with the same hash.
-        task = runq.get_metahashable_task()
-        total = self.db.number_of_runq_tasks()
+        task = self.runq.get_metahashable_task()
+        total = self.runq.number_of_runq_tasks()
         count = 0
         start = datetime.datetime.now()
         while task:
             progress_info("Calculating task metadata hashes", total, count)
-            recipe_id = self.db.get_recipe_id(task=task)
-            recipe = self.cookbook[recipe_id]
+            recipe = self.cookbook.get_recipe(task=task)
 
-            if self.db.is_task_nostamp(task):
-                self.db.set_runq_task_metahash(task, "0")
-                task = runq.get_metahashable_task()
+            if task.nostamp:
+                self.runq.set_task_metahash(task, "0")
+                task = self.runq.get_metahashable_task()
                 count += 1
                 continue
 
@@ -301,13 +320,13 @@ class OEliteBaker:
             srchash = recipe.srchash()
 
             dephashes = {}
-            task_dependencies = runq.task_dependencies(task)
+            task_dependencies = self.runq.task_dependencies(task)
             for depend in task_dependencies[0]:
-                dephashes[depend] = self.db.get_runq_task_metahash(depend)
+                dephashes[depend] = self.runq.get_task_metahash(depend)
             for depend in [d[0] for d in task_dependencies[1]]:
-                dephashes[depend] = self.db.get_runq_task_metahash(depend)
+                dephashes[depend] = self.runq.get_task_metahash(depend)
             for depend in [d[0] for d in task_dependencies[2]]:
-                dephashes[depend] = self.db.get_runq_task_metahash(depend)
+                dephashes[depend] = self.runq.get_task_metahash(depend)
 
             import hashlib
 
@@ -328,18 +347,15 @@ class OEliteBaker:
             #            task, "_".join(recipe_name), task_name,
             #            datahash, srchash, dephash, metahash))
 
-            recipe_name = self.db.get_recipe_name(recipe_id)
-            task_name = self.db.get_task(task=task)
+            self.runq.set_task_metahash(task, metahash)
 
-            self.db.set_runq_task_metahash(task, metahash)
-
-            (mtime, tmphash) = self.read_task_stamp(task, recipe.data)
+            (mtime, tmphash) = task.read_stamp()
             if not mtime:
-                self.db.set_runq_task_build(task)
+                self.runq.set_task_build(task)
             else:
-                self.db.set_runq_task_stamp(task, mtime, tmphash)
+                self.runq.set_task_stamp(task, mtime, tmphash)
 
-            task = runq.get_metahashable_task()
+            task = self.runq.get_metahashable_task()
             count += 1
             continue
 
@@ -349,30 +365,29 @@ class OEliteBaker:
             timing_info("Calculation task metadata hashes", start)
 
         if count != total:
+            print "count=%s total=%s"%(count, total)
             die("Circular dependencies I presume.  Add more debug info!")
 
-        self.db.set_runq_task_build_on_nostamp_tasks()
-        self.db.set_runq_task_build_on_retired_tasks()
-        self.db.set_runq_task_build_on_hashdiff()
+        self.runq.set_task_build_on_nostamp_tasks()
+        self.runq.set_task_build_on_retired_tasks()
+        self.runq.set_task_build_on_hashdiff()
 
         # check for availability of prebaked packages, and set package
         # filename for all packages.
         if self.options.prebake:
-            # FIXME: search tmp/packages even when --no-prebake is
-            # given
-            depend_packages = self.db.get_runq_depend_packages()
-            rdepend_packages = self.db.get_runq_rdepend_packages()
+            depend_packages = self.runq.get_depend_packages()
+            rdepend_packages = self.runq.get_rdepend_packages()
             depend_packages = set(depend_packages).union(rdepend_packages)
             for package in depend_packages:
                 # FIXME: skip this package if it is to be rebuild
                 prebake = self.find_prebaked_package(package)
                 if prebake:
-                    self.db.set_runq_package_filename(package, prebake,
+                    self.runq.set_package_filename(package, prebake,
                                                       prebake=True)
 
         # clear parent_task for all runq_depends where all runq_depend
         # rows with the same parent_task has prebake flag set
-        self.db.prune_prebaked_runq_depends()
+        self.runq.prune_prebaked_runq_depends()
 
         # FIXME: this might prune to much. If fx. A depends on B and
         # C, and B depends on C, and all A->B dependencies are
@@ -389,41 +404,39 @@ class OEliteBaker:
         # should guarantee that consistency is kept then.
 
         # Argh! if prebake is to work with rmwork, we might have to do
-        # the above after all :-( We will now have som runq_depends
+        # the above after all :-( We will now have som self.runq_depends
         # with parent_task.prebake flag set, but when we follow its
         # dependencies, we will find one or more recipes that has to
         # be rebuilt, fx. because of a --rebuild flag.
 
-        self.db.propagate_runq_task_build()
+        self.runq.propagate_runq_task_build()
 
-        build_count = self.db.set_runq_buildhash_for_build_tasks()
-        nobuild_count = self.db.set_runq_buildhash_for_nobuild_tasks()
+        build_count = self.runq.set_buildhash_for_build_tasks()
+        nobuild_count = self.runq.set_buildhash_for_nobuild_tasks()
         if (build_count + nobuild_count) != total:
             die("build_count + nobuild_count != total")
 
-
-        deploy_dir = self.config.getVar("PACKAGE_DEPLOY_DIR", True)
-        packages = self.db.get_runq_packages_to_build()
+        deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR", True)
+        packages = self.runq.get_packages_to_build()
         for package in packages:
-            (package_name, package_arch) = self.db.get_package(package)
-            (recipe_name, recipe_version) = self.db.get_recipe(
-                {"package": package})
-            buildhash = self.db.get_runq_package_buildhash(package)
+            package = self.cookbook.get_package(id=package)
+            recipe = self.cookbook.get_recipe(package=package.id)
+            buildhash = self.runq.get_package_buildhash(package.id)
             filename = os.path.join(
-                deploy_dir, package_arch,
-                "%s_%s_%s.tar"%(package_name, recipe_version, buildhash))
+                deploy_dir, package.arch,
+                "%s_%s_%s.tar"%(package.name, recipe.version, buildhash))
             debug("will use from build: %s"%(filename))
-            self.db.set_runq_package_filename(package, filename)
+            self.runq.set_package_filename(package.id, filename)
 
-        self.db.mark_primary_runq_depends()
-        self.db.prune_runq_depends_nobuild()
-        self.db.prune_runq_depends_with_nobody_depending_on_it()
-        self.db.prune_runq_tasks()
+        self.runq.mark_primary_runq_depends()
+        self.runq.prune_runq_depends_nobuild()
+        self.runq.prune_runq_depends_with_nobody_depending_on_it()
+        self.runq.prune_runq_tasks()
 
-        remaining = self.db.number_of_tasks_to_build()
+        remaining = self.runq.number_of_tasks_to_build()
         debug("%d tasks remains"%remaining)
 
-        recipes = self.db.get_recipes_with_tasks_to_build()
+        recipes = self.runq.get_recipes_with_tasks_to_build()
         if not recipes:
             info("Nothing to do")
             return 0
@@ -431,21 +444,24 @@ class OEliteBaker:
         if self.options.rmwork:
             for recipe in recipes:
                 if (tasks_todo != ["build"]
-                    and self.db.is_runq_recipe_primary(recipe[0])):
+                    and self.runq.is_runq_recipe_primary(recipe[0])):
                     debug("skipping...")
                     continue
                 debug("adding %s:do_rmwork"%(recipe[1]))
-                runq._add_recipe(recipe[0], "do_rmwork")
-                self.db.set_runq_task_build({"recipe": recipe[0], "task": "do_rmwork"})
-            self.db.propagate_runq_task_build()
-            remaining = self.db.number_of_tasks_to_build()
+                self.runq._add_recipe(recipe[0], "do_rmwork")
+                self.runq.set_task_build({"recipe": recipe[0], "task": "do_rmwork"}) # FIXME
+            self.runq.propagate_runq_task_build()
+            remaining = self.runq.number_of_tasks_to_build()
             debug("%d tasks remains after adding rmwork"%remaining)
-            recipes = self.db.get_recipes_with_tasks_to_build()
+            recipes = self.runq.get_recipes_with_tasks_to_build()
 
         print "The following will be build:"
         text = []
         for recipe in recipes:
-            text.append("%s(%d)"%(recipe[1], recipe[3]))
+            if recipe[1] == "machine":
+                text.append("%s(%d)"%(recipe[2], recipe[4]))
+            else:
+                text.append("%s:%s(%d)"%(recipe[1], recipe[2], recipe[4]))
         print oelite.util.format_textblock(" ".join(text))
 
         if os.isatty(sys.stdin.fileno()) and not self.options.yes:
@@ -458,12 +474,12 @@ class OEliteBaker:
                 if response == "" or response[0] in ("y", "Y"):
                     break
                 elif response == "?":
-                    tasks = self.db.get_tasks_to_build_description()
+                    tasks = self.runq.get_tasks_to_build_description()
                     for task in tasks:
                         print "  " + task
                     continue
                 elif response == "??":
-                    tasks = self.db.get_tasks_to_build_description(hashinfo=True)
+                    tasks = self.runq.get_tasks_to_build_description(hashinfo=True)
                     for task in tasks:
                         print "  " + task
                     continue
@@ -473,33 +489,30 @@ class OEliteBaker:
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
-        task = runq.get_runabletask()
+        task = self.runq.get_runabletask()
         start = datetime.datetime.now()
-        total = self.db.number_of_tasks_to_build()
+        total = self.runq.number_of_tasks_to_build()
         count = 0
         exitcode = 0
         while task:
             count += 1
-            recipe_id = self.db.get_recipe_id(task=task)
-            recipe_name = self.db.get_recipe_name(recipe_id)
-            recipe = self.cookbook[recipe_id]
-            task_name = self.db.get_task(task=task)
+            recipe = self.cookbook.get_recipe(task=task)
+            #task = self.cookbook.get_task(id=task)
             debug("")
-            debug("Preparing %s:%s"%(recipe_name, task_name))
-            data = recipe.prepare(runq, task)
-            info("Running %d / %d %s:%s"%(count, total, recipe_name, task_name))
-            self.task_build_started(task, data)
-            if exec_func(task_name, data):
-                self.task_build_done(task, data,
-                                     self.db.get_runq_buildhash(task))
-                runq.mark_done(task)
+            debug("Preparing %s:%s"%(recipe, task.name))
+            data = recipe.prepare(self.runq, task)
+            info("Running %d / %d %s:%s"%(count, total, recipe.name, task.name))
+            task.build_started()
+            if exec_func(task.name, data):
+                task.build_done(self.runq.get_buildhash(task))
+                self.runq.mark_done(task)
             else:
-                err("%s:%s failed"%(recipe_name, task_name))
+                err("%s:%s failed"%(recipe_name, task.name))
                 exitcode = 1
-                self.task_build_failed(task, data)
+                task.build_failed()
                 # FIXME: support command-line option to abort on first
                 # failed task
-            task = runq.get_runabletask()
+            task = self.runq.get_runabletask()
         timing_info("Build", start)
 
         return exitcode
@@ -507,7 +520,7 @@ class OEliteBaker:
 
     def setup_tmpdir(self):
 
-        tmpdir = os.path.realpath(self.config.getVar("TMPDIR", 1) or "tmp")
+        tmpdir = os.path.realpath(self.config.get("TMPDIR", 1) or "tmp")
         #debug("TMPDIR = %s"%tmpdir)
 
         try:
@@ -527,145 +540,78 @@ class OEliteBaker:
         return
 
 
-    def list_bbrecipes(self):
-
-        BBRECIPES = (self.config["BBRECIPES"] or "").split(":")
-
-        if not BBRECIPES:
-            die("BBRECIPES not defined")
-
-        newfiles = set()
-        for f in BBRECIPES:
-            if os.path.isdir(f):
-                dirfiles = find_bbrecipes(f)
-                newfiles.update(dirfiles)
-            else:
-                globbed = glob.glob(f)
-                if not globbed and os.path.exists(f):
-                    globbed = [f]
-                newfiles.update(globbed)
-
-        bbrecipes = []
-        bbappend = []
-        for f in newfiles:
-            if f.endswith(".bb"):
-                bbrecipes.append(f)
-            elif f.endswith(".bbappend"):
-                bbappend.append(f)
-            else:
-                warn("skipping %s: unknown file extension"%(f))
-
-        appendlist = {}
-        for f in bbappend:
-            base = os.path.basename(f).replace(".bbappend", ".bb")
-            if not base in appendlist:
-                appendlist[base] = []
-            appendlist[base].append(f)
-
-        return bbrecipes
-
-
-    def parse_recipe(self, recipe):
-        path = os.path.abspath(recipe)
-        recipe = {}
-        self.bbparser.setData(self.config.copy())
-        base_recipe = self.bbparser.parse(path)
-        recipe[""] = base_recipe
-        extends = recipe[""].getVar("BBCLASSEXTEND") or ""
-        for extend in extends.split():
-            data = base_recipe.copy()
-            self.bbparser.setData(data)
-            print >>sys.stderr, "parsing extend=%s"%(extend)
-            recipe[extend] = self.bbparser.parse("classes/%s.bbclass"%(extend))
-        return recipe
-
-
-    def stampfile_path(self, task, data):
-        task_name = self.db.get_task(task=task)
-        stampdir = data.getVar("STAMPDIR", True)
-        return (stampdir, os.path.join(stampdir, task_name))
-
-
-    # return (mtime, hash) from stamp file
-    def read_task_stamp(self, task, data):
-        stampfile = self.stampfile_path(task, data)[1]
-        if not os.path.exists(stampfile):
-            return (None, None)
-        if not os.path.isfile(stampfile):
-            die("bad hash file: %s"%(stampfile))
-        if os.path.getsize(stampfile) == 0:
-            return (None, None)
-        mtime = os.stat(stampfile).st_mtime
-        with open(stampfile, "r") as stampfile:
-            tmphash = stampfile.read()
-        return (mtime, tmphash)
-
-
-    def task_build_started(self, task, data):
-        if self.db.is_task_nostamp(task):
-            return
-        (stampdir, stampfile) = self.stampfile_path(task, data)
-        if not os.path.exists(stampdir):
-            os.makedirs(stampdir)
-        open(stampfile, "w").close()
-        return
-
-
-    def task_build_done(self, task, data, buildhash):
-        if self.db.is_task_nostamp(task):
-            return
-        (stampdir, stampfile) = self.stampfile_path(task, data)
-        if not os.path.exists(stampdir):
-            os.makedirs(stampdir)
-        with open(stampfile, "w") as _stampfile:
-            _stampfile.write(buildhash)
-        return
-
-
-    def task_build_failed(self, task, data):
-        return
-
-
-    def task_cleaned(self, task, data):
-        hashpath = self.stampfile_path(task, data)
-        if os.path.exists(hashpath):
-            os.remove(hashpath)
+    #def list_bbfiles(self):
+    #
+    #    BBRECIPES = (self.config["BBRECIPES"] or "").split(":")
+    #
+    #    if not BBRECIPES:
+    #        die("BBRECIPES not defined")
+    #
+    #    newfiles = set()
+    #    for f in BBRECIPES:
+    #        if os.path.isdir(f):
+    #            dirfiles = find_bbrecipes(f)
+    #            newfiles.update(dirfiles)
+    #        else:
+    #            globbed = glob.glob(f)
+    #            if not globbed and os.path.exists(f):
+    #                globbed = [f]
+    #            newfiles.update(globbed)
+    #
+    #    bbrecipes = []
+    #    bbappend = []
+    #    for f in newfiles:
+    #        if f.endswith(".bb"):
+    #            bbrecipes.append(f)
+    #        elif f.endswith(".bbappend"):
+    #            bbappend.append(f)
+    #        else:
+    #            warn("skipping %s: unknown file extension"%(f))
+    #
+    #    appendlist = {}
+    #    for f in bbappend:
+    #        base = os.path.basename(f).replace(".bbappend", ".bb")
+    #        if not base in appendlist:
+    #            appendlist[base] = []
+    #        appendlist[base].append(f)
+    #
+    #    return bbrecipes
 
 
     def find_prebaked_package(self, package):
         """return full-path filename string or None"""
-        prebake_path = self.config.getVar("PREBAKE_PATH", True) or []
+        prebake_path = self.config.get("PREBAKE_PATH", True) or []
         if prebake_path:
             prebake_path = prebake_path.split(":")
-        package_deploy_dir = self.config.getVar("PACKAGE_DEPLOY_DIR", True)
+        package_deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR", True)
         if not package_deploy_dir:
             die("PACKAGE_DEPLOY_DIR not defined")
         prebake_path.insert(0, package_deploy_dir)
         debug("package=%s"%(repr(package)))
-        recipe = self.db.get_recipe({"package": package})
+        recipe = self.cookbook.get_recipe(package=package)
         if not recipe:
             raise NoSuchRecipe()
-        (recipe, version) = recipe
-        metahash = self.db.get_runq_package_metahash(package)
+        metahash = self.runq.get_package_metahash(package)
         debug("got metahash=%s"%(metahash))
-        package = self.db.get_package(package)
+        package = self.cookbook.get_package(id=package)
         if not package:
             raise NoSuchPackage()
-        (name, arch) = package
-        filename = "%s_%s_%s.tar"%(name, version, metahash)
+        filename = "%s_%s_%s.tar"%(package.name, recipe.version, metahash)
         debug("prebake_path=%s"%(prebake_path))
         for base_dir in prebake_path:
-            debug("base_dir=%s, arch=%s, filename=%s"%(base_dir, arch, filename))
-            path = os.path.join(base_dir, arch, filename)
+            debug("base_dir=%s, arch=%s, filename=%s"%(
+                    base_dir, package.arch, filename))
+            path = os.path.join(base_dir, package.arch, filename)
             debug("checking for prebake: %s"%(path))
             if os.path.exists(path):
                 debug("found prebake: %s"%(path))
                 return path
         return None
 
+
 def exec_func(func, data):
 
-    body = data.getVar(func, True)
+    body = data.get(func, True)
     if not body:
         return True
 
@@ -700,16 +646,16 @@ def exec_func(func, data):
             bb.utils.mkdirhier(adir)
         adir = dirs[-1]
     else:
-        adir = data.getVar('B', True)
+        adir = data.get('B', True)
 
     # Save current directory
     try:
         prevdir = os.getcwd()
     except OSError:
-        prevdir = data.getVar('TOPDIR', True)
+        prevdir = self.topdir
 
     # Setup logfiles
-    t = data.getVar('T', 1)
+    t = data.get('T', 1)
     if not t:
         die("T variable not set, unable to build")
     bb.utils.mkdirhier(t)
@@ -790,8 +736,8 @@ def exec_func(func, data):
 def exec_func_python(func, data, runfile, logfile):
     """Execute a python BB 'function'"""
 
-    bbfile = data.getVar("FILE", True)
-    tmp  = "def " + func + "(d):\n%s" % data.getVar(func, True)
+    bbfile = data.get("FILE", True)
+    tmp  = "def " + func + "(d):\n%s" % data.get(func, True)
     tmp += '\n' + func + '(d)'
 
     f = open(runfile, "w")
@@ -800,6 +746,7 @@ def exec_func_python(func, data, runfile, logfile):
     try:
         comp = bb.utils.better_compile(tmp, func, bbfile)
     except:
+        raise
         die("compiling %s failed, ask an OE-lite wizard to add more debug information"%func)
     try:
         bb.utils.better_exec(comp, {"d": data}, tmp, bbfile)
@@ -849,8 +796,8 @@ def exec_func_shell(func, data, runfile, logfile, flags):
 
     # execute function
     if flags['fakeroot']:
-        maybe_fakeroot = "PATH=\"%s\" %s " % (data.getVar("PATH", True),
-                                              data.getVar("FAKEROOT", True)
+        maybe_fakeroot = "PATH=\"%s\" %s " % (data.get("PATH", True),
+                                              data.get("FAKEROOT", True)
                                               or "fakeroot")
     else:
         maybe_fakeroot = ''

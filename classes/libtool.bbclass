@@ -1,5 +1,6 @@
-LIBTOOL_DEPENDS = "${TARGET_ARCH}/libtool"
-LIBTOOL_DEPENDS_canadian-cross = "${HOST_ARCH}/libtool ${TARGET_ARCH}/libtool"
+# -*- mode:python; -*-
+
+LIBTOOL_DEPENDS = "host-cross:libtool target-cross:libtool"
 CLASS_DEPENDS += "${LIBTOOL_DEPENDS}"
 
 # Libtool commands
@@ -9,7 +10,8 @@ TARGET_LIBTOOL	= "${TARGET_PREFIX}libtool"
 LIBTOOL		= "${HOST_LIBTOOL}"
 #export LIBTOOL
 
-python () {
+addhook libtool_fixup to post_recipe_parse
+def libtool_fixup(d):
     build_arch = d.getVar("BUILD_ARCH", True)
     host_arch = d.getVar("HOST_ARCH", True)
     target_arch = d.getVar("TARGET_ARCH", True)
@@ -17,7 +19,6 @@ python () {
         d.setVar("HOST_LIBTOOL", "${BUILD_LIBTOOL}")
     if target_arch == build_arch:
         d.setVar("TARGET_LIBTOOL", "${BUILD_LIBTOOL}")
-}
 
 LIBTOOL_NATIVE_SCRIPTS				= ""
 LIBTOOL_HOST_SCRIPTS				= ""
@@ -69,7 +70,7 @@ libtool_script_fixup () {
 
 FIXUP_FUNCS += "libtool_lafile_fixup"
 
-LIBTOOL_FIXUP_SEARCH_DIRS = "${D}${libdir} ${D}${base_libdirs}"
+LIBTOOL_FIXUP_SEARCH_DIRS = "${D}${libdir} ${D}${base_libdir}"
 LIBTOOL_FIXUP_STRIP_DIRS  = "${D} ${S} ${STAGE_DDIR}"
 STAGE_DDIR = "${TARGET_SYSROOT}"
 STAGE_DDIR_recipe-native = "${STAGE_DIR}/native"

@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 inherit binconfig-stage
 inherit libtool-stage
 addtask stage before do_fetch

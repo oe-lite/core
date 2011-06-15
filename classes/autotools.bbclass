@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 # Autoconf sitefile handling
 inherit siteinfo
 

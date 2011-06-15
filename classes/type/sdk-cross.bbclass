@@ -1,7 +1,7 @@
-inherit cross
+# -*- mode:python; -*-
 
-RECIPE_TYPE		= "sdk-cross"
-#
+require classes/type/cross.bbclass
+
 RECIPE_ARCH		= "cross/${SDK_ARCH}"
 RECIPE_ARCH_MACHINE	= "cross/${SDK_ARCH}--${MACHINE}"
 

@@ -1,10 +1,6 @@
-RECIPE_OPTIONS_append += "crontab"
-
 require conf/crontab.conf
 
-IMAGE_PREPROCESS_CRONTAB = ""
-IMAGE_PREPROCESS_CRONTAB_append_RECIPE_OPTION_crontab = "image_preprocess_crontab"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_CRONTAB}"
+IMAGE_PREPROCESS_FUNCS:>USE_crontab = " image_preprocess_crontab"
 
 image_preprocess_crontab () {
 	(

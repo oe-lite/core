@@ -2,14 +2,14 @@ DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
 
-BBCLASSEXTEND = "native sdk"
+RECIPE_TYPES = "machine native sdk"
 
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 
 # Recipe build dependencies
-DEPENDS = "libncurses-native"
-DEPENDS_recipe-native = ""
+DEPENDS = "native:libncurses"
+DEPENDS:native = ""
 
 inherit autotools make-vpath c++
 
@@ -44,15 +44,15 @@ do_install() {
 	# stolen ;) from gentoo and modified a bit
 	for x in ansi console dumb linux rxvt screen sun vt{52,100,102,200,220} xterm-color xterm-xfree86
         do
-                local termfile="$(find "${D}${datadir}/terminfo/" -name "${x}" 2>/dev/null)"
-                local basedir="$(basename $(dirname "${termfile}"))"
+                local termfile="$(find "${D}${datadir}/terminfo/" -name "$x" 2>/dev/null)"
+                local basedir="$(basename $(dirname "$termfile"))"
 
-                if [ -n "${termfile}" ]
+                if [ -n "$termfile" ]
                 then
-                        install -d ${D}${sysconfdir}/terminfo/${basedir}
-                        mv ${termfile} ${D}${sysconfdir}/terminfo/${basedir}/
-                        ln -s /etc/terminfo/${basedir}/${x} \
-                                ${D}${datadir}/terminfo/${basedir}/${x}
+                        install -d ${D}${sysconfdir}/terminfo/$basedir
+                        mv $termfile ${D}${sysconfdir}/terminfo/$basedir/
+                        ln -s /etc/terminfo/$basedir/$x \
+                                ${D}${datadir}/terminfo/$basedir/$x
                 fi
         done
 	# i think we can use xterm-color as default xterm
@@ -73,15 +73,15 @@ FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/c
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
 
-EXTRA_FILES_${PN}-libncurses-dev = "\
-    ${libdir}/libtermcap.a \
-    ${libdir}/libtermcap${SOLIBSDEV}"
+#EXTRA_FILES_${PN}-libncurses-dev = "\
+#    ${libdir}/libtermcap.a \
+#    ${libdir}/libtermcap${SOLIBSDEV}"
 
-DEPENDS_${PN} += "libncurses${RE}"
+DEPENDS_${PN} += "libncurses"
 DEPENDS_${PN}-dev = ""
-DEPENDS_${PN}-tools += "libncurses${RE}"
+DEPENDS_${PN}-tools += "libncurses"
 
-AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
+AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev_${PV}"
 
 # Library package build and run-time dependencies
 RDEPENDS_${PN}-libform	= "${PN}-libncurses"
@@ -95,5 +95,4 @@ DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
 RDEPENDS_${PN}		= "${PN}-libncurses"
 RDEPENDS_${PN}-tools	= "${PN}-libncurses ${PN}"
 
-PROVIDES_${PN}-libncurses-dev = "libncurses5${RE} libtermcap${RE}"
-RPROVIDES_${PN}-libncurses = "libncurses5${RE} libtermcap${RE}"
+PROVIDES_${PN}-libncurses-dev = "libncurses5"

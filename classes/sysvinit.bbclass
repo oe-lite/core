@@ -10,19 +10,18 @@ sysvinit_install_script () {
 	install -m 0755 $1 ${D}${sysconfdir}/init.d/$2
 }
 
-SYSVINIT_DEFAULT_RDEPENDS = ""
-SYSVINIT_DEFAULT_RDEPENDS_RECIPE_OPTION_sysvinit = "sysvinit"
-RDEPENDS_${PN}_append += "${SYSVINIT_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_sysvinit = " sysvinit"
 
-RECIPE_OPTIONS_append += "sysvinit"
+CLASS_FLAGS += "sysvinit"
 
 python do_install_sysvinit () {
     import os
 
-    if not bb.data.getVar('RECIPE_OPTION_sysvinit', d, True):
+    if not d.get('USE_sysvinit'):
         return
 
-    options = (bb.data.getVar('RECIPE_OPTIONS', d, True) or "").split()
+    options = ((d.get('RECIPE_FLAGS') or "").split() +
+               (d.get('CLASS_FLAGS') or "").split()
     sysconfdir = bb.data.getVar('sysconfdir', d, True)
 
     for option in options:
@@ -34,7 +33,7 @@ python do_install_sysvinit () {
         else:
             continue
         
-        prio = bb.data.getVar('RECIPE_OPTION_'+option, d, True)
+        prio = bb.data.getVar('USE_'+option, d, True)
         if not prio:
             continue
 

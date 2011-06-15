@@ -13,9 +13,7 @@ require conf/inittab.conf
 
 FIXUP_FUNCS += "inittab_fixup"
 
-INITTAB_DEFAULT_RDEPENDS = ""
-INITTAB_DEFAULT_RDEPENDS_RECIPE_OPTION_inittab = "feature/sysvinit"
-RDEPENDS_${PN}_append += "${INITTAB_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_inittab = " feature/sysvinit"
 
 inittab_fixup[dirs] = "${D}"
 

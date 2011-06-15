@@ -1,16 +1,8 @@
-import ply.lex
-import ply.yacc
-from oelite.parse import ParseError
+import oelite.parse
 from oelite.parse.bbparse import BBParser
 
-
-class StatementNotAllowedInConf(ParseError):
-
-    def __init(self, parser, p, stament):
-        super(StatementNotAllowedInConf, self).__init__(
-            parser, "%s statement not allowed in configuration file", p)
-        return
-
+import ply.lex
+import ply.yacc
 
 class ConfParser(BBParser):
 
@@ -23,30 +15,31 @@ class ConfParser(BBParser):
 
     def p_inherit(self, p):
         '''inherit : INHERIT inherit_classes'''
-        raise StatementNotAllowedInConf(self, p, "inherit")
+        raise StatementNotAllowed(self, p, "inherit")
 
 
     # Override addtask statements
 
     def p_addtask(self, p):
         '''addtask : addtask_task'''
-        raise StatementNotAllowedInConf(self, p, "addtask")
+        raise StatementNotAllowed(self, p, "addtask")
 
     def p_addtask_w_dependencies(self, p):
         '''addtask : addtask_task addtask_dependencies'''
-        raise StatementNotAllowedInConf(self, p, "addtask")
+        raise StatementNotAllowed(self, p, "addtask")
 
 
     # Override function definitions
 
-    def p_def_func(self, p):
-        '''def_func : DEF VARNAME ARGSTART STRING ARGSTOP NEWLINE func_body FUNCSTOP'''
-        raise StatementNotAllowedInConf(self, p, "def function")
-
-    def p_func(self, p):
-        '''func : VARNAME FUNCSTART func_body FUNCSTOP'''
-        raise StatementNotAllowedInConf(self, p, "function")
+    #def p_def_func(self, p):
+    #    '''def_func : DEF VARNAME def_funcargs NEWLINE func_body
+    #                | DEF VARNAME def_funcargs NEWLINE func_body FUNCSTOP'''
+    #    raise StatementNotAllowed(self, p, "def function")
+    #
+    #def p_func(self, p):
+    #    '''func : VARNAME FUNCSTART func_body FUNCSTOP'''
+    #    raise StatementNotAllowed(self, p, "function")
 
     def p_python_anonfunc(self, p):
         '''python_func : PYTHON FUNCSTART func_body FUNCSTOP'''
-        raise StatementNotAllowedInConf(self, p, "anonymous function")
+        raise StatementNotAllowed(self, p, "anonymous function")

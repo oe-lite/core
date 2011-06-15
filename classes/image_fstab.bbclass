@@ -1,8 +1,6 @@
 require conf/fstab.conf
 
-IMAGE_PREPROCESS_FSTAB = ""
-IMAGE_PREPROCESS_FSTAB_append_RECIPE_OPTION_fstab = "image_preprocess_fstab"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_FSTAB}"
+IMAGE_PREPROCESS_FUNCS:>USE_fstab = " image_preprocess_fstab"
 
 image_preprocess_fstab () {
     if [ -e .${fstabfixupdir} ] ; then

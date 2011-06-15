@@ -1,34 +1,39 @@
-def inlineeval(source, data):
-    g = data.get_pythonfunc_globals()
-    g.update(data.get_autoimport_pythonfuncs(g))
-    return eval(source, g, {"d": data})
+def inlineeval(source, meta):
+    g = meta.get_pythonfunc_globals()
+    g.update(meta.get_autoimport_pythonfuncs(g))
+    try:
+        return eval(source, g, {"d": meta})
+    except Exception:
+        print "Exception while evaluating inline python code"
+        #print "Exception while evaluating inline python code: %s"%(repr(source))
+        raise
 
 
-def exechooks(data, name, hooks=None):
+def exechooks(meta, name, hooks=None):
     if hooks is None:
-        hooks = data.get_hooks(name)
+        hooks = meta.get_hooks(name)
     for function in hooks:
         #print "%s hook %s"%(name, function)
-        g = data.get_pythonfunc_globals()
-        #g["d"] = data
-        g.update(data.get_autoimport_pythonfuncs(g))
-        hook = data.get_pythonfunc(function, g)
+        g = meta.get_pythonfunc_globals()
+        #g["d"] = meta
+        g.update(meta.get_autoimport_pythonfuncs(g))
+        hook = meta.get_pythonfunc(function, g)
 
-        #funcimports = data.get_pythonfuncs(
-        #    (data.getVarFlag(function, "funcimport", expand=1) or "").split())
-        #funcimports.update(data.get_autoimport_pythonfuncs())
-        #funcimports.update(data.get_pythonfuncs([function]))
+        #funcimports = meta.get_pythonfuncs(
+        #    (meta.getVarFlag(function, "funcimport", expand=1) or "").split())
+        #funcimports.update(meta.get_autoimport_pythonfuncs())
+        #funcimports.update(meta.get_pythonfuncs([function]))
 
-        #args = data.getVarFlag(function, "args") or ""
+        #args = meta.getVarFlag(function, "args") or ""
         #source = ("def %s(%s):\n"%(function, args) +
-        #          data.getVar(function, expand=0) + "\n")
-        #(g, l) = execlite(source, data, funcimports, "%s"%(function))
+        #          meta.getVar(function, expand=0) + "\n")
+        #(g, l) = execlite(source, meta, funcimports, "%s"%(function))
         #retval = eval("%s()"%(function))
         #print "funcimports = %s"%(funcimports.keys())
 
-        #retval = evallite("%s()\n"%(function), data, funcimports)
+        #retval = evallite("%s()\n"%(function), meta, funcimports)
 
-        retval = hook(data)
+        retval = hook(meta)
 
         #print "stopping after running first hook: retval=%s"%(repr(retval))
         #import sys

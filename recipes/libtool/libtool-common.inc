@@ -5,7 +5,7 @@ libraries) behind a consistent interface."
 HOMEPAGE = "http://www.gnu.org/software/libtool/libtool.html"
 LICENSE = "GPL"
 
-BBCLASSEXTEND = "native cross sdk-cross"
+RECIPE_TYPES = "machine native cross sdk-cross"
 
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
@@ -27,8 +27,8 @@ CROSS_PROVIDES			= "${TARGET_ARCH}/libtool"
 CROSS_PROVIDES_recipe-machine	= ""
 PROVIDES_${PN}			+= "${CROSS_PROVIDES}"
 
-SYSROOT_DEPENDS = "${TARGET_ARCH}/sysroot-libgcc"
-SYSROOT_DEPENDS_recipe-native = ""
+SYSROOT_DEPENDS = "target:libgcc"
+SYSROOT_DEPENDS:native = ""
 DEPENDS += "${SYSROOT_DEPENDS}"
 
 DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"

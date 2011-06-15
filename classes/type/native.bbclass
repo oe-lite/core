@@ -1,14 +1,10 @@
-RECIPE_TYPE			 = "native"
-#
+# -*- mode:python; -*-
+
 RECIPE_ARCH			 = "native/${BUILD_ARCH}"
 RECIPE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
 
 # Native packages does not runtime provide anything
-RPROVIDES_${PN}		= ""
 RDEPENDS_${PN}-dev 	= ""
-
-# No default build dependencies (for now)
-DEFAULT_DEPENDS		= ""
 
 # Set host=build
 HOST_ARCH		= "${BUILD_ARCH}"
@@ -106,13 +102,11 @@ def fixup_provides(d):
         if not pkg in provides:
             provides = [pkg] + provides
             bb.data.setVar('PROVIDES_'+pkg, ' '.join(provides), d)
-	if bb.data.getVar('RPROVIDES_'+pkg, d, True):
-            bb.data.setVar('RPROVIDES_'+pkg, '', d)
 	if bb.data.getVar('RDEPENDS_'+pkg, d, True):
             bb.data.setVar('RDEPENDS_'+pkg, '', d)
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"
 
-BLACKLIST_VAR = "BLACKLIST_VAR BLACKLIST_PREFIX"
-BLACKLIST_PREFIX = "MACHINE_"
+BLACKLIST_VAR = "BLACKLIST_VAR BLACKLIST_PREFIX KERNEL_STAGE"
+BLACKLIST_PREFIX = "MACHINE_ SDK_"

@@ -1,39 +1,37 @@
+# -*- mode:python; -*-
 #
 # OE-lite class for handling crontab files
 #
 
 addtask install_crontab after do_install before do_fixup
 
-RECIPE_OPTIONS_append += "crontab"
-
 require conf/crontab.conf
 
-CRONTAB_DEFAULT_RDEPENDS = ""
-CRONTAB_DEFAULT_RDEPENDS_RECIPE_OPTION_crontab = "crond"
-RDEPENDS_${PN}_append += "${CRONTAB_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_crontab = "crond"
 
 do_install_crontab[dirs] = "${D}"
 
 python do_install_crontab () {
     import os
 
-    if not bb.data.getVar('RECIPE_OPTION_crontab', d, True):
+    if not d.get('USE_crontab'):
 	return
 
-    options = (bb.data.getVar('RECIPE_OPTIONS', d, True) or "").split()
-    ddir = bb.data.getVar('D', d, True)
+    options = ((d.get('RECIPE_FLAGS') or "").split() +
+               (d.get('CLASS_FLAGS') or "").split())
+    ddir = d.get('D')
     bb.note('ddir=%s'%ddir)
-    crontabdir = bb.data.getVar('crontabdir', d, True)
+    crontabdir = d.get('crontabdir')
     crontabdir = '%s%s'%(ddir, crontabdir)
     bb.note('crontabdir=%s'%crontabdir)
-    srcdir = bb.data.getVar('SRCDIR', d, True)
+    srcdir = d.get('SRCDIR')
 
     for option in options:
 
 	if not option.endswith('_crontab'):
 	    continue
 
-	when = bb.data.getVar('RECIPE_OPTION_'+option, d, True)
+	when = d.get('USE_'+option)
 	if not when:
 	    continue
 

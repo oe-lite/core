@@ -1,8 +1,6 @@
 require conf/inittab.conf
 
-IMAGE_PREPROCESS_INITTAB = ""
-IMAGE_PREPROCESS_INITTAB_append_RECIPE_OPTION_inittab = "image_preprocess_inittab"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_INITTAB}"
+IMAGE_PREPROCESS_FUNCS:> = "image_preprocess_inittab"
 
 image_preprocess_inittab () {
     if [ -e .${inittabfixupdir} ] ; then

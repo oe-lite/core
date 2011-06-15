@@ -1,4 +1,9 @@
-FILESPATHPKG = "${PF}:${P}:${PN}:${BP}:${BPN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
+addhook toolchain_foobar to post_recipe_parse
+
+def toolchain_foobar(d):
+    pass
+
+FILESPATHPKG = "${P}:${PN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
 
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
@@ -10,29 +15,19 @@ TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt${CT_MINGWRT_VERSION}"
 PR = "${TOOLCHAIN_VERSION}"
 
 # Depend on the right version of the ct-ng tool
-DEPENDS = "crosstool-ng-native-${PV}"
+DEPENDS = "native:crosstool-ng_${PV}"
 
 S = "${WORKDIR}/build"
 B = "${S}"
 
-DEFAULT_DEPENDS_recipe-native		= ""
-DEFAULT_DEPENDS_recipe-cross		= ""
-DEFAULT_DEPENDS_recipe-sdk-cross	= ""
+#DEFAULT_DEPENDS_recipe-native		= ""
+#DEFAULT_DEPENDS_recipe-cross		= ""
+#DEFAULT_DEPENDS_recipe-sdk-cross	= ""
 
-DEPENDS += "${TUI_DEPENDS}"
-TUI_DEPENDS				= ""
-TUI_DEPENDS_recipe-machine		= "libtermcap${RE} libreadline${RE}"
-SDK_TUI_DEPENDS				= "libtermcap-sdk libreadline-sdk"
-SDK_TUI_DEPENDS_host-mingw32		= ""
-TUI_DEPENDS_recipe-sdk			= "${SDK_TUI_DEPENDS}"
-TUI_DEPENDS_recipe-canadian-cross	= "${SDK_TUI_DEPENDS}"
-
-SYSROOT_RE = ""
-SYSROOT_RE_append_recipe-native		= "-native"
-SYSROOT_RE_append_recipe-machine	= "-machine-garbage"
-SYSROOT_RE_append_recipe-sdk-cross	= "-sdk"
-SYSROOT_RE_append_recipe-sdk		= "-sdk-garbage"
-SYSROOT_RE_append_recipe-canadian-cross	= "-canadian-garbage"
+TUI_DEPENDS				= "host:libtermcap host:libreadline"
+DEPENDS:>machine			= "${TUI_DEPENDS}"
+DEPENDS:>sdk				= "${TUI_DEPENDS}"
+DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
 
 # FIXME: allow machine/sdk/canadian-cross toolchains are built
 # statically, to make it more robust against host machine differences
@@ -131,11 +126,11 @@ CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk	= "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
 
 DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
 TOOLCHAIN_DEFAULT_DEPENDS = ""
-python () {
+addhook toolchain_default_depends_fixup to post_recipe_parse
+def toolchain_default_depends_fixup(d):
     if (d.getVar("RECIPE_TYPE", True) == "cross" and
         d.getVar("MACHINE_CT_KERNEL_VERSION", True) == "custom"):
         d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
-}
 
 AUTO_LIB_PACKAGES = "\
   libgcc libdl libstdc++ libsupc++ libresolv libutil libcrypt libpthread \
@@ -484,9 +479,7 @@ do_install () {
 # (almost) the same
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
 
-PROVIDES_${PN} = "toolchain${RE}"
-PROVIDES_${PN}_append_recipe-cross	+= "${TARGET_ARCH}/toolchain"
-PROVIDES_${PN}_append_recipe-sdk-cross	+= "${TARGET_ARCH}/toolchain"
+PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "${PN}-sysroot-dev"
 
 DEPENDS_${PN}-sysroot-libnss-dns-dev	= "${PN}-sysroot-libresolv-dev"
@@ -633,34 +626,52 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd.so"
 SYSROOT_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/nscd"
-RPROVIDES_${PN}-sysroot-nscd = "util/rpcgen${SYSROOT_RE} util/nscd${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-nscd = "target:util/rpcgen target:util/nscd"
+PROVIDES_${PN}-sysroot-nscd:machine = ""
+PROVIDES_${PN}-sysroot-nscd:sdk = ""
+PROVIDES_${PN}-sysroot-nscd:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-rpc"
 FILES_${PN}-sysroot-rpc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/rpcgen \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/rpcinfo \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sysconfdir}/rpc"
-RPROVIDES_${PN}-sysroot-rpc = "util/rpcgen${SYSROOT_RE} util/rpcinfo${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-rpc = "target:util/rpcgen target:util/rpcinfo"
+PROVIDES_${PN}-sysroot-rpc:machine = ""
+PROVIDES_${PN}-sysroot-rpc:sdk = ""
+PROVIDES_${PN}-sysroot-rpc:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-ldconfig"
 FILES_${PN}-sysroot-ldconfig = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/ldconfig"
-RPROVIDES_${PN}-sysroot-ldconfig = "util/ldconfig${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-ldconfig = "target:util/ldconfig"
+PROVIDES_${PN}-sysroot-ldconfig:machine = ""
+PROVIDES_${PN}-sysroot-ldconfig:sdk = ""
+PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/ldd"
-RPROVIDES_${PN}-sysroot-ldd = "util/ldd${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-ldd = "target:util/ldd"
+PROVIDES_${PN}-sysroot-ldd:machine = ""
+PROVIDES_${PN}-sysroot-ldd:sdk = ""
+PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/catchsegv"
-RPROVIDES_${PN}-sysroot-catchsegv = "util/catchsegv${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-catchsegv = "target:util/catchsegv"
+PROVIDES_${PN}-sysroot-catchsegv:machine = ""
+PROVIDES_${PN}-sysroot-catchsegv:sdk = ""
+PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/sprof"
-RPROVIDES_${PN}-sysroot-sprof = "util/sprof${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-sprof = "target:util/sprof"
+PROVIDES_${PN}-sysroot-sprof:machine = ""
+PROVIDES_${PN}-sysroot-sprof:sdk = ""
+PROVIDES_${PN}-sysroot-sprof:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-timezone-utils"
 FILES_${PN}-sysroot-timezone-utils = "\
@@ -669,14 +680,20 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zdump \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zic \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/zoneinfo \
 "
-RPROVIDES_${PN}-sysroot-timezone-utils = "\
-    util/tzselect${SYSROOT_RE} util/zdump${SYSROOT_RE} util/zic${SYSROOT_RE} util/zoneinfo${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-timezone-utils = "\
+    target:util/tzselect target:util/zdump target:util/zic target:util/zoneinfo"
+PROVIDES_${PN}-sysroot-timezone-utils:machine = ""
+PROVIDES_${PN}-sysroot-timezone-utils:sdk = ""
+PROVIDES_${PN}-sysroot-timezone-utils:canadian-cross = ""
 
 SYSROOT_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/iconv \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/iconvconfig"
-RPROVIDES_${PN}-sysroot-iconv-utils = "util/iconv${SYSROOT_RE} util/iconvconfig${SYSROOT_RE}"
+PROVIDES_${PN}-sysroot-iconv-utils = "target:util/iconv target:util/iconvconfig"
+PROVIDES_${PN}-sysroot-iconv-utils:machine = ""
+PROVIDES_${PN}-sysroot-iconv-utils:sdk = ""
+PROVIDES_${PN}-sysroot-iconv-utils:canadian-cross = ""
 
 # throw everything else in this garbage package, which is to be considered a WIP package aimed at being empty
 SYSROOT_PACKAGES += "${PN}-sysroot-garbage"

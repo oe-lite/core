@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 INHIBIT_PACKAGE_STRIP = "1"
 
 inherit kernel-arch

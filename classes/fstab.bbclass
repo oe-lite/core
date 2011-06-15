@@ -13,9 +13,7 @@ require conf/fstab.conf
 
 FIXUP_FUNCS += "fstab_fixup"
 
-FSTAB_DEFAULT_RDEPENDS = ""
-FSTAB_DEFAULT_RDEPENDS_RECIPE_OPTION_fstab = "util/mount"
-RDEPENDS_${PN}_append += "${FSTAB_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_fstab += " util/mount"
 
 fstab_fixup[dirs] = "${D}"
 

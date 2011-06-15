@@ -1,156 +1,129 @@
-import sys, os
 from oebakery import die, err, warn, info, debug
 from oelite import InvalidRecipe
-import oelite.data
+import oelite.meta
+from oelite.dbutil import *
+
+import sys
+import os
+import cPickle
+import warnings
+
+
+def unpickle(file, filename, cookbook):
+    type = cPickle.load(file)
+    meta = oelite.meta.dict.unpickle(file)
+    return OEliteRecipe(filename, type, meta, cookbook)
 
 
 class OEliteRecipe:
 
-    def __init__(self, filename, extend, data, db):
-        self.db = db
-        self.data = data
+    def pickle(self, file):
+        cPickle.dump(self.type, file, 2)
+        self.meta.pickle(file)
 
+
+    def __init__(self, filename, type, meta, cookbook):
+        self.filename = filename
+        self.type = type
+        self.cookbook = cookbook
+        self.meta = meta
+        self.name = self.meta.get("PN")
+        self.version = self.meta.get("PV")
+        self.priority = self.meta.get("DEFAULT_PREFERENCE") or "0"
         self._datahash = None
         self._srchash = "FOOBAR"
         self._hash = None
+        return
 
-        self.post_recipe_parse()
 
-        name = data.getVar("PN", 1)
+    def __str__(self):
+        return "%s:%s_%s"%(self.type, self.name, self.version)
+
+    def set_id(self, id):
+        self.id = id
+        return
+
+    def get(self, var):
+        return self.meta.get(var)
+
+    def get_flag(self, var, flag):
+        return self.meta.get_flag(var, flag)
+
+    def get_task_names(self):
+        return self.meta.get_vars(flag="task")
+
+    def get_depends(self):
+        #return flatten_single_column_rows(self.cookbook.dbc.execute(
+        #    "SELECT item FROM recipe_depend WHERE recipe=?", (self.id,)))
+        return self.meta.get_list("DEPENDS")
+
+    def get_rdepends(self):
+        #return flatten_single_column_rows(self.dbc.execute(
+        #    "SELECT item FROM recipe_rdepend WHERE recipe=?", (self.id,)))
+        return self.meta.get_list("RDEPENDS")
+
+
+    def post_parse(self):
+        #print "recipe post parse %s"%(self.filename)
+
+        # FIXME: refactor to post_recipe_parse hook
+        name = self.meta.get("PN")
         if not name:
             raise InvalidRecipe("no PN in %s:%s"%(
-                    filename, extend))
+                    filename, type))
 
-        version = data.getVar("PV", 1) or "0"
-        if "PR" in data:
-            version += "-" + data.getVar("PR", 1)
+        # FIXME: refactor to post_recipe_parse hook
+        version = self.meta.get("PV") or "0"
+        if "PR" in self.meta:
+            version += "-" + self.meta.get("PR")
 
-        preference = data.getVar("DEFAULT_PREFERENCE", 1) or "0"
+        # FIXME: refactor to post_recipe_parse hook
+        preference = self.meta.getVar("DEFAULT_PREFERENCE", 1) or "0"
         try:
             preference = int(preference)
         except ValueError, e:
             raise InvalidRecipe("invalid DEFAULT_PREFERENCE=%s in %s:%s"%(
-                    preference, filename, extend))
+                    preference, filename, recipe_type))
 
-        self.db.add_recipe(filename, extend, name, version, preference)
-        recipe_id = self.db.get_recipe_id(filename, extend)
+        self.meta.finalize()
 
-        depends = data.getVar("DEPENDS", 1) or ""
-        for depend in depends.split():
-            self.db.add_item(depend)
-            self.db.add_recipe_depend(recipe_id, depend)
+        # apply recipe typing to expand var values
 
-        rdepends = data.getVar("RDEPENDS", 1) or ""
-        for rdepend in rdepends.split():
-            self.db.add_ritem(rdepend)
-            self.db.add_recipe_rdepend(recipe_id, rdepend)
-
-        task_deps = data.getVar("_task_deps", 0)
-
-        tasks = self.data.get_vars(flag="task")
-        for task in tasks:
-            self.db.add_task(recipe_id, task)
-
-        for task in tasks:
-            task_id = self.db.get_task_id(recipe_id, task)
-
-            for parent in self.data.get_flag_list(task, "deps"):
-                self.db.add_task_parent(task_id, parent, recipe=recipe_id)
-
-            for deptask in self.data.get_flag_list(task, "deptask"):
-                self.db.add_task_deptask(task_id, deptask)
-
-            for rdeptask in self.data.get_flag_list(task, "rdeptask"):
-                self.db.add_task_rdeptask(task_id, rdeptask)
-
-            for recdeptask in self.data.get_flag_list(task, "recdeptask"):
-                self.db.add_task_recdeptask(task_id, recdeptask)
-
-            for recrdeptask in self.data.get_flag_list(task, "recrdeptask"):
-                self.db.add_task_recrdeptask(task_id, recrdeptask)
-
-            for recadeptask in self.data.get_flag_list(task, "recadeptask"):
-                self.db.add_task_recadeptask(task_id, recadeptask)
-
-            for depends in self.data.get_flag_list(task, "depends"):
-                depends_split = depends.split(":")
-                if len(depends_split) != 2:
-                    err("invalid task 'depends' value "
-                        "(valid syntax is item:task): %s"%(depends))
-                self.db.add_task_depend(task_id,
-                                        depend_item=depends_split[0],
-                                        depend_task=depends_split[1])
-
-            if self.data.getVarFlag(task, "nostamp", 0):
-                self.db.set_task_nostamp(task_id)
-
-        packages = data.getVar("PACKAGES", 1)
-        if not packages:
-            warn("no PACKAGES in recipe %s"%name)
-            return
-
-        for package in packages.split():
-
-            arch = (self.data.getVar("PACKAGE_ARCH_" + package, True) or
-                    self.data.getVar("RECIPE_ARCH", True))
-            self.db.add_package(recipe_id, package, arch)
-            package_id = self.db.get_package_id(recipe_id, package)
-
-            provides = data.getVar("PROVIDES_" + package, 1) or ""
-            for item in provides.split():
-                self.db.add_provider(package_id, item)
-
-            rprovides = data.getVar("RPROVIDES_" + package, 1) or ""
-            for ritem in rprovides.split():
-                self.db.add_rprovider(package_id, ritem)
-
-            depends = data.getVar("DEPENDS_" + package, 1) or ""
-            for item in depends.split():
-                self.db.add_package_depend(package_id, item)
-
-            rdepends = data.getVar("RDEPENDS_" + package, 1) or ""
-            for ritem in rdepends.split():
-                self.db.add_package_rdepend(package_id, ritem)
-
-        self.id = recipe_id
+        # calculate recipe signature
 
         return
 
 
-    def post_recipe_parse(self):
-        oelite.pyexec.exechooks(self.data, "post_recipe_parse")
-
-
     def prepare(self, runq, task):
 
-        data = self.data.copy()
+        meta = self.meta.copy()
 
-        buildhash = self.db.get_runq_task_buildhash(task)
+        buildhash = self.cookbook.baker.runq.get_task_buildhash(task)
         debug("buildhash=%s"%(repr(buildhash)))
-        data.setVar("TASK_BUILDHASH", buildhash)
+        meta.setVar("TASK_BUILDHASH", buildhash)
 
-        deploy_dir = data.getVar("PACKAGE_DEPLOY_DIR", True) 
+        deploy_dir = meta.getVar("PACKAGE_DEPLOY_DIR", True) 
 
-        recipe_type = data.getVar("RECIPE_TYPE", False)
+        recipe_type = meta.getVar("RECIPE_TYPE", False)
         
         if recipe_type == "canadian-cross":
-            host_arch = data.getVar("HOST_ARCH", True)
+            host_arch = meta.getVar("HOST_ARCH", True)
 
-        def set_pkgproviders(self_db_get_runq_depend_packages,
+        def set_pkgproviders(get_depend_packages,
                              PKGPROVIDER_, RECDEPENDS):
             recdepends = []
 
-            packages = self_db_get_runq_depend_packages(task) or []
+            packages = get_depend_packages(task) or []
             for package in packages:
                 if package in recdepends:
                     continue
 
                 (package_name, package_arch) = self.db.get_package(package)
-                filename = self.db.get_runq_package_filename(package)
+                filename = self.cookbook.baker.runq.get_package_filename(package)
                 recdepends.append(package_name)
                 debug("setting %s%s=%s"%(
                         PKGPROVIDER_, package_name, filename))
-                data.setVar(PKGPROVIDER_ + package_name, filename)
+                meta.setVar(PKGPROVIDER_ + package_name, filename)
 
                 if package_arch.startswith("native/"):
                     subdir = "native"
@@ -165,19 +138,20 @@ class OEliteRecipe:
                             subdir = os.path.join("host", subdir)
                         else:
                             subdir = os.path.join("target", subdir)
-                data.setVar("PKGSUBDIR_" + package_name, subdir)
+                meta.setVar("PKGSUBDIR_" + package_name, subdir)
 
             if recdepends:
                 debug("setting %s=%s"%(RECDEPENDS, " ".join(recdepends)))
-            data.setVar(RECDEPENDS, " ".join(recdepends))
+            warnings.warn("save to __stage and __rstage instead of RECDEPENDS and RECRDEPENDS and PKGPROVIDER_* and PKGRPROVIDER_* (and set nohash flag for them).  The __stage and __rstage variables can a proper Python structured variable, to simplify the do_stage and do_rstage variables")
+            meta.setVar(RECDEPENDS, " ".join(recdepends))
 
-        set_pkgproviders(self.db.get_runq_depend_packages,
+        set_pkgproviders(self.cookbook.baker.runq.get_depend_packages,
                          "PKGPROVIDER_", "RECDEPENDS")
 
-        set_pkgproviders(self.db.get_runq_rdepend_packages,
+        set_pkgproviders(self.cookbook.baker.runq.get_rdepend_packages,
                          "PKGRPROVIDER_", "RECRDEPENDS")
 
-        return data
+        return meta
 
 
     def datahash(self):
@@ -205,7 +179,7 @@ class OEliteRecipe:
 
         hasher = StringHasher(hashlib.md5())
 
-        oelite.data.dump(hasher, self.data, pretty=False, nohash=False)
+        self.meta.dump(hasher, pretty=False, nohash=False)
 
         self._datahash = str(hasher)
         return self._datahash

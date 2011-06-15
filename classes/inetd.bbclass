@@ -4,11 +4,9 @@
 
 require conf/inetd.conf
 
-RECIPE_OPTIONS_append += "inetd"
+CLASS_FLAGS += "inetd"
 
-INETD_DEFAULT_RDEPENDS = ""
-INETD_DEFAULT_RDEPENDS_RECIPE_OPTION_inetd = "inetd"
-RDEPENDS_${PN}_append += "${INETD_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_inetd = " inetd"
 
 INETD_CONF_FILES ?= "${SRCDIR}/inetd.conf"
 
@@ -17,7 +15,7 @@ do_install_inetd[dirs] = "${D}"
 
 do_install_inetd () {
     i=0
-    test -z "${RECIPE_OPTION_inetd}" -o "${RECIPE_OPTION_inetd}"="0" || return
+    test -z "${USE_inetd}" -o "${USE_inetd}"="0" || return
     for f in ${INETD_CONF_FILES} ; do
         if [ -f $f ] ; then
             # only create inetddir when needed, and let it fail silently when

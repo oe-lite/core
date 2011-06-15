@@ -15,7 +15,7 @@ CXXFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 
 do_configure () {
-    oe_runmake ${RECIPE_OPTION_uboot_config}
+    oe_runmake ${USE_uboot_config}
 }
 
 do_compile () {
@@ -28,8 +28,8 @@ do_sizecheck () {
 }
 do_sizecheck_append_RECIPE_OPTION_uboot_maxsize () {
     size=`ls -l ${UBOOT_IMAGE} | awk '{ print $5}'`
-    if [ "$size" -ge "${RECIPE_OPTION_uboot_maxsize}" ]; then
-	die  "The U-Boot image (size=$size > ${RECIPE_OPTION_uboot_maxsize}) is too big."
+    if [ "$size" -ge "${USE_uboot_maxsize}" ]; then
+	die  "The U-Boot image (size=$size > ${USE_uboot_maxsize}) is too big."
     fi
 }
 do_install () {

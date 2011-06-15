@@ -2,11 +2,9 @@
 # OE-lite class for handling runit services
 #
 
-RECIPE_OPTIONS_append += "runit"
+CLASS_FLAGS += "runit"
 
-RUNIT_DEFAULT_RDEPENDS = ""
-RUNIT_DEFAULT_RDEPENDS_RECIPE_OPTION_runit = "runit"
-RDEPENDS_${PN}_append += "${RUNIT_DEFAULT_RDEPENDS}"
+RDEPENDS_${PN}:>USE_runit = " runit"
 
 addtask install_runit after do_install before do_fixup
 do_install_runit[dirs] = "${D}"
@@ -14,10 +12,11 @@ do_install_runit[dirs] = "${D}"
 python do_install_runit () {
     import os, shutil, stat
 
-    if not bb.data.getVar('RECIPE_OPTION_runit', d, True):
+    if not bb.data.getVar('USE_runit', d, True):
         return
 
-    options = (bb.data.getVar('RECIPE_OPTIONS', d, True) or "").split()
+    options = ((d.get("RECIPE_FLAGS") or "").split() +
+               (d.get("CLASS_FLAGS") or "").split())
     runitservicedir = bb.data.getVar('runitservicedir', d, True)
     srcdir = bb.data.getVar('SRCDIR', d, True)
 
@@ -26,7 +25,7 @@ python do_install_runit () {
         if not option.endswith('_runit'):
             continue
         
-        enable = bb.data.getVar('RECIPE_OPTION_'+option, d, True)
+        enable = d.get("USE_"+option)
         if not enable:
             continue
 

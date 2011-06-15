@@ -1,14 +1,7 @@
-RECIPE_OPTIONS_append += "makedevs"
-
 require conf/makedevs.conf
 
-IMAGE_PREPROCESS_MAKEDEVS = ""
-IMAGE_PREPROCESS_MAKEDEVS_append_RECIPE_OPTION_makedevs = "image_preprocess_makedevs"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_MAKEDEVS}"
-
-IMAGE_DEPENDS_MAKEDEVS = ""
-IMAGE_DEPENDS_MAKEDEVS_append_RECIPE_OPTION_makedevs = "makedevs-native"
-CLASS_DEPENDS += "${IMAGE_DEPENDS_MAKEDEVS}"
+CLASS_DEPENDS:>USE_makedevs = " makedevs-native"
+IMAGE_PREPROCESS_FUNCS:>USE_makedevs = " image_preprocess_makedevs"
 
 image_preprocess_makedevs () {
 	if [ -d .${devtabledir} ]; then

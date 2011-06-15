@@ -1,4 +1,6 @@
-inherit native
+RECIPE_TYPES = "native"
+
+inherit c
 
 SRC_URI = "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${PV}.tar.bz2"
 
@@ -14,9 +16,9 @@ do_configure () {
 
 FILES_${PN} += "${libdir}/ct-ng-*"
 
-FIXUP_FUNCS += "crosstool_ng_native_fixup"
+FIXUP_FUNCS += "crosstool_ng_fixup"
 
-crosstool_ng_native_fixup () {
+crosstool_ng_fixup () {
     pwd
     mv .${stage_bindir}/ct-ng \
        .${stage_bindir}/ct-ng.orig

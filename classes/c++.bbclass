@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 DEFAULT_CXX_DEPENDS = "${HOST_ARCH}/sysroot-libstdc++"
 DEFAULT_CXX_DEPENDS_recipe-native = ""
 DEFAULT_CXX_DEPENDS_recipe-cross = "${TARGET_ARCH}/sysroot-libstdc++"

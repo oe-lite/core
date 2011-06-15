@@ -1,6 +1,6 @@
-addtask install_makedevs after do_install before do_fixup
+# -*- mode:python; -*-
 
-RECIPE_OPTIONS_append += "makedevs"
+addtask install_makedevs after do_install before do_fixup
 
 require conf/makedevs.conf
 

@@ -2,6 +2,13 @@ addtask fetch after do_stage_fixup
 addtask fetchall after do_fetch
 addtask unpack after do_fetch
 
+#
+# FIXME: implement a hook for parsing SRC_URI and storing the result
+# in __fetcher, and set FETCHER_DEPENDS with required native:* dependencies.
+#
+# The do_fetch task can then just call d.get("__fetcher") and use that.
+#
+
 FETCHER_DEPENDS = ""
 CLASS_DEPENDS += "${FETCHER_DEPENDS}"
 

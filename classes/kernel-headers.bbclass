@@ -1,8 +1,8 @@
+# -*- mode:python; -*-
+
 DESCRIPTION = "Sanitized Linux kernel headers"
 SECTION = "devel"
 LICENSE = "GPL"
-
-DEFAULT_DEPENDS = ""
 
 inherit kernel-common
 

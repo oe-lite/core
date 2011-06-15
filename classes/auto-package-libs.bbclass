@@ -1,4 +1,7 @@
+# -*- mode:python; -*-
+
 PACKAGES =+ "${LIBS_AUTO_PACKAGES}"
+PACKAGES[expand] = 3
 
 AUTO_PACKAGE_LIBS ?= ""
 AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir}"
@@ -7,7 +10,7 @@ AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
-addhook auto_package_libs to post_recipe_parse after base_after_parse before base_detect_machine_override fixup_package_arch fixup_provides
+addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_overrides fixup_package_arch fixup_provides
 
 def auto_package_libs (d):
     pn = d.getVar("PN", True)
@@ -31,9 +34,9 @@ def auto_package_libs (d):
         if len(libdir) < 3:
             libdir.append("")
         if len(libdir) < 4:
-	    libdir.append("${SOLIBS}")
+            libdir.append("${SOLIBS}")
         if len(libdir) < 5:
-    	    libdir.append("${SOLIBSDEV}")
+            libdir.append("${SOLIBSDEV}")
 
         return libdir
 
@@ -75,26 +78,19 @@ def auto_package_libs (d):
         d.setVar("FILES_" + devpkg, " ".join(files))
 
         pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
-        pkg_provides.append("%s%s${RE}_${PF}"%(provideprefix, lib))
+        pkg_provides.append("%s%s"%(provideprefix, lib))
         d.setVar("PROVIDES_" + pkg, " ".join(pkg_provides))
 
         devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
-        devpkg_provides.append("%s%s${RE}"%(provideprefix, lib))
         d.setVar("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
+        pkg_depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
+        pkg_depends.append("%s_${PV}"%(devpkg))
+        d.setVar("DEPENDS_" + pkg, " ".join(pkg_depends))
+
         devpkg_depends = (d.getVar("DEPENDS_" + devpkg, True) or "").split()
-        devpkg_depends.append("%s%s${RE}_${PF}"%(provideprefix, lib))
         devpkg_depends += dev_depends.split()
         d.setVar("DEPENDS_" + devpkg, " ".join(devpkg_depends))
-
-        pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
-        pkg_rprovides.append("%s%s${RE}_${PF}"%(provideprefix, lib))
-        pkg_rprovides.append("%s%s${RE}"%(provideprefix, lib))
-        d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
-
-        devpkg_rprovides = (d.getVar("RPROVIDES_" + devpkg, True) or "").split()
-        devpkg_rprovides.append("%s%s${RE}-dev"%(provideprefix, lib))
-        d.setVar("RPROVIDES_" + devpkg, " ".join(devpkg_rprovides))
 
         devpkg_rdepends = d.getVar("RDEPENDS_" + devpkg, True)
         if devpkg_rdepends is None:
@@ -107,7 +103,7 @@ def auto_package_libs (d):
                     devpkg_rdepends.append(dep + "-dev")
         else:
             devpkg_rdepends = devpkg_rdepends.split()
-        devpkg_rdepends.append("%s%s${RE}_${PF}"%(provideprefix, lib))
+        devpkg_rdepends.append("%s_${PV}"%(pkg))
         devpkg_rdepends += dev_rdepends.split()
         d.setVar("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
 

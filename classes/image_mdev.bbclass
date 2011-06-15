@@ -1,10 +1,8 @@
-RECIPE_OPTIONS_append += "mdev"
+CLASS_FLAGS += "mdev"
 
 require conf/mdev.conf
 
-IMAGE_PREPROCESS_MDEV = ""
-IMAGE_PREPROCESS_MDEV_append_RECIPE_OPTION_mdev = "image_preprocess_mdev"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_MDEV}"
+IMAGE_PREPROCESS_FUNCS:>USE_mdev = " image_preprocess_mdev"
 
 image_preprocess_mdev () {
     test -d ./${mdevdir} || return 0

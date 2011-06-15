@@ -1,3 +1,4 @@
+# -*- mode:python; -*-
 #
 # Set the ARCH environment variable for kernel compilation (including
 # modules). Return value must match one of the architecture directories

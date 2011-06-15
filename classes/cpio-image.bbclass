@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab

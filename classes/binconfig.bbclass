@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 require conf/meta.conf
 
 BINCONFIG_GLOB += "${bindir}/*-config"

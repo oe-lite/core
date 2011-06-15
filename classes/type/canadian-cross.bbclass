@@ -1,5 +1,5 @@
-RECIPE_TYPE			 = "canadian-cross"
-#
+# -*- mode:python; -*-
+
 RECIPE_ARCH			 = "canadian/${SDK_ARCH}--${MACHINE_ARCH}"
 RECIPE_ARCH_MACHINE		 = "canadian/${SDK_ARCH}--${MACHINE}"
 
@@ -7,7 +7,7 @@ PACKAGES_append		+= "${SYSROOT_PACKAGES}"
 SYSROOT_PACKAGES	?= ""
 
 # Get both sdk and machine cross toolchains and sysroots
-DEFAULT_DEPENDS += "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
+#DEFAULT_DEPENDS += "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
 
 # Set host=sdk for architecture triplet build/sdk/target
 HOST_ARCH		= "${SDK_ARCH}"

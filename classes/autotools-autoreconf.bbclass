@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 inherit autotools
 
 EXTRA_AUTORECONF = ""

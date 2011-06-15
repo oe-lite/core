@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 STAGE_FIXUP_FUNCS += "libtool_stage_fixup"
 
 python libtool_stage_fixup () {

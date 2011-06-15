@@ -1,10 +1,8 @@
-RECIPE_OPTIONS_append += "inetd"
+CLASS_FLAGS += "inetd"
 
 require conf/inetd.conf
 
-IMAGE_PREPROCESS_INETD = ""
-IMAGE_PREPROCESS_INETD_append_RECIPE_OPTION_inetd = "image_preprocess_inetd"
-IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_INETD}"
+IMAGE_PREPROCESS_FUNCS:>USE_inetd = " image_preprocess_inetd"
 
 image_preprocess_inetd () {
 	test -d ./${inetddir} || return 0

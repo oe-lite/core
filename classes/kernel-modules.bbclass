@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 KERNEL_MODULES_DEPENDS ?= "linux-headers"
 DEPENDS += "${KERNEL_MODULES_DEPENDS}"
 

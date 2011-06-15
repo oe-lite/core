@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 KERNEL_MODULES_FIXUP_FUNCS ?= "kernel_modules_strip"
 FIXUP_FUNCS += "${KERNEL_MODULES_FIXUP_FUNCS}"
 

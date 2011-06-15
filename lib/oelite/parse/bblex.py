@@ -1,5 +1,8 @@
+#from oelite.parse import ParseError
+import oelite.parse
+
 tokens = [
-    'VARNAME', 'FLAG',
+    'VARNAME', 'FLAG', 'OVERRIDE',
     'ASSIGN', 'EXPASSIGN', 'WEAKASSIGN', 'LAZYASSIGN',
     'APPEND', 'PREPEND', 'POSTDOT', 'PREDOT',
     'STRING',
@@ -43,7 +46,9 @@ literals = ''
 t_ignore = ' \t'
 
 def t_VARNAME(t):
-    r'[a-zA-Z_][a-zA-Z0-9_\-\${}/\+\.]*'
+    #r'[a-zA-Z][a-zA-Z0-9_\-\${}\+\.]*'
+    r'[a-zA-Z_][a-zA-Z0-9_\-\${}\+\.]*'
+    #r'[a-zA-Z_][a-zA-Z0-9_\-\${}/\+\.]*'
     t.type = reserved.get(t.value, 'VARNAME')
     if t.type == 'VARNAME':
         pass
@@ -54,9 +59,20 @@ def t_VARNAME(t):
     #print "VARNAME %s %s"%(t.type, t.value)
     return t
 
+def t_OVERRIDE(t):
+    r':[a-zA-Z0-9\-_]+'
+    t.value = ('', t.value[1:])
+    return t
+
+def t_OVERRIDE2(t):
+    r':[\>\<][a-zA-Z\-_]+'
+    t.type = 'OVERRIDE'
+    t.value = (t.value[1], t.value[2:])
+    return t
+
 def t_FLAG(t):
     r'\[[a-zA-Z_][a-zA-Z0-9_]*\]'
-    t.type = reserved.get(t.value, 'FLAG')
+    #t.type = reserved.get(t.value, 'FLAG')
     t.value = t.value[1:-1]
     return t
 
@@ -200,6 +216,7 @@ t_func_ignore = ""
 def t_func_FUNCSTOP(t):
     r'\}'
     t.lexer.pop_state()
+    del t.lexer.funcstart
     return t
 
 def t_func_FUNCLINE(t):
@@ -319,20 +336,20 @@ def t_assign_SQUOTESTRING(t):
 def t_assign_UNTERMINATEDDQUOTESTRING(t):
     r'"(\\"|\\\n|[^"\n])*?\n'
     t.lexer.lineno += t.value.count('\n')
-    raise ParseError("Unterminated string", t)
+    raise oelite.parse.ParseError(None, "Unterminated string", t)
 
 def t_assign_UNTERMINATEDSQUOTESTRING(t):
     r"'(\\'|\\\n|[^'\n])*?\n"
     t.lexer.lineno += t.value.count('\n')
-    raise ParseError("Unterminated string", t)
+    raise oelite.parse.ParseError("Unterminated string", t)
 
 def t_assign_UNQUOTEDSTRING(t):
     r".+"
-    raise ParseError("Unquoted string", t)
+    raise oelite.parse.ParseError("Unquoted string", t)
 
 
 def t_ANY_error(t):
-    raise ParseError("Illegal character", t)
+    raise oelite.parse.ParseError(t.lexer.parser, "Illegal character", t)
 
 
 tokens = list(set(tokens))

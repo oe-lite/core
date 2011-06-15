@@ -3,32 +3,39 @@ import os
 import string
 import bb.utils
 import oelite.parse
-import oelite.data
-from oelite.parse import ParseError, ExpandError
+import oelite.meta
 from oelite.parse.bblex import tokens
 
 class BBParser(object):
 
-    def __init__(self, data=None, parent=None):
+    def __init__(self, meta=None, parent=None):
         self.lexer = oelite.parse.bblexer.clone()
+        self.lexer.parser = self
         self.tokens = tokens
-        picklefile = "tmp/cache/" + self.__class__.__module__ + ".p"
+        bb.utils.mkdirhier("tmp/ply")
+        picklefile = "tmp/ply/" + self.__class__.__module__ + ".p"
         self.yacc = ply.yacc.yacc(module=self, debug=0, picklefile=picklefile)
-        if data is not None:
-            self.data = data
+        if meta is not None:
+            self.meta = meta
         else:
-            self.data = oelite.data.Data()
+            self.meta = oelite.meta.DictMeta()
         self.parent = parent
         return
 
 
-    def setData(self, data):
-        self.data = data
+    def reset_lexstate(self):
+        while self.lexer.lexstate != "INITIAL":
+            self.lexer.pop_state()
         return
 
 
-    def lextest(self, data, debug=False):
-        self.lexer.input(data)
+    def set_metadata(self, meta):
+        self.meta = meta
+        return
+
+
+    def lextest(self, meta, debug=False):
+        self.lexer.input(meta)
         tokens = []
         for tok in self.lexer:
             if debug:
@@ -64,111 +71,180 @@ class BBParser(object):
     def p_variable(self, p):
         '''variable : VARNAME
                     | export_variable'''
-        p[0] = p[1]
+        try:
+            # FIXME: come up with different syntax for
+            # immediate-expansion variable names and delayed-expansion
+            # variable names, fx. DEPENDS_$:{PN} and DEPENDS_${PN},
+            # and implement immediate expansion here, and delayed
+            # expansion in core_varname_expansion hook expansion.  It
+            # would seem convenient to use the normal variable
+            # expansion syntax for immediate expansion, as we could
+            # just simply expand here, and then translate the delayed
+            # expansion variable syntax in core_varname_expansion
+            # before expanding it.
+            #p[0] = self.meta.expand(p[1], oelite.meta.PARTIAL_EXPANSION)
+            p[0] = p[1]
+        except oelite.meta.ExpansionError, e:
+            print "Metadata expansion failed:", e
+            e.print_details()
+            raise oelite.parse.ParseError(self, "Failed to expand variable name", p)
         return
-
+    
     def p_export_variable(self, p):
         '''export_variable : EXPORT VARNAME'''
-        self.data.setVarFlag(p[2], "export", "1")
-        p[0] = p[2]
+        p[0] = self.meta.expand(p[2])
+        self.meta.set_flag(p[0], "export", "1")
         return
 
     def p_flag(self, p):
         '''varflag : VARNAME FLAG'''
         p[0] = (p[1], p[2])
         return
+    
+    def p_override(self, p):
+        '''varoverride : VARNAME OVERRIDE'''
+        p[0] = (self.meta.expand(p[1]), p[2])
+        return
 
     def p_simple_var_assignment(self, p):
         '''assignment : variable ASSIGN STRING'''
-        self.data.setVar(p[1], p[3])
+        self.meta.set(p[1], p[3])
         return
 
     def p_simple_flag_assignment(self, p):
         '''assignment : varflag ASSIGN STRING'''
-        self.data.setVarFlag(p[1][0], p[1][1], p[3])
+        self.meta.set_flag(p[1][0], p[1][1], p[3])
+        return
+
+    def p_simple_override_assignment(self, p):
+        '''assignment : varoverride ASSIGN STRING'''
+        self.meta.set_override(p[1][0], p[1][1], p[3])
         return
 
     def p_exp_var_assignment(self, p):
         '''assignment : variable EXPASSIGN STRING'''
-        self.data.setVar(p[1], self.data.expand(p[3]))
+        self.meta.set(p[1], self.meta.expand(p[3]))
         return
 
     def p_exp_flag_assignment(self, p):
         '''assignment : varflag EXPASSIGN STRING'''
-        self.data.setVarFlag(p[1][0], p[1][1], self.data.expand(p[3]))
+        self.meta.set_flag(p[1][0], p[1][1], self.meta.expand(p[3]))
+        return
+
+    def p_exp_override_assignment(self, p):
+        '''assignment : varoverride EXPASSIGN STRING'''
+        self.meta.set_override(p[1][0], p[1][1], self.meta.expand(p[3]))
         return
 
     def p_defaultval_assignment(self, p):
         '''assignment : variable LAZYASSIGN STRING'''
-        self.data.setVar(p[1], "defaultval", p[3])
+        self.meta.set(p[1], "defaultval", p[3])
         return
 
     def p_weak_var_assignment(self, p):
         '''assignment : variable WEAKASSIGN STRING'''
-        if not p[1] in self.data:
-            self.data.setVar(p[1], p[3])
+        if not p[1] in self.meta:
+            self.meta.set(p[1], p[3])
         return
 
     def p_weak_flag_assignment(self, p):
         '''assignment : varflag WEAKASSIGN STRING'''
-        if self.data.getVarFlag(p[1][0], p[1][1]) == None:
-            self.data.setVarFlag(p[1][0], p[1][1], p[3])
+        if self.meta.get_flag(p[1][0], p[1][1]) == None:
+            self.meta.set_flag(p[1][0], p[1][1], p[3])
+        return
+
+    def p_weak_override_assignment(self, p):
+        '''assignment : varoverride WEAKASSIGN STRING'''
+        if self.meta.get_override(p[1][0], p[1][1]) == None:
+            self.meta.set_override(p[1][0], p[1][1], p[3])
         return
 
     def p_append_var_assignment(self, p):
         '''assignment : variable APPEND STRING'''
-        self.data.appendVar(p[1], p[3], separator=" ")
+        self.meta.append(p[1], p[3], separator=" ")
         return
 
     def p_append_flag_assignment(self, p):
         '''assignment : varflag APPEND STRING'''
-        self.data.appendVarFlag(p[1][0], p[1][1], p[3], separator=" ")
+        self.meta.append_flag(p[1][0], p[1][1], p[3], separator=" ")
+        return
+
+    def p_append_override_assignment(self, p):
+        '''assignment : varoverride APPEND STRING'''
+        self.meta.append_override(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_prepend_var_assignment(self, p):
         '''assignment : variable PREPEND STRING'''
-        self.data.prependVar(p[1], p[3], separator=" ")
+        self.meta.prepend(p[1], p[3], separator=" ")
         return
 
     def p_prepend_flag_assignment(self, p):
         '''assignment : varflag PREPEND STRING'''
-        self.data.prependVarFlag(p[1][0], p[1][1], p[3], separator=" ")
+        self.meta.prepend_flag(p[1][0], p[1][1], p[3], separator=" ")
+        return
+
+    def p_prepend_override_assignment(self, p):
+        '''assignment : varoverride PREPEND STRING'''
+        self.meta.prepend_override(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_predot_var_assignment(self, p):
         '''assignment : variable PREDOT STRING'''
-        self.data.appendVar(p[1], p[3])
+        self.meta.append(p[1], p[3])
         return
 
     def p_predot_flag_assignment(self, p):
         '''assignment : varflag PREDOT STRING'''
-        self.data.appendVarFlag(p[1][0], p[1][1], p[3])
+        self.meta.append_flag(p[1][0], p[1][1], p[3])
+        return
+
+    def p_predot_override_assignment(self, p):
+        '''assignment : varoverride PREDOT STRING'''
+        self.meta.append_override(p[1][0], p[1][1], p[3])
         return
 
     def p_postdot_var_assignment(self, p):
         '''assignment : variable POSTDOT STRING'''
-        self.data.prependVar(p[1], p[3])
+        self.meta.prepend(p[1], p[3])
         return
 
     def p_postdot_flag_assignment(self, p):
         '''assignment : varflag POSTDOT STRING'''
-        self.data.prependVarFlag(p[1][0], p[1][1], p[3])
+        self.meta.prepend_flag(p[1][0], p[1][1], p[3])
+        return
+
+    def p_postdot_override_assignment(self, p):
+        '''assignment : varoverride POSTDOT STRING'''
+        self.meta.prepend_override(p[1][0], p[1][1], p[3])
         return
 
     def p_include(self, p):
         '''include : INCLUDE INCLUDEFILE'''
-        self.include(p[2])
+        try:
+            self.include(p[2], p)
+        except oelite.parse.FileNotFound, e:
+            raise oelite.parse.ParseError(
+                self, "File not found: include %s"%(e.filename), p)
         return
 
     def p_require(self, p):
         '''require : REQUIRE INCLUDEFILE'''
-        self.include(p[2], require=True)
+        try:
+            self.include(p[2], p, require=True)
+        except oelite.parse.FileNotFound, e:
+            raise oelite.parse.ParseError(
+                self, "File not found: require %s"%(e.filename), p)
         return
 
     def p_inherit(self, p):
         '''inherit : INHERIT inherit_classes'''
         for inherit_class in p[2]:
-            self.inherit(inherit_class)
+            try:
+                self.inherit(inherit_class, p)
+            except oelite.parse.FileNotFound, e:
+                raise oelite.parse.ParseError(
+                    self, "Class not found: inherit %s"%(inherit_class), p)
         return
 
     def p_inherit_classes(self, p):
@@ -183,16 +259,16 @@ class BBParser(object):
 
     def p_addtask(self, p):
         '''addtask : addtask_task'''
-        self.data.setVarFlag(p[1], "task", True)
+        self.meta.set_flag(p[1], "task", True)
         #print "addtask %s"%(p[1])
         return
 
     def p_addtask_w_dependencies(self, p):
         '''addtask : addtask_task addtask_dependencies'''
         self.p_addtask(p)
-        self.data.appendVarFlag(p[1], "deps", " ".join(p[2][0]), " ")
+        self.meta.append_flag(p[1], "deps", " ".join(p[2][0]), " ")
         for before_task in p[2][1]:
-            self.data.appendVarFlag(before_task, "deps", p[1], " ")
+            self.meta.append_flag(before_task, "deps", p[1], " ")
         return
 
     def taskname(self, s):
@@ -244,22 +320,22 @@ class BBParser(object):
 
     def p_addhook1(self, p):
         '''addhook : ADDHOOK HOOK TO HOOKNAME'''
-        self.data.add_hook(p[4], p[2])
+        self.meta.add_hook(p[4], p[2])
         return
 
     def p_addhook2(self, p):
         '''addhook : ADDHOOK HOOK TO HOOKNAME HOOKSEQUENCE'''
-        self.data.add_hook(p[4], p[2], p[5])
+        self.meta.add_hook(p[4], p[2], p[5])
         return
 
     def p_addhook3(self, p):
         '''addhook : ADDHOOK HOOK TO HOOKNAME addhook_dependencies'''
-        self.data.add_hook(p[4], p[2], after=p[5][0], before=p[5][1])
+        self.meta.add_hook(p[4], p[2], after=p[5][0], before=p[5][1])
         return
 
     def p_addhook4(self, p):
         '''addhook : ADDHOOK HOOK TO HOOKNAME HOOKSEQUENCE addhook_dependencies'''
-        self.data.add_hook(p[4], p[2], p[5], after=p[6][0], before=p[6][1])
+        self.meta.add_hook(p[4], p[2], p[5], after=p[6][0], before=p[6][1])
         return
 
     def p_addhook_dependencies1(self, p):
@@ -298,25 +374,10 @@ class BBParser(object):
         p[0] = [ p[1] ] + p[2]
         return
 
-
-    # function related flags:
-    #  python = BOOL
-    #  args = STRING
-    #  bash = BOOL
-    #  fakeroot = BOOL
-
-    # other flags
-    #  export = BOOL or list of tasks    export to shell function
-    #  defaultval = STRING  (default value assigned)
-    #  export_func ???
-    #  task = BOOL
-    #  before = [ TASK ... ]
-    #  after = [ TASK ... ]
-
     def p_func(self, p):
         '''func : VARNAME FUNCSTART func_body FUNCSTOP'''
-        self.data.setVar(p[1], p[3])
-        self.data.setVarFlag(p[1], "bash", True)
+        self.meta.set(p[1], p[3])
+        self.meta.set_flag(p[1], "bash", True)
         p[0] = p[1]
         return
 
@@ -332,41 +393,41 @@ class BBParser(object):
 
     def p_fakeroot_func(self, p):
         '''fakeroot_func : FAKEROOT func'''
-        self.data.setVarFlag(p[2], "fakeroot", True)
+        self.meta.set_flag(p[2], "fakeroot", True)
         p[0] = p[2]
         return
 
     def p_python_func(self, p):
         '''python_func : PYTHON VARNAME FUNCSTART func_body FUNCSTOP'''
-        self.data.setVar(p[2], p[4])
-        self.data.setVarFlag(p[2], "python", True)
+        self.meta.set(p[2], p[4])
+        self.meta.set_flag(p[2], "python", True)
         p[0] = p[2]
         return
 
-    def p_python_anonfunc(self, p):
-        '''python_func : PYTHON FUNCSTART func_body FUNCSTOP'''
-        #funcname = "__anon_%s_%d"%(self.filename.translate(
-        #        string.maketrans('/.+-', '____')), p.lexer.funcstart + 1)
-        funcname = "__%s_%d__"%(
-            self.filename.translate(string.maketrans('/+-.', '____')),
-            p.lexer.funcstart + 1)
-        #print "anonymous python %s"%(funcname)
-        #self.data.addAnonymousFunction(self.filename, p.lexer.funcstart + 1,
-        #                               p[3])
-        self.data.setVar(funcname, p[3])
-        self.data.setVarFlag(funcname, 'python', True)
-        self.data.setVarFlag(funcname, 'args', "d")
-        self.data.add_hook("post_recipe_parse", funcname)
-        return
+    #def p_python_anonfunc(self, p):
+    #    '''python_func : PYTHON FUNCSTART func_body FUNCSTOP'''
+    #    #funcname = "__anon_%s_%d"%(self.filename.translate(
+    #    #        string.maketrans('/.+-', '____')), p.lexer.funcstart + 1)
+    #    funcname = "__%s_%d__"%(
+    #        self.filename.translate(string.maketrans('/+-.', '____')),
+    #        p.lexer.funcstart + 1)
+    #    #print "anonymous python %s"%(funcname)
+    #    #self.meta.addAnonymousFunction(self.filename, p.lexer.funcstart + 1,
+    #    #                               p[3])
+    #    self.meta.set(funcname, p[3])
+    #    self.meta.set_flag(funcname, 'python', True)
+    #    self.meta.set_flag(funcname, 'args', "d")
+    #    self.meta.add_hook("post_recipe_parse", funcname)
+    #    return
 
     def p_def_func(self, p):
         '''def_func : DEF VARNAME def_funcargs NEWLINE func_body
                     | DEF VARNAME def_funcargs NEWLINE func_body FUNCSTOP'''
-        self.data.setVar(p[2], p[5])
-        self.data.setVarFlag(p[2], "python", True)
+        self.meta.set(p[2], p[5])
+        self.meta.set_flag(p[2], "python", True)
         if p[3]:
-            self.data.setVarFlag(p[2], "args", p[3])
-        self.data.setVarFlag(p[2], "autoimport", True)
+            self.meta.set_flag(p[2], "args", p[3])
+        self.meta.set_flag(p[2], "autoimport", True)
         return
 
     def p_def_args1(self, p):
@@ -380,37 +441,43 @@ class BBParser(object):
         return
 
     def p_error(self, p):
-        raise ParseError(self, "Syntax error", p)
+        raise oelite.parse.ParseError(self, "Syntax error", p)
 
 
-    def inherit(self, filename):
+    def inherit(self, filename, p):
+        #print "inherit %s"%(filename)
         if not os.path.isabs(filename) and not filename.endswith(".bbclass"):
             filename = os.path.join("classes", "%s.bbclass"%(filename))
-        if not "__INHERITS" in self.data:
-            self.data["__INHERITS"] = filename
+        if not "__inherits" in self.meta:
+            self.meta["__inherits"] = [filename]
+            self.meta.set_flag("__inherits", "nohash", True)
         else:
-            __INHERITS = self.data["__INHERITS"]
-            if filename in __INHERITS.split():
+            __inherits = self.meta["__inherits"]
+            if filename in __inherits:
                 return
-            self.data.appendVar("__INHERITS", filename)
-        self.include(filename, require=True)
+            self.meta["__inherits"].append(filename)
+        self.include(filename, p, require=True)
 
 
-    def include(self, filename, require=False):
+    def include(self, filename, p, require=False):
         try:
-            filename = self.data.expand(filename)
-        except ExpandError, e:
-            raise ParseError(self, str(e), self, lineno=(self.lexer.lineno - 1))
+            filename = self.meta.expand(filename)
+        except oelite.meta.ExpansionError, e:
+            #raise oelite.parse.ParseError(
+            #    self, str(e), p, lineno=(self.lexer.lineno - 1),
+            #    more_details=e)
+            #debug("ignoring include of in-expandable variable")
+            return None
         #print "including file=%s"%(filename)
-        parser = self.__class__(self.data, parent=self)
-        rv = parser.parse(filename, require, parser)
-        return rv
+        parser = self.__class__(self.meta, parent=self)
+        return parser.parse(filename, require, parser, p)
 
 
-    def parse(self, filename, require=True, parser=None):
-        #print "parsing %s"%(filename)
+    def parse(self, filename, require=True, parser=None, p=None):
+        #print "parsing %s"%(repr(filename))
+        searchfn = filename
         if not os.path.isabs(filename):
-            bbpath = self.data.getVar("BBPATH")
+            bbpath = self.meta.get("BBPATH")
             if self.parent:
                 dirname = os.path.dirname(self.parent.filename)
                 bbpath = "%s:%s"%(dirname, bbpath)
@@ -419,18 +486,15 @@ class BBParser(object):
             if not os.path.exists(filename):
                 print "file not found: %s"%(filename)
                 return
+            bbpath = None
 
-        if filename:
-            self.filename = os.path.realpath(filename)
-        else:
-            self.filename = ""
-
-        if not os.path.exists(self.filename):
-            if not require:
-                return
+        if not os.path.exists(filename):
+            if require:
+                raise oelite.parse.FileNotFound(self, searchfn, p)
             else:
-                print "required file could not be included: %s"%(self.filename)
                 return
+
+        self.filename = os.path.realpath(filename)
 
         if self.parent:
             oldfile = os.path.realpath(self.filename[-1])
@@ -439,23 +503,24 @@ class BBParser(object):
                 return
 
         if parser is None and not filename.endswith(".bbclass"):
-            self.data.setVar("FILE", filename)
-            self.data.setVar("FILE_DIRNAME", os.path.dirname(filename))
+            self.meta.set("FILE", filename)
+            self.meta.set("FILE_DIRNAME", os.path.dirname(filename))
             if filename.endswith(".bb"):
                 file_split = os.path.basename(filename[:-3]).split("_")
                 if len(file_split) > 3:
                     raise Exception("Invalid recipe filename: %s"%(filename))
-                self.data.setVar("PN", file_split[0])
+                self.meta.set("PN", file_split[0])
                 if len(file_split) > 1:
-                    self.data.setVar("PV", file_split[1])
-                if len(file_split) > 2:
-                    self.data.setVar("PR", file_split[2])
+                    self.meta.set("PV", file_split[1])
+                else:
+                    self.meta.set("PV", 0)
 
+        # FIXME: write lock file to safeguard against race condition
         mtime = os.path.getmtime(self.filename)
         f = open(self.filename)
         self.text = f.read()
         f.close()
-        self.data.setFileMtime(self.filename, mtime)
+        self.meta.set_input_mtime(searchfn, bbpath, mtime)
 
         if not parser:
             parser = self
@@ -465,9 +530,9 @@ class BBParser(object):
     def _parse(self, s):
         self.lexer.lineno = 0
         self.yacc.parse(s + '\n', lexer=self.lexer)
-        return self.data
+        return self.meta
 
 
     def yacctest(self, s):
-        self.data = oelite.data.Data()
+        self.meta = oelite.meta.DictMeta()
         return self._parse(s)

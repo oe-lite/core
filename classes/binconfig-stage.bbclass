@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 require conf/meta.conf
 
 STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
