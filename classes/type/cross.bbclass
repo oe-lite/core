@@ -1,11 +1,11 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH		= "cross/${MACHINE_ARCH}"
+RECIPE_ARCH		= "${MACHINE_ARCH}"
 RECIPE_ARCH_MACHINE	= "cross/${MACHINE}"
 
 # Default packages is stage (cross) packages
-PACKAGES_append		+= "${SYSROOT_PACKAGES}"
-SYSROOT_PACKAGES	?= ""
+PACKAGES		+= "${TARGET_PACKAGES}"
+TARGET_PACKAGES		?= ""
 
 #DEFAULT_DEPENDS = "cross:toolchain ${TARGET_ARCH}/sysroot-dev"
 
@@ -46,68 +46,15 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-# Fixup PACKAGE_ARCH_* variables for sysroot packages
-def fixup_package_arch(d):
-    arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
-    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
-    if not arch[0] and arch[1]:
-        # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
-        arch = arch[2]
-    else:
-        arch = '${TARGET_ARCH}'
-    packages = bb.data.getVar('PACKAGES', d, True).split()
-    sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
-    for pkg in packages:
-        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
-            if pkg in sysroot_packages:
-                pkg_arch = 'sysroot/'+arch
-            else:
-                pkg_arch = 'cross/'+arch
-            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+TARGET_PACKAGE_TYPE	= "machine"
 
-def fixup_provides(d):
-    pn = bb.data.getVar('PN', d, True) + '-'
-    target_arch = bb.data.getVar('TARGET_ARCH', d, True) + '/'
-    packages = bb.data.getVar('PACKAGES', d, True).split()
-    sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
-
-    for pkg in packages:
-        provides_changed = False
-
-        provides = (bb.data.getVar('PROVIDES_'+pkg, d, False) or '').split()
-
-        if not pkg in provides:
-            provides = [pkg] + provides
-            provides_changed = True
-
-	if pkg in sysroot_packages:
-
-            if pkg.endswith("-dev"):
-                base_pkg = pkg[:-4]
-                if base_pkg in sysroot_packages:
-                    cross_provides = base_pkg.replace(pn, target_arch, 1)
-                    if not cross_provides in provides:
-                        provides += [cross_provides]
-                        provides_changed = True
-                    depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
-                    if not base_pkg in depends:
-                        depends.append(base_pkg)
-                    d.setVar("DEPENDS_" + pkg, " ".join(depends))
-                else:
-                    cross_provides = pkg.replace(pn, target_arch, 1)
-                    if not cross_provides in provides:
-                        provides += [cross_provides]
-                        provides_changed = True
-
-            else:
-                cross_provides = pkg.replace(pn, target_arch, 1)
-                if not pkg + "-dev" in sysroot_packages:
-                    if not cross_provides in provides:
-                        provides += [cross_provides]
-                        provides_changed = True
-
-        if provides_changed:
-            bb.data.setVar('PROVIDES_%s'%pkg, ' '.join(provides), d)
+# Fixup PACKAGE_TYPE_* variables for target packages
+addhook fixup_package_type to post_recipe_parse first
+def fixup_package_type(d):
+    target_packages = (d.get("TARGET_PACKAGES") or "").split()
+    target_package_type = d.get("TARGET_PACKAGE_TYPE")
+    for pkg in target_packages:
+        d.set("PACKAGE_TYPE_%s"%(pkg), target_package_type)
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"

@@ -234,11 +234,13 @@ class MetaData(MutableMapping):
         CLEAN_EXPANSION -- clean, expand unknown variables to empty string
         """
         #print "expand method=%s string=%s"%(method, repr(string))
+        assert isinstance(method, int)
         (new_string, deps) = self._expand(string, method)
         return new_string
 
     def _expand(self, string, method):
         #print "_expand method=%s string=%s"%(method, repr(string))
+        assert isinstance(method, int)
         orig_string = string
         var_re    = re.compile(r"\${[^@{}]+}")
         python_re = re.compile(r"\${@.+?}")
@@ -248,7 +250,7 @@ class MetaData(MutableMapping):
         for var_match in var_re.finditer(string):
             var = var_match.group(0)[2:-1]
             (val, recdeps) = self._get(var)
-            if val == None:
+            if val is None:
                 if method == CLEAN_EXPANSION:
                     val = ""
                 elif method == FULL_EXPANSION:

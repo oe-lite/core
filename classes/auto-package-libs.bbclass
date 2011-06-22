@@ -10,7 +10,7 @@ AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
-addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_overrides fixup_package_arch fixup_provides
+addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_package_type fixup_provides
 
 def auto_package_libs (d):
     pn = d.getVar("PN", True)
@@ -35,9 +35,12 @@ def auto_package_libs (d):
             libdir.append("")
         if len(libdir) < 4:
             libdir.append("${SOLIBS}")
+        elif libdir[3]:
+            libdir[3] = libdir[3].split(",")
         if len(libdir) < 5:
-            libdir.append("${SOLIBSDEV}")
-
+            libdir.append("${SOLIBSDEV},.la,.a".split(","))
+        elif libdir[4]:
+            libdir[4] = libdir[4].split(",")
         return libdir
 
     for lib in libs:
@@ -48,24 +51,24 @@ def auto_package_libs (d):
         files = []
         pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, solibs, solibsdev) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            files.append("%s/%s%s"%(libdir, libname, solibs))
+            for libext in libexts:
+                files.append("%s/%s%s"%(libdir, libname, libext))
         files += get_extra_files(pkg)
-        d.setVar("FILES_" + pkg, " ".join(files))
+        d.set("FILES_" + pkg, " ".join(files))
 
         files = []
         pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, solibs, solibsdev) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            files.append("%s/%s%s"%(libdir, libname, solibsdev))
-            files.append("%s/%s.la"%(libdir, libname))
-            files.append("%s/%s.a"%(libdir, libname))
+            for libext in devlibexts:
+                files.append("%s/%s%s"%(libdir, libname, libext))
             if pkg_libsuffix is None:
                 pcfile = "${libdir}/pkgconfig/%s%s.pc"%(lib, libsuffix)
                 if not pcfile in files:
@@ -75,26 +78,37 @@ def auto_package_libs (d):
             if not pcfile in files:
                 files.append(pcfile)
         files += get_extra_files(devpkg)
-        d.setVar("FILES_" + devpkg, " ".join(files))
+        d.set("FILES_" + devpkg, " ".join(files))
 
         pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
-        pkg_provides.append("%s%s"%(provideprefix, lib))
-        d.setVar("PROVIDES_" + pkg, " ".join(pkg_provides))
+        pkg_provides.append("%s%s"%(provideprefix, lib.lower()))
+        d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
 
         devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
-        d.setVar("PROVIDES_" + devpkg, " ".join(devpkg_provides))
+        devpkg_provides.append("%s%s-dev"%(provideprefix, lib.lower()))
+        d.set("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
         pkg_depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
+
+        pkg_rdepends = d.get("RDEPENDS_" + pkg, True)
+        if pkg_rdepends is None:
+            pkg_rdepends = []
+            for dep in pkg_depends:
+                if dep.startswith("lib"):
+                    pkg_rdepends.append(dep)
+        else:
+            pkg_rdepends = pkg_rdepends.split()
+        d.set("RDEPENDS_" + pkg, " ".join(pkg_rdepends))
+
         pkg_depends.append("%s_${PV}"%(devpkg))
-        d.setVar("DEPENDS_" + pkg, " ".join(pkg_depends))
+        d.set("DEPENDS_" + pkg, " ".join(pkg_depends))
 
         devpkg_depends = (d.getVar("DEPENDS_" + devpkg, True) or "").split()
         devpkg_depends += dev_depends.split()
-        d.setVar("DEPENDS_" + devpkg, " ".join(devpkg_depends))
+        d.set("DEPENDS_" + devpkg, " ".join(devpkg_depends))
 
         devpkg_rdepends = d.getVar("RDEPENDS_" + devpkg, True)
         if devpkg_rdepends is None:
-            pkg_rdepends = (d.getVar("RDEPENDS_" + pkg, True) or "").split()
             devpkg_rdepends = []
             for dep in pkg_rdepends:
                 if dep.endswith("-dev"):
@@ -105,6 +119,6 @@ def auto_package_libs (d):
             devpkg_rdepends = devpkg_rdepends.split()
         devpkg_rdepends.append("%s_${PV}"%(pkg))
         devpkg_rdepends += dev_rdepends.split()
-        d.setVar("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
+        d.set("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
 
-    d.setVar("LIBS_AUTO_PACKAGES", " ".join(packages))
+    d.set("LIBS_AUTO_PACKAGES", " ".join(packages))

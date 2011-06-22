@@ -555,6 +555,8 @@ class CookBook(Mapping):
         recipe_depends = []
         for item in (recipe.meta.get("DEPENDS") or "").split():
             recipe_depends.append((recipe_id, item))
+        for item in (recipe.meta.get("CLASS_DEPENDS") or "").split():
+            recipe_depends.append((recipe_id, item))
         if recipe_depends:
             self.dbc.executemany(
                 "INSERT INTO recipe_depend (recipe, item) "
@@ -562,6 +564,8 @@ class CookBook(Mapping):
 
         recipe_rdepends = []
         for item in (recipe.meta.get("RDEPENDS") or "").split():
+            recipe_rdepends.append((recipe_id, item))
+        for item in (recipe.meta.get("CLASS_RDEPENDS") or "").split():
             recipe_rdepends.append((recipe_id, item))
         if recipe_rdepends:
             self.dbc.executemany(
@@ -639,7 +643,10 @@ class CookBook(Mapping):
                 package_id = self.add_package(recipe, package, type, arch)
             
                 provides = recipe.meta.get("PROVIDES_" + package) or ""
-                for item in provides.split():
+                provides = provides.split()
+                if not package in provides:
+                    provides.append(package)
+                for item in provides:
                     self.dbc.execute(
                         "INSERT INTO provide (package, item) "
                         "VALUES (?, ?)", (package_id, item))

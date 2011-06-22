@@ -4,16 +4,12 @@ import os
 import re
 import codeop
 import warnings
+import hashlib
 from pysqlite2 import dbapi2 as sqlite
 from oelite.pyexec import inlineeval
 from oebakery import die, err, warn, info, debug
 from collections import MutableMapping
 
-
-NO_EXPANSION      = 0
-FULL_EXPANSION    = 1
-PARTIAL_EXPANSION = 2
-CLEAN_EXPANSION   = 3
 
 
 class ExpansionStack:
@@ -230,9 +226,6 @@ class Data(MutableMapping):
             "    WHERE deps.dep=:var_id"
             "    AND expand_cache_deps.var=deps.var"
             "  ) OR expand_cache_deps.var=:var_id", locals())
-        #import sys
-        #print self.full_dump()
-        #sys.exit(42)
         return
 
 
@@ -500,40 +493,6 @@ class Data(MutableMapping):
         #print "expand method=%s string=%s"%(method, repr(string))
         (new_string, deps) = self._expand(string, method)
         return new_string
-
-
-    #def _expand(self, string, method):
-    #    #print "_expand method=%s string=%s"%(method, repr(string))
-    #    orig_string = string
-    #    var_re    = re.compile(r"\${[^{}]+}")
-    #    python_re = re.compile(r"\${@.+?}")
-    #    python_match = python_re.search(string)
-    #    deps = set()
-    #    if python_match:
-    #        python_source = python_match.group(0)[3:-1]
-    #        self.expand_stack.push("python %s"%(repr(python_source)))
-    #        python_output = inlineeval(python_source, self)
-    #        #print "python_output=%s"%(repr(python_output))
-    #        (expanded_output, python_deps) = self._expand(python_output, method)
-    #        string = (string[:python_match.start(0)] +
-    #                  expanded_output +
-    #                  string[python_match.end(0):])
-    #        #print "after python string: %s"%(repr(string))
-    #        deps.add("python")
-    #        deps.union(python_deps)
-    #        self.expand_stack.pop()
-    #    new_string = ""
-    #    string_ptr = 0
-    #    for var_match in var_re.finditer(string):
-    #        var = var_match.group(0)[2:-1]
-    #        (val, recdeps) = self._get(var)
-    #        new_string += string[string_ptr:var_match.start(0)] + "%s"%(val,)
-    #        string_ptr = var_match.end(0)
-    #        deps.add(var)
-    #        deps.union(recdeps)
-    #    new_string += string[string_ptr:]
-    #    #print "returning expanded string %s"%(repr(new_string))
-    #    return (new_string, deps)
 
 
     def _expand(self, string, method):

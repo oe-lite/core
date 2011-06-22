@@ -12,24 +12,17 @@ SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
 
 inherit autotools
 
-LIBTOOL_DEPENDS_recipe-native		= ""
-LIBTOOL_DEPENDS_recipe-cross		= "${BUILD_ARCH}/libtool"
-LIBTOOL_DEPENDS_recipe-sdk-cross	= "${BUILD_ARCH}/libtool"
+LIBTOOL_DEPENDS = "host-cross:libtool"
+LIBTOOL_DEPENDS:native = ""
 
-SYSROOT_PACKAGES = "\
+TARGET_PACKAGES = "\
 	${PN}-sysroot-libltdl \
 	${PN}-sysroot-libltdl-dev \
 	${PN}-sysroot-libltdl-dbg \
 "
-PACKAGES_append_recipe-native += "${SYSROOT_PACKAGES}"
+PACKAGES:>native += "${TARGET_PACKAGES}"
 
-CROSS_PROVIDES			= "${TARGET_ARCH}/libtool"
-CROSS_PROVIDES_recipe-machine	= ""
-PROVIDES_${PN}			+= "${CROSS_PROVIDES}"
-
-SYSROOT_DEPENDS = "target:libgcc"
-SYSROOT_DEPENDS:native = ""
-DEPENDS += "${SYSROOT_DEPENDS}"
+DEPENDS += "target:libgcc"
 
 DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"
 DEPENDS_${PN}-sysroot-libltdl-dbg	= "${PN}-sysroot-libltdl"
@@ -38,39 +31,36 @@ FILES_${PN}	= "\
 ${base_bindir}/* ${base_sbindir}/* \
 ${bindir}/* ${sbindir}/* \
 ${sysconfdir} ${sharedstatedir} ${localstatedir} \
-${datadir}/${BPN} ${datadir}/aclocal \
+${datadir}/${PN} ${datadir}/aclocal \
 "
 FILES_${PN}-sysroot-libltdl = "${libdir}/libltdl.so.*"
 FILES_${PN}-sysroot-libltdl-dev = "${libdir}/libltdl.* ${includedir}/ltdl.h"
 FILES_${PN}-sysroot-libltdl-dbg = "${libdir}/.debug/"
 
-EXTRA_OECONF_PROGRAM_PREFIX = ""
-EXTRA_OECONF_PROGRAM_PREFIX_recipe-native += "--program-prefix=${TARGET_PREFIX}"
-EXTRA_OECONF_PROGRAM_PREFIX_recipe-cross += "--program-prefix=${TARGET_PREFIX}"
-EXTRA_OECONF_PROGRAM_PREFIX_recipe-sdk-cross += "--program-prefix=${TARGET_PREFIX}"
-EXTRA_OECONF_PROGRAM_PREFIX_recipe-canadian-cross += "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF_PROGRAM_PREFIX = "--program-prefix=${TARGET_PREFIX}"
+EXTRA_OECONF_PROGRAM_PREFIX:machine = ""
 EXTRA_OECONF += "${EXTRA_OECONF_PROGRAM_PREFIX}"
 
 # When cross compiling libtool, we need to lie a bit, telling
 # configure that host=target
-HOST_ARCH_recipe-cross			= "${TARGET_ARCH}"
-HOST_FPU_recipe-cross			= "${TARGET_FPU}"
-HOST_EXEEXT_recipe-cross		= "${TARGET_EXEEXT}"
-HOST_PREFIX_recipe-cross		= "${TARGET_PREFIX}"
-HOST_CPPFLAGS_recipe-cross		= "${TARGET_CPPFLAGS}"
-HOST_OPTIMIZATION_recipe-cross		= "${TARGET_OPTIMIZATION}"
-HOST_CFLAGS_recipe-cross		= "${TARGET_CFLAGS}"
-HOST_CXXFLAGS_recipe-cross		= "${TARGET_CXXFLAGS}"
-HOST_LDFLAGS_recipe-cross		= "${TARGET_LDFLAGS}"
-HOST_ARCH_recipe-sdk-cross		= "${TARGET_ARCH}"
-HOST_FPU_recipe-sdk-cross		= "${TARGET_FPU}"
-HOST_EXEEXT_recipe-sdk-cross		= "${TARGET_EXEEXT}"
-HOST_PREFIX_recipe-sdk-cross		= "${TARGET_PREFIX}"
-HOST_CPPFLAGS_recipe-sdk-cross		= "${TARGET_CPPFLAGS}"
-HOST_OPTIMIZATION_recipe-sdk-cross	= "${TARGET_OPTIMIZATION}"
-HOST_CFLAGS_recipe-sdk-cross		= "${TARGET_CFLAGS}"
-HOST_CXXFLAGS_recipe-sdk-cross		= "${TARGET_CXXFLAGS}"
-HOST_LDFLAGS_recipe-sdk-cross		= "${TARGET_LDFLAGS}"
+HOST_ARCH:cross			= "${TARGET_ARCH}"
+HOST_FPU:cross			= "${TARGET_FPU}"
+HOST_EXEEXT:cross		= "${TARGET_EXEEXT}"
+HOST_PREFIX:cross		= "${TARGET_PREFIX}"
+HOST_CPPFLAGS:cross		= "${TARGET_CPPFLAGS}"
+HOST_OPTIMIZATION:cross		= "${TARGET_OPTIMIZATION}"
+HOST_CFLAGS:cross		= "${TARGET_CFLAGS}"
+HOST_CXXFLAGS:cross		= "${TARGET_CXXFLAGS}"
+HOST_LDFLAGS:cross		= "${TARGET_LDFLAGS}"
+HOST_ARCH:sdk-cross		= "${TARGET_ARCH}"
+HOST_FPU:sdk-cross		= "${TARGET_FPU}"
+HOST_EXEEXT:sdk-cross		= "${TARGET_EXEEXT}"
+HOST_PREFIX:sdk-cross		= "${TARGET_PREFIX}"
+HOST_CPPFLAGS:sdk-cross		= "${TARGET_CPPFLAGS}"
+HOST_OPTIMIZATION:sdk-cross	= "${TARGET_OPTIMIZATION}"
+HOST_CFLAGS:sdk-cross		= "${TARGET_CFLAGS}"
+HOST_CXXFLAGS:sdk-cross		= "${TARGET_CXXFLAGS}"
+HOST_LDFLAGS:sdk-cross		= "${TARGET_LDFLAGS}"
 
 # As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
 # host), we need to fixup the mingw32 override to avoid the invalid

@@ -495,9 +495,8 @@ class OEliteRunQueue:
                     latest[providers[i].name].append(providers[i])
             if len(latest) == 1:
                 package = latest.values()[0][0]
-                recipe = self.cookbook.get_recipe(id=package)
                 self._set_provider(item, package)
-                return latest.values()[0][0][0]
+                return package
             if len(latest) > 1:
                 multiple_providers = []
                 for provider in latest.itervalues():
@@ -874,6 +873,17 @@ class OEliteRunQueue:
                 "   AND runq.depend.parent_task IS NOT NULL"
                 "   LIMIT 1)"))
 
+
+    def print_metahashable_tasks(self):
+        for r in self.dbc.execute("select task from runq.task where metahash is NULL"):
+            print self.cookbook.get_task(id=r[0])
+            for r in self.cookbook.db.execute("select parent_task, depend_package, rdepend_package from runq.depend where task=%s"%(r[0])):
+                s = str(self.cookbook.get_task(id=r[0]))
+                if r[1] != -1:
+                    s += " depend_package=%s"%(self.cookbook.get_package(id=r[1]))
+                if r[2] != -1:
+                    s += " rdepend_package=%s"%(self.cookbook.get_package(id=r[2]))
+                print " " +s
 
     def get_metahashable_tasks(self):
         return flatten_single_column_rows(self.dbc.execute(

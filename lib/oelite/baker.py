@@ -175,7 +175,7 @@ class OEliteBaker:
 
         # collect all available .bb files
         bbrecipes = self.list_bbfiles()
-        
+
         # parse all .bb files
         total = len(bbrecipes)
         parsed = 0
@@ -365,6 +365,8 @@ class OEliteBaker:
             timing_info("Calculation task metadata hashes", start)
 
         if count != total:
+            print ""
+            self.runq.print_metahashable_tasks()
             print "count=%s total=%s"%(count, total)
             die("Circular dependencies I presume.  Add more debug info!")
 
@@ -625,7 +627,7 @@ def exec_func(func, data):
 
     cleandirs = flags['cleandirs']
     if cleandirs:
-        cleandirs = data.expand(cleandirs, None).split()
+        cleandirs = data.expand(cleandirs).split()
     if cleandirs:
         for cleandir in cleandirs:
             if not os.path.exists(cleandir):
@@ -639,7 +641,7 @@ def exec_func(func, data):
 
     dirs = flags['dirs']
     if dirs:
-        dirs = data.expand(dirs, None).split()
+        dirs = data.expand(dirs).split()
 
     if dirs:
         for adir in dirs:
@@ -736,29 +738,32 @@ def exec_func(func, data):
 def exec_func_python(func, data, runfile, logfile):
     """Execute a python BB 'function'"""
 
-    bbfile = data.get("FILE", True)
-    tmp  = "def " + func + "(d):\n%s" % data.get(func, True)
-    tmp += '\n' + func + '(d)'
+    #bbfile = data.get("FILE", True)
+    #tmp  = "def " + func + "(d):\n%s" % data.get(func, True)
+    #tmp += '\n' + func + '(d)'
 
-    f = open(runfile, "w")
-    f.write(tmp)
-    comp = None
-    try:
-        comp = bb.utils.better_compile(tmp, func, bbfile)
-    except:
-        raise
-        die("compiling %s failed, ask an OE-lite wizard to add more debug information"%func)
-    try:
-        bb.utils.better_exec(comp, {"d": data}, tmp, bbfile)
-    except:
-        err("executing python function %s failed"%(func))
-        if oebakery.DEBUG:
-            raise
-        return False
+    funcobj = data.get_pythonfunc(func)
+
+    #f = open(runfile, "w")
+    #f.write(tmp)
+    #comp = None
+    #try:
+    #    comp = bb.utils.better_compile(tmp, func, bbfile)
+    #except:
+    #    raise
+    #    die("compiling %s failed, ask an OE-lite wizard to add more debug information"%func)
+    #try:
+    #    bb.utils.better_exec(comp, {"d": data}, tmp, bbfile)
+    #except:
+    #    err("executing python function %s failed"%(func))
+    #    if oebakery.DEBUG:
+    #        raise
+    #    return False
         #if sys.exc_info()[0] in (bb.parse.SkipPackage, bb.build.FuncFailed):
         #    raise
         ##return False
         #raise
+    funcobj(data)
 
     return True
 

@@ -11,4 +11,4 @@ inherit autotools make-vpath
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "readline history"
 
-DEPENDS = "libtermcap${RE}"
+DEPENDS = "libtermcap"

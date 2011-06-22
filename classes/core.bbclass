@@ -303,34 +303,6 @@ MACHINE[unexport] = "1"
 DISTRO[unexport] = "1"
 
 
-addhook fixup_package_arch to post_recipe_parse first after base_after_parse
-def fixup_package_arch(d):
-    arch_prefix = bb.data.getVar('RECIPE_TYPE', d, True) + '/'
-    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition(arch_prefix)
-    # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
-    if not arch[0] and arch[1]:
-        arch = arch[2]
-    else:
-        arch = '${TARGET_ARCH}'
-    for pkg in bb.data.getVar('PACKAGES', d, True).split():
-        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
-            pkg_arch = 'sysroot/'+arch
-            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
-
-
-addhook fixup_provides to post_recipe_parse first after base_after_parse
-def fixup_provides(d):
-    for pkg in bb.data.getVar('PACKAGES', d, True).split():
-        provides = (bb.data.getVar('PROVIDES_'+pkg, d, True) or '').split()
-        if not pkg in provides:
-            #bb.data.setVar('PROVIDES_'+pkg, ' '.join([pkg] + provides), d)
-            if provides:
-                d.setVar('PROVIDES_'+pkg, d.getVar('PROVIDES_'+pkg, False) + \
-                             ' ' + pkg)
-            else:
-                d.setVar('PROVIDES_'+pkg, pkg)
-
-
 addhook base_after_parse to post_recipe_parse first
 def base_after_parse(d):
     source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
@@ -371,45 +343,24 @@ def base_after_parse(d):
     elif "osc://" in srcuri:
         fetcher_depends += " osc-native "
 
-    # bb.utils.sha256_file() will fail if hashlib isn't present, so we fallback
-    # on shasum-native.  We need to ensure that it is staged before we fetch.
-    if bb.data.getVar('PN', d, True) != "shasum-native":
-        try:
-            import hashlib
-        except ImportError:
-            fetcher_depends += " shasum-native"
-
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
-
-    # Special handling of BBCLASSEXTEND recipes
-    recipe_type = bb.data.getVar('RECIPE_TYPE', d, True)
-    # Set ${RE} for use in fx. DEPENDS and RDEPENDS
-    if recipe_type != "machine":
-        bb.data.setVar('RE', '-' + recipe_type, d)
-    # Add recipe-${RECIPE_TYPE} to OVERRIDES
-    bb.data.setVar('OVERRIDES', bb.data.getVar('OVERRIDES', d, False) + ':recipe-'+recipe_type, d)
 
     # FIXME: move to insane.bbclass
     provides = bb.data.getVar('PROVIDES', d, True)
     if provides:
         bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
 
-    # FIXME: move to insane.bbclass
-    rprovides = bb.data.getVar('RPROVIDES', d, True)
-    if rprovides:
-        bb.note("Ignoring RPROVIDES as it does not make sense with OE-core (RPROVIDES='%s')"%rprovides)
 
-
-addhook base_detect_machine_override to post_recipe_parse first after base_after_parse
-def base_detect_machine_override(d):
+addhook core_machine_override to post_recipe_parse first after base_after_parse
+def core_machine_override(d):
 
     # RECIPE_ARCH override detection
-    recipe_arch = bb.data.getVar('RECIPE_ARCH', d, 1)
-    recipe_arch_mach = d.get('RECIPE_ARCH_MACHINE', 3)
+    recipe_arch = d.get("RECIPE_ARCH")
+    recipe_arch_mach = d.get("RECIPE_ARCH_MACHINE", 3)
 
     # Scan SRC_URI for urls with machine overrides unless the package
     # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
-    override = bb.data.getVar('SRC_URI_OVERRIDES_RECIPE_ARCH', d, 1)
+    override = d.get("SRC_URI_OVERRIDES_RECIPE_ARCH")
 
     def srcuri_machine_override(d, srcuri):
         import bb
@@ -435,25 +386,12 @@ def base_detect_machine_override(d):
                         return True
         return False
 
-    if (recipe_arch != recipe_arch_mach and override != '0' and
-        srcuri_machine_override(d, d.getVar('SRC_URI'))):
+    if (recipe_arch != recipe_arch_mach and override != "0" and
+        srcuri_machine_override(d, d.get("SRC_URI"))):
         bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
                  (pn, recipe_arch, recipe_arch_mach))
         bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
         recipe_arch = recipe_arch_mach
-
-    # Detect manual machine "override" in PACKAGE_ARCH_* variables
-    # FIXME: if PACKAGES has overrides, this will break as
-    # overrides has not been applied at this point in time!
-    packages = bb.data.getVar('PACKAGES', d, True)
-    for pkg in packages:
-        package_arch = bb.data.getVar("PACKAGE_ARCH_%s" % pkg, d, True)
-        if package_arch and package_arch == recipe_arch_mach:
-            if recipe_arch != recipe_arch_mach:
-                bb.debug("PACKAGE_ARCH_%s overrides RECIPE_ARCH from %s to %s"%
-                         (pkg, recipe_arch, recipe_arch_mach))
-                bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
-            break
 
 addhook blacklist to post_recipe_parse first after base_apply_recipe_options
 def blacklist(d):
@@ -483,7 +421,6 @@ def core_varname_expansion(d):
             e.print_details()
             raise Exception(42)
         if expanded_varname != varname:
-            #print "foobar %s != %s"%(expanded_varname, varname)
             flags = d.get_flags(varname, prune_var_value=False)
             #print "flags =",flags
             for flag in flags:

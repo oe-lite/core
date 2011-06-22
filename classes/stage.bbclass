@@ -9,7 +9,7 @@ do_stage[cleandirs] =	"${STAGE_DIR}"
 do_stage[dirs] =	"${STAGE_DIR}"
 do_stage[recdeptask] =	"do_package"
 
-python do_stage () {
+def do_stage(d):
     import bb, tempfile, shutil
     from oebakery import debug, info, warn, err, die
 
@@ -72,6 +72,5 @@ python do_stage () {
 
         os.chdir(dstdir)
         shutil.rmtree(unpackdir)
-}
 
 STAGE_FIXUP_FUNCS ?= ""

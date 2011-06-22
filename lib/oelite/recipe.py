@@ -53,14 +53,14 @@ class OEliteRecipe:
         return self.meta.get_vars(flag="task")
 
     def get_depends(self):
-        #return flatten_single_column_rows(self.cookbook.dbc.execute(
-        #    "SELECT item FROM recipe_depend WHERE recipe=?", (self.id,)))
-        return self.meta.get_list("DEPENDS")
+        return flatten_single_column_rows(self.cookbook.dbc.execute(
+            "SELECT item FROM recipe_depend WHERE recipe=?", (self.id,)))
+        #return self.meta.get_list("DEPENDS")
 
     def get_rdepends(self):
-        #return flatten_single_column_rows(self.dbc.execute(
-        #    "SELECT item FROM recipe_rdepend WHERE recipe=?", (self.id,)))
-        return self.meta.get_list("RDEPENDS")
+        return flatten_single_column_rows(self.cookbook.dbc.execute(
+            "SELECT item FROM recipe_rdepend WHERE recipe=?", (self.id,)))
+        #return self.meta.get_list("RDEPENDS")
 
 
     def post_parse(self):

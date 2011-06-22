@@ -65,7 +65,7 @@ def t_OVERRIDE(t):
     return t
 
 def t_OVERRIDE2(t):
-    r':[\>\<][a-zA-Z\-_]+'
+    r':[\>\<][a-zA-Z0-9\-_]+'
     t.type = 'OVERRIDE'
     t.value = (t.value[1], t.value[2:])
     return t

@@ -3,8 +3,9 @@
 RECIPE_ARCH			 = "canadian/${SDK_ARCH}--${MACHINE_ARCH}"
 RECIPE_ARCH_MACHINE		 = "canadian/${SDK_ARCH}--${MACHINE}"
 
-PACKAGES_append		+= "${SYSROOT_PACKAGES}"
-SYSROOT_PACKAGES	?= ""
+PACKAGES		+= "${HOST_PACKAGES} ${TARGET_PACKAGES}"
+HOST_PACKAGES		?= ""
+TARGET_PACKAGES		?= ""
 
 # Get both sdk and machine cross toolchains and sysroots
 #DEFAULT_DEPENDS += "${TARGET_ARCH}/toolchain ${TARGET_ARCH}/sysroot-dev"
@@ -55,70 +56,15 @@ libexecdir		= "${sdk_libexecdir}"
 libdir			= "${sdk_libdir}"
 includedir		= "${sdk_includedir}"
 
-# Override the stage to handle host/target split of stage dir
-#python do_stage () {
-#    import bb, os
-#    recdepends = bb.data.getVar('RECDEPENDS', d, True).split()
-#    bb.debug(1, 'stage: RECDEPENDS=%s'%recdepends)
-#    for dir in ('target', 'host'):
-#        os.mkdir(dir)
-#    for dep in recdepends:
-#        # Get complete specification of package that provides 'dep', in
-#        # the form PACKAGE_ARCH/PACKAGE-PV-PR
-#        pkg = bb.data.getVar('PKGPROVIDER_%s'%dep, d, 0)
-#        if not pkg:
-#            bb.error('PKGPROVIDER_%s not defined!'%dep)
-#            continue
-#    
-#        host_arch = bb.data.getVar('HOST_ARCH', d, True)
-#        if pkg.startswith('native/'):
-#            subdir = ''
-#        elif pkg.startswith('cross/%s/'%host_arch):
-#            subdir = 'host'
-#        elif pkg.startswith('sysroot/%s/'%host_arch):
-#            subdir = 'host'
-#        elif pkg.startswith('sysroot/%s--'%host_arch):
-#            subdir = 'host'
-#        else:
-#            subdir = 'target'
-#    
-#        filename = os.path.join(bb.data.getVar('STAGE_DEPLOY_DIR', d, True), pkg + '.tar')
-#        if not os.path.isfile(filename):
-#            bb.error('could not find %s to satisfy %s'%(filename, dep))
-#            continue
-#    
-#        bb.note('unpacking %s to %s'%(filename, os.path.join(os.getcwd(), subdir)))
-#    
-#        # FIXME: do error handling on tar command
-#        cmd = 'tar xpf %s'%filename
-#        if subdir:
-#            cmd = 'cd %s;%s'%(subdir, cmd)
-#        os.system(cmd)
-#}
-
-
-def fixup_package_arch(d):
-    arch = bb.data.getVar('RECIPE_ARCH', d, True).partition('canadian/')
-    sdk_arch = None
-    if not arch[0] and arch[1]:
-        # take part after / of RECIPE_ARCH if it begins with $RECIPE_TYPE/
-        # and split at the double dash
-        arch = arch[2].partition('--')
-        if arch[0] and arch[1] and arch[2]:
-            sdk_arch = arch[0]
-            machine_arch = arch[2]
-    if not sdk_arch:
-        sdk_arch = '${SDK_ARCH}'
-        machine_arch = '${MACHINE_ARCH}'
-    packages = bb.data.getVar('PACKAGES', d, True).split()
-    sysroot_packages = bb.data.getVar('SYSROOT_PACKAGES', d, True).split()
-    for pkg in packages:
-        if not bb.data.getVar('PACKAGE_ARCH_'+pkg, d, False):
-            if pkg in sysroot_packages:
-                pkg_arch = 'sysroot/'+machine_arch
-            else:
-                pkg_arch = 'sysroot/%s--%s'%(sdk_arch, machine_arch)
-            bb.data.setVar('PACKAGE_ARCH_'+pkg, pkg_arch, d)
+# Fixup PACKAGE_TYPE_* variables for target packages
+addhook fixup_package_type to post_recipe_parse first
+def fixup_package_type(d):
+    host_packages = (d.get("HOST_PACKAGES") or "").split()
+    target_packages = (d.get("TARGET_PACKAGES") or "").split()
+    for pkg in host_packages:
+        d.set("PACKAGE_TYPE_%s"%(pkg), "sdk")
+    for pkg in target_packages:
+        d.set("PACKAGE_TYPE_%s"%(pkg), "machine")
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"

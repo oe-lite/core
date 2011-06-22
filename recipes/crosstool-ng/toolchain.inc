@@ -1,43 +1,32 @@
-addhook toolchain_foobar to post_recipe_parse
-
-def toolchain_foobar(d):
-    pass
+# -*- mode:python; -*-
 
 FILESPATHPKG = "${P}:${PN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
 
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
 TOOLCHAIN_VERSION			= "gcc${CT_CC_VERSION}"
-TOOLCHAIN_VERSION_append_linux-gnu	= "-glibc${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION_append_linux-gnueabi	= "-glibc${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION_append_mingw32	= "-mingwrt${CT_MINGWRT_VERSION}"
-
-PR = "${TOOLCHAIN_VERSION}"
+TOOLCHAIN_VERSION:>TARGET_OS_linux-gnu	= "-glibc${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION:>TARGET_OS_linux-gnueabi	= "-glibc${CT_LIBC_VERSION}"
+TOOLCHAIN_VERSION:>TARGET_OS_mingw32	= "-mingwrt${CT_MINGWRT_VERSION}"
 
 # Depend on the right version of the ct-ng tool
-DEPENDS = "native:crosstool-ng_${PV}"
+DEPENDS := "native:crosstool-ng_${PV}"
+
+PV .= "-${TOOLCHAIN_VERSION}"
 
 S = "${WORKDIR}/build"
 B = "${S}"
-
-#DEFAULT_DEPENDS_recipe-native		= ""
-#DEFAULT_DEPENDS_recipe-cross		= ""
-#DEFAULT_DEPENDS_recipe-sdk-cross	= ""
 
 TUI_DEPENDS				= "host:libtermcap host:libreadline"
 DEPENDS:>machine			= "${TUI_DEPENDS}"
 DEPENDS:>sdk				= "${TUI_DEPENDS}"
 DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
 
-# FIXME: allow machine/sdk/canadian-cross toolchains are built
+# FIXME: allow machine/sdk/canadian-cross toolchains to be built
 # statically, to make it more robust against host machine differences
 
 # FIXME: this looks REALLY wrong!
-DEPENDS_append_recipe-canadian-cross += "\
-${TARGET_ARCH}/sysroot-libdl \
-${TARGET_ARCH}/sysroot-libpthread \
-${TARGET_ARCH}/sysroot-libm \
-"
+DEPENDS:>canadian-cross += "target:libdl target:libpthread target:libm"
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
@@ -68,23 +57,23 @@ LD_LIBRARY_PATH = ""
 
 CONFIG_SITE	= ""
 
-DEFCONFIG_CPU		= "defconfig.${TARGET_CPU}"
-DEFCONFIG_CPU_i386	= "defconfig.x86"
-DEFCONFIG_CPU_i486	= "defconfig.x86"
-DEFCONFIG_CPU_i586	= "defconfig.x86"
-DEFCONFIG_CPU_i686	= "defconfig.x86"
-DEFCONFIG_CPU_i786	= "defconfig.x86"
+DEFCONFIG_CPU				= "defconfig.${TARGET_CPU}"
+DEFCONFIG_CPU:TARGET_CPU_i386		= "defconfig.x86"
+DEFCONFIG_CPU:TARGET_CPU_i486		= "defconfig.x86"
+DEFCONFIG_CPU:TARGET_CPU_i586		= "defconfig.x86"
+DEFCONFIG_CPU:TARGET_CPU_i686		= "defconfig.x86"
+DEFCONFIG_CPU:TARGET_CPU_i786		= "defconfig.x86"
 
 # FIXME: find a proper solution for this gnueabi mess
-DEFCONFIG_OS		= "defconfig.${TARGET_OS}"
-DEFCONFIG_OS_linux-gnueabi= "defconfig.linux-gnu"
+DEFCONFIG_OS				= "defconfig.${TARGET_OS}"
+DEFCONFIG_OS:>TARGET_OS_linux-gnueabi	= "defconfig.linux-gnu"
 
 SRC_URI = "file://defconfig.misc file://defconfig.toolchain file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
 inherit c++
-DEFAULT_CXX_DEPENDS_recipe-native	= ""
-DEFAULT_CXX_DEPENDS_recipe-cross	= ""
-DEFAULT_CXX_DEPENDS_recipe-sdk-cross	= ""
+CXX_DEPENDS:native	= ""
+CXX_DEPENDS:cross	= ""
+CXX_DEPENDS:sdk-cross	= ""
 
 # default crosstool-ng build configuration (to be overridden in
 # site.conf or local.conf)
@@ -112,64 +101,38 @@ CT_ARCH_TUNE		= "${TARGET_MTUNE}"
 
 # FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
-CT_KERNEL_VERSION			= "${MACHINE_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION_recipe-native		= "${BUILD_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION_recipe-sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION_recipe-sdk		= "${SDK_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION		= "${MACHINE_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION:native	= "${BUILD_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION:sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION:sdk		= "${SDK_CT_KERNEL_VERSION}"
 
 #FIXME: revisit _VERSION below in CT-NG 1.10!
 #(CT_LIBC_GLIBC_MIN_KERNEL=eglibc, CT_LIBC_GLIBC_MIN_KERNEL_VERSION=glibc).
-CT_LIBC_GLIBC_MIN_KERNEL_VERSION        = "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_recipe-native	= "${BUILD_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk-cross = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_recipe-sdk	= "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION = "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:native = "${BUILD_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk-cross = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
 
-DEPENDS += "${TOOLCHAIN_DEFAULT_DEPENDS}"
-TOOLCHAIN_DEFAULT_DEPENDS = ""
+DEPENDS += "${TOOLCHAIN_DEPENDS}"
+TOOLCHAIN_DEPENDS = ""
 addhook toolchain_default_depends_fixup to post_recipe_parse
 def toolchain_default_depends_fixup(d):
     if (d.getVar("RECIPE_TYPE", True) == "cross" and
         d.getVar("MACHINE_CT_KERNEL_VERSION", True) == "custom"):
-        d.setVar("TOOLCHAIN_DEFAULT_DEPENDS", "linux-headers")
+        d.setVar("TOOLCHAIN_DEPENDS", "linux-headers")
 
-AUTO_LIB_PACKAGES = "\
-  libgcc libdl libstdc++ libsupc++ libresolv libutil libcrypt libpthread \
-  libm librt libanl libBrokenLocale libnsl libmemusage \
-  libpcprofile libSegFault \
-  libthread_db libnss_files libnss_dns libnss_compat \
-  libnss_nis libnss_nisplus libnss_hesiod libbfd \
+inherit auto-package-libs
+AUTO_PACKAGE_LIBS = "\
+  gcc dl stdc++ supc++ resolv util crypt pthread thread_db bfd \
+  m rt anl BrokenLocale nsl memusage pcprofile SegFault \
+  nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod \
 "
-
-addhook toolchain_auto_package to post_recipe_parse after base_after_parse before base_detect_machine_override
-def toolchain_auto_package (d):
-    pn = d.getVar("PN", True)
-    auto_lib_packages = d.getVar("AUTO_LIB_PACKAGES", False).split()
-    lib_packages = []
-    def get_extra_files(pkg):
-        extra_files = d.getVar("EXTRA_FILES_" + pkg, False)
-        if extra_files:
-            return " " + extra_files
-        return ""
-    for lib in auto_lib_packages:
-        pkg = "%s-sysroot-%s"%(pn, lib.replace("_", "-").lower())
-        lib_packages += [ pkg, pkg + "-dev" ]
-        extra_files = get_extra_files(pkg)
-        d.setVar("FILES_" + pkg,
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s.so.* "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/%s-*.so "%(lib) +
-                 extra_files)
-        pkg += "-dev"
-        extra_files = get_extra_files(pkg)
-        d.setVar("FILES_" + pkg,
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.so "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.a "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s_nonshared.a "%(lib) +
-                 "${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/%s.la "%(lib) +
-                 extra_files)
-    sysroot_packages = (lib_packages +
-                        (d.getVar("SYSROOT_PACKAGES", False) or "").split())
-    d.setVar("SYSROOT_PACKAGES", " ".join(sysroot_packages))
+AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
+AUTO_PACKAGE_LIBS_LIBDIR = "\
+${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}:lib::.so,.so.*,-*.so: \
+${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
+"
+TARGET_PACKAGES = "${LIBS_AUTO_PACKAGES}"
 
 addtask mangle after do_patch before do_configure
 do_mangle[dirs] = "${SRCDIR}"
@@ -482,7 +445,6 @@ PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "${PN}-sysroot-dev"
 
-DEPENDS_${PN}-sysroot-libnss-dns-dev	= "${PN}-sysroot-libresolv-dev"
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 DEPENDS_${PN}-sysroot-librt-dev		= "${PN}-sysroot-libpthread-dev"
@@ -521,7 +483,7 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/*/.debug \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-libc"
+TARGET_PACKAGES += "${PN}-sysroot-libc"
 FILES_${PN}-sysroot-libc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
@@ -532,7 +494,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-libc-dev"
+TARGET_PACKAGES += "${PN}-sysroot-libc-dev"
 # FIXME: the lib64 symlink should be in separate package!
 FILES_${PN}-sysroot-libc-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
@@ -540,12 +502,12 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
+TARGET_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
 FILES_${PN}-sysroot-gdbserver-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-gdbserver"
+TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
@@ -553,7 +515,7 @@ ${datadir}/gdb \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
-SYSROOT_PACKAGES += "${PN}-sysroot-dbg"
+TARGET_PACKAGES += "${PN}-sysroot-dbg"
 FILES_${PN}-sysroot-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/.debug \
@@ -566,7 +528,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libexecdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-dev"
+TARGET_PACKAGES += "${PN}-sysroot-dev"
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_includedir} \
@@ -585,11 +547,11 @@ ${base_prefix}/${TARGET_ARCH}/sys-root/mingw \
 DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
-FILES_${PN}-sysroot-dev_append_mingw32 = "\
+FILES_${PN}-sysroot-dev:>TARGET_OS_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/*.dll \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-doc"
+TARGET_PACKAGES += "${PN}-sysroot-doc"
 FILES_${PN}-sysroot-doc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_infodir} \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_mandir} \
@@ -597,11 +559,11 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_docdir} \
 "
 
 # Hackeydihack.... should instead get all sysroot doc in target_docdir
-FILES_${PN}-sysroot-doc_append_mingw32 = "\
+FILES_${PN}-sysroot-doc:>TARGET_OS_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root/doc/runtime \
 "
 
-SYSROOT_PACKAGES += "${PN}-sysroot-locale"
+TARGET_PACKAGES += "${PN}-sysroot-locale"
 FILES_${PN}-sysroot-locale = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/locale \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/i18n \
@@ -623,7 +585,7 @@ EXTRA_FILES_${PN}-sysroot-libbfd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd-*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd.so"
 
-SYSROOT_PACKAGES += "${PN}-sysroot-nscd"
+TARGET_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/nscd"
 PROVIDES_${PN}-sysroot-nscd = "target:util/rpcgen target:util/nscd"
@@ -631,7 +593,7 @@ PROVIDES_${PN}-sysroot-nscd:machine = ""
 PROVIDES_${PN}-sysroot-nscd:sdk = ""
 PROVIDES_${PN}-sysroot-nscd:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-rpc"
+TARGET_PACKAGES += "${PN}-sysroot-rpc"
 FILES_${PN}-sysroot-rpc = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/rpcgen \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/rpcinfo \
@@ -641,7 +603,7 @@ PROVIDES_${PN}-sysroot-rpc:machine = ""
 PROVIDES_${PN}-sysroot-rpc:sdk = ""
 PROVIDES_${PN}-sysroot-rpc:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-ldconfig"
+TARGET_PACKAGES += "${PN}-sysroot-ldconfig"
 FILES_${PN}-sysroot-ldconfig = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/ldconfig"
 PROVIDES_${PN}-sysroot-ldconfig = "target:util/ldconfig"
@@ -649,7 +611,7 @@ PROVIDES_${PN}-sysroot-ldconfig:machine = ""
 PROVIDES_${PN}-sysroot-ldconfig:sdk = ""
 PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-ldd"
+TARGET_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/ldd"
 PROVIDES_${PN}-sysroot-ldd = "target:util/ldd"
@@ -657,7 +619,7 @@ PROVIDES_${PN}-sysroot-ldd:machine = ""
 PROVIDES_${PN}-sysroot-ldd:sdk = ""
 PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-catchsegv"
+TARGET_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/catchsegv"
 PROVIDES_${PN}-sysroot-catchsegv = "target:util/catchsegv"
@@ -665,7 +627,7 @@ PROVIDES_${PN}-sysroot-catchsegv:machine = ""
 PROVIDES_${PN}-sysroot-catchsegv:sdk = ""
 PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-sprof"
+TARGET_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/sprof"
 PROVIDES_${PN}-sysroot-sprof = "target:util/sprof"
@@ -673,7 +635,7 @@ PROVIDES_${PN}-sysroot-sprof:machine = ""
 PROVIDES_${PN}-sysroot-sprof:sdk = ""
 PROVIDES_${PN}-sysroot-sprof:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-timezone-utils"
+TARGET_PACKAGES += "${PN}-sysroot-timezone-utils"
 FILES_${PN}-sysroot-timezone-utils = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/tzselect \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zdump \
@@ -686,7 +648,7 @@ PROVIDES_${PN}-sysroot-timezone-utils:machine = ""
 PROVIDES_${PN}-sysroot-timezone-utils:sdk = ""
 PROVIDES_${PN}-sysroot-timezone-utils:canadian-cross = ""
 
-SYSROOT_PACKAGES += "${PN}-sysroot-iconv-utils"
+TARGET_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/iconv \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/iconvconfig"
@@ -696,7 +658,7 @@ PROVIDES_${PN}-sysroot-iconv-utils:sdk = ""
 PROVIDES_${PN}-sysroot-iconv-utils:canadian-cross = ""
 
 # throw everything else in this garbage package, which is to be considered a WIP package aimed at being empty
-SYSROOT_PACKAGES += "${PN}-sysroot-garbage"
+TARGET_PACKAGES += "${PN}-sysroot-garbage"
 FILES_${PN}-sysroot-garbage = "\
 ${base_prefix}/${TARGET_ARCH}/sys-root \
 "
@@ -718,7 +680,7 @@ SPLIT_FUNCS_append += "${SYSROOT_MANGLE}"
 # Move the machine sysroot packages into proper target layout
 split_sysroot_mangle () {
 	# Fixup the layout of the sysroot packages
-	for pkg in ${SYSROOT_PACKAGES} ; do
+	for pkg in ${TARGET_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
 			(
 			cd $pkg/${TARGET_ARCH}
@@ -756,7 +718,7 @@ split_sysroot_mangle[dirs] = "${PKGD}"
 split_sysroot_mangle_append_mingw32 () {
     # Move object files (*.o) to usr/lib so that ld can find them through
     # the mingw/lib dir (mingw symlinks to /usr)
-    for pkg in ${SYSROOT_PACKAGES} ; do
+    for pkg in ${TARGET_PACKAGES} ; do
         if [ -d $pkg/lib ] ; then
             for f in $pkg/lib/*.o ; do
 		test -f $f && mv $f $pkg${target_libdir}/

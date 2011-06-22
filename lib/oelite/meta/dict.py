@@ -10,6 +10,7 @@ import operator
 def unpickle(file):
     return DictMeta(meta=file)
 
+
 class DictMeta(MetaData):
 
 
@@ -18,7 +19,9 @@ class DictMeta(MetaData):
         cPickle.dump(self.expand_cache, file, 2)
         return
 
+
     INDEXED_FLAGS = ("python", "task", "autoimport")
+
 
     def __init__(self, meta=None):
         if isinstance(meta, file):
@@ -114,11 +117,13 @@ class DictMeta(MetaData):
 
 
     def get(self, var, expand=FULL_EXPANSION):
+        #print "get expand=%s"%(expand)
         assert isinstance(expand, int)
         return self._get(var, expand)[0]
 
 
     def _get(self, var, expand=FULL_EXPANSION):
+        #print "_get expand=%s"%(expand)
         assert isinstance(expand, int)
         try:
             val = self.dict[var][""]
@@ -149,11 +154,11 @@ class DictMeta(MetaData):
                     except KeyError:
                         pass
                 try:
-                    append += append_overrides[override]
+                    append += append_overrides[override] or ""
                 except KeyError:
                     pass
                 try:
-                    prepend = prepend_overrides[override] + prepend
+                    prepend = prepend_overrides[override] or "" + prepend
                 except KeyError:
                     pass
             if oval is not None:
@@ -162,7 +167,12 @@ class DictMeta(MetaData):
 
         deps = set()
         #print "get expanding %s=%s"%(var, repr(val))
-        expand_method = self.get_flag(var, "expand") or FULL_EXPANSION
+        expand_method = self.get_flag(var, "expand")
+        if expand_method:
+            expand_method = int(expand_method)
+        else:
+            #expand_method = FULL_EXPANSION
+            expand_method = expand
         if expand_method != NO_EXPANSION and val:
             #print "get not expanding anyway"
             self.expand_stack.push("${%s}"%var)
@@ -176,7 +186,12 @@ class DictMeta(MetaData):
 
 
     def get_overrides(self):
-        return (self.get("OVERRIDES") or "").split(":")
+        overrides = (self.get("OVERRIDES", 2) or "").split(":")
+        filtered = []
+        for override in overrides:
+            if not "${" in override:
+                filtered.append(override)
+        return filtered
 
 
     def get_flag(self, var, flag, expand=False):
@@ -325,7 +340,8 @@ class DictMeta(MetaData):
             del functions[i]
             functions.insert(move_after, (function, (sequence, after)))
             moved.append(function)
-        return [function[0] for function in functions]
+        return [function[0] for function in functions
+                if function[1][0] is not None]
 
 
     def set_input_mtime(self, fn, bbpath, mtime):

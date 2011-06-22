@@ -5,6 +5,8 @@ require classes/type/cross.bbclass
 RECIPE_ARCH		= "cross/${SDK_ARCH}"
 RECIPE_ARCH_MACHINE	= "cross/${SDK_ARCH}--${MACHINE}"
 
+TARGET_PACKAGE_TYPE	= "sdk"
+
 # Set target=sdk to get architecture triplet build/build/sdk
 TARGET_ARCH		= "${SDK_ARCH}"
 TARGET_CFLAGS		= "${SDK_CFLAGS}"

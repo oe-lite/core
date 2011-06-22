@@ -3,6 +3,5 @@
 # inherit this for (single) library recipes
 #
 
-PROVIDES_${PN}		= "_${P}"
-PROVIDES_${PN}-dev	= "${PN} ${P}"
-DEPENDS_${PN}-dev	= "_${P}"
+DEPENDS_${PN}		= "${PN}-dev_${PV}"
+RDEPENDS_${PN}-dev	= "${PN}_${PV}"
