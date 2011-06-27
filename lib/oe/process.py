@@ -44,8 +44,8 @@ class Popen(subprocess.Popen):
     defaults = {
         "close_fds": True,
         "preexec_fn": subprocess_setup,
-        "stdout": subprocess.PIPE,
-        "stderr": subprocess.STDOUT,
+        #"stdout": subprocess.PIPE,
+        #"stderr": subprocess.STDOUT,
         "stdin": subprocess.PIPE,
         "shell": False,
     }
@@ -69,6 +69,4 @@ def run(cmd, input=None, **options):
         else:
             raise
     stdout, stderr = pipe.communicate(input)
-    if pipe.returncode != 0:
-        raise ExecutionError(cmd, pipe.returncode, stdout, stderr)
-    return stdout
+    return pipe.returncode != 0
