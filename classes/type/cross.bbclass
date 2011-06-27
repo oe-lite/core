@@ -1,7 +1,7 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH		= "${MACHINE_ARCH}"
-RECIPE_ARCH_MACHINE	= "cross/${MACHINE}"
+RECIPE_ARCH		 = "${MACHINE_ARCH}${MACHINE_OVERRIDE}"
+MACHINE_OVERRIDE	?= ""
 
 # Default packages is stage (cross) packages
 PACKAGES		+= "${TARGET_PACKAGES}"

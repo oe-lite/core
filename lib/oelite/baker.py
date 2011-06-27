@@ -509,7 +509,7 @@ class OEliteBaker:
                 task.build_done(self.runq.get_buildhash(task))
                 self.runq.mark_done(task)
             else:
-                err("%s:%s failed"%(recipe_name, task.name))
+                err("%s:%s failed"%(recipe.name, task.name))
                 exitcode = 1
                 task.build_failed()
                 # FIXME: support command-line option to abort on first
@@ -742,7 +742,7 @@ def exec_func_python(func, data, runfile, logfile):
     #tmp  = "def " + func + "(d):\n%s" % data.get(func, True)
     #tmp += '\n' + func + '(d)'
 
-    funcobj = data.get_pythonfunc(func)
+    function = data.get_pythonfunc(func)
 
     #f = open(runfile, "w")
     #f.write(tmp)
@@ -763,9 +763,11 @@ def exec_func_python(func, data, runfile, logfile):
         #    raise
         ##return False
         #raise
-    funcobj(data)
 
-    return True
+    retval = function.run(data)
+    if retval or retval is None:
+        return True
+    return False
 
 
 def exec_func_shell(func, data, runfile, logfile, flags):

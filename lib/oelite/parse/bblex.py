@@ -206,7 +206,6 @@ def t_inherit_NEWLINE(t):
 
 def t_FUNCSTART(t):
     r'\(\)[ \t]*\{[ \t]*\n'
-    t.lexer.funcstart = t.lexer.lineno
     t.lexer.push_state('func')
     t.lexer.lineno += 1
     return t
@@ -216,7 +215,6 @@ t_func_ignore = ""
 def t_func_FUNCSTOP(t):
     r'\}'
     t.lexer.pop_state()
-    del t.lexer.funcstart
     return t
 
 def t_func_FUNCLINE(t):

@@ -2,8 +2,7 @@
 
 require classes/type/cross.bbclass
 
-RECIPE_ARCH		= "cross/${SDK_ARCH}"
-RECIPE_ARCH_MACHINE	= "cross/${SDK_ARCH}--${MACHINE}"
+RECIPE_ARCH		= "${SDK_ARCH}"
 
 TARGET_PACKAGE_TYPE	= "sdk"
 

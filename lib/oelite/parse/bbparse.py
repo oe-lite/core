@@ -398,10 +398,18 @@ class BBParser(object):
         return
 
     def p_python_func(self, p):
-        '''python_func : PYTHON VARNAME FUNCSTART func_body FUNCSTOP'''
-        self.meta.set(p[2], p[4])
-        self.meta.set_flag(p[2], "python", True)
-        p[0] = p[2]
+        '''python_func : python_func_start func_body FUNCSTOP'''
+        self.meta.set(p[1][0], p[2])
+        self.meta.set_flag(p[1][0], "python", True)
+        self.meta.set_flag(p[1][0], "args", "d")
+        self.meta.set_flag(p[1][0], "filename", p[1][1])
+        self.meta.set_flag(p[1][0], "lineno", p[1][2])
+        p[0] = p[1][0]
+        return
+
+    def p_python_func_start(self, p):
+        '''python_func_start : PYTHON VARNAME FUNCSTART'''
+        p[0] = (p[2], self.filename, p.lexer.lineno - 1)
         return
 
     #def p_python_anonfunc(self, p):
@@ -425,19 +433,20 @@ class BBParser(object):
                     | DEF VARNAME def_funcargs NEWLINE func_body FUNCSTOP'''
         self.meta.set(p[2], p[5])
         self.meta.set_flag(p[2], "python", True)
-        if p[3]:
-            self.meta.set_flag(p[2], "args", p[3])
-        self.meta.set_flag(p[2], "autoimport", True)
+        if p[3][0]:
+            self.meta.set_flag(p[2], "args", p[3][0])
+        self.meta.set_flag(p[2], "filename", p[3][1])
+        self.meta.set_flag(p[2], "lineno", p[3][2])
         return
 
     def p_def_args1(self, p):
         '''def_funcargs : ARGSTART STRING ARGSTOP'''
-        p[0] = p[2]
+        p[0] = (p[2], self.filename, p.lexer.lineno)
         return
 
     def p_def_args2(self, p):
         '''def_funcargs : ARGSTART ARGSTOP'''
-        p[0] = None
+        p[0] = (None, self.filename, p.lexer.lineno)
         return
 
     def p_error(self, p):

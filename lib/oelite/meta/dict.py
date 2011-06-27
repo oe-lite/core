@@ -133,6 +133,8 @@ class DictMeta(MetaData):
             return (val, None)
         if not var in self.dict:
             return (None, None)
+        if not isinstance(val, basestring):
+            return (val, None)
         try:
             return self.expand_cache[var]
         except KeyError:

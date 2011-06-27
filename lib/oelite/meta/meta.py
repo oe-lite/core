@@ -155,60 +155,43 @@ class MetaData(MutableMapping):
 
     def get_pythonfunc_globals(self):
         g = self.pythonfunc_globals.copy()
-        #g.update({"d": self})
         return g
 
 
-    def get_autoimport_pythonfuncs(self, g=None):
-        return self.get_pythonfuncs(self.get_vars(flag="autoimport"), g)
+    #def get_autoimport_pythonfuncs(self, g=None):
+    #    return self.get_pythonfuncs(self.get_vars(flag="autoimport"), g)
 
 
     def get_pythonfuncs(self, functions, g=None):
-        if g is None:
-            g = self.get_pythonfunc_globals()
         pythonfuncs = {}
         for function in functions:
             pythonfuncs[function] = self.get_pythonfunc(function, g)
         return pythonfuncs
 
 
-    def get_pythonfunc(self, function, g=None, recursion_path=[]):
+    def get_pythonfunc(self, var):
         #if function in self.pythonfunc_cache:
         #    return self.pythonfunc_cache[function]
-        recursion_path.append(function)
-        if g is None:
-            g = self.get_pythonfunc_globals()
-        #l = {"d": self}
-        funcimports = {}
-        for func in (self.get_flag(function, "funcimport", FULL_EXPANSION)
-                     or "").split():
-            if func in funcimports:
-                continue
-            if func in recursion_path:
-                raise Exception("circular funcimport")
-            funcimports[func] = self.get_pythonfunc(func, g, recursion_path)
-        code = self.get_pythonfunc_code(function)
-        #print "get_pythonfunc %s l=%s"%(function, l)
-        g.update(funcimports)
-        l = {}
-        eval(code, g, l)
-        self.pythonfunc_cache[function] = l[function]
-        return l[function]
+        function = PythonFunction(self, var)
+        #self.pythonfunc_cache[function] = function
+        return function
 
 
     def get_pythonfunc_code(self, var):
         if not self.get_flag(var, "python"):
             raise Exception("%s is not a python function"%(var))
+        filename = self.get_flag(var, "filename") or "?"
+        lineno = self.get_flag(var, "lineno") or "1"
         args = self.get_flag(var, "args") or ""
         body = self.get(var, expand=False)
         if not body or body.strip() == "":
             body = "    pass"
         source = "def %s(%s):\n%s\n"%(var, args, body)
+        newlines = "\n" * (lineno - 1)
         if source in pythonfunc_code_cache:
             return pythonfunc_code_cache[source]
         try:
-            #code = codeop.compile_command(source, "<%s>"%(var))
-            code = codeop.compile_command(source, "<%s>"%(var))
+            code = codeop.compile_command(newlines + source, filename)
         except SyntaxError, e:
             print "Syntax error in python function: %s"%(var)
             print e

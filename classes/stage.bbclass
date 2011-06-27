@@ -13,6 +13,7 @@ def do_stage(d):
     import bb, tempfile, shutil
     from oebakery import debug, info, warn, err, die
 
+    __stage = d.get("__stage")
     recdepends = d.getVar("RECDEPENDS", False)
     recdepends = recdepends.split()
     cwd = os.getcwd()

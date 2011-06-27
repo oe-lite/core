@@ -33,3 +33,14 @@ class RecursiveDepends(Exception):
 
 class MultipleProviders(Exception):
     pass
+
+class HookFailed(Exception):
+    def __init__(self, name, function, retval):
+        self.name = name
+        self.function = function
+        self.retval = retval
+        return
+    def __str__(self):
+        return "Hook failed: %s.%s: %s"%(
+            self.name, self.function, repr(self.retval))
+

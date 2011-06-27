@@ -1,4 +1,4 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH		= "machine/${MACHINE_ARCH}"
-RECIPE_ARCH_MACHINE	= "machine/${MACHINE}"
+RECIPE_ARCH		 = "${MACHINE_ARCH}${MACHINE_OVERRIDE}"
+MACHINE_OVERRIDE	?= ""

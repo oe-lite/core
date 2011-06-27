@@ -1,7 +1,6 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH			 = "sdk/${SDK_ARCH}"
-RECIPE_ARCH_MACHINE		 = "sdk/${SDK_ARCH}--${MACHINE}"
+RECIPE_ARCH		= "${SDK_ARCH}"
 
 # Set host=sdk
 HOST_ARCH		= "${SDK_ARCH}"

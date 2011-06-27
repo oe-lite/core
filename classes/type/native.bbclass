@@ -1,7 +1,6 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH			 = "native/${BUILD_ARCH}"
-RECIPE_ARCH_MACHINE		 = "native/${BUILD_ARCH}--${MACHINE}"
+RECIPE_ARCH			 = "${BUILD_ARCH}"
 
 # Native packages does not runtime provide anything
 RDEPENDS_${PN}-dev 	= ""
