@@ -351,47 +351,37 @@ def base_after_parse(d):
         bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
 
 
-addhook core_machine_override to post_recipe_parse first after base_after_parse
+addhook core_machine_override to post_recipe_parse first after fetch_init
 def core_machine_override(d):
 
-    # RECIPE_ARCH override detection
+    machine = d.get("MACHINE")
+    if not machine:
+        return
+
     recipe_arch = d.get("RECIPE_ARCH")
-    recipe_arch_mach = d.get("RECIPE_ARCH_MACHINE", 3)
 
-    # Scan SRC_URI for urls with machine overrides unless the package
-    # sets SRC_URI_OVERRIDES_RECIPE_ARCH=0
-    override = d.get("SRC_URI_OVERRIDES_RECIPE_ARCH")
-
-    def srcuri_machine_override(d, srcuri):
-        import bb
-        import os
-
-        machine = d.get("MACHINE")
-        if not machine:
-            return False
-        paths = []
-        # FIXME: this should use FILESPATHPKG
-        #for p in [ "${P}", "${PN}", "files", "" ]:
+    def src_uri_machine_override():
+        file_dirname = d.get("FILE_DIRNAME")
+        filespaths = []
         for p in d.get("FILESPATHPKG").split(":"):
-            path = bb.data.expand(os.path.join("${FILE_DIRNAME}", p, "${MACHINE}"), d)
+            path = os.path.join(file_dirname, p, machine)
             if os.path.isdir(path):
-                paths.append(path)
+                filespaths.append(path)
         if len(paths) != 0:
-            for s in srcuri.split():
-                if not s.startswith("file://"):
+            for fetcher in d["__fetch"]:
+                if not fetcher.scheme == "file":
                     continue
-                local = bb.data.expand(bb.fetch.localpath(s, d), d)
-                for mp in paths:
-                    if local.startswith(mp):
+                path = fetcher.fetcher.fullpath()
+                for filespath in filespaths:
+                    if path.startswith(filespath):
                         return True
         return False
 
-    if (recipe_arch != recipe_arch_mach and override != "0" and
-        srcuri_machine_override(d, d.get("SRC_URI"))):
-        bb.debug("%s SRC_URI overrides RECIPE_ARCH from %s to %s"%
-                 (pn, recipe_arch, recipe_arch_mach))
-        bb.data.setVar('RECIPE_ARCH', "${RECIPE_ARCH_MACHINE}", d)
-        recipe_arch = recipe_arch_mach
+    if src_uri_machine_override():
+        if d.get("TARGET_ARCH") == d.get("MACHINE_ARCH"):
+            d["MACHINE_OVERRIDE"] = ".${MACHINE}"
+        else:
+            raise Exception("Machine override of %s recipe"%(d["RECIPE_TYPE"]))
 
 addhook blacklist to post_recipe_parse first after base_apply_recipe_options
 def blacklist(d):
