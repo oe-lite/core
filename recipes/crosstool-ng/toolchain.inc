@@ -124,6 +124,7 @@ ${TARGET_ARCH}/sysroot-libm \
 # Trick install_strip to use installed strip and objcopy
 TARGET_STRIP	= "${D}/bin/${TARGET_PREFIX}strip"
 TARGET_OBJCOPY	= "${D}/bin/${TARGET_PREFIX}objcopy"
+OBJCOPY_mingw32 = ""
 
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
