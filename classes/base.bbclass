@@ -39,13 +39,6 @@ DEPENDS_prepend = "${CLASS_DEPENDS} "
 
 
 #
-# Import standard Python modules as well as custom OE modules
-# (disabled for now...)
-#
-
-#addhandler oe_import
-
-#
 # Shell functions for printing out messages in the BitBake output
 #
 
