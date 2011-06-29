@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
@@ -8,7 +10,7 @@ require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 
 # Recipe build dependencies
-DEPENDS = "native:libncurses"
+DEPENDS = "native:libncurses libm"
 DEPENDS:native = ""
 
 inherit autotools make-vpath c++
@@ -18,7 +20,7 @@ export LTCFLAGS="${CFLAGS}"
 
 EXTRA_OECONF += "\
 --with-shared \
---with-libtool=`which ${LIBTOOL}` \
+--with-libtool=${STAGE_DIR}/${HOST_CROSS}${stage_bindir}/${LIBTOOL} \
 --without-profile \
 --without-debug \
 --disable-rpath \
@@ -32,17 +34,17 @@ EXTRA_OECONF += "\
 "
 
 do_install() {
-	autotools_do_install
+        do_install_make
 
-	ln -sf curses.h ${D}${includedir}/ncurses.h
+        ln -sf curses.h ${D}${includedir}/ncurses.h
 
-	# our ncurses has termcap support
-	ln -sf libncurses.so ${D}${libdir}/libtermcap.so
-	ln -sf libncurses.a ${D}${libdir}/libtermcap.a
+        # our ncurses has termcap support
+        ln -sf libncurses.so ${D}${libdir}/libtermcap.so
+        ln -sf libncurses.a ${D}${libdir}/libtermcap.a
 
-	# include some basic terminfo files
-	# stolen ;) from gentoo and modified a bit
-	for x in ansi console dumb linux rxvt screen sun vt{52,100,102,200,220} xterm-color xterm-xfree86
+        # include some basic terminfo files
+        # stolen ;) from gentoo and modified a bit
+        for x in ansi console dumb linux rxvt screen sun vt{52,100,102,200,220} xterm-color xterm-xfree86
         do
                 local termfile="$(find "${D}${datadir}/terminfo/" -name "$x" 2>/dev/null)"
                 local basedir="$(basename $(dirname "$termfile"))"
@@ -55,11 +57,11 @@ do_install() {
                                 ${D}${datadir}/terminfo/$basedir/$x
                 fi
         done
-	# i think we can use xterm-color as default xterm
-	if [ -e ${D}${sysconfdir}/terminfo/x/xterm-color ]
-	then
-		ln -sf xterm-color ${D}${sysconfdir}/terminfo/x/xterm
-	fi
+        # i think we can use xterm-color as default xterm
+        if [ -e ${D}${sysconfdir}/terminfo/x/xterm-color ]
+        then
+                ln -sf xterm-color ${D}${sysconfdir}/terminfo/x/xterm
+        fi
 }
 
 PACKAGES =+ "${PN}-tools ${PN}-terminfo"

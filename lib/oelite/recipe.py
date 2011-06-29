@@ -53,13 +53,19 @@ class OEliteRecipe:
         return self.meta.get_vars(flag="task")
 
     def get_depends(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT item FROM recipe_depend WHERE recipe=?", (self.id,)))
+        depends = []
+        for type, item in self.cookbook.dbc.execute(
+            "SELECT type, item FROM recipe_depend WHERE recipe=?", (self.id,)):
+            depends.append("%s:%s"%(type, item))
+        return depends
         #return self.meta.get_list("DEPENDS")
 
     def get_rdepends(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT item FROM recipe_rdepend WHERE recipe=?", (self.id,)))
+        depends = []
+        for type, item in self.cookbook.dbc.execute(
+            "SELECT type, item FROM recipe_rdepend WHERE recipe=?", (self.id,)):
+            depends.append("%s:%s"%(type, item))
+        return depends
         #return self.meta.get_list("RDEPENDS")
 
 
@@ -92,66 +98,6 @@ class OEliteRecipe:
         # calculate recipe signature
 
         return
-
-
-    def prepare(self, runq, task):
-
-        meta = self.meta.copy()
-
-        buildhash = self.cookbook.baker.runq.get_task_buildhash(task)
-        debug("buildhash=%s"%(repr(buildhash)))
-        meta.setVar("TASK_BUILDHASH", buildhash)
-
-        deploy_dir = meta.getVar("PACKAGE_DEPLOY_DIR", True) 
-
-        recipe_type = meta.getVar("RECIPE_TYPE", False)
-        
-        if recipe_type == "canadian-cross":
-            host_arch = meta.getVar("HOST_ARCH", True)
-
-        def set_pkgproviders(get_depend_packages,
-                             PKGPROVIDER_, RECDEPENDS):
-            recdepends = []
-
-            packages = get_depend_packages(task) or []
-            for package in packages:
-                if package in recdepends:
-                    continue
-
-                (package_name, package_arch) = self.db.get_package(package)
-                filename = self.cookbook.baker.runq.get_package_filename(package)
-                recdepends.append(package_name)
-                debug("setting %s%s=%s"%(
-                        PKGPROVIDER_, package_name, filename))
-                meta.setVar(PKGPROVIDER_ + package_name, filename)
-
-                if package_arch.startswith("native/"):
-                    subdir = "native"
-                else:
-                    subdir = package_arch.split("/", 1)[0]
-                    if recipe_type == "canadian-cross":
-                        if package_arch == "cross/%s"%(host_arch):
-                            subdir = os.path.join("host", subdir)
-                        elif package_arch == "sysroot/%s"%(host_arch):
-                            subdir = os.path.join("host", subdir)
-                        elif package_arch.startswith("sysroot/%s--"%(host_arch)):
-                            subdir = os.path.join("host", subdir)
-                        else:
-                            subdir = os.path.join("target", subdir)
-                meta.setVar("PKGSUBDIR_" + package_name, subdir)
-
-            if recdepends:
-                debug("setting %s=%s"%(RECDEPENDS, " ".join(recdepends)))
-            warnings.warn("save to __stage and __rstage instead of RECDEPENDS and RECRDEPENDS and PKGPROVIDER_* and PKGRPROVIDER_* (and set nohash flag for them).  The __stage and __rstage variables can a proper Python structured variable, to simplify the do_stage and do_rstage variables")
-            meta.setVar(RECDEPENDS, " ".join(recdepends))
-
-        set_pkgproviders(self.cookbook.baker.runq.get_depend_packages,
-                         "PKGPROVIDER_", "RECDEPENDS")
-
-        set_pkgproviders(self.cookbook.baker.runq.get_rdepend_packages,
-                         "PKGRPROVIDER_", "RECRDEPENDS")
-
-        return meta
 
 
     def datahash(self):

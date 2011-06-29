@@ -115,9 +115,10 @@ class CookBook(Mapping):
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS task_parent ( "
-            "task        INTEGER, "
-            "parent      INTEGER, "
-            "UNIQUE (task, parent) ON CONFLICT IGNORE )")
+            "recipe      INTEGER, "
+            "task        TEXT, "
+            "parent      TEXT, "
+            "UNIQUE (recipe, task, parent) ON CONFLICT IGNORE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS task_deptask ( "
@@ -414,12 +415,18 @@ class CookBook(Mapping):
             if isinstance(recipe, oelite.recipe.OEliteRecipe):
                 recipe = recipe.id
             assert isinstance(recipe, int)
-            assert isinstance(name, str)
-            _tasks = self.dbc.execute(
-                "SELECT id, recipe, name, nostamp FROM task "
-                "WHERE recipe=? AND name=?", (recipe, name))
+            if isinstance(name, str):
+                _tasks = self.dbc.execute(
+                    "SELECT id, recipe, name, nostamp FROM task "
+                    "WHERE recipe=? AND name=?", (recipe, name))
+            else:
+                assert type(name) in (list, tuple)
+                name = "('" + "','".join(name) + "')"
+                _tasks = self.dbc.execute(
+                    "SELECT id, recipe, name, nostamp FROM task "
+                    "WHERE recipe=%s AND name IN %s"%(recipe, name))
         else:
-            raise Exception("Invalid arguments to cookbook.get_tasks")
+            raise Exception("Invalid arguments to cookbook.get_tasks: recipe=%s name=%s"%(repr(recipe), repr(name)))
 
         tasks = []
         for (id, recipe, name, nostamp) in _tasks:
@@ -554,40 +561,37 @@ class CookBook(Mapping):
 
         recipe_depends = []
         for item in (recipe.meta.get("DEPENDS") or "").split():
-            recipe_depends.append((recipe_id, item))
+            item = oelite.item.OEliteItem(item, (0, recipe.type))
+            recipe_depends.append((recipe_id, item.type, item.name))
         for item in (recipe.meta.get("CLASS_DEPENDS") or "").split():
-            recipe_depends.append((recipe_id, item))
+            item = oelite.item.OEliteItem(item, (0, recipe.type))
+            recipe_depends.append((recipe_id, item.type, item.name))
         if recipe_depends:
             self.dbc.executemany(
-                "INSERT INTO recipe_depend (recipe, item) "
-                "VALUES (?, ?)", recipe_depends)
+                "INSERT INTO recipe_depend (recipe, type, item) "
+                "VALUES (?, ?, ?)", recipe_depends)
 
         recipe_rdepends = []
         for item in (recipe.meta.get("RDEPENDS") or "").split():
-            recipe_rdepends.append((recipe_id, item))
+            item = oelite.item.OEliteItem(item, (1, recipe.type))
+            recipe_rdepends.append((recipe_id, item.type, item.name))
         for item in (recipe.meta.get("CLASS_RDEPENDS") or "").split():
-            recipe_rdepends.append((recipe_id, item))
+            item = oelite.item.OEliteItem(item, (1, recipe.type))
+            recipe_rdepends.append((recipe_id, item.type, item.name))
         if recipe_rdepends:
             self.dbc.executemany(
-                "INSERT INTO recipe_depend (recipe, item) "
-                "VALUES (?, ?)", recipe_rdepends)
+                "INSERT INTO recipe_rdepend (recipe, type, item) "
+                "VALUES (?, ?, ?)", recipe_rdepends)
 
         for task_name in task_names:
             task_id = flatten_single_value(self.dbc.execute(
                     "SELECT id FROM task WHERE recipe=? AND name=?",
                     (recipe_id, task_name)))
-            # FIXME: find out how to use this prefetched task_id in the
-            # INSERT-SELECT statements below
 
             for parent in recipe.meta.get_list_flag(task_name, "deps"):
                 self.dbc.execute(
-                    "INSERT INTO task_parent (task, parent) "
-                    "SELECT task.id, parent.id "
-                    "FROM task, task as parent "
-                    "WHERE"
-                    "  task.name=:task_name AND task.recipe=:recipe_id"
-                    "  AND"
-                    "  parent.name=:parent AND parent.recipe=:recipe_id",
+                    "INSERT INTO task_parent (recipe, task, parent) "
+                    "VALUES (:recipe_id, :task_name, :parent)",
                     locals())
 
             for deptask in recipe.meta.get_list_flag(task_name, "deptask"):
@@ -668,6 +672,7 @@ class CookBook(Mapping):
 
 
     def add_package(self, recipe, name, type, arch):
+        #print "add_package %s %s %s %s"%(recipe,name,type,arch)
         self.dbc.execute(
             "INSERT INTO package (recipe, name, type, arch) "
             "VALUES (?, ?, ?, ?)",
@@ -676,40 +681,32 @@ class CookBook(Mapping):
 
 
     def get_providers(self, type, item, recipe=None, version=None):
+        #print "get_providers type=%s item=%s recipe=%s version=%s"%(repr(type), repr(item), repr(recipe), repr(version))
         if recipe and version:
             providers = self.dbc.execute(
                 "SELECT package.id "
-                #"recipe.name, recipe.version, recipe.priority "
                 "FROM package, provide, recipe "
-                "WHERE provide.item=:item "
+                "WHERE provide.item=:item AND package.type=:type "
                 "AND recipe.name=:recipe AND recipe.version=:version "
-                "AND package.recipe=recipe.id "
-                "AND provide.package=package.id "
-                "AND package.type=:type "
+                "AND provide.package=package.id AND package.recipe=recipe.id "
                 "ORDER BY recipe.priority DESC, recipe.name", locals())
         elif recipe:
             providers = self.dbc.execute(
                 "SELECT package.id "
-                #"recipe.name, recipe.version, recipe.priority "
                 "FROM package, provide, recipe "
-                "WHERE provide.item=:item "
+                "WHERE provide.item=:item AND package.type=:type "
                 "AND recipe.name=:recipe "
-                "AND package.recipe=recipe.id "
-                "AND provide.package=package.id "
-                "AND package.type=:type "
+                "AND provide.package=package.id AND package.recipe=recipe.id "
                 "ORDER BY recipe.priority DESC, recipe.name", locals())
         else:
             providers = self.dbc.execute(
                 "SELECT package.id "
-                #"recipe.name, recipe.version, recipe.priority "
                 "FROM package, provide, recipe "
-                "WHERE provide.item=:item "
-                "AND package.recipe=recipe.id "
-                "AND provide.package=package.id "
-                "AND package.type=:type "
+                "WHERE provide.item=:item AND package.type=:type "
+                "AND provide.package=package.id AND package.recipe=recipe.id "
                 "ORDER BY recipe.priority DESC, recipe.name", locals())
-
-        return self.get_packages(id=flatten_single_column_rows(providers))
+        providers = flatten_single_column_rows(providers)
+        return self.get_packages(id=providers)
                                  
 
     def get_package_providers(self, item):

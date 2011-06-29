@@ -19,8 +19,10 @@ HOST_CFLAGS		= "${BUILD_CFLAGS}"
 HOST_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 HOST_LDFLAGS		= "${BUILD_LDFLAGS}"
 
-# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
-OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH} --target=${TARGET_ARCH}"
+HOST_TYPE		= "native"
+TARGET_TYPE		= "machine"
+HOST_CROSS		= "native"
+TARGET_CROSS		= "cross"
 
 # Use stage_* path variables for host paths
 base_prefix		= "${stage_base_prefix}"
@@ -46,15 +48,13 @@ libexecdir		= "${stage_libexecdir}"
 libdir			= "${stage_libdir}"
 includedir		= "${stage_includedir}"
 
-TARGET_PACKAGE_TYPE	= "machine"
-
 # Fixup PACKAGE_TYPE_* variables for target packages
 addhook fixup_package_type to post_recipe_parse first
 def fixup_package_type(d):
     target_packages = (d.get("TARGET_PACKAGES") or "").split()
-    target_package_type = d.get("TARGET_PACKAGE_TYPE")
+    target_type = d.get("TARGET_TYPE")
     for pkg in target_packages:
-        d.set("PACKAGE_TYPE_%s"%(pkg), target_package_type)
+        d.set("PACKAGE_TYPE_%s"%(pkg), target_type)
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"

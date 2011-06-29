@@ -9,6 +9,7 @@ from oebakery import die, err, warn, info, debug
 from collections import MutableMapping
 from oelite.meta import *
 from oelite.pyexec import *
+import oelite.function
 
 
 class ExpansionError(Exception):
@@ -146,6 +147,8 @@ class MetaData(MutableMapping):
         g = {}
         g["__builtins__"] = globals()["__builtins__"]
         for module_name in imports.split():
+            # FIXME: debug this, optimizing it so that we don't import
+            # stuff more than absolutely necessary
             #print "importing module", module_name
             base_name = module_name.split(".")[0]
             g[base_name] = __import__(module_name, g, [], [], 0)
@@ -169,10 +172,11 @@ class MetaData(MutableMapping):
         return pythonfuncs
 
 
-    def get_pythonfunc(self, var):
+    def get_pythonfunc(self, var, name=None, tmpdir=None):
         #if function in self.pythonfunc_cache:
         #    return self.pythonfunc_cache[function]
-        function = PythonFunction(self, var)
+        function = oelite.function.PythonFunction(
+            self, var, name=name, tmpdir=tmpdir)
         #self.pythonfunc_cache[function] = function
         return function
 
@@ -423,3 +427,12 @@ class MetaData(MutableMapping):
                 if nohash_prefixed:
                     continue
             self.dump_var(key, o, pretty, dynvars)
+
+
+    def get_function(self, name):
+        if not name in self or not self.get(name):
+            return oelite.function.NoopFunction(self, name)
+        if self.get_flag(name, "python"):
+            return oelite.function.PythonFunction(self, name)
+        else:
+            return oelite.function.ShellFunction(self, name)

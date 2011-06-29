@@ -160,7 +160,7 @@ do_mangle () {
 
 
 	cat defconfig.misc ${DEFCONFIG_CPU} defconfig.toolchain ${DEFCONFIG_OS} | \
-	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${DL_DIR}"%' \
+	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${INGREDIENTS}"%' \
 	    -e 's%\(CT_PREFIX_DIR\)=.*%\1="${D}"%' \
 	    -e "s%\(CT_PARALLEL_JOBS\)=.*%\1=$CT_PARALLEL_JOBS%" \
 	    -e 's%\(CT_LOAD\)=.*%\1=${CT_LOAD}%' \
@@ -234,7 +234,7 @@ python do_save_tarballs () {
 	urls = []
 	for file in dircache.listdir("targets/tarballs"):
 		srcfile = "%s/%s"%("targets/tarballs", file)
-		dstfile = "%s/%s"%(bb.data.getVar("DL_DIR", d, 1), file)
+		dstfile = "%s/%s"%(bb.data.getVar("INGREDIENTS", d, 1), file)
 		md5file = "%s.md5"%(dstfile)
 		lckfile = "%s.lock"%(dstfile)
 		if not os.path.islink(srcfile):
@@ -249,7 +249,7 @@ python do_save_tarballs () {
 			bb.utils.unlockfile(lf)
 }
 
-DOT_CONFIG_MANGLING = "\
+DOT_CONFIG_MANGLING:machine = "\
 	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%\(CT_HOST\)=.*%\1=\"${HOST_ARCH}\"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1=\"${HOST_PREFIX}\"%' \
@@ -260,17 +260,17 @@ DOT_CONFIG_MANGLING = "\
 	    -e 's%\(CT_DEBUG_gdb\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_recipe-cross = "\
+DOT_CONFIG_MANGLING:cross = "\
 	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
 	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_recipe-sdk-cross = "\
+DOT_CONFIG_MANGLING:sdk-cross = "\
 	sed -e 's%.*\(CT_CROSS\).*%\1=y%' \
 	    -e 's%\(CT_GDB_CROSS\)=.*%\1=n%' \
 "
 
-DOT_CONFIG_MANGLING_recipe-canadian-cross = "\
+DOT_CONFIG_MANGLING:canadian-cross = "\
 	sed -e 's%.*\(CT_CANADIAN\).*%\1=y%' \
 	    -e 's%\(CT_HOST\)=.*%\1=\"${HOST_ARCH}\"%' \
 	    -e 's%\(CT_HOST_PREFIX\)=.*%\1=\"${HOST_PREFIX}\"%' \
@@ -440,10 +440,12 @@ do_install () {
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
 # (almost) the same
-PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
+PACKAGES = "${PN}-dbg ${PN}-g++ ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
 
 PROVIDES_${PN} = "cc"
-DEPENDS_${PN} = "${PN}-sysroot-dev"
+DEPENDS_${PN} = "target:${PN}-sysroot-dev"
+PROVIDES_${PN}-g++ = "c++"
+DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -473,6 +475,11 @@ ${base_libdir}64 \
 ${base_prefix}/${TARGET_ARCH}/lib64 \
 "
 
+FILES_${PN}-c++ = "\
+${base_bindir}/*++ \
+${base_prefix}/${TARGET_ARCH}/bin/*++ \
+"
+
 FILES_${PN}-doc += "\
 ${base_prefix}/build.log* \
 "
@@ -493,6 +500,8 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so.* \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
 "
+DEPENDS_${PN}-sysroot-libc = "${PN}-sysroot-libc-dev_${PV}"
+PROVIDES_${PN}-sysroot-libc = "libc"
 
 TARGET_PACKAGES += "${PN}-sysroot-libc-dev"
 # FIXME: the lib64 symlink should be in separate package!
@@ -501,6 +510,8 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
 "
+RDEPENDS_${PN}-sysroot-libc-dev = "${PN}-sysroot-libc_${PV}"
+PROVIDES_${PN}-sysroot-libc-dev = "libc-dev"
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
 FILES_${PN}-sysroot-gdbserver-dbg = "\
@@ -528,6 +539,11 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libexecdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
 "
 
+TARGET_PACKAGES += "${PN}-sysroot-c++-dev"
+FILES_${PN}-sysroot-c++-dev = "${base_prefix}/${TARGET_ARCH}/include/c++"
+DEPENDS_${PN}-sysroot-c++-dev  = "${PN}-sysroot-dev"
+RDEPENDS_${PN}-sysroot-c++-dev = "${PN}-sysroot-dev"
+
 TARGET_PACKAGES += "${PN}-sysroot-dev"
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
@@ -544,7 +560,7 @@ ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
 ${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
 ${base_prefix}/${TARGET_ARCH}/sys-root/mingw \
 "
-DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
+DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
 FILES_${PN}-sysroot-dev:>TARGET_OS_mingw32 = "\
@@ -669,16 +685,18 @@ ${base_prefix}/${TARGET_ARCH}/sys-root \
 #/${TARGET_ARCH}/debug-root
 
 
-CROSS_SYSROOT_MANGLE = "split_sysroot_mangle split_sysroot_mangle_cross"
-SDK_SYSROOT_MANGLE = "split_sysroot_mangle split_sysroot_mangle_sdk"
-SYSROOT_MANGLE = "${SDK_SYSROOT_MANGLE}"
-SYSROOT_MANGLE_recipe-cross	= "${CROSS_SYSROOT_MANGLE}"
-SYSROOT_MANGLE_recipe-sdk-cross	= "${CROSS_SYSROOT_MANGLE}"
-SYSROOT_MANGLE_recipe-native	= "${CROSS_SYSROOT_MANGLE}"
-SPLIT_FUNCS_append += "${SYSROOT_MANGLE}"
+SPLIT_FUNCS += "split_sysroot_mangle"
+SPLIT_FUNCS:>HOST_OS_mingw32 += " split_sysroot_mangle_mingw32"
+SPLIT_FUNCS:>cross += " split_sysroot_mangle_stage"
+SPLIT_FUNCS:>sdk-cross += " split_sysroot_mangle_stage"
+SPLIT_FUNCS:>native += " split_sysroot_mangle_stage"
+SPLIT_FUNCS:>machine += " split_sysroot_mangle_sdk"
+SPLIT_FUNCS:>sdk += " split_sysroot_mangle_sdk"
+SPLIT_FUNCS:>canadian-cross += " split_sysroot_mangle_sdk"
 
 # Move the machine sysroot packages into proper target layout
 split_sysroot_mangle () {
+	cd ${PKGD}
 	# Fixup the layout of the sysroot packages
 	for pkg in ${TARGET_PACKAGES} ; do
 		if [ -d $pkg/${TARGET_ARCH} ] ; then
@@ -713,9 +731,8 @@ split_sysroot_mangle () {
 	done
 	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
 }
-split_sysroot_mangle[dirs] = "${PKGD}"
 
-split_sysroot_mangle_append_mingw32 () {
+split_sysroot_mangle_mingw32 () {
     # Move object files (*.o) to usr/lib so that ld can find them through
     # the mingw/lib dir (mingw symlinks to /usr)
     for pkg in ${TARGET_PACKAGES} ; do
@@ -728,16 +745,16 @@ split_sysroot_mangle_append_mingw32 () {
 }
 
 # Add symlinks to get sys-root back on stage for internal cross packages
-split_sysroot_mangle_cross () {
-	ln -s ../../sysroot ${PN}/${TARGET_ARCH}/sys-root
+split_sysroot_mangle_stage () {
+	cd ${PKGD}
+	ln -s ../../${TARGET_TYPE} ${PN}/${TARGET_ARCH}/sys-root
 }
-split_sysroot_mangle_cross[dirs] = "${PKGD}"
 
 # Add empty sys-root dir in sdk packages
 split_sysroot_mangle_sdk () {
+	cd ${PKGD}
 	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
 }
-split_sysroot_mangle_sdk[dirs] = "${PKGD}"
 
 inherit libtool
 LIBTOOL_DEPENDS = ""

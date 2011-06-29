@@ -3,54 +3,52 @@
 inherit binconfig-stage
 inherit libtool-stage
 addtask stage before do_fetch
-addtask stage_fixup after do_stage
 
 do_stage[cleandirs] =	"${STAGE_DIR}"
 do_stage[dirs] =	"${STAGE_DIR}"
 do_stage[recdeptask] =	"do_package"
 
+do_stage[import] = "set_stage"
 def do_stage(d):
-    import bb, tempfile, shutil
+    return set_stage(d, recipe_type_subdir=True)
+
+def set_stage(d, recipe_type_subdir=True):
+    import tempfile
+    import shutil
     from oebakery import debug, info, warn, err, die
 
-    __stage = d.get("__stage")
-    recdepends = d.getVar("RECDEPENDS", False)
-    recdepends = recdepends.split()
     cwd = os.getcwd()
-    for dep in recdepends:
-        bb.debug(2, "adding build dependency %s to stage"%dep)
+    if not recipe_type_subdir:
+        subdir = None
 
-        # Get complete specification of package that provides "dep", in
-        # the form PACKAGE_ARCH/PACKAGE_PV-PR_buildhash
-        pkg = d.getVar("PKGPROVIDER_%s"%dep, False)
-        if not pkg:
-            die("PKGPROVIDER_%s not defined!"%dep)
-
-        subdir = d.getVar("PKGSUBDIR_%s"%dep, False)
-        if not subdir:
-            die("PKGSUBDIR_%s not defined!"%dep)
-
-        debug("do_stage pkg=%s subdir=%s"%(pkg, subdir))
-
-        filename = os.path.join(d.getVar("PACKAGE_DEPLOY_DIR", True), pkg)
-        if not os.path.isfile(filename):
-            die("could not find %s to satisfy %s"%(filename, dep))
-
-        if subdir:
-            dstdir = os.path.join(cwd, subdir)
+    stage = d.get("__stage")
+    stage_files = stage.keys()
+    stage_files.sort()
+    for filename in stage_files:
+        package = stage[filename]
+        print "unpacking",filename,package
+        if recipe_type_subdir:
+            dstdir = os.path.join(cwd, package.type)
         else:
             dstdir = cwd
 
-        bb.debug(1, "unpacking %s to %s"%(filename, dstdir))
+        if not os.path.isfile(filename):
+            die("could not find stage file: %s"%(filename))
+
+        print "unpacking %s to %s"%(filename, dstdir)
 
         unpackdir = d.getVar("STAGE_UNPACKDIR", True)
         bb.utils.mkdirhier(unpackdir)
         os.chdir(unpackdir)
-        os.system("tar xpf %s"%filename)
-        d.setVar("STAGE_FIXUP_SUBDIR", subdir)
+        os.system("tar xpf %s"%(filename))
 
-        for f in (bb.data.getVar("STAGE_FIXUP_FUNCS", d, 1) or "").split():
-            bb.build.exec_func(f, d)
+        d["STAGE_FIXUP_PKG_TYPE"] = package.type
+        for funcname in (d.get("STAGE_FIXUP_FUNCS") or "").split():
+            print "Running STAGE_FIXUP_FUNC", funcname
+            function = d.get_function(funcname)
+            if not function.run(unpackdir):
+                return False
+        del d["STAGE_FIXUP_PKG_TYPE"]
 
         bb.utils.mkdirhier(dstdir)
 

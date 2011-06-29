@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 # BitBake class to handle CONFIG_SITE variable for GNU Autoconf
 # configure scripts.  Leverage base_arch.bbclass as much as possible.
 
@@ -69,6 +71,43 @@ python do_siteinfo () {
             output_file.write(line)
         output_file.close()
 
+    #
+    # Return list of sitefiles found by searching for sitefiles in the
+    # ${BBPATH}/site directories and any files listed in
+    # ${SRC_*_SITEFILES} for * in BUILD, HOST, TARGET.
+    #
+    # The SRC_*_SITEFILES come last, so they override any variables from
+    # common sitefiles.
+    #
+    # TODO: could be extended with searching in stage dir, so build
+    # dependencies could provide sitefiles instead of piling everything
+    # into common files.  When building for MACHINE_ARCH, search for
+    # sitefiles in stage/machine/usr/share/config.site/* and each build#
+    # dependency should then install their files into it's own config.site
+    # subdir.
+    #
+    def list_sitefiles(d, arch):
+        import bb, os
+        found = []
+        sitefiles = d.getVar(arch+'_SITEFILES', True).split()
+        bbpath = d.getVar('BBPATH', True) or ''
+        pv = d.getVar('PV', True)
+
+        # 1) ${BBPATH}/site
+        for path in bbpath.split(':'):
+            for filename in sitefiles:
+                filepath = os.path.join(path, 'site', filename)
+                if filepath not in found and os.path.exists(filepath):
+                    found.append(filepath)
+
+        # 2) Recipe specified files (ie. in ${SRCDIR})
+        sitefiles = (d.getVar("SRC_%s_SITEFILES"%(arch), True) or "").split()
+        for filepath in sitefiles:
+            if filepath not in found and os.path.exists(filepath):
+                found.append(filepath)
+
+        return found
+
     generate_siteinfo(d, 'BUILD', build_config_site)
 
     if host_arch == build_arch:
@@ -83,40 +122,3 @@ python do_siteinfo () {
     else:
         generate_siteinfo(d, 'TARGET', TARGET_config_site)
 }
-
-#
-# Return list of sitefiles found by searching for sitefiles in the
-# ${BBPATH}/site directories and any files listed in
-# ${SRC_*_SITEFILES} for * in BUILD, HOST, TARGET.
-#
-# The SRC_*_SITEFILES come last, so they override any variables from
-# common sitefiles.
-#
-# TODO: could be extended with searching in stage dir, so build
-# dependencies could provide sitefiles instead of piling everything
-# into common files.  When building for MACHINE_ARCH, search for
-# sitefiles in stage/machine/usr/share/config.site/* and each build#
-# dependency should then install their files into it's own config.site
-# subdir.
-#
-def list_sitefiles(d, arch):
-    import bb, os
-    found = []
-    sitefiles = d.getVar(arch+'_SITEFILES', True).split()
-    bbpath = d.getVar('BBPATH', True) or ''
-    pv = d.getVar('PV', True)
-
-    # 1) ${BBPATH}/site
-    for path in bbpath.split(':'):
-        for filename in sitefiles:
-            filepath = os.path.join(path, 'site', filename)
-            if filepath not in found and os.path.exists(filepath):
-                found.append(filepath)
-
-    # 2) Recipe specified files (ie. in ${SRCDIR})
-    sitefiles = (d.getVar("SRC_%s_SITEFILES"%(arch), True) or "").split()
-    for filepath in sitefiles:
-        if filepath not in found and os.path.exists(filepath):
-            found.append(filepath)
-
-    return found

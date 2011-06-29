@@ -1,5 +1,4 @@
-#RECIPE_TYPES = "cross sdk-cross canadian-cross"
-BBCLASSEXTEND = "cross sdk-cross canadian-cross"
+RECIPE_TYPES = "cross sdk-cross canadian-cross"
 
 # gcc and glibc versions should be locked down by distro
 CT_CC_VERSION			 = "${GCC_VERSION}"

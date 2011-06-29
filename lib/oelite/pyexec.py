@@ -1,29 +1,7 @@
 import oelite
 from oelite.meta import *
-
-class PythonFunction:
-
-    def __init__(self, meta, var, recursion_path=[]):
-        recursion_path.append(var)
-        funcimports = {}
-        for func in (meta.get_flag(var, "funcimport", FULL_EXPANSION)
-                     or "").split():
-            if func in funcimports:
-                continue
-            if func in recursion_path:
-                raise Exception("circular funcimport")
-            python_function = PythonFunction(func, g, recursion_path)
-            funcimports[func] = python_function.function
-        g = meta.get_pythonfunc_globals()
-        g.update(funcimports)
-        l = {}
-        self.code = meta.get_pythonfunc_code(var)
-        eval(self.code, g, l)
-        self.function = l[var]
-        return
-
-    def run(self, meta):
-        return self.function(meta)
+import bb.utils
+import os
 
 
 def inlineeval(source, meta):
@@ -39,8 +17,16 @@ def inlineeval(source, meta):
 def exechooks(meta, name, hooks=None):
     if hooks is None:
         hooks = meta.get_hooks(name)
+    tmpdir = os.path.join(meta.get("HOOKTMPDIR"), name)
+    bb.utils.mkdirhier(tmpdir)
     for function in hooks:
-        hook = meta.get_pythonfunc(function)
-        retval = hook.run(meta)
-        if retval is not None:
+        pn = meta.get("PN")
+        if pn:
+            name = "%s.%s.%s"%(pn, meta.get("RECIPE_TYPE"), function)
+        else:
+            name = function
+        hook = meta.get_pythonfunc(function, name, tmpdir=tmpdir)
+        retval = hook.run(tmpdir)
+        if retval is not None and not retval:
             raise oelite.HookFailed(name, function, retval)
+    return

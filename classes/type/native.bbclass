@@ -25,10 +25,10 @@ TARGET_CFLAGS		= "${BUILD_CFLAGS}"
 TARGET_CXXFLAGS		= "${BUILD_CXXFLAGS}"
 TARGET_LDFLAGS		= "${BUILD_LDFLAGS}"
 
-TARGET_SYSROOT		= "${STAGE_DIR}/native"
-
-# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
-OECONF_ARCHTUPLE = "--build=${BUILD_ARCH}"
+HOST_TYPE		= "native"
+TARGET_TYPE		= "native"
+HOST_CROSS		= "native"
+TARGET_CROSS		= "native"
 
 # Use stage_* path variables for host paths
 base_prefix		= "${stage_base_prefix}"

@@ -236,10 +236,13 @@ class OEliteBaker:
             die("Cannot find %s"%(thing))
 
         if self.options.task:
-            task_name = oelite.task.task_name(self.options.task)
             self.runq = OEliteRunQueue(self.config, self.cookbook)
-            self.runq._add_recipe(recipe, task_name)
-            recipe.prepare(self.runq, task_name)
+            self.runq._add_recipe(recipe, self.options.task)
+            task = recipe.get_task(self.options.task)
+            #recipe.prepare(self.runq, task_name)
+            meta = task.get_function().meta
+        else:
+            meta = recipe.meta
 
         recipe.meta.dump(pretty=True, nohash=(not self.options.nohash),
                          only=(self.things_todo[1:] or None))
@@ -385,7 +388,7 @@ class OEliteBaker:
                 prebake = self.find_prebaked_package(package)
                 if prebake:
                     self.runq.set_package_filename(package, prebake,
-                                                      prebake=True)
+                                                   prebake=True)
 
         # clear parent_task for all runq_depends where all runq_depend
         # rows with the same parent_task has prebake flag set
@@ -425,7 +428,7 @@ class OEliteBaker:
             recipe = self.cookbook.get_recipe(package=package.id)
             buildhash = self.runq.get_package_buildhash(package.id)
             filename = os.path.join(
-                deploy_dir, package.arch,
+                deploy_dir, package.type, package.arch,
                 "%s_%s_%s.tar"%(package.name, recipe.version, buildhash))
             debug("will use from build: %s"%(filename))
             self.runq.set_package_filename(package.id, filename)
@@ -498,18 +501,16 @@ class OEliteBaker:
         exitcode = 0
         while task:
             count += 1
-            recipe = self.cookbook.get_recipe(task=task)
-            #task = self.cookbook.get_task(id=task)
             debug("")
-            debug("Preparing %s:%s"%(recipe, task.name))
-            data = recipe.prepare(self.runq, task)
-            info("Running %d / %d %s:%s"%(count, total, recipe.name, task.name))
+            debug("Preparing %s"%(task))
+            meta = task.prepare_meta(self.runq)
+            info("Running %d / %d %s"%(count, total, task))
             task.build_started()
-            if exec_func(task.name, data):
+            if task.run():
                 task.build_done(self.runq.get_buildhash(task))
                 self.runq.mark_done(task)
             else:
-                err("%s:%s failed"%(recipe.name, task.name))
+                err("%s failed"%(task))
                 exitcode = 1
                 task.build_failed()
                 # FIXME: support command-line option to abort on first
@@ -625,20 +626,6 @@ def exec_func(func, data):
 
     ispython = flags['python']
 
-    cleandirs = flags['cleandirs']
-    if cleandirs:
-        cleandirs = data.expand(cleandirs).split()
-    if cleandirs:
-        for cleandir in cleandirs:
-            if not os.path.exists(cleandir):
-                continue
-            try:
-                debug("cleandir %s"%(cleandir))
-                shutil.rmtree(cleandir)
-            except Exception, e:
-                err("cleandir %s failed: %s"%(cleandir, e))
-                return False
-
     dirs = flags['dirs']
     if dirs:
         dirs = data.expand(dirs).split()
@@ -737,33 +724,7 @@ def exec_func(func, data):
 
 def exec_func_python(func, data, runfile, logfile):
     """Execute a python BB 'function'"""
-
-    #bbfile = data.get("FILE", True)
-    #tmp  = "def " + func + "(d):\n%s" % data.get(func, True)
-    #tmp += '\n' + func + '(d)'
-
     function = data.get_pythonfunc(func)
-
-    #f = open(runfile, "w")
-    #f.write(tmp)
-    #comp = None
-    #try:
-    #    comp = bb.utils.better_compile(tmp, func, bbfile)
-    #except:
-    #    raise
-    #    die("compiling %s failed, ask an OE-lite wizard to add more debug information"%func)
-    #try:
-    #    bb.utils.better_exec(comp, {"d": data}, tmp, bbfile)
-    #except:
-    #    err("executing python function %s failed"%(func))
-    #    if oebakery.DEBUG:
-    #        raise
-    #    return False
-        #if sys.exc_info()[0] in (bb.parse.SkipPackage, bb.build.FuncFailed):
-        #    raise
-        ##return False
-        #raise
-
     retval = function.run(data)
     if retval or retval is None:
         return True

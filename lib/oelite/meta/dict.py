@@ -5,6 +5,7 @@ import copy
 import warnings
 import cPickle
 import operator
+import types
 
 
 def unpickle(file):
@@ -133,7 +134,7 @@ class DictMeta(MetaData):
             return (val, None)
         if not var in self.dict:
             return (None, None)
-        if not isinstance(val, basestring):
+        if not isinstance(val, (basestring, types.NoneType)):
             return (val, None)
         try:
             return self.expand_cache[var]
@@ -172,6 +173,8 @@ class DictMeta(MetaData):
         expand_method = self.get_flag(var, "expand")
         if expand_method:
             expand_method = int(expand_method)
+        elif self.get_flag(var, "python"):
+            expand_method = NO_EXPANSION
         else:
             #expand_method = FULL_EXPANSION
             expand_method = expand
@@ -203,7 +206,7 @@ class DictMeta(MetaData):
         except KeyError:
             val = None
         if val and expand:
-            (val, deps) = self.expand(val, expand)
+            (val, deps) = self._expand(val, expand)
         return val
 
 
@@ -232,7 +235,7 @@ class DictMeta(MetaData):
 
     def get_vars(self, flag="", values=False):
         #print "get_vars flag=%s values=%s"%(flag, values)
-        if not flag in self.dict["__flag_index"]:
+        if flag and not flag in self.dict["__flag_index"]:
             print "get_vars flag=%s not indexed"%(flag)
             print "__flag_index=%s"%(self.dict["__flag_index"])
         if values:
@@ -287,6 +290,10 @@ class DictMeta(MetaData):
 
 
     def add_hook(self, name, function, sequence=1, after=[], before=[]):
+        if after is None:
+            after = []
+        if before is None:
+            before = []
         try:
             hooks = self.dict["__hooks"]
         except KeyError:
@@ -358,5 +365,5 @@ class DictMeta(MetaData):
 
 
     def finalize(self):
-        warnings.warn("FIXME: implement DictMeta.finalize() !!!!")
+        #warnings.warn("FIXME: implement DictMeta.finalize()")
         return

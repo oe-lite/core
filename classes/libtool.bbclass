@@ -24,8 +24,8 @@ LIBTOOL_NATIVE_SCRIPTS				= ""
 LIBTOOL_HOST_SCRIPTS				= ""
 LIBTOOL_TARGET_SCRIPTS				= "libtool"
 
-LIBTOOL_NATIVE_SCRIPTS_recipe-native		= "libtool"
-LIBTOOL_TARGET_SCRIPTS_recipe-native		= ""
+LIBTOOL_NATIVE_SCRIPTS:native			= "libtool"
+LIBTOOL_TARGET_SCRIPTS:native			= ""
 
 LIBTOOL_NATIVE_SCRIPT_FIXUP			= "0"
 LIBTOOL_HOST_SCRIPT_FIXUP			= "0"
@@ -73,7 +73,7 @@ FIXUP_FUNCS += "libtool_lafile_fixup"
 LIBTOOL_FIXUP_SEARCH_DIRS = "${D}${libdir} ${D}${base_libdir}"
 LIBTOOL_FIXUP_STRIP_DIRS  = "${D} ${S} ${STAGE_DDIR}"
 STAGE_DDIR = "${TARGET_SYSROOT}"
-STAGE_DDIR_recipe-native = "${STAGE_DIR}/native"
+STAGE_DDIR:native = "${STAGE_DIR}/native"
 
 # FIXME: figure out how to handle canadian-cross here...
 

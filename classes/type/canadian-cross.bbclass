@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH		 = "${SDK_ARCH}--${MACHINE_ARCH}${MACHINE_OVERRIDE}"
+RECIPE_ARCH		 = "${SDK_ARCH}--${MACHINE_ARCH}"
 MACHINE_OVERRIDE	?= ""
 
 PACKAGES		+= "${HOST_PACKAGES} ${TARGET_PACKAGES}"
@@ -19,18 +19,10 @@ HOST_CFLAGS		= "${SDK_CFLAGS}"
 HOST_CXXFLAGS		= "${SDK_CXXFLAGS}"
 HOST_LDFLAGS		= "${SDK_LDFLAGS}"
 
-# Arch tuple arguments for configure (oe_runconf in autotools.bbclass)
-OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH} --target=${TARGET_ARCH}"
-
-# Need to have both host and target cross as well as native dirs in path
-PATH_prepend = "\
-${STAGE_DIR}/target/cross${stage_bindir}:\
-${STAGE_DIR}/host/cross${stage_bindir}:\
-${STAGE_DIR}/native${stage_bindir}:\
-"
-
-MACHINE_SYSROOT	 = "${STAGE_DIR}/target/sysroot"
-SDK_SYSROOT	 = "${STAGE_DIR}/host/sysroot"
+HOST_TYPE		= "sdk"
+TARGET_TYPE		= "machine"
+HOST_CROSS		= "sdk-cross"
+TARGET_CROSS		= "cross"
 
 # Use sdk_* path variables for host paths
 base_prefix		= "${sdk_base_prefix}"

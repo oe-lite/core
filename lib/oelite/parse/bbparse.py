@@ -244,7 +244,8 @@ class BBParser(object):
                 self.inherit(inherit_class, p)
             except oelite.parse.FileNotFound, e:
                 raise oelite.parse.ParseError(
-                    self, "Class not found: inherit %s"%(inherit_class), p)
+                    self, "Class not found: inherit %s"%(inherit_class), p,
+                    lineno = p.lexer.lineno - 1)
         return
 
     def p_inherit_classes(self, p):
@@ -265,6 +266,7 @@ class BBParser(object):
 
     def p_addtask_w_dependencies(self, p):
         '''addtask : addtask_task addtask_dependencies'''
+        #print "addtask %s after %s before %s"%(p[1], p[2][0], p[2][1])
         self.p_addtask(p)
         self.meta.append_flag(p[1], "deps", " ".join(p[2][0]), " ")
         for before_task in p[2][1]:

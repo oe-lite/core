@@ -1,10 +1,15 @@
+import oebakery
 from oebakery import die, err, warn, info, debug
 import oelite.meta
 import oelite.recipe
 from oelite.dbutil import *
+import oelite.function
+import bb.utils
 
 import sys
 import os
+import warnings
+import shutil
 
 def task_name(name):
     if name.startswith("do_"):
@@ -20,6 +25,7 @@ class OEliteTask:
         self.name = name
         self.nostamp = nostamp
         self.cookbook = cookbook
+        self.meta = None
         return
 
     def __str__(self):
@@ -27,10 +33,12 @@ class OEliteTask:
 
 
     def get_parents(self):
-        task_ids = flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT parent FROM task_parent WHERE task=?",
-            (self.id,)))
-        return self.cookbook.get_tasks(id=task_ids)
+        parents = flatten_single_column_rows(self.cookbook.dbc.execute(
+            "SELECT parent FROM task_parent WHERE recipe=? AND task=?",
+            (self.recipe.id, self.name,)))
+        if not parents:
+            return []
+        return self.cookbook.get_tasks(recipe=self.recipe, name=parents)
 
     def get_deptasks(self):
         return flatten_single_column_rows(self.cookbook.dbc.execute(
@@ -116,3 +124,118 @@ class OEliteTask:
         hashpath = self.stampfile_path()[1]
         if os.path.exists(hashpath):
             os.remove(hashpath)
+
+
+    def prepare_meta(self, runq):
+        if self.meta is not None:
+            return self.meta
+
+        meta = self.recipe.meta.copy()
+
+        buildhash = self.cookbook.baker.runq.get_buildhash(self)
+        debug("buildhash=%s"%(repr(buildhash)))
+        meta.setVar("TASK_BUILDHASH", buildhash)
+
+        deploy_dir = meta.getVar("PACKAGE_DEPLOY_DIR") 
+        recipe_type = meta.getVar("RECIPE_TYPE")
+
+        def prepare_stage(get_depend_packages):
+            stage = {}
+            recdepends = []
+            get_package_filename = self.cookbook.baker.runq.get_package_filename
+            packages = get_depend_packages(self) or []
+            for package in packages:
+                package = self.cookbook.get_package(id=package)
+                filename = get_package_filename(package)
+                if not filename in stage:
+                    stage[filename] = package
+            return stage
+
+        __stage = prepare_stage(self.cookbook.baker.runq.get_depend_packages)
+        meta["__stage"] = prepare_stage(
+            self.cookbook.baker.runq.get_depend_packages)
+        meta["__rstage"] = prepare_stage(
+            self.cookbook.baker.runq.get_rdepend_packages)
+        meta.set_flag("__stage", "nohash", True)
+        meta.set_flag("__rstage", "nohash", True)
+
+        # Filter meta-data, enforcing restrictions on exlusive vars and not
+        # including other task functions.
+        for var in meta:
+            exclusive = meta.get_flag(var, "exclusive")
+            if exclusive:
+                found = False
+                for task in exclusive.split():
+                    if self.name == "do_" + task:
+                        found = True
+                if not found:
+                    del meta[var]
+                    continue
+            if meta.get_flag(var, "task") and var != self.name:
+                del meta[var]
+                continue
+
+        self.meta = meta
+        return meta
+
+
+    def run(self):
+        assert self.meta is not None
+        function = self.meta.get_function(self.name)
+
+        # Remove any cleandirs found
+        cleandirs = (self.meta.get_flag(self.name, "cleandirs",
+                                        oelite.meta.FULL_EXPANSION))
+        if cleandirs:
+            for cleandir in cleandirs.split():
+                if not os.path.exists(cleandir):
+                    continue
+                try:
+                    debug("cleandir %s"%(cleandir))
+                    shutil.rmtree(cleandir)
+                except Exception, e:
+                    err("cleandir %s failed: %s"%(cleandir, e))
+                    return False
+
+        # Create directories and find directory to execute in
+        dirs = (self.meta.get_flag(self.name, "dirs",
+                                   oelite.meta.FULL_EXPANSION))
+        if dirs:
+            dirs = dirs.split()
+            for dir in dirs:
+                bb.utils.mkdirhier(dir)
+            cwd = dirs[-1]
+        else:
+            cwd = self.meta.get("B")
+
+        # Setup stdin, stdout and stderr redirection
+        stdin = open("/dev/null", "r")
+        logfn = "%s/%s.log.%s"%(function.tmpdir, self.name, str(os.getpid()))
+        bb.utils.mkdirhier(os.path.dirname(logfn))
+        try:
+            if oebakery.DEBUG:
+                logfile = os.popen("tee %s"%logfn, "w")
+            else:
+                logfile = open(logfn, "w")
+        except OSError:
+            print "Opening log file failed: %s"%(logfn)
+            raise
+        real_stdin = os.dup(sys.stdin.fileno())
+        real_stdout = os.dup(sys.stdout.fileno())
+        real_stderr = os.dup(sys.stderr.fileno())
+        os.dup2(stdin.fileno(), sys.stdin.fileno())
+        os.dup2(logfile.fileno(), sys.stdout.fileno())
+        os.dup2(logfile.fileno(), sys.stderr.fileno())
+
+        try:
+            return function.run(cwd)
+
+        finally:
+            # Cleanup stdin, stdout and stderr redirection
+            os.dup2(real_stdin, sys.stdin.fileno())
+            os.dup2(real_stdout, sys.stdout.fileno())
+            os.dup2(real_stderr, sys.stderr.fileno())
+            stdin.close()
+            logfile.close()
+            if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
+                os.remove(logfn) # prune empty logfiles

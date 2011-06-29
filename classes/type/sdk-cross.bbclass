@@ -4,7 +4,7 @@ require classes/type/cross.bbclass
 
 RECIPE_ARCH		= "${SDK_ARCH}"
 
-TARGET_PACKAGE_TYPE	= "sdk"
+TARGET_TYPE		= "sdk"
 
 # Set target=sdk to get architecture triplet build/build/sdk
 TARGET_ARCH		= "${SDK_ARCH}"
@@ -15,7 +15,10 @@ TARGET_CFLAGS		= "${SDK_CFLAGS}"
 TARGET_CXXFLAGS		= "${SDK_CXXFLAGS}"
 TARGET_LDFLAGS		= "${SDK_LDFLAGS}"
 
-TARGET_SYSROOT		= "${SDK_SYSROOT}"
+HOST_TYPE		= "native"
+TARGET_TYPE		= "sdk"
+HOST_CROSS		= "native"
+TARGET_CROSS		= "sdk-cross"
 
 # Use sdk_* path variables for target paths
 target_base_prefix	= "${sdk_base_prefix}"

@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 #
 # General packaging help functions
 #
@@ -34,7 +36,7 @@ python package_split () {
     for pkg in package_list:
         localdata = bb.data.createCopy(d)
         root = os.path.join(pkgd, pkg)
-        bb.mkdirhier(root)
+        bb.utils.mkdirhier(root)
 
         bb.data.setVar("PKG", pkg, localdata)
 
@@ -64,13 +66,13 @@ python package_split () {
                 continue
             seen.append(file)
             if os.path.isdir(file) and not os.path.islink(file):
-                bb.mkdirhier(os.path.join(root,file))
+                bb.utils.mkdirhier(os.path.join(root,file))
                 os.chmod(os.path.join(root,file), os.stat(file).st_mode)
                 continue
             fpath = os.path.join(root,file)
             dpath = os.path.dirname(fpath)
-            bb.mkdirhier(dpath)
-            ret = bb.copyfile(file, fpath)
+            bb.utils.mkdirhier(dpath)
+            ret = bb.utils.copyfile(file, fpath)
             if ret is False or ret == 0:
                 raise bb.build.FuncFailed("File population failed")
             if pkg == main_pkg and main_is_empty:
@@ -121,12 +123,12 @@ python package_split () {
 
         for l in dangling_links[pkg]:
             found = False
-            bb.debug(1, "%s contains dangling link %s" % (pkg, l))
+            print "%s contains dangling link %s"%(pkg, l)
             for p in package_list:
                 for f in pkg_files[p]:
                     if f == l:
                         found = True
-                        bb.debug(1, "target found in %s" % p)
+                        print "target found in %s"%(p)
                         if p == pkg:
                             break
                         if not p in rdepends:
@@ -138,29 +140,29 @@ python package_split () {
 }
 package_split[dirs] = "${D}"
 
-SPLIT_FUNCS = "\
-# package_split_locales\
- package_split\
-# package_shlibs\
-# package_pkgconfig\
-# package_depchains\
-"
+SPLIT_FUNCS = "package_split"
 # FIXME: package_pkgconfig should be dynamically added to
 # SPLIT_FUNCS by pkgconfig.bbclass
+# package_split_locales
+# package_shlibs
+# package_pkgconfig
+# package_depchains
 
 
 do_split[cleandirs] = "${PKGD}"
 do_split[dirs] = "${PKGD} ${D}"
 
-python do_split () {
+def do_split(d):
     packages = (bb.data.getVar("PACKAGES", d, 1) or "").split()
     if len(packages) < 1:
         bb.error("No packages to build")
         return
 
-    for f in (bb.data.getVar("SPLIT_FUNCS", d, 1) or "").split():
-        bb.build.exec_func(f, d)
-}
+    for funcname in (d.get("SPLIT_FUNCS") or "").split():
+        print "Running SPLIT_FUNC", funcname
+        function = d.get_function(funcname)
+        if not function.run(os.getcwd()):
+            return False
 
 
 do_package[dirs] = "${PKGD}"
@@ -175,20 +177,21 @@ python do_package () {
 
     pkgd = d.getVar("PKGD", True)
     deploy_dir = d.getVar("PACKAGE_DEPLOY_DIR", True)
-    for pkg in packages:
-        pkg_arch = (d.getVar("PACKAGE_ARCH_%s"%pkg, True) or
-                    d.getVar("RECIPE_ARCH", True))
-        outdir = os.path.join(deploy_dir, pkg_arch)
-        pv = d.getVar("EPV", True)
+    for package in packages:
+        pkg_arch = (d.get("PACKAGE_ARCH_" + package) or
+                    d.get("RECIPE_ARCH"))
+        pkg_type = (d.get("PACKAGE_TYPE_" + package) or
+                    d.get("RECIPE_TYPE"))
+        outdir = os.path.join(deploy_dir, pkg_type, pkg_arch)
+        pv = d.getVar("PV", True)
         buildhash = d.getVar("TASK_BUILDHASH", False)
-        bb.mkdirhier(outdir)
-        os.chdir(pkg)
+        bb.utils.mkdirhier(outdir)
+        os.chdir(os.path.join(pkgd, package))
         # FIXME: add error handling for tar command
-        os.system("tar cf %s/%s_%s_%s.tar ."%(outdir, pkg, pv, buildhash))
-        srcfile = "%s_%s_%s.tar"%(pkg, pv, buildhash)
-        symlink = "%s/%s_%s.tar"%(outdir, pkg, pv)
+        os.system("tar cf %s/%s_%s_%s.tar ."%(outdir, package, pv, buildhash))
+        srcfile = "%s_%s_%s.tar"%(package, pv, buildhash)
+        symlink = "%s/%s_%s.tar"%(outdir, package, pv)
         if os.path.exists(symlink):
             os.remove(symlink)
         os.symlink(srcfile, symlink)
-        os.chdir("..")
 }

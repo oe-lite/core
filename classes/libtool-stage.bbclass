@@ -2,19 +2,19 @@
 
 STAGE_FIXUP_FUNCS += "libtool_stage_fixup"
 
-python libtool_stage_fixup () {
-    import glob, sys, os, re
-
-    os.chdir(d.getVar("STAGE_UNPACKDIR", True))
+def libtool_stage_fixup(d):
+    import glob
 
     stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
-    subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
-    sysroot = os.path.join(stage_dir, subdir)
+    pkg_type = d.get("STAGE_FIXUP_PKG_TYPE")
+    sysroot = os.path.join(stage_dir, pkg_type)
+    recipe_type = d.get("RECIPE_TYPE")
     
-    if subdir == "native":
+    if pkg_type == "native":
         libdir = d.getVar("stage_libdir", True)
         base_libdir = d.getVar("stage_base_libdir", True)
-    elif subdir == "target/sysroot":
+    elif (pkg_type == "machine" or
+          pkg_type == "sdk" and recipe_type in ("sdk", "sdk-cross")):
         libdir = d.getVar("target_libdir", True)
         base_libdir = d.getVar("target_base_libdir", True)
     else:
@@ -42,4 +42,4 @@ python libtool_stage_fixup () {
         lafile = re.sub(pattern, "installed=no", lafile)
         with open(filename, "w") as output_file:
             output_file.write(lafile)
-}
+        print "processed lafile", filename

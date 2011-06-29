@@ -21,9 +21,8 @@ class OEliteItem:
             assert isinstance(context, tuple) and len(context) == 2
             self.type = TYPEMAP[context[0]][context[1]][self.type]
         except KeyError:
-            print "Invalid item type %s in %s %s context"%(
-                self.type, ["DEPENDS","RDEPENDS"][context[0]], context[1])
-            assert False
+            raise Exception("Invalid item type %s in %s %s context"%(
+                self.type, ["DEPENDS","RDEPENDS"][context[0]], context[1]))
         return
 
     def __str__(self):
@@ -86,7 +85,7 @@ TYPEMAP = (
             "build"		: "native",
             "host"		: "native",
             "target"		: "machine",
-            "host-cross"	: "native",
+            "host-cross"	: "cross",
             "target-cross"	: "cross",
             },
 

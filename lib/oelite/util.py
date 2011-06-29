@@ -23,3 +23,18 @@ def format_textblock(text, indent=2, width=78):
             line += stack.pop(0)
         out.append(" "*indent + line)
     return "\n".join(out)
+
+
+class NullStream:
+    def write(self, text):
+        pass
+
+class TeeStream:
+    def __init__(self, files):
+        self.files = files
+        return
+    def write(self, text):
+        for file in self.files:
+            file.write(text)
+        return
+

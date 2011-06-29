@@ -6,9 +6,9 @@ EXTRA_AUTORECONF = ""
 acpaths = "__default__"
 
 pkgltdldir = "${STAGE_DIR}/cross${stage_datadir}/libtool"
-pkgltdldir_recipe-native    = "${STAGE_DIR}/native${stage_datadir}/libtool"
-pkgltdldir_recipe-cross     = "${STAGE_DIR}/native${stage_datadir}/libtool"
-pkgltdldir_recipe-sdk-cross = "${STAGE_DIR}/native${stage_datadir}/libtool"
+pkgltdldir:native    = "${STAGE_DIR}/native${stage_datadir}/libtool"
+pkgltdldir:cross     = "${STAGE_DIR}/native${stage_datadir}/libtool"
+pkgltdldir:sdk-cross = "${STAGE_DIR}/native${stage_datadir}/libtool"
 
 addtask autoreconf after do_patch before do_configure
 do_autoreconf[dirs] = "${S}"

@@ -1,7 +1,7 @@
 inherit image
 
 INHERIT_SDK_IMAGE = "tar-image"
-INHERIT_SDK_IMAGE_host-mingw32 = "zip-image"
+INHERIT_SDK_IMAGE:HOST_OS-mingw32 = "zip-image"
 inherit ${INHERIT_SDK_IMAGE}
 #python () {
 #    import bb
@@ -12,7 +12,7 @@ inherit ${INHERIT_SDK_IMAGE}
 #}
 
 IMAGE_PREPROCESS_NETFILTER = ""
-IMAGE_PREPROCESS_NETFILTER_host-mingw32 = "image_preprocess_linux_netfilter_headers"
+IMAGE_PREPROCESS_NETFILTER:HOST_OS-mingw32 = "image_preprocess_linux_netfilter_headers"
 IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_NETFILTER}"
 
 image_preprocess_linux_netfilter_headers () {

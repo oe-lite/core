@@ -3,7 +3,6 @@
 inherit arch
 inherit utils
 inherit stage
-inherit patch
 inherit package
 inherit mirrors
 
@@ -76,13 +75,6 @@ oedebug() {
 oedebug[expand] = "0"
 
 
-oe_runmake() {
-    if [ -z "$MAKE" ]; then MAKE=make; fi
-    oenote ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
-    ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@" || die "oe_runmake failed"
-}
-
-
 do_listtasks[nostamp] = "1"
 python do_listtasks() {
     import sys
@@ -143,49 +135,27 @@ python do_checkuri() {
 do_checkuriall[recadeptask] = "do_checkuri"
 do_checkuriall[nostamp] = True
 do_checkuriall[func] = True
-do_checkuriall = ""
 
 do_buildall[recadaptask] = "do_build"
 do_buildall[func] = True
-do_buildall = ""
-
 
 do_configure[dirs] = "${S} ${B}"
-base_do_configure() {
-    :
-}
 
 do_compile[dirs] = "${S} ${B}"
-base_do_compile() {
-    if [ -e Makefile -o -e makefile ]; then
-        oe_runmake || die "make failed"
-    else
-        oenote "nothing to compile"
-    fi
-}
-
-
-
 
 do_install[dirs] = "${D} ${S} ${B}"
-# Remove and re-create ${D} so that is it guaranteed to be empty
 do_install[cleandirs] = "${D}"
-
-base_do_install() {
-    :
-}
 
 FIXUP_FUNCS += "\
 install_strip \
-#install_refactor \
 "
 
-python do_fixup () {
-    for f in (bb.data.getVar('FIXUP_FUNCS', d, 1) or '').split():
-        if not d.getVarFlag(f, 'dirs'):
-            d.setVarFlag(f, 'dirs', '${D}')
-        bb.build.exec_func(f, d)
-}
+def do_fixup(d):
+    for funcname in (d.get("FIXUP_FUNCS") or "").split():
+        function = d.get_function(funcname)
+        if not function.run(os.getcwd()):
+            return False
+
 do_fixup[dirs] = "${D}"
 
 python install_strip () {
@@ -205,6 +175,7 @@ python install_strip () {
                    runstrip(file, d)
 }
 install_strip[dirs] = "${D}"
+install_strip[import] = "runstrip"
 
 
 def runstrip(file, d):
@@ -215,23 +186,25 @@ def runstrip(file, d):
     import commands, stat
 
     pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
+    print "pathprefix =",pathprefix
 
     ret, result = commands.getstatusoutput("%sfile '%s'" % (pathprefix, file))
 
     if ret:
+        raise Exception(42)
         bb.fatal("runstrip() 'file %s' failed" % file)
 
     if "not stripped" not in result:
-        bb.debug(1, "runstrip() skip %s" % file)
+        print "runstrip() skip %s"%(file)
         return
 
     target_elf = bb.data.getVar('TARGET_ELF', d, True)
     if not target_elf:
-        bb.debug(1, "TARGET_ELF not defined, you might want to fix this...")
+        print "TARGET_ELF not defined, you might want to fix this..."
         return
 
     if target_elf not in result:
-        bb.debug(1, "runstrip() target_elf(%s) not in %s" %(target_elf,result))
+        print "runstrip() target_elf(%s) not in %s"%(target_elf,result)
         return
 
     # If the file is in a .debug directory it was already stripped,
@@ -262,16 +235,16 @@ def runstrip(file, d):
     elif "shared" in result or "executable" in result:
         extraflags = "--remove-section=.comment --remove-section=.note"
 
-    bb.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
+    bb.utils.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
     debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
 
     stripcmd = "'%s' %s '%s'"                       % (strip, extraflags, file)
     objcpcmd = "'%s' --only-keep-debug '%s' '%s'"   % (objcopy, file, debugfile)
     objlncmd = "'%s' --add-gnu-debuglink='%s' '%s'" % (objcopy, debugfile, file)
 
-    bb.debug(1, "runstrip() %s" % objcpcmd)
-    bb.debug(1, "runstrip() %s" % stripcmd)
-    bb.debug(1, "runstrip() %s" % objlncmd)
+    print "runstrip() %s"%(objcpcmd)
+    print "runstrip() %s"%(stripcmd)
+    print "runstrip() %s"%(objlncmd)
 
     ret, result = commands.getstatusoutput("%s%s" % (pathprefix, objcpcmd))
     if ret:

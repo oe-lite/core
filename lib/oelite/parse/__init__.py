@@ -43,11 +43,11 @@ class ParseError(Exception):
             self.lexer = details.lexer
         except:
             self.lexer = parser.lexer
-        print "parser=%s"%(parser)
-        print dir(self.parser)
-        print dir(self.parser.lexer)
-        print "lineno arg", lineno
-        print "lineno", self.parser.lexer.lineno
+        #print "parser=%s"%(parser)
+        #print dir(self.parser)
+        #print dir(self.parser.lexer)
+        #print "lineno arg", lineno
+        #print "lineno", self.parser.lexer.lineno
         if not self.parser and "parser" in dir(self.lexer):
         #if not self.parser:
             self.parser = self.lexer.parser

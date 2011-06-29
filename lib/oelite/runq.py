@@ -207,8 +207,6 @@ class OEliteRunQueue:
 
         # helpers to add multipe package_depends / package_rdepends
         def add_package_depends(task_names, depends):
-            if len(depends) == 3 and (20, 137) in depends:
-                raise Exception(42)
             return _add_package_depends(task_names, depends, package_depends)
 
         def add_package_rdepends(task_names, rdepends):
@@ -461,6 +459,8 @@ class OEliteRunQueue:
         """
         Return package provider of item.
         """
+        assert isinstance(item, oelite.item.OEliteItem)
+        assert str(item) != "machine:cc"
         provider = self._get_provider(item)
         if provider:
             #print "item=%s provider=%s"%(item, provider)
@@ -526,7 +526,6 @@ class OEliteRunQueue:
             preferred_version = item.version
         providers = self.cookbook.get_providers(
             item.type, item.name, preferred_provider, preferred_version)
-        assert isinstance(item, oelite.item.OEliteItem)
         if len(providers) == 1:
             self._set_provider(item, providers[0])
             return providers[0]
@@ -812,12 +811,13 @@ class OEliteRunQueue:
 
 
     def get_package_filename(self, package):
-        assert isinstance(package, int)
+        #assert isinstance(package, int)
+        assert isinstance(package, oelite.package.OElitePackage)
         return flatten_single_value(self.dbc.execute(
                 "SELECT filename "
                 "FROM runq.depend "
                 "WHERE depend_package=? OR rdepend_package=? "
-                "LIMIT 1", (package, package)))
+                "LIMIT 1", (package.id, package.id)))
 
 
     def set_recdepends(self, package, recdepends):

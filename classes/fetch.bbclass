@@ -2,6 +2,7 @@
 
 addtask fetch after stage_fixup
 addtask unpack after fetch
+addtask patch after unpack
 
 #
 # FIXME: implement a hook for parsing SRC_URI and storing the result
@@ -55,6 +56,8 @@ def do_unpack(d):
         if not uri.unpack(unpack_cmd):
             return False
     return
+
+do_patch[dirs] = "${S} ${PATCHDIR}"
 
 def do_patch(d):
     uri = oelite.fetch.patch_init(d)

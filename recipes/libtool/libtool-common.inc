@@ -62,6 +62,8 @@ HOST_CFLAGS:sdk-cross		= "${TARGET_CFLAGS}"
 HOST_CXXFLAGS:sdk-cross		= "${TARGET_CXXFLAGS}"
 HOST_LDFLAGS:sdk-cross		= "${TARGET_LDFLAGS}"
 
+C_DEPENDS:cross = "target-cross:cc"
+
 # As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
 # host), we need to fixup the mingw32 override to avoid the invalid
 # --hash-style option.
