@@ -379,16 +379,15 @@ class OEliteBaker:
 
         # check for availability of prebaked packages, and set package
         # filename for all packages.
-        if self.options.prebake:
-            depend_packages = self.runq.get_depend_packages()
-            rdepend_packages = self.runq.get_rdepend_packages()
-            depend_packages = set(depend_packages).union(rdepend_packages)
-            for package in depend_packages:
-                # FIXME: skip this package if it is to be rebuild
-                prebake = self.find_prebaked_package(package)
-                if prebake:
-                    self.runq.set_package_filename(package, prebake,
-                                                   prebake=True)
+        depend_packages = self.runq.get_depend_packages()
+        rdepend_packages = self.runq.get_rdepend_packages()
+        depend_packages = set(depend_packages).union(rdepend_packages)
+        for package in depend_packages:
+            # FIXME: skip this package if it is to be rebuild
+            prebake = self.find_prebaked_package(package)
+            if prebake:
+                self.runq.set_package_filename(package, prebake,
+                                               prebake=True)
 
         # clear parent_task for all runq_depends where all runq_depend
         # rows with the same parent_task has prebake flag set
@@ -583,13 +582,16 @@ class OEliteBaker:
 
     def find_prebaked_package(self, package):
         """return full-path filename string or None"""
-        prebake_path = self.config.get("PREBAKE_PATH", True) or []
-        if prebake_path:
-            prebake_path = prebake_path.split(":")
         package_deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR", True)
         if not package_deploy_dir:
             die("PACKAGE_DEPLOY_DIR not defined")
-        prebake_path.insert(0, package_deploy_dir)
+        if self.options.prebake:
+            prebake_path = self.config.get("PREBAKE_PATH", True) or []
+            if prebake_path:
+                prebake_path = prebake_path.split(":")
+            prebake_path.insert(0, package_deploy_dir)
+        else:
+            prebake_path = [package_deploy_dir]
         debug("package=%s"%(repr(package)))
         recipe = self.cookbook.get_recipe(package=package)
         if not recipe:
