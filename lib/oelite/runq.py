@@ -471,23 +471,6 @@ class OEliteRunQueue:
         def choose_provider(providers):
             import bb.utils
 
-            # filter according to any preferred versions
-            preferred_versions = {}
-            filter_out = []
-            for i in range(len(providers)):
-                if not providers[i][1] in preferred_versions:
-                    preferred_version = self.config.getVar(
-                        "PREFERRED_VERSION_" + providers[i][1], 1) or None
-                    preferred_versions[providers[i][1]] = preferred_version
-                else:
-                    preferred_version = preferred_versions[providers[i][1]]
-                if preferred_version and preferred_version != providers[i][2]:
-                    filter_out.append(i)
-            for i in reversed(filter_out):
-                #print "dropping non preferred version: %s %s"%(
-                #    providers[i][1], providers[i][2])
-                del providers[i]
-
             # filter out all but the highest priority providers
             highest_priority = providers[0].priority
             for i in range(1, len(providers)):
@@ -887,14 +870,14 @@ class OEliteRunQueue:
                 "  build=1 AND status IS NULL "
                 "  AND ("
                 "    NOT EXISTS"
-                "    (SELECT * FROM runq_depend, runq_task AS parent_task"
-                "     WHERE runq_depend.task=runq_task.task"
-                "     AND runq_depend.parent_task IS NOT NULL"
+                "    (SELECT * FROM runq.depend, runq.task AS parent_task"
+                "     WHERE runq.depend.task=runq.task.task"
+                "     AND runq.depend.parent_task IS NOT NULL"
                 "     LIMIT 1)"
                 "    OR NOT EXISTS"
-                "    (SELECT * FROM runq_depend, runq_task AS parent_task"
-                "     WHERE runq_depend.task=runq_task.task"
-                "     AND runq_depend.parent_task=parent_task.task"
+                "    (SELECT * FROM runq.depend, runq.task AS parent_task"
+                "     WHERE runq.depend.task=runq.task.task"
+                "     AND runq.depend.parent_task=parent_task.task"
                 "     AND parent_task.build IS NOT NULL"
                 "     LIMIT 1))"))
 
