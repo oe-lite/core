@@ -280,6 +280,7 @@ cpumap = {
         'at91rm9200'		: '920t',
         'at91sam9260'		: '926ejs',
         'omap3520'		: 'cortexa8neon',
+        'omap3530'		: 'cortexa8neon',
         'omap4430'		: 'cortexa9neon',
         'omap4440'		: 'cortexa9neon',
         'imx21'			: '926ejs',
