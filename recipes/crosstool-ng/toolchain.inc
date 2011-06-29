@@ -2,10 +2,10 @@
 
 FILESPATHPKG = "${P}:${PN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
 
-RECIPE_FLAGS += "toolchain_cc toolchain_cc_version"
+#RECIPE_FLAGS += "toolchain_cc toolchain_cc_version"
 # Remember to configure defaults for these in the gcc_*.bb file
-CT_CC		= "${USE_toolchain_cc}"
-CT_CC_VERSION	= "${USE_toolchain_cc_version}"
+#CT_CC		= "${USE_toolchain_cc}"
+#CT_CC_VERSION	= "${USE_toolchain_cc_version}"
 
 RECIPE_FLAGS += "toolchain_libc toolchain_libc_version"
 RECIPE_FLAGS += "toolchain_mingwrt_version"
@@ -18,7 +18,7 @@ CT_LIBC_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_mingwrt_version}"
 # *sigh* why don't eglibc use releases?
 RECIPE_FLAGS += "toolchain_libc_eglibc_revision"
 # Remember to configure defaults for these in the gcc_*.bb file
-CT_EGLIBC_REVISION = "${USE_toolchain_libc_eglibc_revision}"
+CT_EGLIBC_REVISION:USE_toolchain_libc_eglibc_revision = "${USE_toolchain_libc_eglibc_revision}"
 
 CT_KERNEL		= "linux"
 CT_KERNEL:TARGET_OS_mingw32	= "mingw32"
@@ -76,9 +76,7 @@ CT_LIBELF_VERSION	= "${USE_toolchain_libelf_version}"
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
 TOOLCHAIN_VERSION		 = "${CT_CC}${CT_CC_VERSION}"
-TOOLCHAIN_VERSION		.= "-${CT_LIBC}${@d.getVar('CT_LIBC_VERSION',1).replace('_','.')}"
-
-PV .= "-${TOOLCHAIN_VERSION}"
+TOOLCHAIN_VERSION		.= "-${CT_LIBC}${@d.get('CT_LIBC_VERSION').replace('_','.')}"
 
 CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_OPTIMIZATION', 1).split()]}"
 
@@ -543,8 +541,8 @@ ${base_prefix}/build.log* \
 
 FILES_${PN}-dbg += "\
 ${base_prefix}/${TARGET_ARCH}/bin/.debug \
-${libexecdir}/gcc/${TARGET_ARCH}/${USE_toolchain_cc_version}/.debug \
-${libexecdir}/gcc/${TARGET_ARCH}/${USE_toolchain_cc_version}/*/.debug \
+${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/.debug \
+${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/*/.debug \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-libc"

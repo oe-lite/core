@@ -1,7 +1,7 @@
 RECIPE_TYPES = "cross sdk-cross canadian-cross"
 
-DEFAULT_USE_toolchain_cc			= "gcc"
-DEFAULT_USE_toolchain_cc_version		= "${GCC_VERSION}"
+CT_CC		= "gcc"
+CT_CC_VERSION	= "${GCC_VERSION}"
 
 DEFAULT_USE_toolchain_libc			= "glibc"
 DEFAULT_USE_toolchain_libc_version		= "2.12.2"
