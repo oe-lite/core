@@ -14,7 +14,7 @@ addtask patch after unpack
 FETCHER_DEPENDS = ""
 CLASS_DEPENDS += "${FETCHER_DEPENDS}"
 
-addhook fetch_init to post_recipe_parse first
+addhook fetch_init to post_recipe_parse first after set_useflags
 
 def fetch_init(d):
     import oelite.fetch
