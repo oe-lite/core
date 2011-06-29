@@ -2,17 +2,96 @@
 
 FILESPATHPKG = "${P}:${PN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
 
+RECIPE_FLAGS += "toolchain_cc toolchain_cc_version"
+# Remember to configure defaults for these in the gcc_*.bb file
+CT_CC		= "${USE_toolchain_cc}"
+CT_CC_VERSION	= "${USE_toolchain_cc_version}"
+
+RECIPE_FLAGS += "toolchain_libc toolchain_libc_version"
+RECIPE_FLAGS += "toolchain_mingwrt_version"
+# Remember to configure defaults for these in the gcc_*.bb file
+CT_LIBC			= "${USE_toolchain_libc}"
+CT_LIBC:TARGET_OS_mingw32		= "mingw"
+CT_LIBC_VERSION		= "${USE_toolchain_libc_version}"
+CT_LIBC_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_mingwrt_version}"
+
+# *sigh* why don't eglibc use releases?
+RECIPE_FLAGS += "toolchain_libc_eglibc_revision"
+# Remember to configure defaults for these in the gcc_*.bb file
+CT_EGLIBC_REVISION = "${USE_toolchain_libc_eglibc_revision}"
+
+CT_KERNEL		= "linux"
+CT_KERNEL:TARGET_OS_mingw32	= "mingw32"
+
+RECIPE_FLAGS += "toolchain_kernel_version_machine"
+RECIPE_FLAGS += "toolchain_kernel_version_sdk"
+RECIPE_FLAGS += "toolchain_kernel_version_build"
+RECIPE_FLAGS += "toolchain_w32api_version"
+# Remember to configure defaults for these in the gcc_*.bb file
+
+MACHINE_CT_KERNEL_VERSION = "${USE_toolchain_kernel_version_machine}"
+CT_KERNEL_VERSION			= "${MACHINE_CT_KERNEL_VERSION}"
+
+SDK_CT_KERNEL_VERSION         = "${USE_toolchain_kernel_version_sdk}"
+SDK_CT_KERNEL_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_w32api_version}"
+CT_KERNEL_VERSION:sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
+CT_KERNEL_VERSION:sdk		= "${SDK_CT_KERNEL_VERSION}"
+
+BUILD_CT_KERNEL_VERSION = "${USE_toolchain_kernel_version_build}"
+CT_KERNEL_VERSION:native		= "${BUILD_CT_KERNEL_VERSION}"
+
+RECIPE_FLAGS += "toolchain_min_kernel_machine"
+RECIPE_FLAGS += "toolchain_min_kernel_sdk"
+RECIPE_FLAGS += "toolchain_min_kernel_build"
+# Remember to configure defaults for these in the gcc_*.bb file
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION = "${USE_toolchain_min_kernel_machine}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk-cross = "${USE_toolchain_min_kernel_sdk}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk = "${USE_toolchain_min_kernel_sdk}"
+CT_LIBC_GLIBC_MIN_KERNEL_VERSION:native	= "${USE_toolchain_min_kernel_build}"
+
+RECIPE_FLAGS		+= "toolchain_binutils_version"
+CT_BINUTILS_VERSION	= "${USE_toolchain_binutils_version}"
+
+RECIPE_FLAGS		+= "toolchain_gdb_version"
+CT_GDB_VERSION		= "${USE_toolchain_gdb_version}"
+
+RECIPE_FLAGS		+= "toolchain_gmp_version"
+CT_GMP_VERSION		= "${USE_toolchain_gmp_version}"
+
+RECIPE_FLAGS		+= "toolchain_mpfr_version"
+CT_MPFR_VERSION		= "${USE_toolchain_mpfr_version}"
+
+RECIPE_FLAGS		+= "toolchain_ppl_version"
+CT_PPL_VERSION		= "${USE_toolchain_ppl_version}"
+
+RECIPE_FLAGS		+= "toolchain_cloog_version"
+CT_CLOOG_VERSION	= "${USE_toolchain_cloog_version}"
+
+RECIPE_FLAGS		+= "toolchain_mpc_version"
+CT_MPC_VERSION		= "${USE_toolchain_mpc_version}"
+
+RECIPE_FLAGS		+= "toolchain_libelf_version"
+CT_LIBELF_VERSION	= "${USE_toolchain_libelf_version}"
+
 # FIXME: come up with a more elegant solution. if not before, it then when
 # fx. uclibc or eglibc is used, or even more, if llvm compiler is added
-TOOLCHAIN_VERSION			= "gcc${CT_CC_VERSION}"
-TOOLCHAIN_VERSION:>TARGET_OS_linux-gnu	= "-glibc${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION:>TARGET_OS_linux-gnueabi	= "-glibc${CT_LIBC_VERSION}"
-TOOLCHAIN_VERSION:>TARGET_OS_mingw32	= "-mingwrt${CT_MINGWRT_VERSION}"
+TOOLCHAIN_VERSION		 = "${CT_CC}${CT_CC_VERSION}"
+TOOLCHAIN_VERSION		.= "-${CT_LIBC}${@d.getVar('CT_LIBC_VERSION',1).replace('_','.')}"
+
+PV .= "-${TOOLCHAIN_VERSION}"
+
+CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_OPTIMIZATION', 1).split()]}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS := "native:crosstool-ng_${PV}"
 
 PV .= "-${TOOLCHAIN_VERSION}"
+
+RECIPE_FLAGS += "extra_toolchain_patch"
+EXTRA_TOOLCHAIN_DEPENDS = ""
+EXTRA_TOOLCHAIN_DEPENDS:USE_extra_toolchain_patch = "${USE_extra_toolchain_patch}"
+DEPENDS:>machine = "${EXTRA_TOOLCHAIN_DEPENDS}"
+DEPENDS:>canadian-cross = "${EXTRA_TOOLCHAIN_DEPENDS}"
 
 S = "${WORKDIR}/build"
 B = "${S}"
@@ -28,14 +107,17 @@ DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
 # FIXME: this looks REALLY wrong!
 DEPENDS:>canadian-cross += "target:libdl target:libpthread target:libm"
 
+# Trick install_strip to use installed strip and objcopy
+TARGET_STRIP	= "${D}/bin/${TARGET_PREFIX}strip"
+TARGET_OBJCOPY	= "${D}/bin/${TARGET_PREFIX}objcopy"
+OBJCOPY:TARGET_OS_mingw32 = ""
+
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK		= ""
-STRIP		= "${D}/bin/${TARGET_PREFIX}strip"
 CC		= ""
 CPP		= ""
 CXX		= ""
 F77		= ""
-OBJCOPY		= "${D}/bin/${TARGET_PREFIX}objcopy"
 CXX		= ""
 AR		= ""
 NM		= ""
@@ -80,38 +162,32 @@ CXX_DEPENDS:sdk-cross	= ""
 export CT_PARALLEL_JOBS	?= "1"
 CT_LOAD			= "0"
 
-_CT_KERNEL_VERSION	= "CT_KERNEL_V_"
-_CT_BINUTILS_VERSION	= "CT_BINUTILS_V_"
-_CT_CC_VERSION		= "CT_CC_V_"
-_CT_LIBC_VERSION	= "CT_LIBC_V_"
-_CT_LIBC_GLIBC_VERSION	= "CT_LIBC_GLIBC_V_"
-_CT_GDB_VERSION		= "CT_GDB_V_"
-_CT_GMP_VERSION		= "CT_GMP_V_"
-_CT_MPFR_VERSION	= "CT_MPFR_V_"
-_CT_PPL_VERSION		= "CT_PPL_V_"
-_CT_CLOOG_VERSION	= "CT_CLOOG_V_"
-_CT_MPC_VERSION		= "CT_MPC_V_"
-_CT_LIBELF_VERSION	= "CT_LIBELF_V_"
-_CT_W32API_VERSION	= "CT_W32API_V_"
-_CT_MINGWRT_VERSION	= "CT_MINGWRT_V_"
+_CT_KERNEL_V		= "CT_KERNEL_V"
+_CT_KERNEL_V:TARGET_OS_mingw32	= "CT_W32API_V"
+_CT_BINUTILS_V		= "CT_BINUTILS_V"
+_CT_CC_V		= "CT_CC_V"
+_CT_LIBC_V		= "CT_LIBC_${@d.getVar('CT_LIBC',1).upper()}_V"
+_CT_LIBC_V:TARGET_OS_mingw32	= "CT_MINGWRT_V"
+_CT_GDB_V		= "CT_GDB_V"
+_CT_GMP_V		= "CT_GMP_V"
+_CT_MPFR_V		= "CT_MPFR_V"
+_CT_PPL_V		= "CT_PPL_V"
+_CT_CLOOG_V		= "CT_CLOOG_V"
+_CT_MPC_V		= "CT_MPC_V"
+_CT_LIBELF_V		= "CT_LIBELF_V"
 
-CT_ARCH_ARCH		= "${TARGET_MARCH}"
-CT_ARCH_CPU		= "${TARGET_MCPU}"
-CT_ARCH_TUNE		= "${TARGET_MTUNE}"
+_CT_LIBC_VERSION	= "CT_LIBC_VERSION"
+_CT_LIBC_VERSION:TARGET_OS_mingw32= "CT_MINGWRT_VERSION"
+
+CT_ARCH_ARCH			= "${TARGET_MARCH}"
+CT_ARCH_CPU			= "${TARGET_MCPU}"
+CT_ARCH_TUNE			= "${TARGET_MTUNE}"
 
 # FIXME: add crosstool-ng and OE-lite support for x86 -mfpmath option
 
-CT_KERNEL_VERSION		= "${MACHINE_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION:native	= "${BUILD_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION:sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
-CT_KERNEL_VERSION:sdk		= "${SDK_CT_KERNEL_VERSION}"
-
-#FIXME: revisit _VERSION below in CT-NG 1.10!
-#(CT_LIBC_GLIBC_MIN_KERNEL=eglibc, CT_LIBC_GLIBC_MIN_KERNEL_VERSION=glibc).
-CT_LIBC_GLIBC_MIN_KERNEL_VERSION = "${MACHINE_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_VERSION:native = "${BUILD_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk-cross = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
-CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk = "${SDK_CT_LIBC_GLIBC_MIN_KERNEL}"
+CT_LIBC_GLIBC_FORCE_UNWIND			= "n"
+CT_LIBC_GLIBC_FORCE_UNWIND:TARGET_OS_linux-gnu		= "y"
+CT_LIBC_GLIBC_FORCE_UNWIND:TARGET_OS_linux-gnueabi	= "y"
 
 DEPENDS += "${TOOLCHAIN_DEPENDS}"
 TOOLCHAIN_DEPENDS = ""
@@ -139,25 +215,21 @@ do_mangle[dirs] = "${SRCDIR}"
 do_mangle () {
 
 	if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
-		ct_kernel_version=${_CT_KERNEL_VERSION}`echo ${CT_KERNEL_VERSION}|tr . _`=y
+		ct_kernel_version=${_CT_KERNEL_V}_`echo ${CT_KERNEL_VERSION}|tr . _`=y
 	else
-		ct_kernel_version="# ${_CT_KERNEL_VERSION} is not set"
+		ct_kernel_version="# ${_CT_KERNEL_V}_ is not set"
 	fi
-	ct_binutils_version=${_CT_BINUTILS_VERSION}`echo ${CT_BINUTILS_VERSION}|tr . _`=y
-	ct_cc_version=${_CT_CC_VERSION}`echo ${CT_CC_VERSION}|tr . _`=y
-	ct_libc_version=${_CT_LIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`=y
-	ct_libc_glibc_version=${_CT_LIBC_GLIBC_VERSION}`echo ${CT_LIBC_VERSION}|tr . _`=y
-	ct_gdb_version=${_CT_GDB_VERSION}`echo ${CT_GDB_VERSION}|tr . _`=y
-	ct_gmp_version=${_CT_GMP_VERSION}`echo ${CT_GMP_VERSION}|tr . _`=y
-	ct_mpfr_version=${_CT_MPFR_VERSION}`echo ${CT_MPFR_VERSION}|tr . _`=y
-	ct_ppl_version=${_CT_PPL_VERSION}`echo ${CT_PPL_VERSION}|tr . _`=y
-	ct_cloog_version=${_CT_CLOOG_VERSION}`echo ${CT_CLOOG_VERSION}|tr . _`=y
-	ct_mpc_version=${_CT_MPC_VERSION}`echo ${CT_MPC_VERSION}|tr . _`=y
-	ct_libelf_version=${_CT_LIBELF_VERSION}`echo ${CT_LIBELF_VERSION}|tr . _`=y
-	ct_w32api_version=${_CT_W32API_VERSION}`echo ${CT_W32API_VERSION}|tr . _`=y
-	ct_mingwrt_version=${_CT_MINGWRT_VERSION}`echo ${CT_MINGWRT_VERSION}|tr . _`=y
-	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version ct_libelf_version ct_w32api_version ct_mingwrt_version
-
+	ct_binutils_version=${_CT_BINUTILS_V}_`echo ${CT_BINUTILS_VERSION}|tr . _`=y
+	ct_cc_version=${_CT_CC_V}_`echo ${CT_CC_VERSION}|tr . _`=y
+	ct_libc_version=${_CT_LIBC_V}_`echo ${CT_LIBC_VERSION}|tr . _`=y
+	ct_gdb_version=${_CT_GDB_V}_`echo ${CT_GDB_VERSION}|tr . _`=y
+	ct_gmp_version=${_CT_GMP_V}_`echo ${CT_GMP_VERSION}|tr . _`=y
+	ct_mpfr_version=${_CT_MPFR_V}_`echo ${CT_MPFR_VERSION}|tr . _`=y
+	ct_ppl_version=${_CT_PPL_V}_`echo ${CT_PPL_VERSION}|tr . _`=y
+	ct_cloog_version=${_CT_CLOOG_V}_`echo ${CT_CLOOG_VERSION}|tr . _`=y
+	ct_mpc_version=${_CT_MPC_V}_`echo ${CT_MPC_VERSION}|tr . _`=y
+	ct_libelf_version=${_CT_LIBELF_V}_`echo ${CT_LIBELF_VERSION}|tr . _`=y
+	export ct_kernel_version ct_binutils_version ct_cc_version ct_libc_version ct_gdb_version ct_gmp_version ct_mpfr_version ct_ppl_version ct_cloog_version ct_mpc_version ct_libelf_version
 
 	cat defconfig.misc ${DEFCONFIG_CPU} defconfig.toolchain ${DEFCONFIG_OS} | \
 	sed -e 's%\(CT_LOCAL_TARBALLS_DIR\)=.*%\1="${INGREDIENTS}"%' \
@@ -175,29 +247,30 @@ do_mangle () {
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_HW\).*%\1=${@["n","y"]["${TARGET_FPU}"!="0"]}%' \
 	    -e 's%.*\(CT_ARCH_FLOAT_SW\).*%\1=${@["y","n"]["${TARGET_FPU}"!="0"]}%' \
-    	    -e "s%# __${_CT_KERNEL_VERSION}%$ct_kernel_version%" \
-    	    -e "s%# __${_CT_BINUTILS_VERSION}%$ct_binutils_version%" \
-    	    -e "s%# __${_CT_CC_VERSION}%$ct_cc_version%" \
-    	    -e "s%# __${_CT_LIBC_VERSION}%$ct_libc_version\n$ct_libc_glibc_version%" \
-            -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL\)=.*%\1_VERSION=\"${CT_LIBC_GLIBC_MIN_KERNEL_VERSION}\"%" \
-    	    -e "s%# __${_CT_GDB_VERSION}%$ct_gdb_version%" \
-    	    -e "s%# __${_CT_GMP_VERSION}%$ct_gmp_version%" \
-    	    -e "s%# __${_CT_MPFR_VERSION}%$ct_mpfr_version%" \
-    	    -e "s%# __${_CT_PPL_VERSION}%$ct_ppl_version%" \
-    	    -e "s%# __${_CT_CLOOG_VERSION}%$ct_cloog_version%" \
-    	    -e "s%# __${_CT_MPC_VERSION}%$ct_mpc_version%" \
-    	    -e "s%# __${_CT_LIBELF_VERSION}%$ct_libelf_version%" \
-    	    -e "s%# __${_CT_W32API_VERSION}%$ct_w32api_version%" \
-    	    -e "s%# __${_CT_MINGWRT_VERSION}%$ct_mingwrt_version%" \
+    	    -e "s%# \(CT_LIBC_${CT_LIBC}\).*%\1=y%" \
+    	    -e "s%.*\(CT_EGLIBC_OPT_SIZE\).*%\1=${CT_EGLIBC_OPT_SIZE}%" \
+    	    -e "s%# __${_CT_KERNEL_V}_%$ct_kernel_version%" \
+    	    -e "s%# __${_CT_BINUTILS_V}_%$ct_binutils_version%" \
+    	    -e "s%# __${_CT_CC_V}_%$ct_cc_version%" \
+    	    -e "s%# __CT_LIBC_V_%$ct_libc_version%" \
+            -e "s%.*\(CT_LIBC_GLIBC_FORCE_UNWIND\).*%\1=${CT_LIBC_GLIBC_FORCE_UNWIND}%" \
+    	    -e "s%# __${_CT_GDB_V}_%$ct_gdb_version%" \
+    	    -e "s%# __${_CT_GMP_V}_%$ct_gmp_version%" \
+    	    -e "s%# __${_CT_MPFR_V}_%$ct_mpfr_version%" \
+    	    -e "s%# __${_CT_PPL_V}_%$ct_ppl_version%" \
+    	    -e "s%# __${_CT_CLOOG_V}_%$ct_cloog_version%" \
+    	    -e "s%# __${_CT_MPC_V}_%$ct_mpc_version%" \
+    	    -e "s%# __${_CT_LIBELF_V}_%$ct_libelf_version%" \
     	> defconfig
 
-    if [ CT_KERNEL_VERSION != CT_LIBC_GLIBC_MIN_KERNEL_VERSION ]; then
-        mv defconfig defconfig.tmp
-        cat defconfig.tmp |
-           sed -e 's%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=y%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=n%' \
-               -e 's%\# CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set%CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN=y%' \
-           > defconfig
-    fi
+	if [ CT_KERNEL_VERSION != CT_LIBC_GLIBC_MIN_KERNEL_VERSION ]; then
+		mv defconfig defconfig.tmp
+		cat defconfig.tmp |
+		   sed -e 's%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=y%CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS=n%' \
+		       -e 's%\# CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set%CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN=y%' \
+		       -e "s%\(CT_LIBC_GLIBC_MIN_KERNEL_VERSION\)=.*%\1=\"${CT_LIBC_GLIBC_MIN_KERNEL_VERSION}\"%" \
+		   > defconfig
+	fi
 
 	mv defconfig defconfig.tmp
 	if [ "${CT_KERNEL_VERSION}" == "custom" ] ; then
@@ -217,6 +290,7 @@ do_mangle () {
 
 addtask fetch_tarballs after do_mangle before do_configure
 do_fetch_tarballs[dirs] = "${B}"
+do_fetch_tarballs[cleandirs] = "${B}"
 do_fetch_tarballs () {
 	sed -e 's%\(CT_SAVE_TARBALLS_DIR\)=.*%\1=n%' \
 	    -e 's%\(CT_SAVE_TARBALLS\)=.*%\1=n%' \
@@ -293,27 +367,43 @@ do_configure_qa[dirs] = "${B}"
 do_configure_qa () {
 	fail=0
 
-	if grep "CT_KERNEL_linux=y" .config >/dev/null; then
-
-		if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
-			kernel_version=`grep CT_KERNEL_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-			if [ "$kernel_version" != "${CT_KERNEL_VERSION}" ]; then
-				oewarn "CT_KERNEL_VERSION = $kernel_version (should be ${CT_KERNEL_VERSION})"
-				fail=1
-			else
-				oenote "CT_KERNEL_VERSION = $kernel_version"
-			fi
-		fi
-
-		libc_version=`grep CT_LIBC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-		if [ "$libc_version" != "${CT_LIBC_VERSION}" ]; then
-			oewarn "CT_LIBC_VERSION = $libc_version (should be ${CT_LIBC_VERSION})"
+	if [ "${CT_KERNEL_VERSION}" != "custom" ]; then
+		kernel_version=`grep ${_CT_KERNEL_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		if [ "$kernel_version" != "${CT_KERNEL_VERSION}" ]; then
+			oewarn "CT_KERNEL_VERSION = $kernel_version (should be ${CT_KERNEL_VERSION})"
 			fail=1
 		else
-			oenote "CT_LIBC_VERSION = $libc_version"
+			oenote "CT_KERNEL_VERSION = $kernel_version"
 		fi
+	fi
 
-		gdb_version=`grep CT_GDB_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	binutils_version=`grep ${_CT_BINUTILS_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	if [ "$binutils_version" != "${CT_BINUTILS_VERSION}" ]; then
+		oewarn "CT_BINUTILS_VERSION = $binutils_version (should be ${CT_BINUTILS_VERSION})"
+		fail=1
+	else
+		oenote "CT_BINUTILS_VERSION = $binutils_version"
+	fi
+
+	cc_version=`grep ${_CT_CC_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+	if [ "$cc_version" != "${CT_CC_VERSION}" ]; then
+		oewarn "CT_CC_VERSION = $cc_version (should be ${CT_CC_VERSION})"
+		fail=1
+	else
+		oenote "CT_CC_VERSION = $cc_version"
+	fi
+
+	libc_version=`grep ${_CT_LIBC_VERSION} .config|awk -F= '{ print $2 }'|tr -d '"'`
+	if [ "$libc_version" != "${CT_LIBC_VERSION}" ]; then
+		oewarn "${_CT_LIBC_VERSION} = $libc_version (should be ${CT_LIBC_VERSION})"
+		fail=1
+	else
+		oenote "${_CT_LIBC_VERSION} = $libc_version"
+	fi
+
+	if grep "CT_KERNEL_linux=y" .config >/dev/null; then
+
+		gdb_version=`grep ${_CT_GDB_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$gdb_version" != "${CT_GDB_VERSION}" ]; then
 			oewarn "CT_GDB_VERSION = $gdb_version (should be ${CT_GDB_VERSION})"
 			fail=1
@@ -323,24 +413,8 @@ do_configure_qa () {
 
 	fi
 
-	binutils_version=`grep CT_BINUTILS_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-	if [ "$binutils_version" != "${CT_BINUTILS_VERSION}" ]; then
-		oewarn "CT_BINUTILS_VERSION = $binutils_version (should be ${CT_BINUTILS_VERSION})"
-		fail=1
-	else
-		oenote "CT_BINUTILS_VERSION = $binutils_version"
-	fi
-
-	cc_version=`grep CT_CC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-	if [ "$cc_version" != "${CT_CC_VERSION}" ]; then
-		oewarn "CT_CC_VERSION = $cc_version (should be ${CT_CC_VERSION})"
-		fail=1
-	else
-		oenote "CT_CC_VERSION = $cc_version"
-	fi
-
 	if grep "CT_GMP_NEEDED=y" .config >/dev/null; then
-		gmp_version=`grep CT_GMP_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		gmp_version=`grep ${_CT_GMP_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$gmp_version" != "${CT_GMP_VERSION}" ]; then
 			oewarn "CT_GMP_VERSION = $gmp_version (should be ${CT_GMP_VERSION})"
 			fail=1
@@ -350,7 +424,7 @@ do_configure_qa () {
 	fi
 
 	if grep "CT_MPFR_NEEDED=y" .config >/dev/null; then
-		mpfr_version=`grep CT_MPFR_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		mpfr_version=`grep ${_CT_MPFR_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$mpfr_version" != "${CT_MPFR_VERSION}" ]; then
 			oewarn "CT_MPFR_VERSION = $mpfr_version (should be ${CT_MPFR_VERSION})"
 			fail=1
@@ -360,7 +434,7 @@ do_configure_qa () {
 	fi
 
 	if grep "CT_PPL_NEEDED=y" .config >/dev/null; then
-		ppl_version=`grep CT_PPL_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		ppl_version=`grep ${_CT_PPL_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$ppl_version" != "${CT_PPL_VERSION}" ]; then
 			oewarn "CT_PPL_VERSION = $ppl_version (should be ${CT_PPL_VERSION})"
 			fail=1
@@ -370,7 +444,7 @@ do_configure_qa () {
 	fi
 
 	if grep "CT_CLOOG_NEEDED=y" .config >/dev/null; then
-		cloog_version=`grep CT_CLOOG_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		cloog_version=`grep ${_CT_CLOOG_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$cloog_version" != "${CT_CLOOG_VERSION}" ]; then
 			oewarn "CT_CLOOG_VERSION = $cloog_version (should be ${CT_CLOOG_VERSION})"
 			fail=1
@@ -380,7 +454,7 @@ do_configure_qa () {
 	fi
 
 	if grep "CT_MPC_NEEDED=y" .config >/dev/null; then
-		mpc_version=`grep CT_MPC_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		mpc_version=`grep ${_CT_MPC_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$mpc_version" != "${CT_MPC_VERSION}" ]; then
 			oewarn "CT_MPC_VERSION = $mpc_version (should be ${CT_MPC_VERSION})"
 			fail=1
@@ -390,29 +464,12 @@ do_configure_qa () {
 	fi
 
 	if grep "CT_LIBELF_NEEDED=y" .config >/dev/null; then
-		libelf_version=`grep CT_LIBELF_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
+		libelf_version=`grep ${_CT_LIBELF_V}ERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
 		if [ "$libelf_version" != "${CT_LIBELF_VERSION}" ]; then
 			oewarn "CT_LIBELF_VERSION = $libelf_version (should be ${CT_LIBELF_VERSION})"
 			fail=1
 		else
 			oenote "CT_LIBELF_VERSION = $libelf_version"
-		fi
-	fi
-
-	if grep "CT_KERNEL_mingw32=y" .config >/dev/null; then
-		w32api_version=`grep CT_W32API_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-		if [ "$w32api_version" != "${CT_W32API_VERSION}" ]; then
-			oewarn "CT_W32API_VERSION = $w32api_version (should be ${CT_W32API_VERSION})"
-			fail=1
-		else
-			oenote "CT_W32API_VERSION = $w32api_version"
-		fi
-		mingwrt_version=`grep CT_MINGWRT_VERSION .config|awk -F= '{ print $2 }'|tr -d '"'`
-		if [ "$mingwrt_version" != "${CT_MINGWRT_VERSION}" ]; then
-			oewarn "CT_MINGWRT_VERSION = $mingwrt_version (should be ${CT_MINGWRT_VERSION})"
-			fail=1
-		else
-			oenote "CT_MINGWRT_VERSION = $mingwrt_version"
 		fi
 	fi
 
@@ -432,9 +489,9 @@ do_install[dirs] = "${D}"
 
 # everything is already installed in do_compile, but let's rearrange it a bit
 do_install () {
-    mv ${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
-       ${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
-       ${TARGET_ARCH}/sys-root${target_libdir}/ || true
+    mv ${TARGET_ARCH}/sysroot${target_base_libdir}/*.la \
+       ${TARGET_ARCH}/sysroot${target_base_libdir}/*.a \
+       ${TARGET_ARCH}/sysroot${target_libdir}/ || true
 }
 
 # We always build all packages, so care must be taken to choose the
@@ -486,19 +543,19 @@ ${base_prefix}/build.log* \
 
 FILES_${PN}-dbg += "\
 ${base_prefix}/${TARGET_ARCH}/bin/.debug \
-${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/.debug \
-${libexecdir}/gcc/${TARGET_ARCH}/${GCC_VERSION}/*/.debug \
+${libexecdir}/gcc/${TARGET_ARCH}/${USE_toolchain_cc_version}/.debug \
+${libexecdir}/gcc/${TARGET_ARCH}/${USE_toolchain_cc_version}/*/.debug \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-libc"
 FILES_${PN}-sysroot-libc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libc-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ld-*.so.* \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}64 \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libc.so.* \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libc-*.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ld.so.* \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ld-*.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ld-*.so.* \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}64 \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}64 \
 "
 DEPENDS_${PN}-sysroot-libc = "${PN}-sysroot-libc-dev_${PV}"
 PROVIDES_${PN}-sysroot-libc = "libc"
@@ -506,9 +563,9 @@ PROVIDES_${PN}-sysroot-libc = "libc"
 TARGET_PACKAGES += "${PN}-sysroot-libc-dev"
 # FIXME: the lib64 symlink should be in separate package!
 FILES_${PN}-sysroot-libc-dev = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libc_nonshared.a \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libc.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libc.a \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libc_nonshared.a \
 "
 RDEPENDS_${PN}-sysroot-libc-dev = "${PN}-sysroot-libc_${PV}"
 PROVIDES_${PN}-sysroot-libc-dev = "libc-dev"
@@ -528,15 +585,15 @@ RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 
 TARGET_PACKAGES += "${PN}-sysroot-dbg"
 FILES_${PN}-sysroot-dbg = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libexecdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libexecdir}/.debug \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_sbindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libexecdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libexecdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv/.debug \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-c++-dev"
@@ -547,63 +604,63 @@ RDEPENDS_${PN}-sysroot-c++-dev = "${PN}-sysroot-dev"
 TARGET_PACKAGES += "${PN}-sysroot-dev"
 FILES_${PN}-sysroot-dev = "\
 ${base_prefix}/${TARGET_ARCH}/include \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_includedir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.o \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.py \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/ldscripts \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.o \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.a \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.la \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/gconv \
-${base_prefix}/${TARGET_ARCH}/sys-root/mingw \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_includedir} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.o \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.py \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ldscripts \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.o \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.a \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv \
+${base_prefix}/${TARGET_ARCH}/sysroot/mingw \
 "
 DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
 RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
 
 FILES_${PN}-sysroot-dev:>TARGET_OS_mingw32 = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_bindir}/*.dll \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_bindir}/*.dll \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-doc"
 FILES_${PN}-sysroot-doc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_infodir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_mandir} \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_docdir} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_infodir} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_mandir} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_docdir} \
 "
 
 # Hackeydihack.... should instead get all sysroot doc in target_docdir
 FILES_${PN}-sysroot-doc:>TARGET_OS_mingw32 = "\
-${base_prefix}/${TARGET_ARCH}/sys-root/doc/runtime \
+${base_prefix}/${TARGET_ARCH}/sysroot/doc/runtime \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-locale"
 FILES_${PN}-sysroot-locale = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/locale \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/i18n \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/locale \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/i18n \
 "
 
 EXTRA_FILES_${PN}-sysroot-libgcc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so.* \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so.* \
 "
 
 EXTRA_FILES_${PN}-sysroot-libgcc-dev = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}/libgcc_s.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
 "
 
 EXTRA_FILES_${PN}-sysroot-libm-dev = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libieee.a \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libieee.a \
 "
 
 EXTRA_FILES_${PN}-sysroot-libbfd = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd-*.so \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}/libbfd.so"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd-*.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd.so"
 
 TARGET_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/nscd"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/nscd"
 PROVIDES_${PN}-sysroot-nscd = "target:util/rpcgen target:util/nscd"
 PROVIDES_${PN}-sysroot-nscd:machine = ""
 PROVIDES_${PN}-sysroot-nscd:sdk = ""
@@ -611,9 +668,9 @@ PROVIDES_${PN}-sysroot-nscd:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-rpc"
 FILES_${PN}-sysroot-rpc = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/rpcgen \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/rpcinfo \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sysconfdir}/rpc"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/rpcgen \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/rpcinfo \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sysconfdir}/rpc"
 PROVIDES_${PN}-sysroot-rpc = "target:util/rpcgen target:util/rpcinfo"
 PROVIDES_${PN}-sysroot-rpc:machine = ""
 PROVIDES_${PN}-sysroot-rpc:sdk = ""
@@ -621,7 +678,7 @@ PROVIDES_${PN}-sysroot-rpc:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-ldconfig"
 FILES_${PN}-sysroot-ldconfig = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_sbindir}/ldconfig"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_sbindir}/ldconfig"
 PROVIDES_${PN}-sysroot-ldconfig = "target:util/ldconfig"
 PROVIDES_${PN}-sysroot-ldconfig:machine = ""
 PROVIDES_${PN}-sysroot-ldconfig:sdk = ""
@@ -629,7 +686,7 @@ PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/ldd"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/ldd"
 PROVIDES_${PN}-sysroot-ldd = "target:util/ldd"
 PROVIDES_${PN}-sysroot-ldd:machine = ""
 PROVIDES_${PN}-sysroot-ldd:sdk = ""
@@ -637,7 +694,7 @@ PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/catchsegv"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/catchsegv"
 PROVIDES_${PN}-sysroot-catchsegv = "target:util/catchsegv"
 PROVIDES_${PN}-sysroot-catchsegv:machine = ""
 PROVIDES_${PN}-sysroot-catchsegv:sdk = ""
@@ -645,7 +702,7 @@ PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/sprof"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/sprof"
 PROVIDES_${PN}-sysroot-sprof = "target:util/sprof"
 PROVIDES_${PN}-sysroot-sprof:machine = ""
 PROVIDES_${PN}-sysroot-sprof:sdk = ""
@@ -653,10 +710,10 @@ PROVIDES_${PN}-sysroot-sprof:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-timezone-utils"
 FILES_${PN}-sysroot-timezone-utils = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/tzselect \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zdump \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/zic \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_datadir}/zoneinfo \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/tzselect \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zdump \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zic \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/zoneinfo \
 "
 PROVIDES_${PN}-sysroot-timezone-utils = "\
     target:util/tzselect target:util/zdump target:util/zic target:util/zoneinfo"
@@ -666,8 +723,8 @@ PROVIDES_${PN}-sysroot-timezone-utils:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_bindir}/iconv \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_sbindir}/iconvconfig"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/iconv \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/iconvconfig"
 PROVIDES_${PN}-sysroot-iconv-utils = "target:util/iconv target:util/iconvconfig"
 PROVIDES_${PN}-sysroot-iconv-utils:machine = ""
 PROVIDES_${PN}-sysroot-iconv-utils:sdk = ""
@@ -676,7 +733,7 @@ PROVIDES_${PN}-sysroot-iconv-utils:canadian-cross = ""
 # throw everything else in this garbage package, which is to be considered a WIP package aimed at being empty
 TARGET_PACKAGES += "${PN}-sysroot-garbage"
 FILES_${PN}-sysroot-garbage = "\
-${base_prefix}/${TARGET_ARCH}/sys-root \
+${base_prefix}/${TARGET_ARCH}/sysroot \
 "
 
 # Remaining / ignored files
@@ -706,9 +763,9 @@ split_sysroot_mangle () {
 				mv debug-root/* ../
 				rmdir debug-root
 			fi
-			if [ -d sys-root ] ; then
-				mv sys-root/* ../
-				rmdir sys-root
+			if [ -d sysroot ] ; then
+				mv sysroot/* ../
+				rmdir sysroot
 			fi
 			if [ -L include ] ; then
 				rm -f include
@@ -729,7 +786,7 @@ split_sysroot_mangle () {
 			)
 		fi
 	done
-	ln -s ./sys-root/usr/include ${PN}/${TARGET_ARCH}/include
+	ln -s ./sysroot/usr/include ${PN}/${TARGET_ARCH}/include
 }
 
 split_sysroot_mangle_mingw32 () {
@@ -747,25 +804,25 @@ split_sysroot_mangle_mingw32 () {
 # Add symlinks to get sys-root back on stage for internal cross packages
 split_sysroot_mangle_stage () {
 	cd ${PKGD}
-	ln -s ../../${TARGET_TYPE} ${PN}/${TARGET_ARCH}/sys-root
+	ln -s ../../${TARGET_TYPE} ${PN}/${TARGET_ARCH}/sysroot
 }
 
-# Add empty sys-root dir in sdk packages
+# Add empty sysroot dir in sdk packages
 split_sysroot_mangle_sdk () {
 	cd ${PKGD}
-	mkdir -p ${PN}/${TARGET_ARCH}/sys-root
+	mkdir -p ${PN}/${TARGET_ARCH}/sysroot
 }
 
 inherit libtool
 LIBTOOL_DEPENDS = ""
 LIBTOOL_FIXUP_SEARCH_DIRS += "\
-${D}/${TARGET_ARCH}/sys-root${target_libdir} \
-${D}/${TARGET_ARCH}/sys-root${target_base_libdir}"
+${D}/${TARGET_ARCH}/sysroot${target_libdir} \
+${D}/${TARGET_ARCH}/sysroot${target_base_libdir}"
 LIBTOOL_FIXUP_STRIP_DIRS += "${D}/${TARGET_ARCH}/lib"
 
 FIXUP_FUNCS =+ "toolchain_lafile_fixup"
 toolchain_lafile_fixup () {
-    for lafile in ${D}/${TARGET_ARCH}/sys-root${target_libdir}/*.la ; do
+    for lafile in ${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la ; do
         sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
             -i $lafile
     done

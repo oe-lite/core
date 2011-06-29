@@ -78,6 +78,11 @@ target_libexecdir	= "${stage_libexecdir}"
 target_libdir		= "${stage_libdir}"
 target_includedir	= "${stage_includedir}"
 
+NATIVE_PKG_CONFIG_PATH = "${STAGE_DIR}/native/share/pkgconfig"
+NATIVE_PKG_CONFIG_DIR = "${STAGE_DIR}/native/lib/pkgconfig"
+PKG_CONFIG_PATH		= "${NATIVE_PKG_CONFIG_PATH}"
+PKG_CONFIG_LIBDIR	= "${NATIVE_PKG_CONFIG_DIR}"
+
 base_do_install() {
     oe_runmake install
 }

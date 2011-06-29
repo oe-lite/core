@@ -582,11 +582,11 @@ class OEliteBaker:
 
     def find_prebaked_package(self, package):
         """return full-path filename string or None"""
-        package_deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR", True)
+        package_deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR")
         if not package_deploy_dir:
             die("PACKAGE_DEPLOY_DIR not defined")
         if self.options.prebake:
-            prebake_path = self.config.get("PREBAKE_PATH", True) or []
+            prebake_path = self.config.get("PREBAKE_PATH") or []
             if prebake_path:
                 prebake_path = prebake_path.split(":")
             prebake_path.insert(0, package_deploy_dir)

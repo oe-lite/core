@@ -18,7 +18,7 @@ IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_NETFILTER}"
 image_preprocess_linux_netfilter_headers () {
 	oenote image_preprocess_linux_netfilter_headers
 	(
-	cd ${TARGET_ARCH}/sys-root${target_includedir}/linux
+	cd ${TARGET_ARCH}/sysroot${target_includedir}/linux
 	for f in netfilter*/*.h ; do
 		fl=`echo $f | tr '[:upper:]' '[:lower:]'`
 		if [ $fl != $f -a -f $fl ] ; then

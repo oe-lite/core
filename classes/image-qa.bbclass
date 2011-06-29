@@ -1,0 +1,93 @@
+addtask image_qa after do_compile before do_build
+
+do_image_qa[dirs] = "${IMAGE_DIR}"
+
+IMAGE_QA_HOST_READELF ?= "${HOST_PREFIX}readelf"
+IMAGE_QA_HOST_READELF_SEARCH_DIRS ?= "${base_sbindir} ${base_bindir} ${sbindir} ${bindir} ${base_libdir} ${libdir}"
+IMAGE_QA_HOST_READELF_LIB_DIRS ?= "${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
+
+IMAGE_QA_TARGET_READELF ?= "${TARGET_PREFIX}readelf"
+IMAGE_QA_TARGET_READELF_recipe-native ?= ""
+IMAGE_QA_TARGET_READELF_recipe-cross ?= ""
+IMAGE_QA_TARGET_READELF_recipe-machine ?= ""
+IMAGE_QA_TARGET_READELF_recipe-sdk-cross ?= ""
+IMAGE_QA_TARGET_READELF_recipe-sdk ?= ""
+IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "${TARGET_ARCH}/sysroot${target_base_sbindir} ${TARGET_ARCH}/sysroot${target_base_bindir} ${TARGET_ARCH}/sysroot${target_sbindir} ${TARGET_ARCH}/sysroot${target_bindir} ${TARGET_ARCH}/sysroot${target_base_libdir} ${TARGET_ARCH}/sysroot${target_libdir}"
+IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_base_libdir} ${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_libdir}"
+
+python do_image_qa () {
+    import os, magic, re
+    from subprocess import Popen, PIPE
+    from glob import glob
+    import oebakery # die, err, warn, info, debug
+
+    os.environ['PATH'] = d.getVar("PATH", True)
+    filemagic = magic.open(magic.MAGIC_NONE)
+    filemagic.load()
+
+    def readelf_check(arch):
+        readelf = d.getVar("IMAGE_QA_"+arch+"_READELF", True)
+        if not readelf:
+            return None
+
+        oebakery.debug("Checking for missing %s libraries"%(arch.lower()))
+        search_dirs = d.getVar("IMAGE_QA_"+arch+"_READELF_SEARCH_DIRS", True).split()
+        lib_dirs = d.getVar("IMAGE_QA_"+arch+"_READELF_LIB_DIRS", True).split()
+        assumed_libs = (d.getVar("IMAGE_QA_"+arch+"_READELF_ASSUMED_LIBS", True) or "").split()
+        elf_re = d.getVar(arch+"_ELF", True) or None
+	oebakery.debug("%s_ELF=%s"%(arch, elf_re))
+        if elf_re:
+            elf_re = re.compile(elf_re)
+
+        error = False
+        for search_dir in set(search_dirs):
+            oebakery.debug("search_dir=%s"%(search_dir))
+
+            for elffile in glob("%s/*"%(search_dir.lstrip("/"))):
+
+                if not os.path.isfile(elffile) or os.path.islink(elffile):
+                    continue
+
+                filetype = filemagic.file(elffile)
+                oebakery.debug("file=%s type=%s"%(elffile, filetype))
+                if elf_re and not elf_re.match(filetype):
+                    continue
+                if not "dynamically linked" in filetype:
+                    continue
+                oebakery.debug("checking for needed libs")
+
+                cmd = [readelf, "-d", elffile]
+                cmd = Popen(cmd, stdout=PIPE)
+                needed_re = re.compile(r" 0x[0-9a-f]{8} *\(NEEDED\) *Shared library: \[(.*)\]")
+
+                needed_libs = []
+                for line in cmd.stdout.readlines():
+                    needed_match = needed_re.match(line)
+                    if needed_match:
+                        needed_libs.append(needed_match.group(1))
+                if needed_libs:
+                    oebakery.debug("%s: %s"%(elffile, " ".join(needed_libs)))
+
+                if cmd.wait():
+                    oebakery.warn("readelf %s failed"%(elffile))
+
+                missing_libs = []
+                for needed_lib in needed_libs:
+                    if needed_lib in assumed_libs:
+                        continue
+                    found = False
+                    for lib_dir in lib_dirs:
+                        if glob(os.path.join(lib_dir, needed_lib)):
+                            found = True
+                    if not found:
+                        missing_libs.append(needed_lib)
+
+                if missing_libs:
+                    oebakery.err("missing shared %s libraries for %s: %s"%(arch.lower(), elffile, " ".join(missing_libs)))
+                    error = True
+
+        return error
+
+    if readelf_check("HOST") or readelf_check("TARGET"):
+        bb.fatal("libraries missing")
+}

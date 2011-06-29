@@ -1,4 +1,4 @@
-addtask rstage before do_compile
+addtask rstage after do_patch before do_compile
 addtask deploy after do_fixup before do_build
 
 IMAGE_BASENAME ?= "${PN}"
@@ -73,7 +73,7 @@ python do_rstage () {
         subdir = d.getVar("PKGSUBDIR_%s"%rdep, False)
         if (d["RECIPE_TYPE"] == "canadian-cross" and
             subdir.startswith("target/")):
-            subdir = os.path.join(target_arch, "sys-root")
+            subdir = os.path.join(target_arch, "sysroot")
         else:
             subdir = ""
 
