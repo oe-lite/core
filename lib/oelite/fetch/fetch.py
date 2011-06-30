@@ -30,9 +30,9 @@ unpack_ext = (
     ("tar_lz",	(".tar.lz", ".tlz")),
     ("zip",	(".zip", ".jar")),
     ("gz",	(".gz", ".Z", ".z")),
-    ("bz2",	(".bz2")),
-    ("xz",	(".xz")),
-    ("lz",	(".lz")),
+    ("bz2",	(".bz2",)),
+    ("xz",	(".xz",)),
+    ("lz",	(".lz",)),
     )
 
 class OEliteUri:
@@ -50,7 +50,7 @@ class OEliteUri:
         self.files = d.get("FILES")
         m = uri_pattern.match(uri)
         if not m:
-            raise oelite.fetch.InvalidURI(uri)
+            raise oelite.fetch.InvalidURI(uri, "not an URI at all")
         self.scheme = m.group("scheme")
         self.location = m.group("location")
         if not self.scheme:
@@ -81,6 +81,7 @@ class OEliteUri:
     def init_unpack_param(self):
         if not "unpack" in self.params:
             for (unpack, exts) in unpack_ext:
+                assert isinstance(exts, tuple)
                 for ext in exts:
                     if self.fetcher.localpath.endswith(ext):
                         self.params["unpack"] = unpack
