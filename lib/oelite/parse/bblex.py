@@ -1,5 +1,5 @@
-#from oelite.parse import ParseError
 import oelite.parse
+import re
 
 tokens = [
     'VARNAME', 'FLAG', 'OVERRIDE',
@@ -319,7 +319,8 @@ def t_assign_DQUOTESTRING(t):
     r'"(\\"|\\\n|[^"\n])*?"'
     t.type = "STRING"
     t.lexer.lineno += t.value.count('\n')
-    t.value = t.value[1:-1].replace('\\\n','').replace('\\"','"')
+    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value[1:-1])
+    t.value = t.value.replace("\\\n","").replace('\\"','"')
     t.lexer.pop_state()
     return t
 
@@ -327,7 +328,8 @@ def t_assign_SQUOTESTRING(t):
     r"'(\\'|\\\n|[^'\n])*?'"
     t.type = "STRING"
     t.lexer.lineno += t.value.count('\n')
-    t.value = t.value[1:-1].replace('\\\n','').replace("\\'","'")
+    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value[1:-1])
+    t.value = t.value.replace("\\\n","").replace("\\'","'")
     t.lexer.pop_state()
     return t
 
