@@ -850,6 +850,9 @@ def exec_func_shell(func, data, runfile, logfile, flags):
     bb.data.emit_env(f, data)
 
     f.write("cd %s\n" % os.getcwd())
+    ld_library_path = data.getVar('LD_LIBRARY_PATH', 1)
+    if ld_library_path:
+        f.write("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+ld_library_path+"\n")
     if func: f.write("%s\n" % func)
     f.close()
     os.chmod(runfile, 0775)
