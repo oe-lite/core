@@ -9,19 +9,15 @@ import oe.process
 import oelite.fetch
 import local
 import url
+import git
 import hg
-#import oelite.fetch.git
-#import oelite.fetch.svn
-#import oelite.fetch.cvs
-#import oelite.fetch.hg
-#import oelite.fetch.bzr
-#import oelite.fetch.ssh
 
 FETCHERS = {
     "file"	: local.LocalFetcher,
     "http"	: url.UrlFetcher,
     "https"	: url.UrlFetcher,
     "ftp"	: url.UrlFetcher,
+    "git"	: git.GitFetcher,
     "hg"	: hg.HgFetcher,
 }
 
