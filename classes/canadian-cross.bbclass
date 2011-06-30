@@ -27,6 +27,11 @@ ${STAGE_DIR}/target/cross${stage_bindir}:\
 ${STAGE_DIR}/host/cross${stage_bindir}:\
 ${STAGE_DIR}/native${stage_bindir}:\
 "
+LD_LIBRARY_PATH = "\
+${STAGE_DIR}/target/cross${stage_libdir}:\
+${STAGE_DIR}/host/cross${stage_libdir}:\
+${STAGE_DIR}/native${stage_libdir}\
+"
 
 MACHINE_SYSROOT	 = "${STAGE_DIR}/target/sysroot"
 SDK_SYSROOT	 = "${STAGE_DIR}/host/sysroot"
