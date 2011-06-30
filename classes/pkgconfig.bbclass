@@ -1,2 +1,2 @@
-PKGCONFIG_DEPENDS = "pkg-config-native"
+PKGCONFIG_DEPENDS = "native:pkg-config"
 CLASS_DEPENDS += "${PKGCONFIG_DEPENDS}"
