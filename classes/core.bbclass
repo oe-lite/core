@@ -365,7 +365,7 @@ def core_machine_override(d):
         else:
             raise Exception("Machine override of %s recipe"%(d["RECIPE_TYPE"]))
 
-addhook blacklist to post_recipe_parse first after base_apply_recipe_options
+addhook blacklist to post_recipe_parse first
 def blacklist(d):
     import re
     blacklist_var = (d.getVar("BLACKLIST_VAR", True) or "").split()

@@ -1,4 +1,6 @@
-addhook set_useflags to post_recipe_parse first after base_after_parse
+# -*- mode:python; -*-
+
+addhook set_useflags to post_recipe_parse first before blacklist after arch_update
 
 #
 # RECIPE_OPTIONS are to be defined in recipes, and should be a
@@ -11,20 +13,20 @@ addhook set_useflags to post_recipe_parse first after base_after_parse
 # meta-data repository holding the repository.
 #
 def set_useflags(d):
-    recipe_options = ((d.get('RECIPE_FLAGS') or "").split() +
-                      (d.get('CLASS_FLAGS') or "").split())
-    if not recipe_options:
+    useflags = ((d.get('RECIPE_FLAGS') or "").split() +
+                (d.get('CLASS_FLAGS') or "").split())
+    if not useflags:
         return
     recipe_arch = d.get('RECIPE_ARCH')
     recipe_arch_mach = d.get('RECIPE_ARCH_MACHINE')
     overrides = (d.get('OVERRIDES') or "")
     overrides_changed = False
-    for option in recipe_options:
-        recipe_val = d.get('RECIPE_USE_'+option)
-        local_val = d.get('LOCAL_USE_'+option)
-        machine_val = d.get('MACHINE_USE_'+option)
-        distro_val = d.get('DISTRO_USE_'+option)
-        default_val = d.get('DEFAULT_USE_'+option) or "0"
+    for useflag in useflags:
+        recipe_val = d.get('RECIPE_USE_'+useflag)
+        local_val = d.get('LOCAL_USE_'+useflag)
+        machine_val = d.get('MACHINE_USE_'+useflag)
+        distro_val = d.get('DISTRO_USE_'+useflag)
+        default_val = d.get('DEFAULT_USE_'+useflag) or "0"
         if recipe_val is not None:
             val = recipe_val
         elif local_val is not None:
@@ -37,9 +39,10 @@ def set_useflags(d):
             val = distro_val
         else:
             val = default_val
+        #print "useflag %s = %s"%(useflag, val)
         if val and val != "0":
-            d.set('USE_'+option, val)
-            overrides += ':USE_'+option
+            d.set('USE_'+useflag, val)
+            overrides += ':USE_'+useflag
             overrides_changed = True
     if overrides_changed:
         d.set('OVERRIDES', overrides)
