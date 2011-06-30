@@ -3,6 +3,7 @@ DESCRIPTION ?= "Linux kernel"
 LICENSE ?= "GPL"
 
 #RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
+COMPATIBLE_MACHINES = ".*"
 
 require conf/kernel.conf
 
