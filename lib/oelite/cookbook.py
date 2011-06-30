@@ -524,16 +524,30 @@ class CookBook(Mapping):
             recipe_types = (["machine"] +
                             (base_meta.get("BBCLASSEXTEND") or "").split())
         meta = {}
-        #meta[recipe_types[0]] = base_meta
-        #for recipe_type in recipe_types[1:]:
         for recipe_type in recipe_types:
             meta[recipe_type] = base_meta.copy()
         for recipe_type in recipe_types:
             meta[recipe_type]["RECIPE_TYPE"] = recipe_type
             self.bbparser.set_metadata(meta[recipe_type])
-            #print "parsing recipe_type %s"%(recipe_type)
-            #print "classes/type/%s.bbclass"%(recipe_type)
             self.bbparser.parse("classes/type/%s.bbclass"%(recipe_type))
+            compatible_machines = meta[recipe_type].get("COMPATIBLE_MACHINES")
+            if compatible_machines is not None:
+                machine = meta[recipe_type].get("MACHINE")
+                if machine is None:
+                    print "skipping recipe %s:%s (requires machine)"%(
+                        recipe_type, meta[recipe_type].get("PN"))
+                    del meta[recipe_type]
+                    break
+                else:
+                    compatible = False
+                    for compatible_machine in compatible_machines.split():
+                        if re.match(compatible_machine, machine):
+                            compatible = True
+                    if not compatible:
+                        print "skipping incompatible %s:%s"%(
+                            recipe_type, meta[recipe_type].get("PN"))
+                        del meta[recipe_type]
+                        break
             oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
         return meta
 
