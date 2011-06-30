@@ -1,8 +1,9 @@
 # -*- mode:python; -*-
+
 DESCRIPTION ?= "Linux kernel"
 LICENSE ?= "GPL"
 
-#RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
+RECIPE_TYPES = "machine"
 COMPATIBLE_MACHINES = ".*"
 
 require conf/kernel.conf
@@ -78,7 +79,7 @@ CLASS_FLAGS += "kernel_uimage \
 KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "u-boot-mkimage-native"
 DEFAULT_USE_kernel_uimage = "0"
 DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
-DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_image_entrypoint}"
+DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_uimage_entrypoint}"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
@@ -120,8 +121,7 @@ DEFAULT_USE_kernel_dtc_flags = "-R 8 -p 0x3000"
 DEFAULT_USE_kernel_dtc_source = "arch/${KERNEL_ARCH}/boot/dts/${MACHINE}.dts"
 
 addhook kernel_devicetree_init to post_recipe_parse after set_useflags
-def kernel_devictree_init(d):
-python () {
+def kernel_devicetree_init(d):
     kernel_dtc = d.getVar('USE_kernel_dtc', True)
     kernel_dtb = d.getVar('USE_kernel_dtb', True)
     if kernel_dtc and kernel_dtc != 0:
@@ -135,7 +135,6 @@ python () {
 	d.setVar('KERNEL_DEVICETREE', kernel_dtb)
     else:
 	d.setVar('KERNEL_DEVICETREE', '')
-}
 
 kernel_do_compile_append_USE_kernel_dtc () {
     scripts/dtc/dtc -I dts -O dtb ${RECIPE_OPTION_kernel_dtc_flags} \
