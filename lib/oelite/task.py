@@ -183,30 +183,8 @@ class OEliteTask:
         assert self.meta is not None
         function = self.meta.get_function(self.name)
 
-        # Remove any cleandirs found
-        cleandirs = (self.meta.get_flag(self.name, "cleandirs",
-                                        oelite.meta.FULL_EXPANSION))
-        if cleandirs:
-            for cleandir in cleandirs.split():
-                if not os.path.exists(cleandir):
-                    continue
-                try:
-                    debug("cleandir %s"%(cleandir))
-                    shutil.rmtree(cleandir)
-                except Exception, e:
-                    err("cleandir %s failed: %s"%(cleandir, e))
-                    return False
-
-        # Create directories and find directory to execute in
-        dirs = (self.meta.get_flag(self.name, "dirs",
-                                   oelite.meta.FULL_EXPANSION))
-        if dirs:
-            dirs = dirs.split()
-            for dir in dirs:
-                bb.utils.mkdirhier(dir)
-            cwd = dirs[-1]
-        else:
-            cwd = self.meta.get("B")
+        self.do_cleandirs()
+        cwd = self.do_dirs() or self.meta.get("B")
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
@@ -228,7 +206,21 @@ class OEliteTask:
         os.dup2(logfile.fileno(), sys.stderr.fileno())
 
         try:
-            return function.run(cwd)
+            for prefunc in self.get_prefuncs():
+                print "running prefunc", prefunc
+                self.do_cleandirs(prefunc)
+                wd = self.do_dirs(prefunc)
+                if not prefunc.run(wd or cwd):
+                    return False
+            if not function.run(cwd):
+                return False
+            for postfunc in self.get_postfuncs():
+                print "running postfunc", postfunc
+                self.do_cleandirs(postfunc)
+                wd = self.do_dirs(postfunc)
+                if not postfunc.run(wd or cwd):
+                    return False
+            return True
 
         finally:
             # Cleanup stdin, stdout and stderr redirection
@@ -239,3 +231,44 @@ class OEliteTask:
             logfile.close()
             if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
                 os.remove(logfn) # prune empty logfiles
+
+
+    def do_cleandirs(self, name=None):
+        if not name:
+            name = self.name
+        cleandirs = (self.meta.get_flag(name, "cleandirs",
+                                        oelite.meta.FULL_EXPANSION))
+        if cleandirs:
+            for cleandir in cleandirs.split():
+                if not os.path.exists(cleandir):
+                    continue
+                try:
+                    print "cleandir %s"%(cleandir)
+                    shutil.rmtree(cleandir)
+                except Exception, e:
+                    err("cleandir %s failed: %s"%(cleandir, e))
+                    raise
+
+    def do_dirs(self, name=None):
+        if not name:
+            name = self.name
+        # Create directories and find directory to execute in
+        dirs = (self.meta.get_flag(name, "dirs",
+                                   oelite.meta.FULL_EXPANSION))
+        if dirs:
+            dirs = dirs.split()
+            for dir in dirs:
+                bb.utils.mkdirhier(dir)
+            return dir
+
+    def get_postfuncs(self):
+        postfuncs = []
+        for name in (self.meta.get_flag(self.name, "postfuncs") or "").split():
+            postfuncs.append(self.meta.get_function(name))
+        return postfuncs
+
+    def get_prefuncs(self):
+        prefuncs = []
+        for name in (self.meta.get_flag(self.name, "prefuncs") or "").split():
+            prefuncs.append(self.meta.get_function(name))
+        return prefuncs
