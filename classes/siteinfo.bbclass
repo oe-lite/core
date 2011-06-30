@@ -52,12 +52,10 @@ addtask siteinfo after do_patch	before do_configure
 do_siteinfo[cleandirs]	= "${STAGE_SITE_DIR}"
 do_siteinfo[dirs]	= "${STAGE_SITE_DIR}"
 
-python do_siteinfo () {
+def do_siteinfo(d):
     import os
 
-    build_arch = d.getVar('BUILD_ARCH', True)
-    host_arch = d.getVar('HOST_ARCH', True)
-    target_arch = d.getVar('TARGET_ARCH', True)
+    recipe_type = d.get("RECIPE_TYPE")
 
     build_config_site = d.getVar('BUILD_CONFIG_SITE', True)
     host_config_site = d.getVar('HOST_CONFIG_SITE', True)
@@ -110,15 +108,14 @@ python do_siteinfo () {
 
     generate_siteinfo(d, 'BUILD', build_config_site)
 
-    if host_arch == build_arch:
+    if recipe_type in ("native", "cross", "sdk-cross"):
         os.symlink(build_config_site, host_config_site)
     else:
         generate_siteinfo(d, 'HOST', host_config_site)
 
-    if target_arch == build_arch:
+    if recipe_type == "native":
         os.symlink(build_config_site, target_config_site)
-    elif target_arch == host_arch:
+    elif recipe_type in ("machine", "sdk"):
         os.symlink(host_config_site, target_config_site)
     else:
         generate_siteinfo(d, 'TARGET', TARGET_config_site)
-}
