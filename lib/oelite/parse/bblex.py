@@ -336,16 +336,16 @@ def t_assign_SQUOTESTRING(t):
 def t_assign_UNTERMINATEDDQUOTESTRING(t):
     r'"(\\"|\\\n|[^"\n])*?\n'
     t.lexer.lineno += t.value.count('\n')
-    raise oelite.parse.ParseError(None, "Unterminated string", t)
+    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
 
 def t_assign_UNTERMINATEDSQUOTESTRING(t):
     r"'(\\'|\\\n|[^'\n])*?\n"
     t.lexer.lineno += t.value.count('\n')
-    raise oelite.parse.ParseError("Unterminated string", t)
+    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
 
 def t_assign_UNQUOTEDSTRING(t):
     r".+"
-    raise oelite.parse.ParseError("Unquoted string", t)
+    raise oelite.parse.ParseError(t.lexer.parser, "Unquoted string", t)
 
 
 def t_ANY_error(t):
