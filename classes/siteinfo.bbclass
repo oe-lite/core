@@ -106,16 +106,16 @@ def do_siteinfo(d):
 
         return found
 
-    generate_siteinfo(d, 'BUILD', build_config_site)
+    generate_siteinfo(d, "BUILD", build_config_site)
 
     if recipe_type in ("native", "cross", "sdk-cross"):
         os.symlink(build_config_site, host_config_site)
     else:
-        generate_siteinfo(d, 'HOST', host_config_site)
+        generate_siteinfo(d, "HOST", host_config_site)
 
     if recipe_type == "native":
         os.symlink(build_config_site, target_config_site)
     elif recipe_type in ("machine", "sdk"):
         os.symlink(host_config_site, target_config_site)
     else:
-        generate_siteinfo(d, 'TARGET', TARGET_config_site)
+        generate_siteinfo(d, "TARGET", target_config_site)
