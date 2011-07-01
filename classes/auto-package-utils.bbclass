@@ -11,7 +11,7 @@ def auto_package_utils (d):
     utils = (d.getVar("AUTO_PACKAGE_UTILS", True) or "").split()
     exeext = d.getVar("HOST_EXEEXT", True) or ""
     packages = []
-    rprovides = []
+    provides = []
 
     def get_extra_files(pkg):
         extra_files = d.getVar("EXTRA_FILES_" + pkg, True)
@@ -25,7 +25,7 @@ def auto_package_utils (d):
         utilname = "util/" + utilname
         docpkg = pkg + "-doc"
         packages += [ pkg, docpkg ]
-        rprovides += [ utilname ]
+        provides += [ utilname ]
 
         d.setVar("FILES_" + pkg,
                  "${base_sbindir}/%s%s "%(util, exeext) +
@@ -38,9 +38,9 @@ def auto_package_utils (d):
                  "${mandir}/man?/%s.* "%(util) +
                  get_extra_files(docpkg))
 
-        pkg_rprovides = (d.getVar("RPROVIDES_" + pkg, True) or "").split()
-        pkg_rprovides.append(utilname)
-        d.setVar("RPROVIDES_" + pkg, " ".join(pkg_rprovides))
+        pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
+        pkg_provides.append(utilname)
+        d.setVar("PROVIDES_" + pkg, " ".join(pkg_provides))
     
     d.setVar("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
-    d.setVar("AUTO_PACKAGE_UTILS_RPROVIDES", " ".join(rprovides))
+    d.setVar("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
