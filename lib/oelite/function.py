@@ -144,7 +144,6 @@ class ShellFunction(OEliteFunction):
             runfile.write("\n%s() {\n%s\n}\n"%(
                     var, (val or "\t:").rstrip()))
 
-
         if oebakery.DEBUG:
             runfile.write("set -x\n")
         runfile.write("cd %s\n"%(os.getcwd()))
