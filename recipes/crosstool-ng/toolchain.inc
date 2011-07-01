@@ -202,8 +202,8 @@ AUTO_PACKAGE_LIBS = "\
 "
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
 AUTO_PACKAGE_LIBS_LIBDIR = "\
-${base_prefix}/${TARGET_ARCH}/sys-root${target_base_libdir}:lib::.so,.so.*,-*.so: \
-${base_prefix}/${TARGET_ARCH}/sys-root${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib::.so,.so.*,-*.so: \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
 "
 TARGET_PACKAGES = "${LIBS_AUTO_PACKAGES}"
 
@@ -798,7 +798,7 @@ split_sysroot_mangle_mingw32 () {
     done
 }
 
-# Add symlinks to get sys-root back on stage for internal cross packages
+# Add symlinks to get sysroot back on stage for internal cross packages
 split_sysroot_mangle_stage () {
 	cd ${PKGD}
 	ln -s ../../${TARGET_TYPE} ${PN}/${TARGET_ARCH}/sysroot
