@@ -13,6 +13,8 @@ AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_package_type fixup_provides
 
 def auto_package_libs (d):
+    import warnings
+
     pn = d.getVar("PN", True)
     libs = (d.getVar("AUTO_PACKAGE_LIBS", True) or "").split()
     libdirs = (d.getVar("AUTO_PACKAGE_LIBS_LIBDIR", True) or "").split()
@@ -23,7 +25,14 @@ def auto_package_libs (d):
     dev_rdepends = d.getVar("AUTO_PACKAGE_LIBS_DEV_RDEPENDS", True) or ""
 
     def get_extra_files(pkg):
-        return (d.getVar("EXTRA_FILES_" + pkg, True) or "").split()
+        #return (d.get("FILES_" + pkg) or "").split()
+        files = d.get("FILES_" + pkg)
+        if files is None:
+            files = d.get("EXTRA_FILES_" + pkg)
+            if files:
+                warnings.warn(
+                    "EXTRA_FILES_* is deprecated, use FILES_* instead")
+        return (files or "").split()
 
     def split_libdir(libdir):
         libdir = libdir.split(":")
