@@ -265,6 +265,10 @@ class CookBook(Mapping):
         else:
             expr = []
             args = []
+            if isinstance(name, oelite.item.OEliteItem):
+                type = name.type
+                version = name.version
+                name = name.name
             if isinstance(filename, basestring):
                 expr.append("file=?")
                 args.append(filename)
@@ -337,6 +341,10 @@ class CookBook(Mapping):
         else:
             expr = []
             args = []
+            if isinstance(name, oelite.item.OEliteItem):
+                type = name.type
+                version = name.version
+                name = name.name
             if recipe:
                 expr.append("recipe=?")
                 if isinstance(recipe, oelite.recipe.OEliteRecipe):
