@@ -69,7 +69,8 @@ C_DEPENDS:cross = "target-cross:cc"
 # --hash-style option.
 SDK_LDFLAGS_HASH_STYLE_mingw32 = ""
 
-do_install_append () {
+do_install[postfuncs] += "do_install_symlinks"
+do_install_symlinks () {
     ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
     ln -sf ../config ${D}${datadir}/libtool/libltdl/config
 }
