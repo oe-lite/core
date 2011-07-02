@@ -1,5 +1,4 @@
 # -*- mode:python; -*-
-
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
@@ -11,7 +10,7 @@ SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 
 # Recipe build dependencies
 DEPENDS = "native:libncurses libm"
-DEPENDS:native = ""
+DEPENDS:native = "libm"
 
 inherit autotools make-vpath c++
 
