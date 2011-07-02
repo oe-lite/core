@@ -639,19 +639,19 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/locale \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/i18n \
 "
 
-EXTRA_FILES_${PN}-sysroot-libgcc = "\
+FILES_${PN}-sysroot-libgcc = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so.* \
 "
 
-EXTRA_FILES_${PN}-sysroot-libgcc-dev = "\
+FILES_${PN}-sysroot-libgcc-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
 "
 
-EXTRA_FILES_${PN}-sysroot-libm-dev = "\
+FILES_${PN}-sysroot-libm-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libieee.a \
 "
 
-EXTRA_FILES_${PN}-sysroot-libbfd = "\
+FILES_${PN}-sysroot-libbfd = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd-*.so \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd.so"
 
