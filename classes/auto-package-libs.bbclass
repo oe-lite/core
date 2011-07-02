@@ -82,13 +82,13 @@ def auto_package_libs (d):
             for libext in devlibexts:
                 files.append("%s/%s%s"%(libdir, libname, libext))
             if pkg_libsuffix is None:
-                for pcprefix in pcprefixes:
+                for pcprefix in pcprefixes or [""]:
                     pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
                         pcprefix, lib, libsuffix)
                     if not pcfile in files:
                         files.append(pcfile)
         if pkg_libsuffix is not None:
-            for pcprefix in pcprefixes:
+            for pcprefix in pcprefixes or [""]:
                 pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
                     pcprefix, lib, pkg_libsuffix)
                 if not pcfile in files:
