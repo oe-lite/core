@@ -340,6 +340,7 @@ class OEliteRunQueue:
             return ([recipe], [package])
 
         def recursive_resolve(item, recursion_path, type):
+            #print "recursive_resolve %s %s"%(item, recursion_path)
             orig_item = item
             item = oelite.item.OEliteItem(item, (typemap, type))
             if self.assume_provided(item):
@@ -348,7 +349,7 @@ class OEliteRunQueue:
             (recipe, package) = self.get_recipe_provider(item)
 
             # detect circular package dependencies
-            if package in recursion_path[0]:
+            if str(package) in recursion_path[0]:
                 # actually, this might not be a bug/problem.......
                 # Fx: package X rdepends on package Y, and package Y
                 # rdepends on package X. As long as X and Y can be
@@ -460,7 +461,6 @@ class OEliteRunQueue:
         Return package provider of item.
         """
         assert isinstance(item, oelite.item.OEliteItem)
-        assert str(item) != "machine:cc"
         provider = self._get_provider(item)
         if provider:
             #print "item=%s provider=%s"%(item, provider)
