@@ -39,6 +39,7 @@ def auto_package_utils (d):
               "${base_bindir}/%s%s "%(util, exeext) +
               "${sbindir}/%s%s "%(util, exeext) +
               "${bindir}/%s%s "%(util, exeext) +
+              "${libexecdir}/%s%s "%(util, exeext) +
               " ".join(get_extra_files(pkg)))
 
         d.set("FILES_" + docpkg,
