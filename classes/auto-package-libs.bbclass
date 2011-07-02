@@ -46,7 +46,7 @@ def auto_package_libs (d):
         if len(libdir) < 3:
             libdir.append("")
         if len(libdir) < 4:
-            libdir.append("${SOLIBS}")
+            libdir.append(d.get("SOLIBS").split(","))
         elif libdir[3]:
             libdir[3] = libdir[3].split(",")
         if len(libdir) < 5:
