@@ -15,12 +15,12 @@ addhook auto_package_libs to post_recipe_parse after base_after_parse before fix
 def auto_package_libs (d):
     import warnings
 
-    pn = d.getVar("PN", True)
-    libs = (d.getVar("AUTO_PACKAGE_LIBS", True) or "").split()
-    libdirs = (d.getVar("AUTO_PACKAGE_LIBS_LIBDIR", True) or "").split()
-    pkgprefix = d.getVar("AUTO_PACKAGE_LIBS_PKGPREFIX", True) or ""
-    provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", True) or ""
+    pn = d.get("PN")
+    libs = (d.get("AUTO_PACKAGE_LIBS") or "").split()
+    libdirs = (d.get("AUTO_PACKAGE_LIBS_LIBDIR") or "").split()
+    pkgprefix = d.get("AUTO_PACKAGE_LIBS_PKGPREFIX") or ""
     pcprefixes = (d.get("AUTO_PACKAGE_LIBS_PCPREFIX") or "").split()
+    provideprefix = d.get("AUTO_PACKAGE_LIBS_PROVIDEPREFIX") or ""
     packages = []
     dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
     dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS")
@@ -61,7 +61,7 @@ def auto_package_libs (d):
         packages += [ pkg, devpkg ]
 
         files = []
-        pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
+        pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
             (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
             if pkg_libsuffix is not None:
@@ -73,7 +73,7 @@ def auto_package_libs (d):
         d.set("FILES_" + pkg, " ".join(files))
 
         files = []
-        pkg_libsuffix = d.getVar("LIBSUFFIX_%s"%(pkg), True)
+        pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
             (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
             if pkg_libsuffix is not None:
@@ -96,17 +96,17 @@ def auto_package_libs (d):
         files += get_extra_files(devpkg)
         d.set("FILES_" + devpkg, " ".join(files))
 
-        pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
+        pkg_provides = (d.get("PROVIDES_" + pkg) or "").split()
         pkg_provides.append("%s%s"%(provideprefix,
                                     lib.replace("_", "-").lower()))
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
 
-        devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
+        devpkg_provides = (d.get("PROVIDES_" + devpkg) or "").split()
         devpkg_provides.append("%s%s-dev"%(provideprefix,
                                            lib.replace("_", "-").lower()))
         d.set("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
-        pkg_depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
+        pkg_depends = (d.get("DEPENDS_" + pkg) or "").split()
 
         pkg_rdepends = d.get("RDEPENDS_" + pkg, True)
         if pkg_rdepends is None:
@@ -121,11 +121,11 @@ def auto_package_libs (d):
         pkg_depends.append("%s_${PV}"%(devpkg))
         d.set("DEPENDS_" + pkg, " ".join(pkg_depends))
 
-        devpkg_depends = (d.getVar("DEPENDS_" + devpkg, True) or "").split()
+        devpkg_depends = (d.get("DEPENDS_" + devpkg) or "").split()
         devpkg_depends += dev_depends.split()
         d.set("DEPENDS_" + devpkg, " ".join(devpkg_depends))
 
-        devpkg_rdepends = d.getVar("RDEPENDS_" + devpkg, True)
+        devpkg_rdepends = d.get("RDEPENDS_" + devpkg)
         if devpkg_rdepends is None:
             devpkg_rdepends = []
             for dep in pkg_rdepends:
