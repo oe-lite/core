@@ -7,6 +7,8 @@ AUTO_PACKAGE_UTILS ?= ""
 addhook auto_package_utils to post_recipe_parse after base_after_parse before base_detect_machine_override fixup_package_type fixup_provides
 
 def auto_package_utils (d):
+    import warnings
+
     pn = d.getVar("PN", True)
     utils = (d.getVar("AUTO_PACKAGE_UTILS", True) or "").split()
     exeext = d.getVar("HOST_EXEEXT", True) or ""
@@ -14,10 +16,14 @@ def auto_package_utils (d):
     provides = []
 
     def get_extra_files(pkg):
-        extra_files = d.getVar("EXTRA_FILES_" + pkg, True)
-        if extra_files:
-            return " " + extra_files
-        return ""
+        #return (d.get("FILES_" + pkg) or "").split()
+        files = d.get("FILES_" + pkg)
+        if files is None:
+            files = d.get("EXTRA_FILES_" + pkg)
+            if files:
+                warnings.warn(
+                    "EXTRA_FILES_* is deprecated, use FILES_* instead")
+        return (files or "").split()
 
     for util in utils:
         utilname = util.replace("_", "-").replace(".", "-").lower()
@@ -27,16 +33,16 @@ def auto_package_utils (d):
         packages += [ pkg, docpkg ]
         provides += [ utilname ]
 
-        d.setVar("FILES_" + pkg,
-                 "${base_sbindir}/%s%s "%(util, exeext) +
-                 "${base_bindir}/%s%s "%(util, exeext) +
-                 "${sbindir}/%s%s "%(util, exeext) +
-                 "${bindir}/%s%s "%(util, exeext) +
-                 get_extra_files(pkg))
+        d.set("FILES_" + pkg,
+              "${base_sbindir}/%s%s "%(util, exeext) +
+              "${base_bindir}/%s%s "%(util, exeext) +
+              "${sbindir}/%s%s "%(util, exeext) +
+              "${bindir}/%s%s "%(util, exeext) +
+              " ".join(get_extra_files(pkg)))
 
-        d.setVar("FILES_" + docpkg,
-                 "${mandir}/man?/%s.* "%(util) +
-                 get_extra_files(docpkg))
+        d.set("FILES_" + docpkg,
+              "${mandir}/man?/%s.* "%(util) +
+              " ".join(get_extra_files(docpkg)))
 
         pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
         pkg_provides.append(utilname)
