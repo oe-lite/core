@@ -188,7 +188,8 @@ class OEliteTask:
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
-        logfn = "%s/%s.log.%s"%(function.tmpdir, self.name, str(os.getpid()))
+        logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
+        logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
         bb.utils.mkdirhier(os.path.dirname(logfn))
         try:
             if oebakery.DEBUG:
@@ -198,6 +199,11 @@ class OEliteTask:
         except OSError:
             print "Opening log file failed: %s"%(logfn)
             raise
+
+        if os.path.exists(logsymlink):
+            os.remove(logsymlink)
+        os.symlink(logfn, logsymlink)
+
         real_stdin = os.dup(sys.stdin.fileno())
         real_stdout = os.dup(sys.stdout.fileno())
         real_stderr = os.dup(sys.stderr.fileno())
@@ -230,6 +236,7 @@ class OEliteTask:
             stdin.close()
             logfile.close()
             if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
+                os.remove(logsymlink)
                 os.remove(logfn) # prune empty logfiles
 
 

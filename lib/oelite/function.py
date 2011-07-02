@@ -106,7 +106,8 @@ class ShellFunction(OEliteFunction):
         return
 
     def __call__(self):
-        runfn = "%s/%s.run.%s" % (self.tmpdir, self.name, str(os.getpid()))
+        runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, str(os.getpid()))
+        runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
 
         body = self.meta.get(self.name)
         if not body:
@@ -114,6 +115,9 @@ class ShellFunction(OEliteFunction):
 
         runfile = open(runfn, "w")
         runfile.write("#!/bin/bash -e\n\n")
+        if os.path.exists(runsymlink):
+            os.remove(runsymlink)
+        os.symlink(runfn, runsymlink)
 
         vars = self.meta.keys()
         vars.sort()
