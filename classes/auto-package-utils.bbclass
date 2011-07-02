@@ -9,9 +9,9 @@ addhook auto_package_utils to post_recipe_parse after base_after_parse before ba
 def auto_package_utils (d):
     import warnings
 
-    pn = d.getVar("PN", True)
-    utils = (d.getVar("AUTO_PACKAGE_UTILS", True) or "").split()
-    exeext = d.getVar("HOST_EXEEXT", True) or ""
+    pn = d.get("PN")
+    utils = (d.get("AUTO_PACKAGE_UTILS") or "").split()
+    exeext = d.get("HOST_EXEEXT") or ""
     packages = []
     provides = []
 
@@ -44,9 +44,9 @@ def auto_package_utils (d):
               "${mandir}/man?/%s.* "%(util) +
               " ".join(get_extra_files(docpkg)))
 
-        pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
+        pkg_provides = (d.get("PROVIDES_" + pkg) or "").split()
         pkg_provides.append(utilname)
-        d.setVar("PROVIDES_" + pkg, " ".join(pkg_provides))
+        d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
     
-    d.setVar("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
-    d.setVar("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
+    d.set("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
+    d.set("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
