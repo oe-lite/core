@@ -20,6 +20,7 @@ def auto_package_libs (d):
     libdirs = (d.getVar("AUTO_PACKAGE_LIBS_LIBDIR", True) or "").split()
     pkgprefix = d.getVar("AUTO_PACKAGE_LIBS_PKGPREFIX", True) or ""
     provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", True) or ""
+    pcprefixes = (d.get("AUTO_PACKAGE_LIBS_PCPREFIX") or "").split()
     packages = []
     dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
     dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS")
@@ -81,13 +82,17 @@ def auto_package_libs (d):
             for libext in devlibexts:
                 files.append("%s/%s%s"%(libdir, libname, libext))
             if pkg_libsuffix is None:
-                pcfile = "${libdir}/pkgconfig/%s%s.pc"%(lib, libsuffix)
+                for pcprefix in pcprefixes:
+                    pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
+                        pcprefix, lib, libsuffix)
+                    if not pcfile in files:
+                        files.append(pcfile)
+        if pkg_libsuffix is not None:
+            for pcprefix in pcprefixes:
+                pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
+                    pcprefix, lib, pkg_libsuffix)
                 if not pcfile in files:
                     files.append(pcfile)
-        if pkg_libsuffix is not None:
-            pcfile = "${libdir}/pkgconfig/%s%s.pc"%(lib, pkg_libsuffix)
-            if not pcfile in files:
-                files.append(pcfile)
         files += get_extra_files(devpkg)
         d.set("FILES_" + devpkg, " ".join(files))
 
