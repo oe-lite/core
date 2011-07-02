@@ -172,8 +172,7 @@ class OEliteRunQueue:
                     newtasks.update([d[0] for d in package_rdepends])
                 except RecursiveDepends, e:
                     recipe = self.cookbook.get_recipe(task=task)
-                    task = self.cookbook.get_task(task=task)
-                    raise RecursiveDepends(e.args[0], "%s:%s"%(
+                    raise RecursiveDepends(e.args[0], "%s (%s)"%(
                             recipe.name, task))
 
             addedtasks = newtasks.difference(alltasks)
@@ -371,18 +370,16 @@ class OEliteRunQueue:
                 # circular dependencies.
 
                 err("circular dependency while resolving %s"%(item))
-                package_name = self.get_package(package)[0]
                 depends = []
                 recursion_path[0].append(package)
                 recursion_path[1].append(item)
                 for i in xrange(len(recursion_path[0])):
-                    depend_package = self.get_package(
-                        recursion_path[0][i])[0]
-                    depend_item = self.get_item(recursion_path[1][i])
+                    depend_package = str(recursion_path[0][i])
+                    depend_item = str(recursion_path[1][i])
                     if depend_item == depend_package:
                         depends.append(depend_package)
                     else:
-                        depends.append("%s:%s"%(depend_package, depend_item))
+                        depends.append("%s (%s)"%(depend_package, depend_item))
                 raise RecursiveDepends(depends)
 
             # Recipe/task based circular dependencies are detected
