@@ -86,15 +86,10 @@ DEPENDS_${PN}-tools += "libncurses"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev_${PV}"
 
 # Library package build and run-time dependencies
-RDEPENDS_${PN}-libform	= "${PN}-libncurses"
-DEPENDS_${PN}-libform	= "${RDEPENDS_${PN}-libform}"
-RDEPENDS_${PN}-libmenu	= "${PN}-libncurses"
-DEPENDS_${PN}-libmenu	= "${RDEPENDS_${PN}-libmenu}"
-RDEPENDS_${PN}-libpanel = "${PN}-libncurses"
-DEPENDS_${PN}-libpanel	= "${RDEPENDS_${PN}-libpanel}"
+DEPENDS_${PN}-libform	= "libncurses"
+DEPENDS_${PN}-libmenu	= "libncurses"
+DEPENDS_${PN}-libpanel	= "libncurses"
 
 # Package run-time dependencies
-RDEPENDS_${PN}		= "${PN}-libncurses"
-RDEPENDS_${PN}-tools	= "${PN}-libncurses ${PN}"
-
-PROVIDES_${PN}-libncurses-dev = "libncurses5"
+RDEPENDS_${PN}		= "libncurses"
+RDEPENDS_${PN}-tools	= "libncurses ${PN}"
