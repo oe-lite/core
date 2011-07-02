@@ -92,7 +92,25 @@ class PythonFunction(OEliteFunction):
         return
 
     def __call__(self):
-        retval = self.function(self.meta)
+        old_ld_library_path = None
+        ld_library_path = self.meta.get("LD_LIBRARY_PATH")
+        if ld_library_path:
+            try:
+                old_ld_library_path = os.environ["LD_LIBRARY_PATH"]
+                if old_ld_library_path:
+                    ld_library_path = "%s:%s"%(old_ld_library_path,
+                                               ld_library_path)
+            except KeyError:
+                pass
+            os.environ["LD_LIBRARY_PATH"] = ld_library_path
+        try:
+            retval = self.function(self.meta)
+        finally:
+            if ld_library_path:
+                if old_ld_library_path:
+                    os.environ["LD_LIBRARY_PATH"] = old_ld_library_path
+                else:
+                    del os.environ["LD_LIBRARY_PATH"]
         if retval or retval is None:
             return True
         return False
@@ -150,6 +168,10 @@ class ShellFunction(OEliteFunction):
 
         if oebakery.DEBUG:
             runfile.write("set -x\n")
+        ld_library_path = self.meta.get("LD_LIBRARY_PATH")
+        if ld_library_path:
+            runfile.write("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:"
+                          + ld_library_path + "\"\n")
         runfile.write("cd %s\n"%(os.getcwd()))
         runfile.write("%s\n"%(self.name))
         runfile.close()
