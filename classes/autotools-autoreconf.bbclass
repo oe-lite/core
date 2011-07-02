@@ -13,6 +13,8 @@ pkgltdldir:sdk-cross = "${STAGE_DIR}/native${stage_datadir}/libtool"
 addtask autoreconf after do_patch before do_configure
 do_autoreconf[dirs] = "${S}"
 
+export LIBTOOLIZE = "${HOST_PREFIX}libtoolize"
+
 do_autoreconf () {
 
     for ac in `find ${S} -name configure.in -o -name configure.ac`; do
