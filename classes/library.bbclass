@@ -26,6 +26,7 @@ def library_depends(d):
     pkg_type = d.get("PACKAGE_TYPE_" + pkg) or d.get("RECIPE_TYPE")
     if pkg_type == "native":
         return
+    pv = d.get("PV")
     devpkg = pkg + "-dev"
     pkg_depends = (d.get("DEPENDS_" + pkg) or "").split()
 
@@ -36,9 +37,12 @@ def library_depends(d):
             item = oelite.item.OEliteItem(dep, (0, pkg_type))
             if item.type != pkg_type:
                 continue
+            if dep == (devpkg + "_" + pv):
+                continue
             if item.name.startswith("lib"):
                 pkg_rdepends.append(dep)
-        d.set("RDEPENDS_" + pkg, " ".join(pkg_rdepends))
+        if pkg_rdepends:
+            d.set("RDEPENDS_" + pkg, " ".join(pkg_rdepends))
     else:
         pkg_rdepends = pkg_rdepends.split()
 
