@@ -11,6 +11,7 @@ def auto_package_utils (d):
 
     pn = d.get("PN")
     utils = (d.get("AUTO_PACKAGE_UTILS") or "").split()
+    auto_rdepends = d.get("AUTO_PACKAGE_UTILS_RDEPENDS")
     exeext = d.get("HOST_EXEEXT") or ""
     packages = []
     provides = []
@@ -43,6 +44,13 @@ def auto_package_utils (d):
         d.set("FILES_" + docpkg,
               "${mandir}/man?/%s.* "%(util) +
               " ".join(get_extra_files(docpkg)))
+
+        if auto_rdepends:
+            rdepends = d.get("RDEPENDS_" + pkg)
+            if rdepends:
+                d.set("RDEPENDS_" + pkg, rdepends + " " + auto_rdepends)
+            else:
+                d.set("RDEPENDS_" + pkg, auto_rdepends)
 
         pkg_provides = (d.get("PROVIDES_" + pkg) or "").split()
         pkg_provides.append(utilname)
