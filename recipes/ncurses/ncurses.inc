@@ -75,7 +75,7 @@ FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/c
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
 
-#EXTRA_FILES_${PN}-libncurses-dev = "\
+#FILES_${PN}-libncurses-dev = "\
 #    ${libdir}/libtermcap.a \
 #    ${libdir}/libtermcap${SOLIBSDEV}"
 
