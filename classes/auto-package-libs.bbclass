@@ -81,11 +81,13 @@ def auto_package_libs (d):
         d.set("FILES_" + devpkg, " ".join(files))
 
         pkg_provides = (d.getVar("PROVIDES_" + pkg, True) or "").split()
-        pkg_provides.append("%s%s"%(provideprefix, lib.lower()))
+        pkg_provides.append("%s%s"%(provideprefix,
+                                    lib.replace("_", "-").lower()))
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
 
         devpkg_provides = (d.getVar("PROVIDES_" + devpkg, True) or "").split()
-        devpkg_provides.append("%s%s-dev"%(provideprefix, lib.lower()))
+        devpkg_provides.append("%s%s-dev"%(provideprefix,
+                                           lib.replace("_", "-").lower()))
         d.set("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
         pkg_depends = (d.getVar("DEPENDS_" + pkg, True) or "").split()
