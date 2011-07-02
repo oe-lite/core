@@ -21,8 +21,10 @@ def auto_package_libs (d):
     pkgprefix = d.getVar("AUTO_PACKAGE_LIBS_PKGPREFIX", True) or ""
     provideprefix = d.getVar("AUTO_PACKAGE_LIBS_PROVIDEPREFIX", True) or ""
     packages = []
-    dev_depends = d.getVar("AUTO_PACKAGE_LIBS_DEV_DEPENDS", True) or ""
-    dev_rdepends = d.getVar("AUTO_PACKAGE_LIBS_DEV_RDEPENDS", True) or ""
+    dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
+    dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS")
+    if dev_rdepends is None:
+        dev_rdepends = dev_depends
 
     def get_extra_files(pkg):
         #return (d.get("FILES_" + pkg) or "").split()
