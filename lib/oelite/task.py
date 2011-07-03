@@ -218,7 +218,10 @@ class OEliteTask:
                 wd = self.do_dirs(prefunc)
                 if not prefunc.run(wd or cwd):
                     return False
-            if not function.run(cwd):
+            try:
+                if not function.run(cwd):
+                    return False
+            except oebakery.FatalError:
                 return False
             for postfunc in self.get_postfuncs():
                 print "running postfunc", postfunc
