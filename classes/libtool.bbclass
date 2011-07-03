@@ -10,16 +10,6 @@ TARGET_LIBTOOL	= "${TARGET_PREFIX}libtool"
 LIBTOOL		= "${HOST_LIBTOOL}"
 #export LIBTOOL
 
-addhook libtool_fixup to post_recipe_parse
-def libtool_fixup(d):
-    build_arch = d.getVar("BUILD_ARCH", True)
-    host_arch = d.getVar("HOST_ARCH", True)
-    target_arch = d.getVar("TARGET_ARCH", True)
-    if host_arch == build_arch:
-        d.setVar("HOST_LIBTOOL", "${BUILD_LIBTOOL}")
-    if target_arch == build_arch:
-        d.setVar("TARGET_LIBTOOL", "${BUILD_LIBTOOL}")
-
 LIBTOOL_NATIVE_SCRIPTS				= ""
 LIBTOOL_HOST_SCRIPTS				= ""
 LIBTOOL_TARGET_SCRIPTS				= "libtool"
@@ -32,7 +22,7 @@ LIBTOOL_HOST_SCRIPT_FIXUP			= "0"
 LIBTOOL_TARGET_SCRIPT_FIXUP			= "0"
 
 libtool_script_fixup () {
-    oenote libtool_script_fixup
+    oenote "libtool_script_fixup"
 
     if [ "${LIBTOOL_NATIVE_SCRIPT_FIXUP}" = "1" ] ; then
         for script in ${LIBTOOL_NATIVE_SCRIPTS} ; do
@@ -50,7 +40,7 @@ libtool_script_fixup () {
             if [ -f $script ]; then
                 rm -f $script
                 ln -s \
-                    ${STAGE_DIR}/cross${stage_bindir}/${HOST_PREFIX}libtool \
+                    ${STAGE_DIR}/${HOST_CROSS}/${stage_bindir}/${HOST_LIBTOOL} \
                     $script
             fi
         done
@@ -61,7 +51,7 @@ libtool_script_fixup () {
             if [ -f $script ]; then
                 rm -f $script
                 ln -s \
-                    ${STAGE_DIR}/cross${stage_bindir}/${TARGET_PREFIX}libtool \
+                    ${STAGE_DIR}/${TARGET_CROSS}/${stage_bindir}/${TARGET_LIBTOOL} \
                     $script
             fi
         done
