@@ -494,7 +494,7 @@ do_install () {
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
 # (almost) the same
-PACKAGES = "${PN}-dbg ${PN}-g++ ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb"
+PACKAGES = "${PN}-dbg ${PN}-g++ ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb ${PN}-ldscripts"
 
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "target:${PN}-sysroot-dev"
@@ -543,6 +543,10 @@ ${base_prefix}/${TARGET_ARCH}/bin/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/*/.debug \
 "
+
+FILES_${PN}-gdb = "${datadir}/gcc-${GCC_VERSION}/python"
+
+FILES_${PN}-ldscripts = "${libdir}/ldscripts"
 
 TARGET_PACKAGES += "${PN}-sysroot-libc"
 FILES_${PN}-sysroot-libc = "\
