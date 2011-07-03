@@ -66,17 +66,13 @@ do_install() {
 PACKAGES =+ "${PN}-tools ${PN}-terminfo"
 
 inherit auto-package-libs
-AUTO_PACKAGE_LIBS = "form menu ncurses panel termcap"
+AUTO_PACKAGE_LIBS = "ncurses termcap form menu panel"
 
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
 FILES_${PN} = "${bindir}/tput ${bindir}/tset ${datadir}/tabset ${sysconfdir}/terminfo"
 FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack "
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
-
-#FILES_${PN}-libncurses-dev = "\
-#    ${libdir}/libtermcap.a \
-#    ${libdir}/libtermcap${SOLIBSDEV}"
 
 DEPENDS_${PN} += "libncurses"
 DEPENDS_${PN}-dev = ""
