@@ -270,12 +270,12 @@ class OEliteTask:
 
     def get_postfuncs(self):
         postfuncs = []
-        for name in (self.meta.get_flag(self.name, "postfuncs") or "").split():
+        for name in (self.meta.get_flag(self.name, "postfuncs", 1) or "").split():
             postfuncs.append(self.meta.get_function(name))
         return postfuncs
 
     def get_prefuncs(self):
         prefuncs = []
-        for name in (self.meta.get_flag(self.name, "prefuncs") or "").split():
+        for name in (self.meta.get_flag(self.name, "prefuncs", 1) or "").split():
             prefuncs.append(self.meta.get_function(name))
         return prefuncs
