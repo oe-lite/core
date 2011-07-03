@@ -256,6 +256,9 @@ tokens += list(addhook_reserved.values())
 
 addhook_hooknames = [
     'post_conf_parse',
+    'post_common_inherits',
+    'pre_recipe_parse',
+    'mid_recipe_parse',
     'post_recipe_parse',
     ]
 tokens.append('HOOKNAME')
