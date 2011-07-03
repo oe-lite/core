@@ -1,3 +1,19 @@
+# -*- mode:python; -*-
+
+addhook sh_sanity to post_common_inherits last
+def sh_sanity(d):
+    import bb, subprocess
+    try:
+        sh_version = subprocess.check_output(
+            ["/bin/sh", "--version"], stderr=open("/dev/null"))
+        assert sh_version.startswith("GNU bash")
+    except:
+        if os.path.islink("/bin/sh"):
+            sh = os.readlink("/bin/sh")
+            bb.fatal("/bin/sh is symlinked to %s (must be bash)"%(sh))
+        else:
+            bb.fatal("/bin/sh must be bash)")
+
 addhook sanity to post_recipe_parse last
 def sanity(d):
     pn = d.get("PN")
@@ -20,4 +36,3 @@ def sanity(d):
     for override in overrides:
         if '${' in override:
             raise Exception("Unexpanded variables in OVERRIDES")
-    
