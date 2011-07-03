@@ -138,7 +138,7 @@ class BBParser(object):
 
     def p_defaultval_assignment(self, p):
         '''assignment : variable LAZYASSIGN STRING'''
-        self.meta.set(p[1], "defaultval", p[3])
+        self.meta.set_flag(p[1], "defaultval", p[3])
         return
 
     def p_weak_var_assignment(self, p):

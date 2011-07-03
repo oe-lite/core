@@ -129,7 +129,10 @@ class DictMeta(MetaData):
         try:
             val = self.dict[var][""]
         except KeyError:
-            val = None
+            try:
+                val = self.dict[var]["defaultval"]
+            except KeyError:
+                val = None
         if not expand:
             return (val, None)
         if not var in self.dict:
