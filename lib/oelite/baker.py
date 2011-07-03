@@ -182,11 +182,14 @@ class OEliteBaker:
             die("Cannot find %s"%(thing))
 
         if self.options.task:
+            if self.options.task.startswith("do_"):
+                task = self.otpions.task
+            else:
+                task = "do_" + self.options.task
             self.runq = OEliteRunQueue(self.config, self.cookbook)
-            self.runq._add_recipe(recipe, self.options.task)
-            task = recipe.get_task(self.options.task)
-            #recipe.prepare(self.runq, task_name)
-            meta = task.get_function().meta
+            self.runq._add_recipe(recipe, task)
+            task = self.cookbook.get_task(recipe=recipe, name=task)
+            meta = task.prepare_meta(self.runq)
         else:
             meta = recipe.meta
 
