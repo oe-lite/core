@@ -14,11 +14,10 @@ EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
 
 CLASS_FLAGS += "kernel_defconfig"
 DEFCONFIG_FILE ?= "${SRCDIR}/defconfig"
-#DEFCONFIG = "${@d.getVar('RECIPE_OPTION_kernel_defconfig', 1) or ''}"
 DEFCONFIG = "${USE_kernel_defconfig}"
 DEFCONFIG[expand] = 3
 
-kernel_do_configure () {
+do_configure_kernel () {
     if [ -e "${DEFCONFIG_FILE}" ]; then
 	cp "${DEFCONFIG_FILE}" "${S}/.config"
 	yes '' | oe_runmake oldconfig
@@ -32,7 +31,7 @@ kernel_do_configure () {
 }
 
 do_configure () {
-    kernel_do_configure
+    do_configure_kernel
 }
 
 #do_menuconfig() {
@@ -47,7 +46,7 @@ do_configure () {
 #do_menuconfig[nostamp] = "1"
 #addtask menuconfig after do_patch
 
-kernel_do_compile () {
+do_compile_kernel () {
     if [ -n "${BUILD_TAG}" ]; then
         export KBUILD_BUILD_VERSION="${BUILD_TAG}"
     fi
@@ -67,8 +66,10 @@ kernel_do_compile () {
     fi
 }
 
+COMPILE_POSTFUNCS = ""
+do_compile[postfuncs] = "${COMPILE_POSTFUNCS}"
 do_compile () {
-    kernel_do_compile
+    do_compile_kernel
 }
 
 DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
@@ -82,7 +83,8 @@ DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
 DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_uimage_entrypoint}"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
-kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
+COMPILE_POSTFUNCS:>USE_kernel_uimage = "do_compile_kernel_uimage"
+do_compile_kernel_uimage() {
     ENTRYPOINT=${USE_kernel_uimage_entrypoint}
     if [ -n "$UBOOT_ENTRYSYMBOL" ] ; then
         ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
@@ -136,12 +138,13 @@ def kernel_devicetree_init(d):
     else:
 	d.setVar('KERNEL_DEVICETREE', '')
 
-kernel_do_compile_append_USE_kernel_dtc () {
-    scripts/dtc/dtc -I dts -O dtb ${RECIPE_OPTION_kernel_dtc_flags} \
-	-o ${KERNEL_DEVICETREE} ${RECIPE_OPTION_kernel_dtc_source}
+COMPILE_POSTFUNCS:>USE_kernel_dtc = "do_compile_kernel_dtc"
+do_compile_kernel_dtc() {
+    scripts/dtc/dtc -I dts -O dtb ${USE_kernel_dtc_flags} \
+	-o ${KERNEL_DEVICETREE} ${USE_kernel_dtc_source}
 }
 
-kernel_do_install () {
+do_install_kernel () {
     install -d ${D}${bootdir}
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
     install -m 0644 .config ${D}${bootdir}/config
@@ -184,7 +187,7 @@ install_kernel_headers () {
 }
 
 do_install () {
-    kernel_do_install
+    do_install_kernel
 }
 
 PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-kernel-headers"
