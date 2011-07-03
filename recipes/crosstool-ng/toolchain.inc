@@ -738,18 +738,18 @@ ${base_prefix}/${TARGET_ARCH}/sysroot \
 #/lib (- /lib/gcc/${TARGET_ARCH})
 #/${TARGET_ARCH}/debug-root
 
-
-SPLIT_FUNCS += "split_sysroot_mangle"
-SPLIT_FUNCS:>HOST_OS_mingw32 += " split_sysroot_mangle_mingw32"
-SPLIT_FUNCS:>cross += " split_sysroot_mangle_stage"
-SPLIT_FUNCS:>sdk-cross += " split_sysroot_mangle_stage"
-SPLIT_FUNCS:>native += " split_sysroot_mangle_stage"
-SPLIT_FUNCS:>machine += " split_sysroot_mangle_sdk"
-SPLIT_FUNCS:>sdk += " split_sysroot_mangle_sdk"
-SPLIT_FUNCS:>canadian-cross += " split_sysroot_mangle_sdk"
+SPLIT_FUNCS = "do_split_sysroot_mangle"
+SPLIT_FUNCS:>HOST_OS_mingw32 = " do_split_sysroot_mangle_mingw32"
+SPLIT_FUNCS:>cross = " do_split_sysroot_mangle_stage"
+SPLIT_FUNCS:>sdk-cross = " do_split_sysroot_mangle_stage"
+SPLIT_FUNCS:>native = " do_split_sysroot_mangle_stage"
+SPLIT_FUNCS:>machine = " do_split_sysroot_mangle_sdk"
+SPLIT_FUNCS:>sdk = " do_split_sysroot_mangle_sdk"
+SPLIT_FUNCS:>canadian-cross = " do_split_sysroot_mangle_sdk"
+do_split[postfuncs] = "${SPLIT_FUNCS}"
 
 # Move the machine sysroot packages into proper target layout
-split_sysroot_mangle () {
+do_split_sysroot_mangle () {
 	cd ${PKGD}
 	# Fixup the layout of the sysroot packages
 	for pkg in ${TARGET_PACKAGES} ; do
@@ -786,7 +786,7 @@ split_sysroot_mangle () {
 	ln -s ./sysroot/usr/include ${PN}/${TARGET_ARCH}/include
 }
 
-split_sysroot_mangle_mingw32 () {
+do_split_sysroot_mangle_mingw32 () {
     # Move object files (*.o) to usr/lib so that ld can find them through
     # the mingw/lib dir (mingw symlinks to /usr)
     for pkg in ${TARGET_PACKAGES} ; do
@@ -799,13 +799,13 @@ split_sysroot_mangle_mingw32 () {
 }
 
 # Add symlinks to get sysroot back on stage for internal cross packages
-split_sysroot_mangle_stage () {
+do_split_sysroot_mangle_stage () {
 	cd ${PKGD}
 	ln -s ../../${TARGET_TYPE} ${PN}/${TARGET_ARCH}/sysroot
 }
 
 # Add empty sysroot dir in sdk packages
-split_sysroot_mangle_sdk () {
+do_split_sysroot_mangle_sdk () {
 	cd ${PKGD}
 	mkdir -p ${PN}/${TARGET_ARCH}/sysroot
 }
