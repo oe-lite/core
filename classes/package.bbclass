@@ -33,14 +33,10 @@ def do_split(d):
     main_pkg = bb.data.getVar("PN", d, 1)
 
     for pkg in package_list:
-        localdata = bb.data.createCopy(d)
         root = os.path.join(pkgd, pkg)
         bb.utils.mkdirhier(root)
 
-        bb.data.setVar("PKG", pkg, localdata)
-
-        filesvar = bb.data.getVar("FILES_%s"%(pkg), localdata, True) or ""
-        files = filesvar.split()
+        files = (d.get("FILES_" + pkg) or "").split()
         for file in files:
             if os.path.isabs(file):
                 file = "." + file
@@ -76,7 +72,6 @@ def do_split(d):
                 raise bb.build.FuncFailed("File population failed")
             if pkg == main_pkg and main_is_empty:
                 main_is_empty = 0
-        del localdata
 
     unshipped = []
     for root, dirs, files in os.walk(ddir + "/"):
@@ -86,14 +81,10 @@ def do_split(d):
                 unshipped.append(path)
 
     if unshipped != []:
-        bb.note("the following files were installed but not shipped in any package:")
+        bb.error("the following files were installed but not in any package:")
         for f in unshipped:
             bb.note("  " + f)
-
-    for pkg in package_list:
-        pkgname = bb.data.getVar("PKG_%s" % pkg, d, 1)
-        if pkgname is None:
-            bb.data.setVar("PKG_%s" % pkg, pkg, d)
+        bb.fatal("unpackaged files")
 
     dangling_links = {}
     pkg_files = {}
@@ -116,10 +107,9 @@ def do_split(d):
                         target = os.path.join(root[len(inst_root):], target)
                     dangling_links[pkg].append(os.path.normpath(target))
 
+    really_dangling = False
     for pkg in package_list:
-        rdepends = bb.utils.explode_deps(
-            bb.data.getVar("RDEPENDS_" + pkg, d, 0) or "")
-
+        rdepends = (d.get("RDEPENDS_" + pkg) or "").split()
         for l in dangling_links[pkg]:
             found = False
             print "%s contains dangling link %s"%(pkg, l)
@@ -127,15 +117,15 @@ def do_split(d):
                 for f in pkg_files[p]:
                     if f == l:
                         found = True
-                        print "target found in %s"%(p)
                         if p == pkg:
+                            print "target found in %s"%(p)
                             break
-                        if not p in rdepends:
-                            rdepends.append(p)
-                        break
+                        bb.error("target found in %s"%(p))
+                        really_dangling = True
             if found == False:
-                bb.note("%s contains dangling symlink to %s" % (pkg, l))
-        bb.data.setVar("RDEPENDS_" + pkg, " " + " ".join(rdepends), d)
+                bb.error("%s contains dangling symlink to %s" % (pkg, l))
+    if really_dangling:
+        bb.fatal("dangling symlinks")
 
 do_package[dirs] = "${PKGD}"
 
