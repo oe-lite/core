@@ -1,19 +1,18 @@
 # -*- mode:python; -*-
 
-#
-# General packaging help functions
-#
-
 addtask split after do_fixup
 addtask package after do_split before do_build
 
+do_split[cleandirs] = "${PKGD}"
+do_split[dirs] = "${PKGD} ${D}"
 
-#
-# Package functions suitable for inclusion in *_FUNCS
-#
+def do_split(d):
+    import glob, errno, stat
 
-python package_split () {
-    import bb, glob, errno, re, stat
+    packages = (bb.data.getVar("PACKAGES", d, 1) or "").split()
+    if len(packages) < 1:
+        bb.error("No packages to build")
+        return False
 
     ddir = bb.data.getVar("D", d, True)
     pkgd = bb.data.getVar("PKGD", d, True)
@@ -137,33 +136,6 @@ python package_split () {
             if found == False:
                 bb.note("%s contains dangling symlink to %s" % (pkg, l))
         bb.data.setVar("RDEPENDS_" + pkg, " " + " ".join(rdepends), d)
-}
-package_split[dirs] = "${D}"
-
-SPLIT_FUNCS = "package_split"
-# FIXME: package_pkgconfig should be dynamically added to
-# SPLIT_FUNCS by pkgconfig.bbclass
-# package_split_locales
-# package_shlibs
-# package_pkgconfig
-# package_depchains
-
-
-do_split[cleandirs] = "${PKGD}"
-do_split[dirs] = "${PKGD} ${D}"
-
-def do_split(d):
-    packages = (bb.data.getVar("PACKAGES", d, 1) or "").split()
-    if len(packages) < 1:
-        bb.error("No packages to build")
-        return
-
-    for funcname in (d.get("SPLIT_FUNCS") or "").split():
-        print "Running SPLIT_FUNC", funcname
-        function = d.get_function(funcname)
-        if not function.run(os.getcwd()):
-            return False
-
 
 do_package[dirs] = "${PKGD}"
 
