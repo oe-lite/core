@@ -4,11 +4,8 @@ require conf/meta.conf
 
 STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 
-python binconfig_stage_fixup () {
+def binconfig_stage_fixup(d):
     import re, fileinput, os
-
-    unpackdir = d.getVar("STAGE_UNPACKDIR", True)
-    os.chdir(unpackdir)
 
     metafile = d.getVar("binconfigfilelist", True).lstrip("/")
     if not os.path.exists(metafile):
@@ -20,9 +17,9 @@ python binconfig_stage_fixup () {
     subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
     sysroot = os.path.join(stage_dir, subdir)
 
-    if subdir == "native":
+    if subdir in ("native", "cross", "sdk-cross"):
         dirname_prefix = "stage_"
-    elif subdir == "target/sysroot":
+    elif subdir == "canadian-cross":
         dirname_prefix = "target_"
     else:
         dirname_prefix = ""
@@ -69,4 +66,3 @@ python binconfig_stage_fixup () {
             output_file.write(binconfig_file)
 
     os.unlink(metafile)
-}
