@@ -401,8 +401,12 @@ class OEliteRunQueue:
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
-                    _recdepends = recursive_resolve(depend, _recursion_path,
-                                                    package.type)
+                    try:
+                        _recdepends = recursive_resolve(depend, _recursion_path,
+                                                        package.type)
+                    except NoProvider, e:
+                        raise die("No provider for %s (needed by %s)"%(
+                                e.args[0], item))
                     recdepends.update(_recdepends)
 
             set_recdepends(package, recdepends)
@@ -420,7 +424,11 @@ class OEliteRunQueue:
         recdepends = set()
 
         for depend in depends:
-            _recdepends = resolve(depend, ([], []), recipe.type)
+            try:
+                _recdepends = resolve(depend, ([], []), recipe.type)
+            except NoProvider, e:
+                raise die("No provider for %s (needed by %s)"%(
+                        e.args[0], depend))
             recdepends.update(_recdepends)
 
         return recdepends
