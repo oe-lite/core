@@ -4,37 +4,31 @@ inherit binconfig-stage
 inherit libtool-stage
 addtask stage before do_fetch
 
-do_stage[cleandirs] =	"${STAGE_DIR}"
-do_stage[dirs] =	"${STAGE_DIR}"
-do_stage[recdeptask] =	"do_package"
+do_stage[cleandirs]	= "${STAGE_DIR}"
+do_stage[dirs]		= "${STAGE_DIR}"
+do_stage[recdeptask]	= "do_package"
 
 do_stage[import] = "set_stage"
 def do_stage(d):
-    return set_stage(d, recipe_type_subdir=True)
+    def get_dstdir(cwd, package):
+        return os.path.join(cwd, package.type)
+    return set_stage(d, "__stage", "STAGE_FIXUP_FUNCS", get_dstdir)
 
-def set_stage(d, recipe_type_subdir=True):
+def set_stage(d, stage, stage_fixup_funcs, get_dstdir):
     import tempfile
     import shutil
     from oebakery import debug, info, warn, err, die
 
     cwd = os.getcwd()
-    if not recipe_type_subdir:
-        subdir = None
 
-    stage = d.get("__stage")
+    stage = d.get(stage)
     stage_files = stage.keys()
     stage_files.sort()
     for filename in stage_files:
         package = stage[filename]
-        print "unpacking",filename,package
-        if recipe_type_subdir:
-            dstdir = os.path.join(cwd, package.type)
-        else:
-            dstdir = cwd
-
         if not os.path.isfile(filename):
             die("could not find stage file: %s"%(filename))
-
+        dstdir = get_dstdir(cwd, package)
         print "unpacking %s to %s"%(filename, dstdir)
 
         unpackdir = d.getVar("STAGE_UNPACKDIR", True)
@@ -43,8 +37,8 @@ def set_stage(d, recipe_type_subdir=True):
         os.system("tar xpf %s"%(filename))
 
         d["STAGE_FIXUP_PKG_TYPE"] = package.type
-        for funcname in (d.get("STAGE_FIXUP_FUNCS") or "").split():
-            print "Running STAGE_FIXUP_FUNC", funcname
+        for funcname in (d.get(stage_fixup_funcs) or "").split():
+            print "Running", stage_fixup_funcs, funcname
             function = d.get_function(funcname)
             if not function.run(unpackdir):
                 return False
