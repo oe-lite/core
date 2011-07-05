@@ -1,5 +1,9 @@
 addtask image_qa after do_compile before do_build
 
+# FIXME: improve gcc packaging, so that readelf can be obtained
+# without pulling in entire toolchain
+inherit c
+
 do_image_qa[dirs] = "${IMAGE_DIR}"
 
 IMAGE_QA_HOST_READELF ?= "${HOST_PREFIX}readelf"
