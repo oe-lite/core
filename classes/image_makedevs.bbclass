@@ -1,6 +1,6 @@
 require conf/makedevs.conf
 
-CLASS_DEPENDS:>USE_makedevs = " makedevs-native"
+CLASS_DEPENDS:>USE_makedevs = " native:makedevs"
 IMAGE_PREPROCESS_FUNCS:>USE_makedevs = " image_preprocess_makedevs"
 
 image_preprocess_makedevs () {
