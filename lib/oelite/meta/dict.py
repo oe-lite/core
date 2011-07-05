@@ -146,7 +146,8 @@ class DictMeta(MetaData):
 
         override_dep = None
         if "__overrides" in self.dict[var]:
-            current_overrides = self.get_overrides()
+            current_overrides, override_dep = self._get_overrides()
+            override_dep.add("OVERRIDES")
             var_overrides = self.dict[var]["__overrides"]['']
             append_overrides = self.dict[var]["__overrides"]['>']
             prepend_overrides = self.dict[var]["__overrides"]['<']
@@ -188,18 +189,21 @@ class DictMeta(MetaData):
             self.expand_stack.pop()
 
         if override_dep:
-            deps.add(override_dep)
+            deps = deps.union(override_dep)
         self.expand_cache[var] = (val, deps)
         return (val, deps)
 
 
     def get_overrides(self):
-        overrides = (self.get("OVERRIDES", 2) or "").split(":")
+        return _get_overrides(self)[0]
+
+    def _get_overrides(self):
+        overrides = self._get("OVERRIDES", 2)
         filtered = []
-        for override in overrides:
+        for override in overrides[0].split(":"):
             if not "${" in override:
                 filtered.append(override)
-        return filtered
+        return (filtered, overrides[1])
 
 
     def get_flag(self, var, flag, expand=False):
