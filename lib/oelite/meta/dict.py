@@ -21,7 +21,7 @@ class DictMeta(MetaData):
         return
 
 
-    INDEXED_FLAGS = ("python", "task", "autoimport")
+    INDEXED_FLAGS = ("python", "task", "autoimport", "precondition")
 
 
     def __init__(self, meta=None):
