@@ -80,7 +80,7 @@ class ParseError(Exception):
             self.symbol = self.details.value[0]
         else:
             self.symbol = self.details.value
-        if self.symbol and self.symbol.endswith("\n"):
+        if isinstance(self.symbol, basestring) and self.symbol.endswith("\n"):
             # FIXME: is this always correct?
             self.errlineno -= 1
         if "filename" in dir(self.parser):
