@@ -47,6 +47,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir):
         bb.utils.mkdirhier(dstdir)
 
         # FIXME: do better
+        conflicts = False
         for root, dirs, files in os.walk("."):
             for f in dirs:
                 srcfile = os.path.join(root, f)
@@ -54,14 +55,18 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir):
                 if os.path.isdir(dstfile):
                     continue
                 if os.path.exists(dstfile):
-                    warn("file exist in stage: %s" % dstfile)
+                    bb.error("file exist in stage: %s" % dstfile)
+                    conflicts = True
                 os.renames(srcfile, dstfile)
             for f in files:
                 srcfile = os.path.join(root, f)
                 dstfile = os.path.join(dstdir, srcfile)
                 if os.path.exists(dstfile):
-                    warn("file exist in stage: %s" % dstfile)
+                    bb.error("file exist in stage: %s" % dstfile)
+                    conflicts = True
                 os.renames(srcfile, dstfile)
+        if conflicts:
+            bb.fatal("file conflicts in stage")
 
         os.chdir(dstdir)
         shutil.rmtree(unpackdir)
