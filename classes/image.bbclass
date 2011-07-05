@@ -24,7 +24,8 @@ do_compile[dirs] = "${IMAGE_DIR}"
 do_compile[cleandirs] = "${IMAGE_DIR}"
 
 fakeroot do_compile () {
-    cp -a ${IMAGE_STAGE}/. ./
+    echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+    cp -a ${RSTAGE_DIR}/. ./
     for func in ${IMAGE_PREPROCESS_FUNCS}; do
         $func
     done
@@ -42,64 +43,26 @@ do_deploy() {
     :
 }
 
-do_rstage[dirs] = "${IMAGE_STAGE}"
-do_rstage[cleandirs] = "${IMAGE_STAGE}"
-do_rstage[recrdeptask] = "do_package"
+do_rstage[cleandirs]	= "${RSTAGE_DIR}"
+do_rstage[dirs]		= "${RSTAGE_DIR}"
+do_rstage[recrdeptask]	= "do_package"
 
-python do_rstage () {
-    recrdepends = d.getVar("RECRDEPENDS", False)
-    bb.debug(1, "RECRDEPENDS=%s"%recrdepends)
-
-    def image_stage_install(rdep):
-        bb.debug(2, "adding run-time dependency %s to stage"%rdep)
-
-        pkg = d.getVar("PKGRPROVIDER_%s"%rdep, False)
-        if not pkg:
-            bb.msg.fatal(bb.msg.domain.Build,
-                         "Error getting PKGPROVIDER_%s"%rdep)
-            return False
-
-        filename = pkg
-        #filename = os.path.join(d.getVar("PACKAGE_DEPLOY_DIR", True), pkg)
-        if not os.path.isfile(filename):
-            bb.error("could not find %s to satisfy %s"%(filename, rdep))
-            return False
-
-        # FIXME: extend BitBake with dependency handling that can
-        # differentiate between host and target depencies for
-        # canadian-cross recipes, and then cleanup this mess
-        host_arch = d.getVar("HOST_ARCH", True)
-        target_arch = d.getVar("TARGET_ARCH", True)
-        subdir = d.getVar("PKGSUBDIR_%s"%rdep, False)
-        if (d["RECIPE_TYPE"] == "canadian-cross" and
-            subdir.startswith("target/")):
-            subdir = os.path.join(target_arch, "sysroot")
-        else:
-            subdir = ""
-
-        bb.note("unpacking %s to %s"%(filename, os.path.abspath(subdir)))
-        cmd = "tar xpf %s"%filename
-        if subdir:
-            if not os.path.exists(subdir):
-                os.makedirs(subdir)
-            cmd = "cd %s;%s"%(subdir, cmd)
-        os.system(cmd)
-
-        return True
-
-    for rdep in recrdepends.split():
-        if not image_stage_install(rdep):
-            bb.msg.fatal(bb.msg.domain.Build,
-                         "image_stage_install(%s) failed"%(rdep))
-            return False
-
-    for f in (bb.data.getVar("RSTAGE_FIXUP_FUNCS", d, 1) or "").split():
-        bb.build.exec_func(f, d)
-
+do_rstage[import] = "set_stage"
+def do_rstage(d):
+    if d.get("RECIPE_TYPE") == "canadian-cross":
+        def get_dstdir(cwd, package):
+            if package.type == "machine":
+                return os.path.join(package.arch, "sysroot")
+            else:
+                return cwd
+    else:
+        def get_dstdir(cwd, package):
+            return cwd
+    retval = set_stage(d, "__rstage", "RSTAGE_FIXUP_FUNCS", get_dstdir)
     metadir = d.getVar("metadir", True).lstrip("/")
     if os.path.exists(metadir):
         import shutil
         shutil.rmtree(metadir)
-}
+    return retval
 
 RSTAGE_FIXUP_FUNCS ?= ""
