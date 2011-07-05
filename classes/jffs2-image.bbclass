@@ -1,8 +1,10 @@
+# -*- mode:python; -*-
+
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
-JFFS2_IMAGE_DEPENDS = "mtd-utils-native-mkfs-jffs2"
+JFFS2_IMAGE_DEPENDS = "native:mtd-utils-mkfs-jffs2"
 CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
 
 IMAGE_CREATE_FUNCS += "jffs2_image"
