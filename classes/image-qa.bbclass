@@ -7,17 +7,27 @@ inherit c
 do_image_qa[dirs] = "${IMAGE_DIR}"
 
 IMAGE_QA_HOST_READELF ?= "${HOST_PREFIX}readelf"
-IMAGE_QA_HOST_READELF_SEARCH_DIRS ?= "${base_sbindir} ${base_bindir} ${sbindir} ${bindir} ${base_libdir} ${libdir}"
-IMAGE_QA_HOST_READELF_LIB_DIRS ?= "${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
+IMAGE_QA_HOST_READELF_SEARCH_DIRS ?= "\
+	${base_sbindir} ${base_bindir} ${sbindir} ${bindir} \
+	${base_libdir} ${libdir} \
+"
+IMAGE_QA_HOST_READELF_LIB_DIRS ?= "\
+	${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
 
-IMAGE_QA_TARGET_READELF ?= "${TARGET_PREFIX}readelf"
-IMAGE_QA_TARGET_READELF_recipe-native ?= ""
-IMAGE_QA_TARGET_READELF_recipe-cross ?= ""
-IMAGE_QA_TARGET_READELF_recipe-machine ?= ""
-IMAGE_QA_TARGET_READELF_recipe-sdk-cross ?= ""
-IMAGE_QA_TARGET_READELF_recipe-sdk ?= ""
-IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "${TARGET_ARCH}/sysroot${target_base_sbindir} ${TARGET_ARCH}/sysroot${target_base_bindir} ${TARGET_ARCH}/sysroot${target_sbindir} ${TARGET_ARCH}/sysroot${target_bindir} ${TARGET_ARCH}/sysroot${target_base_libdir} ${TARGET_ARCH}/sysroot${target_libdir}"
-IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_base_libdir} ${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_libdir}"
+IMAGE_QA_TARGET_READELF:machine ?= "${TARGET_PREFIX}readelf"
+IMAGE_QA_TARGET_READELF:canadian-cross ?= "${TARGET_PREFIX}readelf"
+IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "\
+	${TARGET_ARCH}/sysroot${target_base_sbindir} \
+	${TARGET_ARCH}/sysroot${target_base_bindir} \
+	${TARGET_ARCH}/sysroot${target_sbindir} \
+	${TARGET_ARCH}/sysroot${target_bindir} \
+	${TARGET_ARCH}/sysroot${target_base_libdir} \
+	${TARGET_ARCH}/sysroot${target_libdir} \
+"
+IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "\
+	${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_base_libdir} \
+	${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_libdir} \
+"
 
 python do_image_qa () {
     import os, magic, re
