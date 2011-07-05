@@ -25,7 +25,8 @@ def exechooks(meta, name, hooks=None):
             name = "%s.%s.%s"%(pn, meta.get("RECIPE_TYPE"), function)
         else:
             name = function
-        hook = meta.get_pythonfunc(function, name, tmpdir=tmpdir)
+        hook = meta.get_pythonfunc(function, name, tmpdir=tmpdir,
+                                   set_ld_library_path=False)
         retval = hook.run(tmpdir)
         if retval is not None and not retval:
             raise oelite.HookFailed(name, function, retval)

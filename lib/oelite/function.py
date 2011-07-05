@@ -11,7 +11,8 @@ import re
 
 class OEliteFunction:
 
-    def __init__(self, meta, var, name=None, tmpdir=None):
+    def __init__(self, meta, var, name=None, tmpdir=None,
+                 set_ld_library_path=True):
         self.meta = meta
         self.var = var
         if name:
@@ -25,8 +26,11 @@ class OEliteFunction:
             if not self.tmpdir:
                 die("T variable not set, unable to build")
         self.flags = meta.get_flags(var, oelite.meta.FULL_EXPANSION)
+        if set_ld_library_path:
+            self.ld_library_path = self.meta.get("LD_LIBRARY_PATH")
+        else:
+            self.ld_library_path = None
         return
-
     def __str__(self):
         return "%s"%(self.var)
 
@@ -61,7 +65,8 @@ class NoopFunction(OEliteFunction):
 
 class PythonFunction(OEliteFunction):
 
-    def __init__(self, meta, var, name=None, tmpdir=None, recursion_path=None):
+    def __init__(self, meta, var, name=None, tmpdir=None, recursion_path=None,
+                 set_ld_library_path=True):
         # Don't put the empty list directly in the function definition
         # as default arguments, as modifications of this "empty" list
         # will be done in-place so that it will not be truly empty
@@ -88,25 +93,25 @@ class PythonFunction(OEliteFunction):
         eval(self.code, g, l)
         self.function = l[var]
         #super(PythonFunction, self).__init__(var)
-        OEliteFunction.__init__(self, meta, var, name, tmpdir)
+        OEliteFunction.__init__(self, meta, var, name, tmpdir,
+                                set_ld_library_path)
         return
 
     def __call__(self):
-        old_ld_library_path = None
-        ld_library_path = self.meta.get("LD_LIBRARY_PATH")
-        if ld_library_path:
+        if self.ld_library_path:
+            old_ld_library_path = None
             try:
                 old_ld_library_path = os.environ["LD_LIBRARY_PATH"]
                 if old_ld_library_path:
                     ld_library_path = "%s:%s"%(old_ld_library_path,
-                                               ld_library_path)
+                                               self.ld_library_path)
             except KeyError:
-                pass
+                ld_library_path = self.ld_library_path
             os.environ["LD_LIBRARY_PATH"] = ld_library_path
         try:
             retval = self.function(self.meta)
         finally:
-            if ld_library_path:
+            if self.ld_library_path:
                 if old_ld_library_path:
                     os.environ["LD_LIBRARY_PATH"] = old_ld_library_path
                 else:
@@ -118,9 +123,11 @@ class PythonFunction(OEliteFunction):
 
 class ShellFunction(OEliteFunction):
 
-    def __init__(self, meta, var, name=None, tmpdir=None):
+    def __init__(self, meta, var, name=None, tmpdir=None,
+                 set_ld_library_path=True):
         #super(ShellFunction, self).__init__(meta, var, name, tmpdir)
-        OEliteFunction.__init__(self, meta, var, name, tmpdir)
+        OEliteFunction.__init__(self, meta, var, name, tmpdir,
+                                set_ld_library_path)
         return
 
     def __call__(self):
@@ -169,9 +176,10 @@ class ShellFunction(OEliteFunction):
         if oebakery.DEBUG:
             runfile.write("set -x\n")
         ld_library_path = self.meta.get("LD_LIBRARY_PATH")
-        if ld_library_path:
+        flags = self.meta.get_flags("LD_LIBRARY_PATH")
+        if self.ld_library_path:
             runfile.write("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:"
-                          + ld_library_path + "\"\n")
+                          + self.ld_library_path + "\"\n")
         runfile.write("cd %s\n"%(os.getcwd()))
         runfile.write("%s\n"%(self.name))
         runfile.close()

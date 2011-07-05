@@ -172,11 +172,13 @@ class MetaData(MutableMapping):
         return pythonfuncs
 
 
-    def get_pythonfunc(self, var, name=None, tmpdir=None):
+    def get_pythonfunc(self, var, name=None, tmpdir=None,
+                       set_ld_library_path=True):
         #if function in self.pythonfunc_cache:
         #    return self.pythonfunc_cache[function]
         function = oelite.function.PythonFunction(
-            self, var, name=name, tmpdir=tmpdir)
+            self, var, name=name, tmpdir=tmpdir,
+            set_ld_library_path=set_ld_library_path)
         #self.pythonfunc_cache[function] = function
         return function
 
