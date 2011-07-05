@@ -14,14 +14,14 @@ dupdate_image() {
 	)
 }
 
-RECIPE_OPTIONS_append += "dupdate_script dupdate_version"
+CLASS_FLAGS += "dupdate_script dupdate_version"
 
 do_install_append () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
 }
 
-RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_version += "dupdate_version"
-RSTAGE_FIXUP_FUNCS_append_RECIPE_OPTION_dupdate_script += "dupdate_script"
+RSTAGE_FIXUP_FUNCS:>USE_dupdate_version = " dupdate_version"
+RSTAGE_FIXUP_FUNCS:>USE_dupdate_script = " dupdate_script"
 
 RSTAGE_FIXUP_FUNCS += "dupdate_flatten_bootdir"
 dupdate_flatten_bootdir () {
@@ -33,12 +33,12 @@ dupdate_flatten_bootdir () {
 dupdate_flatten_bootdir[dirs] = "${RSTAGE_DIR}"
 
 dupdate_version () {
-	echo "${RECIPE_OPTION_dupdate_version}" > VERSION
+	echo "${USE_dupdate_version}" > VERSION
 }
 dupdate_version[dirs] = "${RSTAGE_DIR}"
 
 dupdate_script () {
-	script="${RECIPE_OPTION_dupdate_script}"
+	script="${USE_dupdate_script}"
 	if [ "$script" != "run_update.sh" ] ; then
 		mv $script run_update.sh
 	fi
