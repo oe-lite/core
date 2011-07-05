@@ -229,6 +229,10 @@ class DictMeta(MetaData):
         for flag in self.dict["__flag_index"]:
             self.dict["__flag_index"][flag].discard(var)
         del self.dict[var]
+        try:
+            del self.expand_cache[var]
+        except KeyError:
+            pass
         return
 
 
