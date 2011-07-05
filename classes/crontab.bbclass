@@ -7,7 +7,8 @@ addtask install_crontab after do_install before do_fixup
 
 require conf/crontab.conf
 
-RDEPENDS_${PN}:>USE_crontab = "crond"
+CRONTAB_DEPENDS = " crond"
+RDEPENDS_${PN}:>USE_crontab = "${CRONTAB_DEPENDS}"
 
 do_install_crontab[dirs] = "${D}"
 
