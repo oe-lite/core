@@ -110,6 +110,8 @@ TARGET_STRIP	= "${D}/bin/${TARGET_PREFIX}strip"
 TARGET_OBJCOPY	= "${D}/bin/${TARGET_PREFIX}objcopy"
 OBJCOPY:TARGET_OS_mingw32 = ""
 
+BLACKLIST_VAR += "LD_LIBRARY_PATH"
+
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK[unexport]		= "1"
 CC[unexport]		= "1"
