@@ -1020,9 +1020,8 @@ class OEliteRunQueue:
 
 
     def prune_runq_depends_nobuild(self):
-        #c = self.dbc.cursor()
         rowcount = 0
-        while self.dbc.rowcount:
+        while True:
             self.dbc.execute(
                 "UPDATE runq.depend SET parent_task=NULL "
                 "WHERE parent_task IS NOT NULL AND NOT EXISTS "
@@ -1033,6 +1032,8 @@ class OEliteRunQueue:
                 ")")
             if rowcount == -1:
                 die("prune_runq_depends_nobuild did not work out")
+            if not self.dbc.rowcount:
+                break
             rowcount += self.dbc.rowcount
         if rowcount:
             debug("pruned %d dependencies that did not have to be rebuilt"%rowcount)
@@ -1042,7 +1043,7 @@ class OEliteRunQueue:
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
-        while self.dbc.rowcount:
+        while True:
             self.dbc.execute(
                 "DELETE FROM runq.depend "
                 "WHERE prime IS NULL AND NOT EXISTS "
@@ -1052,6 +1053,8 @@ class OEliteRunQueue:
                 ")")
             if rowcount == -1:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
+            if not self.dbc.rowcount:
+                break
             rowcount += self.dbc.rowcount
         if rowcount:
             debug("pruned %d dependencies which where not needed anyway"%rowcount)
@@ -1136,9 +1139,8 @@ class OEliteRunQueue:
 
 
     def set_task_build_on_retired_tasks(self):
-        #c = self.dbc.cursor()
         rowcount = 0
-        while self.dbc.rowcount:
+        while True:
             self.dbc.execute(
                 "UPDATE runq.task SET build=1 "
                 "WHERE build IS NULL AND EXISTS "
@@ -1148,18 +1150,23 @@ class OEliteRunQueue:
                 " AND parent_task.mtime > runq.task.mtime)")
             if rowcount == -1:
                 die("set_task_build_on_retired_tasks did not work out")
+            if not self.dbc.rowcount:
+                break
             rowcount += self.dbc.rowcount
         debug("set build flag on %d retired tasks"%(rowcount))
         return
 
 
     def set_task_build_on_hashdiff(self):
-        #c = self.dbc.cursor()
         rowcount = 0
-        while self.dbc.rowcount:
+        while True:
             self.dbc.execute(
                 "UPDATE runq.task SET build=1 "
                 "WHERE build IS NULL AND relax IS NULL AND tmphash != metahash")
+            if rowcount == -1:
+                die("set_task_build_on_hashdiff did not work out")
+            if not self.dbc.rowcount:
+                break
             rowcount += self.dbc.rowcount
         debug("set build flag on %d tasks with tmphash != metahash"%(rowcount))
         return
@@ -1167,9 +1174,8 @@ class OEliteRunQueue:
 
     def propagate_runq_task_build(self):
         """always build all tasks depending on other tasks to build"""
-        #c = self.dbc.cursor()
         rowcount = 0
-        while self.dbc.rowcount:
+        while True:
             self.dbc.execute(
                 "UPDATE"
                 "  runq.task "
@@ -1184,6 +1190,10 @@ class OEliteRunQueue:
                 "     AND runq.depend.parent_task=parent_task.task"
                 "     AND parent_task.build=1"
                 "     LIMIT 1)")
+            if rowcount == -1:
+                die("propagate_runq_task_build did not work out")
+            if not self.dbc.rowcount:
+                break
             rowcount += self.dbc.rowcount
         debug("set build flag on %d tasks due to propagation"%(rowcount))
         return
