@@ -147,7 +147,7 @@ DEFCONFIG_CPU:TARGET_CPU_i786		= "defconfig.x86"
 
 # FIXME: find a proper solution for this gnueabi mess
 DEFCONFIG_OS				= "defconfig.${TARGET_OS}"
-DEFCONFIG_OS:>TARGET_OS_linux-gnueabi	= "defconfig.linux-gnu"
+DEFCONFIG_OS:TARGET_OS_linux-gnueabi	= "defconfig.linux-gnu"
 
 SRC_URI = "file://defconfig.misc file://defconfig.toolchain file://${DEFCONFIG_CPU} file://${DEFCONFIG_OS}"
 
