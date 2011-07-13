@@ -6,7 +6,7 @@ inherit siteinfo
 inherit libtool
 inherit make
 
-EXTRA_OECONF[exclusive] = "configure"
+EXTRA_OECONF[emit] = "do_configure"
 EXTRA_OECONF:>machine		= " cross_compiling=yes"
 EXTRA_OECONF:>cross		= " cross_compiling=yes"
 EXTRA_OECONF:>sdk-cross		= " cross_compiling=yes"
@@ -20,7 +20,7 @@ OECONF_ARCHTUPLE = "--build=${BUILD_ARCH} --host=${HOST_ARCH}"
 OECONF_ARCHTUPLE:>cross			= " --target=${TARGET_ARCH}"
 OECONF_ARCHTUPLE:>sdk-cross 		= " --target=${TARGET_ARCH}"
 OECONF_ARCHTUPLE:>canadian-cross	= " --target=${TARGET_ARCH}"
-OECONF_ARCHTUPLE[exclusive] = "configure"
+OECONF_ARCHTUPLE[emit] = "do_configure"
 
 autotools_configure () {
     if [ -x ${S}/configure ] ; then
@@ -37,19 +37,19 @@ autotools_configure () {
         oefatal "no configure script found"
     fi
 }
-autotools_configure[exclusive] = "configure"
+autotools_configure[emit] = "do_configure"
 
 # OE compatibility/legacy function
 # FIXME: remove at some point in time
 oe_runconf () {
     autotools_configure
 }
-oe_runconf[exclusive] = "configure"
+oe_runconf[emit] = "do_configure"
 
 do_configure () {
     do_configure_autotools
 }
-do_configure_autotools[exclusive] = "configure"
+do_configure_autotools[emit] = "do_configure"
 do_configure_autotools () {
     if [ -f Makefile -a "${AUTOTOOLS_DISTCLEAN}" != "0" ] ; then
         ${MAKE} distclean || true

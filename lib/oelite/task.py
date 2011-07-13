@@ -151,7 +151,6 @@ class OEliteTask:
                     stage[filename] = package
             return stage
 
-        __stage = prepare_stage(self.cookbook.baker.runq.get_depend_packages)
         meta["__stage"] = prepare_stage(
             self.cookbook.baker.runq.get_depend_packages)
         meta["__rstage"] = prepare_stage(
@@ -159,18 +158,17 @@ class OEliteTask:
         meta.set_flag("__stage", "nohash", True)
         meta.set_flag("__rstage", "nohash", True)
 
-        # Filter meta-data, enforcing restrictions on exlusive vars and not
-        # including other task functions.
+        # Filter meta-data, enforcing restrictions on which tasks to
+        # emit vars to and not including other task functions.
         for var in meta:
-            exclusive = meta.get_flag(var, "exclusive")
-            if exclusive:
-                found = False
-                for task in exclusive.split():
-                    if self.name == "do_" + task:
-                        found = True
-                if not found:
-                    del meta[var]
-                    continue
+            emit = self.meta.get_flag(var, "emit")
+            if emit is not None and not self.name in emit.split():
+                del meta[var]
+                continue
+            omit = self.meta.get_flag(var, "omit")
+            if omit is not None and self.name in omit.split():
+                del meta[var]
+                continue
             if meta.get_flag(var, "task") and var != self.name:
                 del meta[var]
                 continue
