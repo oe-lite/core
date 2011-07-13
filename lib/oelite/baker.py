@@ -403,8 +403,10 @@ class OEliteBaker:
                     debug("skipping...")
                     continue
                 debug("adding %s:do_rmwork"%(recipe[1]))
-                self.runq._add_recipe(recipe[0], "do_rmwork")
-                self.runq.set_task_build({"recipe": recipe[0], "task": "do_rmwork"}) # FIXME
+                recipe = self.cookbook.get_recipe(recipe[0])
+                self.runq._add_recipe(recipe, "do_rmwork")
+                task = self.cookbook.get_task(recipe=recipe, name="do_rmwork")
+                self.runq.set_task_build(task)
             self.runq.propagate_runq_task_build()
             remaining = self.runq.number_of_tasks_to_build()
             debug("%d tasks remains after adding rmwork"%remaining)
