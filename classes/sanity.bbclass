@@ -4,8 +4,9 @@ addhook sh_sanity to post_common_inherits last
 def sh_sanity(d):
     import bb, subprocess
     try:
-        sh_version = subprocess.check_output(
-            ["/bin/sh", "--version"], stderr=open("/dev/null"))
+        sh_version = subprocess.Popen(
+            ["/bin/sh", "--version"], stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE).communicate()[0]
         assert sh_version.startswith("GNU bash")
     except:
         if os.path.islink("/bin/sh"):
