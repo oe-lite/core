@@ -260,9 +260,9 @@ do_mangle () {
 		ct_kernel_version="# ${_CT_KERNEL_V}_ is not set"
 	fi
 	ct_binutils_version=${_CT_BINUTILS_V}_`echo ${CT_BINUTILS_VERSION}|tr . _`=y
-	ct_cc_version=${_CT_CC_V}_`echo ${CT_CC_VERSION}|tr . _`=y
+	ct_cc_version=${_CT_CC_V}_`echo ${CT_CC_VERSION}|tr . _|tr - _`=y
 	ct_libc_version=${_CT_LIBC_V}_`echo ${CT_LIBC_VERSION}|tr . _`=y
-	ct_gdb_version=${_CT_GDB_V}_`echo ${CT_GDB_VERSION}|tr . _`=y
+	ct_gdb_version=${_CT_GDB_V}_`echo ${CT_GDB_VERSION}|tr . _|tr - _`=y
 	ct_gmp_version=${_CT_GMP_V}_`echo ${CT_GMP_VERSION}|tr . _`=y
 	ct_mpfr_version=${_CT_MPFR_V}_`echo ${CT_MPFR_VERSION}|tr . _`=y
 	ct_ppl_version=${_CT_PPL_V}_`echo ${CT_PPL_VERSION}|tr . _`=y
@@ -346,8 +346,8 @@ do_save_tarballs[dirs] = "${B}"
 python do_save_tarballs () {
 	import dircache, os, shutil, bb
 	urls = []
-	for file in dircache.listdir("targets/tarballs"):
-		srcfile = "%s/%s"%("targets/tarballs", file)
+	for file in dircache.listdir(".build/tarballs"):
+		srcfile = "%s/%s"%(".build/tarballs", file)
 		dstfile = "%s/%s"%(bb.data.getVar("DL_DIR", d, 1), file)
 		md5file = "%s.md5"%(dstfile)
 		lckfile = "%s.lock"%(dstfile)
@@ -529,6 +529,7 @@ do_install[dirs] = "${D}"
 
 # everything is already installed in do_compile, but let's rearrange it a bit
 do_install () {
+    chmod -R u+w .
     mv ${TARGET_ARCH}/sysroot${target_base_libdir}/*.la \
        ${TARGET_ARCH}/sysroot${target_base_libdir}/*.a \
        ${TARGET_ARCH}/sysroot${target_libdir}/ || true
@@ -825,7 +826,7 @@ LIBTOOL_FIXUP_STRIP_DIRS += "${D}/${TARGET_ARCH}/lib"
 FIXUP_FUNCS =+ "toolchain_lafile_fixup"
 toolchain_lafile_fixup () {
     for lafile in ${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la ; do
-        sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
+        sed -e "s:-L`readlink -f ${B}`/.build/${TARGET_ARCH}/[^ ']* *::" \
             -i $lafile
     done
 }
