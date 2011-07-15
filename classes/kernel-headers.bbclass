@@ -2,13 +2,16 @@
 
 DESCRIPTION ?= "Sanitized Linux kernel headers"
 LICENSE ?= "GPL"
-require conf/kernel.conf
 
-inherit kernel-common
+inherit kernel-common make
+
+DEPENDS_KERNEL_HEADERS = "native:cc"
+CLASS_DEPENDS += "${DEPENDS_KERNEL_HEADERS}"
 
 do_configure() {
     oe_runmake allnoconfig
 }
+oe_runmake[emit] += "do_configure"
 
 do_compile () {
     :
