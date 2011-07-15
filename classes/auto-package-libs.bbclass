@@ -10,7 +10,7 @@ AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
-addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_package_type fixup_provides
+addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_package_type
 
 def auto_package_libs (d):
     import warnings
@@ -63,7 +63,8 @@ def auto_package_libs (d):
         files = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, libexts, devlibexts) = \
+                split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
@@ -75,7 +76,8 @@ def auto_package_libs (d):
         files = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, libexts, devlibexts) = split_libdir(libdir)
+            (libdir, libprefix, libsuffix, libexts, devlibexts) = \
+                split_libdir(libdir)
             if pkg_libsuffix is not None:
                 libsuffix = pkg_libsuffix
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
