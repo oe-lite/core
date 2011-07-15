@@ -1,1 +1,1 @@
-0a9bdea5c7de8ded5c9327ed642915f2cc380753f12d4ad120ef7da3ea3498f4  ncurses-5.7.tar.gz
+8233ee56ed84ae05421e4e6d6db6c1fe72ee6797  ncurses-5.7.tar.gz

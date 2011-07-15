@@ -1,1 +1,1 @@
-f0caf608c06ccd6d56b3bee1843458d509c53f9b53dffffe07cc11d8f03fa969  readline-6.1.tar.gz
+54840a0dc907e7fa598d7ffcdcbd17bae69ace83  readline-6.1.tar.gz
