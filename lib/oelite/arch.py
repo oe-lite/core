@@ -14,13 +14,13 @@ gccspecs = {}
 
 cpuspecs = {
 
-    'powerpc'	: {
+    'powerpc'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'b',
+            'wordsize'		: '32',
+            'endian'		: 'b',
             'elf'		: 'ELF 32-bit MSB .*, PowerPC or cisco 4500',
             },
-        '603e'		: {
+        '603e'			: {
             'mcpu'		: '603e',
             'fpu'		: '1',
             },
@@ -41,20 +41,20 @@ cpuspecs = {
             },
         },
 
-    'powerpc64'	: {
+    'powerpc64'		: {
         'DEFAULT'		: {
-            'wordsize'	: '64',
-            'endian'	: 'b',
+            'wordsize'		: '64',
+            'endian'		: 'b',
             },
         },
 
     'arm'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, ARM',
             },
-        '920t'		: {
+        '920t'			: {
             'mcpu'		: 'arm920t',
             'mtune'		: 'arm920t',
             },
@@ -85,64 +85,64 @@ cpuspecs = {
 
     'armeb'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'b',
+            'wordsize'		: '32',
+            'endian'		: 'b',
             },
         },
 
     'avr32'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'b',
+            'wordsize'		: '32',
+            'endian'		: 'b',
             },
         },
 
     'mips'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'b',
+            'wordsize'		: '32',
+            'endian'		: 'b',
             },
         },
 
-    'mipsel'	: {
+    'mipsel'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             },
         },
 
     'sparc'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'b',
+            'wordsize'		: '32',
+            'endian'		: 'b',
             },
         },
 
     'bfin'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             },
         },
 
     'sh3'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             },
         },
 
     'sh4'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             },
         },
 
     'i386'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i386',
             'fpu'		: '387',
@@ -151,8 +151,8 @@ cpuspecs = {
 
     'i486'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i486',
             'fpu'		: '387',
@@ -163,52 +163,52 @@ cpuspecs = {
         'winchip2'		: {
             'march'		: 'winchip2',
             },
-        'c3'		: {
+        'c3'			: {
             'march'		: 'c3',
             },
-        'c32'		: {
+        'c32'			: {
             'march'		: 'c3-2',
             },
         },
 
     'i586'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i586',
             'fpu'		: '387',
             },
-        'mmx'		: {
+        'mmx'			: {
             'march'		: 'pentium-mmx',
             },
-        'k6'		: {
+        'k6'			: {
             'march'		: 'k6',
             },
-        'k62'		: {
+        'k62'			: {
             'march'		: 'k6-2',
             },
-        'geode'		: {
+        'geode'			: {
             'march'		: 'geode',
             },
         },
 
     'i686'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i686',
             'fpu'		: '387',
             },
-        'mmx'		: {
+        'mmx'			: {
             'march'		: 'pentium2',
             },
-        'sse'		: {
+        'sse'			: {
             'march'		: 'pentium3',
             'fpu'		: 'sse',
             },
-        'sse2'		: {
+        'sse2'			: {
             'march'		: 'pentium-m',
             'fpu'		: 'sse',
             },
@@ -223,35 +223,35 @@ cpuspecs = {
 
     'i786'		: {
         'DEFAULT'		: {
-            'wordsize'	: '32',
-            'endian'	: 'l',
+            'wordsize'		: '32',
+            'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'pentium4',
             'fpu'		: 'sse',
             },
-        'sse3'		: {
+        'sse3'			: {
             'march'		: 'prescott',
             },
         },
 
-    'x86_64'	: {
+    'x86_64'		: {
         'DEFAULT'		: {
-            'wordsize'	: '64',
-            'endian'	: 'l',
+            'wordsize'		: '64',
+            'endian'		: 'l',
             'elf'		: 'x86-64',
             'march'		: 'opteron',
             'fpu'		: 'sse',
             },
-        'sse3'		: {
+        'sse3'			: {
             'march'		: 'k8-sse3',
             },
         'nocona'		: {
             'march'		: 'nocona',
             },
-        'core2'		: {
+        'core2'			: {
             'march'		: 'core2',
             },
-        'atom'		: {
+        'atom'			: {
             'march'		: 'atom',
             },
         'amdfam10'		: {
@@ -269,7 +269,7 @@ cpuspecs = {
 
 cpumap = {
 
-    'powerpc'	: {
+    'powerpc'		: {
         'mpc8313'		: 'e300c3',
         'mpc8313e'		: 'e300c3',
         'mpc8360'		: 'e300c1',

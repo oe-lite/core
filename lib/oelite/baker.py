@@ -275,7 +275,6 @@ class OEliteBaker:
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise
-            print "datahash =",datahash
 
             dephashes = {}
             task_dependencies = self.runq.task_dependencies(task)
@@ -310,7 +309,7 @@ class OEliteBaker:
             self.runq.set_task_metahash(task, metahash)
 
             (stamp_mtime, stamp_signature) = task.read_stamp()
-            print "stamp =",repr((stamp_mtime,stamp_signature))
+            #print "stamp =",repr((stamp_mtime,stamp_signature))
             if not stamp_mtime:
                 self.runq.set_task_build(task)
             else:

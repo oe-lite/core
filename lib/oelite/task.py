@@ -251,7 +251,7 @@ class OEliteTask:
                 if not os.path.exists(cleandir):
                     continue
                 try:
-                    print "cleandir %s"%(cleandir)
+                    #print "cleandir %s"%(cleandir)
                     shutil.rmtree(cleandir)
                 except Exception, e:
                     err("cleandir %s failed: %s"%(cleandir, e))
@@ -271,12 +271,14 @@ class OEliteTask:
 
     def get_postfuncs(self):
         postfuncs = []
-        for name in (self.meta.get_flag(self.name, "postfuncs", 1) or "").split():
+        for name in (self.meta.get_flag(self.name, "postfuncs", 1)
+                     or "").split():
             postfuncs.append(self.meta.get_function(name))
         return postfuncs
 
     def get_prefuncs(self):
         prefuncs = []
-        for name in (self.meta.get_flag(self.name, "prefuncs", 1) or "").split():
+        for name in (self.meta.get_flag(self.name, "prefuncs", 1)
+                     or "").split():
             prefuncs.append(self.meta.get_function(name))
         return prefuncs

@@ -31,7 +31,6 @@ class OEliteRecipe:
         self.version = self.meta.get("PV")
         self.priority = self.meta.get("DEFAULT_PREFERENCE") or "0"
         self._datahash = None
-        self._srchash = "FOOBAR"
         self._hash = None
         return
 
@@ -101,7 +100,6 @@ class OEliteRecipe:
 
 
     def datahash(self):
-        #import bb.data
         import hashlib
 
         if self._datahash:
@@ -129,8 +127,3 @@ class OEliteRecipe:
 
         self._datahash = str(hasher)
         return self._datahash
-
-
-    def srchash(self):
-        if self._srchash:
-            return self._srchash
