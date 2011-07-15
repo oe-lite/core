@@ -1,11 +1,26 @@
 import oelite
+from oelite.function import PythonFunction
 from oelite.meta import *
 import bb.utils
 import os
 
 
-def inlineeval(source, meta):
+def inlineeval(source, meta, var=None):
     g = meta.get_pythonfunc_globals()
+    if var:
+        recursion_path = []
+        funcimports = {}
+        for func in (meta.get_flag(var, "import",
+                                   oelite.meta.FULL_EXPANSION)
+                     or "").split():
+            if func in funcimports:
+                continue
+            if func in recursion_path:
+                raise Exception("circular import %s -> %s"%(recursion_path, func))
+            python_function = PythonFunction(meta, func,
+                                             recursion_path=recursion_path)
+            funcimports[func] = python_function.function
+        g.update(funcimports)
     try:
         return eval(source, g, {"d": meta})
     except Exception:

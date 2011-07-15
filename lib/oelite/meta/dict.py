@@ -185,7 +185,7 @@ class DictMeta(MetaData):
         if expand_method != NO_EXPANSION and val:
             #print "get not expanding anyway"
             self.expand_stack.push("${%s}"%var)
-            (val, deps) = self._expand(val, expand_method)
+            (val, deps) = self._expand(val, expand_method, var)
             self.expand_stack.pop()
 
         if override_dep:

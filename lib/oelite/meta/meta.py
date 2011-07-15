@@ -227,7 +227,7 @@ class MetaData(MutableMapping):
         (new_string, deps) = self._expand(string, method)
         return new_string
 
-    def _expand(self, string, method):
+    def _expand(self, string, method, var=None):
         #print "_expand method=%s string=%s"%(method, repr(string))
         assert isinstance(method, int)
         orig_string = string
@@ -256,11 +256,7 @@ class MetaData(MutableMapping):
         if python_match:
             python_source = python_match.group(0)[3:-1]
             self.expand_stack.push("${@%s}"%(str(python_source)))
-            python_output = inlineeval(python_source, self)
-            #try:
-            #    python_output = inlineeval(python_source, self)
-            #except Exception, e:
-            #    raise ExpansionError(e, self.expand_stack)
+            python_output = inlineeval(python_source, self, var)
             (expanded_output, recdeps) = self._expand(python_output, method)
             expanded_string = (expanded_string[:python_match.start(0)] +
                                expanded_output +
