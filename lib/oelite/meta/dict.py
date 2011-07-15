@@ -6,6 +6,8 @@ import warnings
 import cPickle
 import operator
 import types
+import os
+import bb.utils
 
 
 def unpickle(file):
@@ -364,9 +366,16 @@ class DictMeta(MetaData):
                 if function[1][0] is not None]
 
 
-    def set_input_mtime(self, fn, bbpath, mtime):
+    def set_input_mtime(self, fn, path=None, mtime=None):
+        if mtime is None:
+            if path:
+                mtime = os.path.getmtime(bb.utils.which(path, fn))
+            elif os.path.exists(fn):
+                mtime = os.path.getmtime(fn)
+            else:
+                mtime = None
         mtimes = self.get_input_mtimes()
-        mtimes.append((fn, bbpath, mtime))
+        mtimes.append((fn, path, mtime))
         self.set("__mtimes", mtimes)
         return
 
