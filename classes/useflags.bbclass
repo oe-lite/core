@@ -3,7 +3,7 @@
 addhook set_useflags to post_recipe_parse first before blacklist after arch_update
 
 #
-# RECIPE_OPTIONS are to be defined in recipes, and should be a
+# USE flags are to be defined in recipes and classes, and should be a
 # space-separated list of lower-case options, preferably prefixed with
 # the recipe name (in lower-case).
 #
