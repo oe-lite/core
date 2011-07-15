@@ -74,7 +74,7 @@ def auto_package_libs (d):
         d.set("FILES_" + pkg, " ".join(files))
 
         files = []
-        pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
+        pkg_libsuffix = d.get("LIBSUFFIX_%s"%(devpkg))
         for libdir in libdirs:
             (libdir, libprefix, libsuffix, libexts, devlibexts) = \
                 split_libdir(libdir)
