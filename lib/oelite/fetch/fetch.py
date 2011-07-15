@@ -46,8 +46,9 @@ class OEliteUri:
         self.ingredients = d.get("INGREDIENTS")
         self.isubdir = (d.get("INGREDIENTS_SUBDIR") or
                         os.path.basename(d.get("FILE_DIRNAME")))
-        self.filespath = d.get("FILESPATH")
-        self.files = d.get("FILES")
+        self.strict = d.get("SRC_URI_STRICT") or False
+        if self.strict == "0":
+            self.strict = False
         m = uri_pattern.match(uri)
         if not m:
             raise oelite.fetch.InvalidURI(uri, "not an URI at all")
@@ -69,14 +70,15 @@ class OEliteUri:
         if not self.scheme in FETCHERS:
             raise oelite.fetch.InvalidURI(
                 uri, "unsupported URI scheme: %s"%(self.scheme))
-        self.fetcher = FETCHERS[self.scheme](self)
+        self.fetcher = FETCHERS[self.scheme](self, d)
         if not self.fetcher.localpath:
             return # FIXME: I guess all fetchers should give a localpath!
-
         self.init_unpack_param()
         self.init_patch_param()
-
         return
+
+    def __str__(self):
+        return "%s://%s"%(self.scheme, self.location)
 
     def init_unpack_param(self):
         if not "unpack" in self.params:
@@ -125,6 +127,20 @@ class OEliteUri:
             raise Exception("patchdir URI parameter support not implemented")
         return
 
+    def signature(self):
+        try:
+            return self.fetcher.signature()
+        except oelite.fetch.NoSignature as e:
+            if self.strict:
+                raise e
+            print "warning: no checksum known for", self.location
+            return ""
+
+    def cache(self):
+        if not "cache" in dir(self.fetcher):
+            return True
+        return self.fetcher.cache()
+
     def write_checksum(self, filepath):
         md5path = filepath + ".md5"
         checksum = hashlib.md5()
@@ -144,20 +160,10 @@ class OEliteUri:
             return f.readline().strip() == checksum.digest()
 
     def fetch(self):
-        if self.scheme == "file":
+        if not "fetch" in dir(self.fetcher):
             return True
-        if os.path.exists(self.fetcher.localpath):
-            checksum = self.verify_checksum(self.fetcher.localpath)
-            if checksum == False:
-                os.remove(self.fetcher.localpath)
-                os.remove(self.fetcher.localpath + ".md5")
-            elif checksum == True:
-                return True
-            # no checksum, so maybe we can resume download...
-        if not self.fetcher.fetch():
-            return False
-        self.write_checksum(self.fetcher.localpath)
-        return True
+        print "Fetching", str(self)
+        return self.fetcher.fetch()
 
     def unpack(self, cmd):
         print "Unpacking", self.fetcher.localpath

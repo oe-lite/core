@@ -1,25 +1,42 @@
-import os.path
+import oelite.fetch
 import bb.utils
+import os
+import hashlib
 
 class LocalFetcher():
 
     SUPPORTED_SCHEMES = ("file")
 
-    def __init__(self, uri):
+    def __init__(self, uri, d):
         if not uri.scheme in self.SUPPORTED_SCHEMES:
             raise Exception(
                 "Scheme %s not supported by oelite.fetch.UrlFetcher"%(scheme))
         self.uri = uri
-        self.localpath = uri.location
-        if not os.path.isabs(self.localpath):
-            filespath = uri.filespath
-            if filespath:
-                self.localpath = bb.utils.which(filespath, self.localpath)
+        if os.path.isabs(uri.location):
+            if not os.path.exists(uri.location):
+                raise oelite.fetch.LocalFileNotFound(self.uri, "file not found")
+            self.localpath = uri.location
+            d.set_input_mtime(self.localpath,
+                              mtime=os.path.getmtime(self.localpath))
+        else:
+            self.localpath = bb.utils.which(d.get("FILESPATH"), uri.location)
             if not self.localpath:
-                filesdir = uri.files
-                if filesdir:
-                    self.localpath = os.path.join(filesdir, path)
+                raise oelite.fetch.LocalFileNotFound(self.uri, "file not found")
+            d.set_input_mtime(uri.location, d.get("FILESPATH"),
+                              mtime=os.path.getmtime(self.localpath))
         return
 
-    def fetch(self):
-        return True
+    def signature(self):
+        try:
+            return self._signature
+        except AttributeError:
+            pass
+        m = hashlib.sha1()
+        m.update(open(self.localpath, "r").read())
+        self._signature = m.digest()
+        return self._signature
+
+    #def validate(self):
+    #    m = hashlib.sha1()
+    #    m.update(open(self.localpath, "r").read())
+    #    return m.digest() == self.signature()

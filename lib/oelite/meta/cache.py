@@ -46,7 +46,10 @@ class MetaCache:
             return False
         for (fn, bbpath, old_mtime) in list(self.mtimes):
             filepath = bb.utils.which(bbpath, fn)
-            cur_mtime = os.path.getmtime(filepath)
+            if os.path.exists(filepath):
+                cur_mtime = os.path.getmtime(filepath)
+            else:
+                cur_mtime = None
             if cur_mtime != old_mtime:
                 return False
         return True

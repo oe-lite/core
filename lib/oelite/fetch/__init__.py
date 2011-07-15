@@ -1,4 +1,5 @@
 import oelite.fetch.fetch
+from oelite.fetch.sigfile import SignatureFile
 from oelite.fetch.fetch import *
 
 class FetchException(Exception):
@@ -15,9 +16,17 @@ class InvalidURI(FetchException):
     """Exception raised when parsing an invalid URI"""
     prefix = "Invalid URI"
 
+class LocalFileNotFound(FetchException):
+    """Exception raised when local URI file is not found"""
+    prefix = "No file found for local URI"
+
 class FetchError(FetchException):
     """Exception raised when failing to fetch file"""
     prefix = "Fetch failed"
+
+class NoSignature(FetchException):
+    """Exception raised when signature of file to be fetched is not known"""
+    prefix = "No checksum"
 
 class ChecksumError(FetchException):
     """Exception raised when checksum of fetched file does not match"""
@@ -32,4 +41,5 @@ __all__ = [
     "OEliteUri",
     "FetchException",
     "InvalidURI", "FetchError", "ChecksumError", "ParameterError",
+    "SignatureFile",
     ]
