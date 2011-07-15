@@ -161,11 +161,11 @@ class OEliteTask:
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
         for var in meta:
-            emit = self.meta.get_flag(var, "emit")
+            emit = meta.get_flag(var, "emit")
             if emit is not None and not self.name in emit.split():
                 del meta[var]
                 continue
-            omit = self.meta.get_flag(var, "omit")
+            omit = meta.get_flag(var, "omit")
             if omit is not None and self.name in omit.split():
                 del meta[var]
                 continue
