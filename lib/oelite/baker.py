@@ -270,8 +270,12 @@ class OEliteBaker:
                 count += 1
                 continue
 
-            datahash = recipe.datahash()
-            srchash = recipe.srchash()
+            try:
+                datahash = recipe.datahash()
+            except oelite.meta.ExpansionError as e:
+                e.msg += " in %s"%(task)
+                raise
+            print "datahash =",datahash
 
             dephashes = {}
             task_dependencies = self.runq.task_dependencies(task)
@@ -290,9 +294,11 @@ class OEliteBaker:
 
             hasher = hashlib.md5()
             hasher.update(datahash)
-            hasher.update(srchash)
             hasher.update(dephash)
             metahash = hasher.hexdigest()
+
+            # FIXME: instad of all of the above
+            # metasig = task.get_meta_signature()
 
             #if oebakery.DEBUG:
             #    recipe_name = self.db.get_recipe(recipe_id)
@@ -303,11 +309,12 @@ class OEliteBaker:
 
             self.runq.set_task_metahash(task, metahash)
 
-            (mtime, tmphash) = task.read_stamp()
-            if not mtime:
+            (stamp_mtime, stamp_signature) = task.read_stamp()
+            print "stamp =",repr((stamp_mtime,stamp_signature))
+            if not stamp_mtime:
                 self.runq.set_task_build(task)
             else:
-                self.runq.set_task_stamp(task, mtime, tmphash)
+                self.runq.set_task_stamp(task, stamp_mtime, stamp_signature)
 
             task = self.runq.get_metahashable_task()
             count += 1
