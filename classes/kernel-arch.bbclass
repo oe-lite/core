@@ -10,10 +10,12 @@ KERNEL_ARCHS = "alpha arm avr32 blackfin cris frv h8300 ia64 m32r \
     sparc um x86 xtensa"
 KERNEL_ARCHS[nohash] = "1"
 
-KERNEL_ARCH = "${@map_kernel_arch('${TARGET_ARCH}', '${KERNEL_ARCHS}')}"
+KERNEL_ARCH = "${@map_kernel_arch(d, 'TARGET_ARCH')}"
+KERNEL_ARCH[import] = "map_kernel_arch"
 
-def map_kernel_arch(arch, valid_archs):
-    import bb, re
+def map_kernel_arch(d, arch):
+    arch = d.get(arch)
+    valid_archs = d.get("KERNEL_ARCHS")
 
     arch = re.split('-', arch)[0]
     valid_archs = valid_archs.split()
@@ -30,9 +32,11 @@ def map_kernel_arch(arch, valid_archs):
     else:
         bb.error("cannot map '%s' to a linux kernel architecture" % arch)
 
-def map_uboot_arch(arch):
+UBOOT_ARCH = "${@map_uboot_arch(d, 'KERNEL_ARCH')}"
+UBOOT_ARCH[import] = "map_uboot_arch"
+
+def map_uboot_arch(d, arch):
+    arch = d.get(arch)
     if arch == "powerpc":
         return "ppc"
     return arch
-
-UBOOT_ARCH = "${@map_uboot_arch('${KERNEL_ARCH}')}"
