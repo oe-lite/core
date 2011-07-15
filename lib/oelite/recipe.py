@@ -29,7 +29,7 @@ class OEliteRecipe:
         self.meta = meta
         self.name = self.meta.get("PN")
         self.version = self.meta.get("PV")
-        self.priority = self.meta.get("DEFAULT_PREFERENCE") or "0"
+        self.priority = int(self.meta.get("DEFAULT_PREFERENCE") or "0")
         self._datahash = None
         self._hash = None
         return
@@ -53,9 +53,13 @@ class OEliteRecipe:
 
     def get_depends(self):
         depends = []
-        for type, item in self.cookbook.dbc.execute(
-            "SELECT type, item FROM recipe_depend WHERE recipe=?", (self.id,)):
-            depends.append("%s:%s"%(type, item))
+        for type, item, version in self.cookbook.dbc.execute(
+            "SELECT type, item, version FROM recipe_depend "
+            "WHERE recipe_depend.recipe=?", (self.id,)):
+            if version is None:
+                depends.append("%s:%s"%(type, item))
+            else:
+                depends.append("%s:%s_%s"%(type, item, version))
         return depends
         #return self.meta.get_list("DEPENDS")
 

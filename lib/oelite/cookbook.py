@@ -84,14 +84,16 @@ class CookBook(Mapping):
             "recipe      INTEGER, "
             "type        TEXT, "
             "item        TEXT, "
-            "UNIQUE (recipe, type, item) ON CONFLICT IGNORE )")
+            "version     TEXT, "
+            "UNIQUE (recipe, type, item) ON CONFLICT REPLACE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS recipe_rdepend ( "
             "recipe      INTEGER, "
             "type        TEXT, "
             "item        TEXT, "
-            "UNIQUE (recipe, type, item) ON CONFLICT IGNORE )")
+            "version     TEXT, "
+            "UNIQUE (recipe, type, item) ON CONFLICT REPLACE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS provide ( "
@@ -584,14 +586,14 @@ class CookBook(Mapping):
         recipe_depends = []
         for item in (recipe.meta.get("DEPENDS") or "").split():
             item = oelite.item.OEliteItem(item, (0, recipe.type))
-            recipe_depends.append((recipe_id, item.type, item.name))
+            recipe_depends.append((recipe_id, item.type, item.name, item.version))
         for item in (recipe.meta.get("CLASS_DEPENDS") or "").split():
             item = oelite.item.OEliteItem(item, (0, recipe.type))
-            recipe_depends.append((recipe_id, item.type, item.name))
+            recipe_depends.append((recipe_id, item.type, item.name, item.version))
         if recipe_depends:
             self.dbc.executemany(
-                "INSERT INTO recipe_depend (recipe, type, item) "
-                "VALUES (?, ?, ?)", recipe_depends)
+                "INSERT INTO recipe_depend (recipe, type, item, version) "
+                "VALUES (?, ?, ?, ?)", recipe_depends)
 
         recipe_rdepends = []
         for item in (recipe.meta.get("RDEPENDS") or "").split():
@@ -703,30 +705,20 @@ class CookBook(Mapping):
 
 
     def get_providers(self, type, item, recipe=None, version=None):
-        #print "get_providers type=%s item=%s recipe=%s version=%s"%(repr(type), repr(item), repr(recipe), repr(version))
-        if recipe and version:
-            providers = self.dbc.execute(
-                "SELECT package.id "
-                "FROM package, provide, recipe "
-                "WHERE provide.item=:item AND package.type=:type "
-                "AND recipe.name=:recipe AND recipe.version=:version "
-                "AND provide.package=package.id AND package.recipe=recipe.id "
-                "ORDER BY recipe.priority DESC, recipe.name", locals())
-        elif recipe:
-            providers = self.dbc.execute(
-                "SELECT package.id "
-                "FROM package, provide, recipe "
-                "WHERE provide.item=:item AND package.type=:type "
-                "AND recipe.name=:recipe "
-                "AND provide.package=package.id AND package.recipe=recipe.id "
-                "ORDER BY recipe.priority DESC, recipe.name", locals())
-        else:
-            providers = self.dbc.execute(
-                "SELECT package.id "
-                "FROM package, provide, recipe "
-                "WHERE provide.item=:item AND package.type=:type "
-                "AND provide.package=package.id AND package.recipe=recipe.id "
-                "ORDER BY recipe.priority DESC, recipe.name", locals())
+        #print "get_providers type=%s item=%s recipe=%s version=%s"%(
+        #    repr(type), repr(item), repr(recipe), repr(version))
+        select = ("SELECT package.id "
+                  "FROM package, provide, recipe "
+                  "WHERE provide.package=package.id "
+                  "AND package.recipe=recipe.id "
+                  "AND provide.item=:item "
+                  "AND package.type=:type ")
+        if recipe:
+            select += "AND recipe.name=:recipe "
+        if version is not None:
+            select += "AND recipe.version=:version "
+        providers = self.dbc.execute(
+            select + "ORDER BY recipe.priority DESC, recipe.name", locals())
         providers = flatten_single_column_rows(providers)
         return self.get_packages(id=providers)
                                  
