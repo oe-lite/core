@@ -336,23 +336,6 @@ def md5_file(filename):
         m.update(line)
     return m.hexdigest()
 
-def sha256_file(filename):
-    """
-    Return the hex string representation of the 256-bit SHA checksum of
-    filename.  On Python 2.4 this will return None, so callers will need to
-    handle that by either skipping SHA checks, or running a standalone sha256sum
-    binary.
-    """
-    try:
-        import hashlib
-    except ImportError:
-        return None
-
-    s = hashlib.sha256()
-    for line in open(filename):
-        s.update(line)
-    return s.hexdigest()
-
 def remove(path, recurse=False):
     """Equivalent to rm -f or rm -rf"""
     import os, errno, shutil
