@@ -4,6 +4,8 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 inherit kernel-arch
 
+KERNEL_VERSION_PATCHLEVEL = "${@'.'.join(d.get('PV').split('.')[:2])}"
+
 # For the kernel, we don't want the '-e MAKEFLAGS=' in EXTRA_OEMAKE.
 # We don't want to override kernel Makefile variables from the environment
 EXTRA_OEMAKE = "ARCH=${KERNEL_ARCH}"
