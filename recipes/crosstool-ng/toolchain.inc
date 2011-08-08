@@ -346,8 +346,8 @@ do_save_tarballs[dirs] = "${B}"
 python do_save_tarballs () {
 	import dircache, os, shutil, bb
 	urls = []
-	for file in dircache.listdir(".build/tarballs"):
-		srcfile = "%s/%s"%(".build/tarballs", file)
+	for file in dircache.listdir("targets/tarballs"):
+		srcfile = "%s/%s"%("targets/tarballs", file)
 		dstfile = "%s/%s"%(bb.data.getVar("DL_DIR", d, 1), file)
 		md5file = "%s.md5"%(dstfile)
 		lckfile = "%s.lock"%(dstfile)
@@ -826,7 +826,7 @@ LIBTOOL_FIXUP_STRIP_DIRS += "${D}/${TARGET_ARCH}/lib"
 FIXUP_FUNCS =+ "toolchain_lafile_fixup"
 toolchain_lafile_fixup () {
     for lafile in ${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la ; do
-        sed -e "s:-L`readlink -f ${B}`/.build/${TARGET_ARCH}/[^ ']* *::" \
+        sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
             -i $lafile
     done
 }
