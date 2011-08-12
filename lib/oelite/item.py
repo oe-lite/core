@@ -17,8 +17,8 @@ class OEliteItem:
             self.version = None
         else:
             self.version = item[1]
+        assert isinstance(context, tuple) and len(context) == 2
         try:
-            assert isinstance(context, tuple) and len(context) == 2
             self.type = TYPEMAP[context[0]][context[1]][self.type]
         except KeyError:
             raise Exception("Invalid item type %s in %s %s context"%(
