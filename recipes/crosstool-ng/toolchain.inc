@@ -3,13 +3,13 @@
 FILESPATHPKG = "${P}:${PN}:toolchain-${PV}:toolchain-${@'.'.join('${PV}'.split('.')[:2])}:toolchain:files"
 
 #RECIPE_FLAGS += "toolchain_cc toolchain_cc_version"
-# Remember to configure defaults for these in the gcc_*.bb file
+# Remember to configure defaults for these in the gcc_*.oe file
 #CT_CC		= "${USE_toolchain_cc}"
 #CT_CC_VERSION	= "${USE_toolchain_cc_version}"
 
 RECIPE_FLAGS += "toolchain_libc toolchain_libc_version"
 RECIPE_FLAGS += "toolchain_mingwrt_version"
-# Remember to configure defaults for these in the gcc_*.bb file
+# Remember to configure defaults for these in the gcc_*.oe file
 CT_LIBC			= "${USE_toolchain_libc}"
 CT_LIBC:TARGET_OS_mingw32		= "mingw"
 CT_LIBC_VERSION		= "${USE_toolchain_libc_version}"
@@ -17,7 +17,7 @@ CT_LIBC_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_mingwrt_version}"
 
 # *sigh* why don't eglibc use releases?
 RECIPE_FLAGS += "toolchain_libc_eglibc_revision"
-# Remember to configure defaults for these in the gcc_*.bb file
+# Remember to configure defaults for these in the gcc_*.oe file
 CT_EGLIBC_REVISION:USE_toolchain_libc_eglibc_revision = "${USE_toolchain_libc_eglibc_revision}"
 
 CT_KERNEL		= "linux"
@@ -27,7 +27,7 @@ RECIPE_FLAGS += "toolchain_kernel_version_machine"
 RECIPE_FLAGS += "toolchain_kernel_version_sdk"
 RECIPE_FLAGS += "toolchain_kernel_version_build"
 RECIPE_FLAGS += "toolchain_w32api_version"
-# Remember to configure defaults for these in the gcc_*.bb file
+# Remember to configure defaults for these in the gcc_*.oe file
 
 MACHINE_CT_KERNEL_VERSION = "${USE_toolchain_kernel_version_machine}"
 CT_KERNEL_VERSION			= "${MACHINE_CT_KERNEL_VERSION}"
@@ -43,7 +43,7 @@ CT_KERNEL_VERSION:native		= "${BUILD_CT_KERNEL_VERSION}"
 RECIPE_FLAGS += "toolchain_min_kernel_machine"
 RECIPE_FLAGS += "toolchain_min_kernel_sdk"
 RECIPE_FLAGS += "toolchain_min_kernel_build"
-# Remember to configure defaults for these in the gcc_*.bb file
+# Remember to configure defaults for these in the gcc_*.oe file
 CT_LIBC_GLIBC_MIN_KERNEL_VERSION = "${USE_toolchain_min_kernel_machine}"
 CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk-cross = "${USE_toolchain_min_kernel_sdk}"
 CT_LIBC_GLIBC_MIN_KERNEL_VERSION:sdk = "${USE_toolchain_min_kernel_sdk}"

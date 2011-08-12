@@ -1,11 +1,11 @@
 # -*- mode:python; -*-
 
 # BitBake class to handle CONFIG_SITE variable for GNU Autoconf
-# configure scripts.  Leverage base_arch.bbclass as much as possible.
+# configure scripts.  Leverage base_arch.oeclass as much as possible.
 
 # Recipes that need to query architecture specific knowledge, such as
 # endianness or word size should use functions provided by
-# base_arch.bbclass, as this class is only related to actual
+# base_arch.oeclass, as this class is only related to actual
 # CONFIG_SITE handling.
 
 # Export CONFIG_SITE to the enviroment. Autoconf generated configure
@@ -88,11 +88,11 @@ def do_siteinfo(d):
         import bb, os
         found = []
         sitefiles = d.getVar(arch+'_SITEFILES', True).split()
-        bbpath = d.getVar('BBPATH', True) or ''
+        oepath = d.getVar('OEPATH', True) or ''
         pv = d.getVar('PV', True)
 
         # 1) ${BBPATH}/site
-        for path in bbpath.split(':'):
+        for path in oepath.split(':'):
             for filename in sitefiles:
                 filepath = os.path.join(path, 'site', filename)
                 if filepath not in found and os.path.exists(filepath):

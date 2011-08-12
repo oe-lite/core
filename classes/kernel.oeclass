@@ -202,7 +202,7 @@ FILES_${PN}-modules = "/lib/modules"
 FILES_${PN}-kernel-headers = "kernel"
 PROVIDES_${PN} = "kernel"
 
-# FIXME: implement auto-package-kernel-modules.bbclass to split out
+# FIXME: implement auto-package-kernel-modules.oeclass to split out
 # modules into separate packages
 
 # Support checking the kernel size since some kernels need to reside

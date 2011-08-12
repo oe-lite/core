@@ -492,8 +492,8 @@ def arch_find_script(d, filename):
         scripts = {}
         globals()['arch_scripts'] = scripts
     if not filename in scripts:
-        for bbpath in d.get('BBPATH', 1).split(':'):
-            filepath = os.path.join(bbpath, 'scripts', filename)
+        for oepath in d.get('OEPATH', 1).split(':'):
+            filepath = os.path.join(oepath, 'scripts', filename)
             if os.path.isfile(filepath):
                 #bb.debug("found %s: %s"%(filename, filepath))
                 scripts[filename] = filepath

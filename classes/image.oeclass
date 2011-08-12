@@ -11,12 +11,6 @@ SRC_URI = ""
 
 FILES_${PN} = ""
 
-# FIXME: do_compile could be renamed to do_build when do_build is
-# renamed to do_all, which should be done when merging in BitBake code
-# into OE-lite Bakery as bblib.  But on the other hand, this would
-# impact most recipes (those messing with do_compile(), so let's just
-# stick with do_compile
-
 # IMAGE_PREPROCESS_FUNCS could create device nodes, merge crontab
 # entries, mdev.conf and ineted.conf files
 

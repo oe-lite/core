@@ -27,14 +27,14 @@ __all__ = [
 #    which creates a new oelite.meta.dict.DictMeta() object
 # -> DONE
 #
-# 3. oelite.parse.ConfParser is used to parse bitbake.conf, and
+# 3. oelite.parse.ConfParser is used to parse oe-lite.conf, and
 #    oelite.arch.init() modifies it, and base plus all ${INHERIT}'s is
-#    parsed with BBParser, oelite.fetch.init() modifies it.
+#    parsed with OEParser, oelite.fetch.init() modifies it.
 #    Both arch.init and fetch.init could perhaps be made into
 #    standardized post_conf_parse hooks.
 #
 # 4. the new config/data object is copied for each recipe, and recipe
-#    is parsed with BBParser.
+#    is parsed with OEParser.
 #
 # 5. for each value of ${RECIPE_TYPES}, the recipe data object copied
 #    and the corresponding recipe type class is parsed

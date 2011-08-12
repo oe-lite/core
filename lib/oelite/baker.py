@@ -95,7 +95,7 @@ class OEliteBaker:
         # FIXME: self.config.freeze("TOPDIR")
 
         self.confparser = confparse.ConfParser(self.config)
-        self.confparser.parse("conf/bitbake.conf")
+        self.confparser.parse("conf/oe-lite.conf")
 
         oelite.pyexec.exechooks(self.config, "post_conf_parse")
 
@@ -117,10 +117,10 @@ class OEliteBaker:
                 self.options.rmwork = True
         except AttributeError:
             pass
-        self.bbparser = bbparse.BBParser(self.config)
+        self.oeparser = oeparse.OEParser(self.config)
         for inherit in inherits:
-            self.bbparser.reset_lexstate()
-            self.bbparser.parse("classes/%s.bbclass"%(inherit), require=True)
+            self.oeparser.reset_lexstate()
+            self.oeparser.parse("classes/%s.oeclass"%(inherit), require=True)
 
         oelite.pyexec.exechooks(self.config, "post_common_inherits")
 
@@ -297,9 +297,9 @@ class OEliteBaker:
             #if oebakery.DEBUG:
             #    recipe_name = self.db.get_recipe(recipe_id)
             #    task_name = self.db.get_task(task=task)
-            #    debug(" %d %s:%s data=%s src=%s dep=%s meta=%s"%(
+            #    debug(" %d %s:%s data=%s dep=%s meta=%s"%(
             #            task, "_".join(recipe_name), task_name,
-            #            datahash, srchash, dephash, metahash))
+            #            datahash, dephash, metahash))
 
             self.runq.set_task_metahash(task, metahash)
 

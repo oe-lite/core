@@ -44,8 +44,8 @@ class MetaCache:
                 return False
         except AttributeError:
             return False
-        for (fn, bbpath, old_mtime) in list(self.mtimes):
-            filepath = bb.utils.which(bbpath, fn)
+        for (fn, oepath, old_mtime) in list(self.mtimes):
+            filepath = bb.utils.which(oepath, fn)
             if os.path.exists(filepath):
                 cur_mtime = os.path.getmtime(filepath)
             else:
@@ -85,8 +85,8 @@ def pickle_abi():
                     oelite.meta.__file__,
                     inspect.getsourcefile(oelite.meta.MetaData),
                     inspect.getsourcefile(oelite.meta.DictMeta),
-                    oelite.parse.bblex.__file__,
-                    oelite.parse.bbparse.__file__,
+                    oelite.parse.oelex.__file__,
+                    oelite.parse.oeparse.__file__,
                     oelite.parse.confparse.__file__,
                     inspect.getsourcefile(oelite.fetch),
                     inspect.getsourcefile(oelite.fetch.fetch),

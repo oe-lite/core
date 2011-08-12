@@ -1,10 +1,10 @@
 import oelite.parse
-from oelite.parse.bbparse import BBParser
+from oelite.parse.oeparse import OEParser
 
 import ply.lex
 import ply.yacc
 
-class ConfParser(BBParser):
+class ConfParser(OEParser):
 
     def __init__(self, data=None, parent=None, **kwargs):
         super(ConfParser, self).__init__(data, parent, **kwargs)

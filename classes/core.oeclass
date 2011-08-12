@@ -289,7 +289,7 @@ def base_after_parse(d):
 
     bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
 
-    # FIXME: move to insane.bbclass
+    # FIXME: move to sanity.oeclass
     provides = bb.data.getVar('PROVIDES', d, True)
     if provides:
         bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)

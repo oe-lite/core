@@ -87,7 +87,7 @@ hello = 'world'""",
 
 )
 
-bb_testmatrix = (
+oe_testmatrix = (
 
     ("do_foobar () {\n  set -ex\n  echo hello world\n}\n",
      {'do_foobar':{'func':'sh','':'  set -ex\n  echo hello world\n'}}),
@@ -117,7 +117,7 @@ expand_testmatrix = (
 )
 
 if __name__ == "__main__":
-    import confparse, bbparse, expandparse
+    import confparse, oeparse, expandparse
     f = open("/tmp/foobar.inc", "w")
     f.write("foo='bar'\n")
     f.close()
@@ -138,9 +138,9 @@ if __name__ == "__main__":
             passed += 1
     print "\nPASSED = %d    FAILED = %d"%(passed, failed)
 
-    parser = bbparse.BBParser()
+    parser = oeparse.OEParser()
     passed = failed = 0
-    for (testdata,expected_result) in conf_testmatrix + bb_testmatrix:
+    for (testdata,expected_result) in conf_testmatrix + oe_testmatrix:
         print "\n" + repr(testdata)
         parser.lextest(testdata, debug=True)
         result = parser.yacctest(testdata)

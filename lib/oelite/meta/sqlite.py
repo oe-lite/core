@@ -120,9 +120,9 @@ class SqliteMetaCache(Mapping):
 
         c.execute("CREATE TABLE IF NOT EXISTS input_mtime ( "
                   "fn       TEXT, "
-                  "bbpath   TEXT, "
+                  "oepath   TEXT, "
                   "mtime    TEXT, "
-                  "UNIQUE (fn, bbpath, mtime) ON CONFLICT IGNORE )")
+                  "UNIQUE (fn, oepath, mtime) ON CONFLICT IGNORE )")
 
         return
 
@@ -137,7 +137,7 @@ class SqliteMetaCache(Mapping):
             #    "VALUES (?, ?, ?, ?)",
             #    meta.get_var_flags(append=(recipe_type,)))
             #self.dbc.executemany(
-            #    "INSERT INTO input_mtime (fn, bbpath, mtime) VALUES (?, ?, ?)",
+            #    "INSERT INTO input_mtime (fn, oepath, mtime) VALUES (?, ?, ?)",
             #    meta.get_input_mtimes())
             print "done"
         return

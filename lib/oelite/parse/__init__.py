@@ -1,13 +1,13 @@
 import ply.lex
-import oelite.parse.bbparse
+import oelite.parse.oeparse
 
 
-bblexer = None
+oelexer = None
 
 __initialized__ = False
 if not __initialized__:
-    import bblex
-    bblexer = ply.lex.lex(module=bblex)
+    import oelex
+    oelexer = ply.lex.lex(module=oelex)
     __initialized__ = True
 
 
@@ -29,11 +29,11 @@ class ParseError(Exception):
     def __init__(self, parser, msg, details=None, symbol=None, lineno=None,
                  more_details=None):
         """
-        parser = BBParser instance
+        parser = OEParser instance
         msg = string
         details = 
         """
-        assert isinstance(parser, oelite.parse.bbparse.BBParser)
+        assert isinstance(parser, oelite.parse.oeparse.OEParser)
         assert isinstance(msg, basestring)
 
         self.parser = parser
@@ -87,7 +87,7 @@ class ParseError(Exception):
             self.filename = self.parser.filename
         elif not self.filename:
             self.filename = "<unknown file>",
-        #if isinstance(self.parser, oelite.parse.bbparse.BBParser):
+        #if isinstance(self.parser, oelite.parse.oeparse.OEParser):
         #    self.parser = parser.yacc
         if not self.symbol:
             self.msg += " in %s at line %d"%(
@@ -188,11 +188,11 @@ class FileNotFound(ParseError):
 
 
 __all__ = [
-    "bblex", "bbparse", "confparse",
+    "oelex", "oeparse", "confparse",
     "ParseError", "StatementNotAllowed", "FileNotFound",
-    "bblexer",
+    "oelexer",
     ]
 
-import bblex
-import bbparse
+import oelex
+import oeparse
 import confparse

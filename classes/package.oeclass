@@ -20,7 +20,7 @@ def do_split(d):
     packages = bb.data.getVar("PACKAGES", d, True).split()
 
     # Sanity check PACKAGES for duplicates.
-    # move to sanity.bbclass once we have the infrastucture
+    # move to sanity.oeclass once we have the infrastucture
     package_list = []
     for pkg in packages:
         if pkg in package_list:

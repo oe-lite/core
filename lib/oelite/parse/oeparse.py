@@ -4,12 +4,12 @@ import string
 import bb.utils
 import oelite.parse
 import oelite.meta
-from oelite.parse.bblex import tokens
+from oelite.parse.oelex import tokens
 
-class BBParser(object):
+class OEParser(object):
 
     def __init__(self, meta=None, parent=None):
-        self.lexer = oelite.parse.bblexer.clone()
+        self.lexer = oelite.parse.oelexer.clone()
         self.lexer.parser = self
         self.tokens = tokens
         bb.utils.mkdirhier("tmp/ply")
@@ -26,6 +26,7 @@ class BBParser(object):
     def reset_lexstate(self):
         while self.lexer.lexstate != "INITIAL":
             self.lexer.pop_state()
+        # FIXME: or perhaps use self.lexer.begin("INITIAL")
         return
 
 
@@ -456,9 +457,9 @@ class BBParser(object):
 
 
     def inherit(self, filename, p):
-        #print "inherit %s"%(filename)
-        if not os.path.isabs(filename) and not filename.endswith(".bbclass"):
-            filename = os.path.join("classes", "%s.bbclass"%(filename))
+        #print "inherit", filename
+        if not os.path.isabs(filename) and not filename.endswith(".oeclass"):
+            filename = os.path.join("classes", "%s.oeclass"%(filename))
         if not "__inherits" in self.meta:
             self.meta["__inherits"] = [filename]
             self.meta.set_flag("__inherits", "nohash", True)
@@ -479,25 +480,25 @@ class BBParser(object):
             #    more_details=e)
             #debug("ignoring include of in-expandable variable")
             return None
-        #print "including file=%s"%(filename)
+        #print "including", filename
         parser = self.__class__(self.meta, parent=self)
         return parser.parse(filename, require, parser, p)
 
 
     def parse(self, filename, require=True, parser=None, p=None):
-        #print "parsing %s"%(repr(filename))
+        #print "parsing %s"%(filename)
         searchfn = filename
         if not os.path.isabs(filename):
-            bbpath = self.meta.get("BBPATH")
+            oepath = self.meta.get("OEPATH")
             if self.parent:
                 dirname = os.path.dirname(self.parent.filename)
-                bbpath = "%s:%s"%(dirname, bbpath)
-            filename = bb.utils.which(bbpath, filename)
+                oepath = "%s:%s"%(dirname, oepath)
+            filename = bb.utils.which(oepath, filename)
         else:
             if not os.path.exists(filename):
                 print "file not found: %s"%(filename)
                 return
-            bbpath = None
+            oepath = None
 
         if not os.path.exists(filename):
             if require:
@@ -513,10 +514,10 @@ class BBParser(object):
                 print "don't include yourself!"
                 return
 
-        if parser is None and not filename.endswith(".bbclass"):
+        if parser is None and not filename.endswith(".oeclass"):
             self.meta.set("FILE", filename)
             self.meta.set("FILE_DIRNAME", os.path.dirname(filename))
-            if filename.endswith(".bb"):
+            if filename.endswith(".oe"):
                 file_split = os.path.basename(filename[:-3]).split("_")
                 if len(file_split) > 3:
                     raise Exception("Invalid recipe filename: %s"%(filename))
@@ -531,7 +532,7 @@ class BBParser(object):
         f = open(self.filename)
         self.text = f.read()
         f.close()
-        self.meta.set_input_mtime(searchfn, bbpath, mtime)
+        self.meta.set_input_mtime(searchfn, oepath, mtime)
 
         if not parser:
             parser = self

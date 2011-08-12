@@ -23,7 +23,7 @@ class CookBook(Mapping):
     def __init__(self, baker):
         self.baker = baker
         self.config = baker.config
-        self.bbparser = baker.bbparser
+        self.oeparser = baker.oeparser
         self.db = sqlite.connect(":memory:")
         if not self.db:
             raise Exception("could not create in-memory sqlite db")
@@ -36,7 +36,7 @@ class CookBook(Mapping):
         for recipefile in self.list_recipefiles():
             self.add_recipefile(recipefile)
 
-        #print "when instantiating from a parsed bbfile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
+        #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
         return
 
@@ -454,11 +454,11 @@ class CookBook(Mapping):
 
 
     def list_recipefiles(self):
-        BBRECIPES = (self.config["BBRECIPES"] or "").split(":")
-        if not BBRECIPES:
-            die("BBRECIPES not defined")
+        OERECIPES = (self.config["OERECIPES"] or "").split(":")
+        if not OERECIPES:
+            die("OERECIPES not defined")
         files = []
-        for f in BBRECIPES:
+        for f in OERECIPES:
             if os.path.isdir(f):
                 dirfiles = find_recipoefiles(f)
                 files.append(dirfiles)
@@ -468,24 +468,24 @@ class CookBook(Mapping):
                 for file in glob.iglob(f):
                     files.append(file)
 
-        bbrecipes = []
-        #bbappend = []
+        oerecipes = []
+        #oeappend = []
         for f in files:
-            if f.endswith(".bb"):
-                bbrecipes.append(f)
-            #elif f.endswith(".bbappend"):
-            #    bbappend.append(f)
+            if f.endswith(".oe"):
+                oerecipes.append(f)
+            #elif f.endswith(".oeappend"):
+            #    oeappend.append(f)
             else:
                 warn("skipping %s: unknown file extension"%(f))
 
         #appendlist = {}
-        #for f in bbappend:
-        #    base = os.path.basename(f).replace(".bbappend", ".bb")
+        #for f in oeappend:
+        #    base = os.path.basename(f).replace(".oeappend", ".oe")
         #    if not base in appendlist:
         #        appendlist[base] = []
         #    appendlist[base].append(f)
 
-        return bbrecipes
+        return oerecipes
 
 
     def cachefilename(self, recipefile):
@@ -523,11 +523,12 @@ class CookBook(Mapping):
 
 
     def parse_recipe(self, recipe):
+        #print "parsing recipe", recipe
         base_meta = self.config.copy()
         oelite.pyexec.exechooks(base_meta, "pre_recipe_parse")
-        self.bbparser.set_metadata(base_meta)
-        self.bbparser.reset_lexstate()
-        base_meta = self.bbparser.parse(os.path.abspath(recipe))
+        self.oeparser.set_metadata(base_meta)
+        self.oeparser.reset_lexstate()
+        base_meta = self.oeparser.parse(os.path.abspath(recipe))
         oelite.pyexec.exechooks(base_meta, "mid_recipe_parse")
         recipe_types = (base_meta.get("RECIPE_TYPES") or "").split()
         if not recipe_types:
@@ -540,8 +541,8 @@ class CookBook(Mapping):
             meta[recipe_type] = base_meta.copy()
         for recipe_type in recipe_types:
             meta[recipe_type]["RECIPE_TYPE"] = recipe_type
-            self.bbparser.set_metadata(meta[recipe_type])
-            self.bbparser.parse("classes/type/%s.bbclass"%(recipe_type))
+            self.oeparser.set_metadata(meta[recipe_type])
+            self.oeparser.parse("classes/type/%s.oeclass"%(recipe_type))
             compatible_machines = meta[recipe_type].get("COMPATIBLE_MACHINES")
             if compatible_machines is not None:
                 machine = meta[recipe_type].get("MACHINE")
