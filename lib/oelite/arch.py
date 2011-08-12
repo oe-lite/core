@@ -1,7 +1,7 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
 import os
-#import bb
+import bb
 
 # Handle all the arhicture related variables.
 
@@ -333,7 +333,7 @@ def arch_set_build_arch(d, gcc_version):
     try:
         guess = globals()['config_guess_cache']
     except KeyError:
-        #bb.debug(1, "config.guess")
+        #bb.debug("config.guess")
         script = arch_find_script(d, 'config.guess')
         try:
             guess = arch_split(os.popen(script).readline().strip())
@@ -446,7 +446,7 @@ def arch_gccspec(arch, gcc):
                 gccspec['mtune'] = '603e'
 
     except KeyError, e:
-        #bb.debug(1, 'KeyError in arch_gccspec: ')
+        #bb.debug("KeyError in arch_gccspec: ")
         pass
 
     gccspecs[gcc][arch] = gccspec
@@ -466,7 +466,7 @@ def arch_config_sub(d, arch):
     except KeyError:
         script = arch_find_script(d, 'config.sub')
         try:
-            #bb.debug(1, "config.sub")
+            bb.debug("%s %s"%(script, arch))
             canonical_arch = os.popen("%s %s"%(script, arch)).readline().strip()
             config_sub_cache[arch] = canonical_arch
         except OSError, e:
@@ -495,7 +495,7 @@ def arch_find_script(d, filename):
         for bbpath in d.get('BBPATH', 1).split(':'):
             filepath = os.path.join(bbpath, 'scripts', filename)
             if os.path.isfile(filepath):
-                #bb.debug(1, 'found %s: %s'%(filename, filepath))
+                #bb.debug("found %s: %s"%(filename, filepath))
                 scripts[filename] = filepath
                 break
         if not filename in scripts:
