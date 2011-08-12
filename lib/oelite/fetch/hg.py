@@ -7,7 +7,6 @@ class HgFetcher():
             raise Exception(
                 "Scheme %s not supported by oelite.fetch.HgFetcher"%(scheme))
         self.uri = uri
-        self.localpath = None
         return
 
     def signature(self):

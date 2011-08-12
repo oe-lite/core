@@ -19,7 +19,8 @@ class LocalFetcher():
             d.set_input_mtime(self.localpath,
                               mtime=os.path.getmtime(self.localpath))
         else:
-            self.localpath = bb.utils.which(d.get("FILESPATH"), uri.location)
+            self.localpath = bb.utils.which(d.get("FILESPATH_EXISTS"),
+                                            uri.location)
             if not self.localpath:
                 raise oelite.fetch.LocalFileNotFound(self.uri, "file not found")
             d.set_input_mtime(uri.location, d.get("FILESPATH"),
@@ -35,8 +36,3 @@ class LocalFetcher():
         m.update(open(self.localpath, "r").read())
         self._signature = m.digest()
         return self._signature
-
-    #def validate(self):
-    #    m = hashlib.sha1()
-    #    m.update(open(self.localpath, "r").read())
-    #    return m.digest() == self.signature()

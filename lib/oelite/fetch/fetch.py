@@ -71,16 +71,16 @@ class OEliteUri:
             raise oelite.fetch.InvalidURI(
                 uri, "unsupported URI scheme: %s"%(self.scheme))
         self.fetcher = FETCHERS[self.scheme](self, d)
-        if not self.fetcher.localpath:
-            return # FIXME: I guess all fetchers should give a localpath!
-        self.init_unpack_param()
-        self.init_patch_param()
+        self.init_unpack_params()
+        self.init_patch_params()
         return
 
     def __str__(self):
         return "%s://%s"%(self.scheme, self.location)
 
-    def init_unpack_param(self):
+    def init_unpack_params(self):
+        if not "localpath" in dir(self.fetcher):
+            return
         if not "unpack" in self.params:
             for (unpack, exts) in unpack_ext:
                 assert isinstance(exts, tuple)
@@ -95,9 +95,11 @@ class OEliteUri:
                 self.params["unpack"] += "_dos"
         return
 
-    def init_patch_param(self):
+    def init_patch_params(self):
+        if not "localpath" in dir(self.fetcher):
+            return
         if not "patch" in self.params:
-            paths = [self.fetcher.localpath]
+            patchfile = self.fetcher.localpath
             try:
                 unpack = self.params["unpack"] or None
                 if unpack == "0":
@@ -105,11 +107,9 @@ class OEliteUri:
             except KeyError:
                 unpack = None
             if unpack and self.fetcher.localpath.endswith(unpack):
-                paths.append(self.fetcher.localpath[-len(unpack):])
-            for path in paths:
-                if path.endswith(".patch") or path.endswith(".diff"):
-                    self.params["patch"] = 1
-                    break
+                patchfile = self.fetcher.localpath[-len(unpack):]
+            if patchfile.endswith(".patch") or patchfile.endswith(".diff"):
+                self.params["patch"] = 1
         elif not self.params["patch"] or self.params["patch"] == "0":
             del self.params["patch"]
         if "patch" in self.params:
@@ -166,6 +166,8 @@ class OEliteUri:
         return self.fetcher.fetch()
 
     def unpack(self, cmd):
+        if "unpack" in dir(self.fetcher):
+            return self.fetcher.unpack()
         print "Unpacking", self.fetcher.localpath
         srcpath = os.getcwd()
         self.srcfile = None
