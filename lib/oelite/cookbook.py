@@ -11,6 +11,7 @@ import sys
 import os
 import glob
 import inspect
+import re
 from types import *
 from pysqlite2 import dbapi2 as sqlite
 from collections import Mapping
