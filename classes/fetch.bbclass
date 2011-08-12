@@ -31,12 +31,12 @@ def fetch_init(d):
     for src_uri in (d.get("SRC_URI") or "").split():
         try:
             uri = oelite.fetch.OEliteUri(src_uri, d)
+            m.update(uri.signature())
             schemes.add(uri.scheme)
             uris.append(uri)
         except oelite.fetch.FetchException as e:
             print e
             failed = True
-        m.update(uri.signature())
     if failed:
         print "Bad SRC_URI"
         return False
