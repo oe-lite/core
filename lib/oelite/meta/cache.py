@@ -88,6 +88,13 @@ def pickle_abi():
                     oelite.parse.bblex.__file__,
                     oelite.parse.bbparse.__file__,
                     oelite.parse.confparse.__file__,
+                    inspect.getsourcefile(oelite.fetch),
+                    inspect.getsourcefile(oelite.fetch.fetch),
+                    inspect.getsourcefile(oelite.fetch.local),
+                    inspect.getsourcefile(oelite.fetch.url),
+                    inspect.getsourcefile(oelite.fetch.sigfile),
+                    inspect.getsourcefile(oelite.fetch.git),
+                    inspect.getsourcefile(oelite.fetch.hg),
                     ]
         m = hashlib.md5()
         for srcfile in srcfiles:
