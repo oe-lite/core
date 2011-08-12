@@ -13,7 +13,6 @@ from oelite.parse import *
 from oelite.cookbook import CookBook
 
 import bb.utils
-#import bb.fetch
 
 import sys
 import os
@@ -124,10 +123,6 @@ class OEliteBaker:
             self.bbparser.parse("classes/%s.bbclass"%(inherit), require=True)
 
         oelite.pyexec.exechooks(self.config, "post_common_inherits")
-
-        # FIXME: when rewriting the bb fetcher, this init should
-        # probably be called from a hook function
-        #bb.fetch.fetcher_init(self.config)
 
         # things (ritem, item, recipe, or package) to do
         if args:
