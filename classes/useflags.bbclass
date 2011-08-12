@@ -17,8 +17,7 @@ def set_useflags(d):
                 (d.get('CLASS_FLAGS') or "").split())
     if not useflags:
         return
-    recipe_arch = d.get('RECIPE_ARCH')
-    recipe_arch_mach = d.get('RECIPE_ARCH_MACHINE')
+    machine_override = d.get('MACHINE_OVERRIDE')
     overrides = (d.get('OVERRIDES') or "")
     overrides_changed = False
     for useflag in useflags:
@@ -32,8 +31,8 @@ def set_useflags(d):
         elif local_val is not None:
             val = local_val
         elif machine_val is not None:
-            if recipe_arch != recipe_arch_mach:
-                d.set('RECIPE_ARCH', '${RECIPE_ARCH_MACHINE}')
+            if not machine_override:
+                d.set('MACHINE_OVERRIDE', '.${MACHINE}')
             val = machine_val
         elif distro_val is not None:
             val = distro_val

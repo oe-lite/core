@@ -311,7 +311,7 @@ def core_machine_override(d):
             path = os.path.join(file_dirname, p, machine)
             if os.path.isdir(path):
                 filespaths.append(path)
-        if len(paths) != 0:
+        if len(filespaths) != 0:
             for fetcher in d["__fetch"]:
                 if not fetcher.scheme == "file":
                     continue

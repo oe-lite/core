@@ -2,8 +2,6 @@ inherit tar-image
 
 IMAGE_BASENAME = "${PN}"
 
-RECIPE_ARCH = "${RECIPE_ARCH_MACHINE}"
-
 CLASS_FLAGS += "rootfs_name"
 DEFAULT_USE_rootfs_name = "base-rootfs"
 DEPENDS += "${USE_rootfs_name}"
