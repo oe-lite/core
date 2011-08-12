@@ -1,6 +1,6 @@
 require conf/u-boot.conf
 
-inherit kernel-arch
+inherit c make kernel-arch
 
 # Why bother?  U-Boot will most likely stay broken for parallel builds
 PARALLEL_MAKE = ""
@@ -13,12 +13,13 @@ CXXFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 
 do_configure () {
-    if [ ! -z "${USE_uboot_extra_env}" ]; then
+    if [ ! -z '${USE_uboot_extra_env}' ]; then
       sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/[^\]$/& \\/' include/configs/${USE_uboot_config_file}
       sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/^$/& ${USE_uboot_extra_env} \n/' include/configs/${USE_uboot_config_file}
     fi
     oe_runmake ${USE_uboot_config}
 }
+oe_runmake[emit] += "do_configure"
 
 do_compile () {
     oe_runmake ${UBOOT_IMAGE}
