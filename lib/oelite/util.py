@@ -38,3 +38,39 @@ class TeeStream:
             file.write(text)
         return
 
+def shcmd(cmd, dir=None, quiet=False, success_returncode=0):
+
+    if type(cmd) == type([]):
+        cmdlist = cmd
+        cmd = cmdlist[0]
+        for arg in cmdlist[1:]:
+            cmd = cmd + ' ' + arg
+
+    if dir:
+        pwd = os.getcwd()
+        chdir(dir, quiet=True)
+
+    if not quiet:
+        if dir:
+            print '%s> %s'%(dir, cmd)
+        else:
+            print '> %s'%(cmd)
+
+    retval = None
+    if quiet:
+        process = subprocess.Popen(cmd, shell=True, stdin=sys.stdin,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+        output = process.communicate()[0]
+        if process.returncode == success_returncode:
+            retval = output
+
+    else:
+        returncode = subprocess.call(cmd, shell=True, stdin=sys.stdin)
+        if returncode == success_returncode:
+            retval = True
+
+    if dir:
+        chdir(pwd, quiet=True)
+
+    return retval
