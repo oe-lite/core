@@ -198,7 +198,7 @@ class OEliteTask:
             print "Opening log file failed: %s"%(logfn)
             raise
 
-        if os.path.exists(logsymlink):
+        if os.path.exists(logsymlink) or os.path.islink(logsymlink):
             os.remove(logsymlink)
         os.symlink(logfn, logsymlink)
 

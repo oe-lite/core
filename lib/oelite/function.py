@@ -140,7 +140,7 @@ class ShellFunction(OEliteFunction):
 
         runfile = open(runfn, "w")
         runfile.write("#!/bin/bash -e\n\n")
-        if os.path.exists(runsymlink):
+        if os.path.exists(runsymlink) or os.path.islink(runsymlink):
             os.remove(runsymlink)
         os.symlink(runfn, runsymlink)
 
