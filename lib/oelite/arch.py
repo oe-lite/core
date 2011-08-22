@@ -372,6 +372,8 @@ def arch_update(d, prefix, gcc_version):
     ost = os.split('-',1)
     if len(ost) > 1:
         d[prefix+'_BASEOS'] = ost[0]
+    else:
+        d[prefix+'_BASEOS'] = ""
     for spec in gccspec:
         d[prefix+'_'+spec.upper()] = gccspec[spec]
     return
