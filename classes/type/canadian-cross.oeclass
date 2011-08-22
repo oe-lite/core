@@ -60,3 +60,15 @@ def fixup_package_type(d):
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"
+
+STAGE_PATH = "\
+${STAGE_DIR}/cross${stage_bindir}:\
+${STAGE_DIR}/sdk-cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}\
+"
+
+LD_LIBRARY_PATH = "\
+${STAGE_DIR}/cross${stage_bindir}:\
+${STAGE_DIR}/sdk-cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}\
+"

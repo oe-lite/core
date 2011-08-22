@@ -7,3 +7,13 @@ HOST_TYPE		 = "machine"
 TARGET_TYPE		 = "machine"
 HOST_CROSS		 = "cross"
 TARGET_CROSS		 = "cross"
+
+STAGE_PATH = "\
+${STAGE_DIR}/cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}\
+"
+
+LD_LIBRARY_PATH = "\
+${STAGE_DIR}/cross${stage_libdir}:\
+${STAGE_DIR}/native${stage_libdir}\
+"

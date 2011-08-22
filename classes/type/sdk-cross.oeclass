@@ -45,3 +45,13 @@ target_includedir	= "${sdk_includedir}"
 
 PKG_CONFIG_LIBDIR	= "${SDK_PKG_CONFIG_DIR}"
 PKG_CONFIG_PATH		= "${SDK_PKG_CONFIG_PATH}"
+
+STAGE_PATH = "\
+${STAGE_DIR}/sdk-cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}\
+"
+
+LD_LIBRARY_PATH = "\
+${STAGE_DIR}/sdk-cross${stage_bindir}:\
+${STAGE_DIR}/native${stage_bindir}\
+"
