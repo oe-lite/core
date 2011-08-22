@@ -16,7 +16,8 @@ dupdate_image() {
 
 CLASS_FLAGS += "dupdate_script dupdate_version"
 
-do_install_append () {
+DO_INSTALL_POSTFUNCS += "do_install_dupdate_image"
+do_install_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
 }
 
@@ -45,7 +46,8 @@ dupdate_script () {
 }
 dupdate_script[dirs] = "${RSTAGE_DIR}"
 
-do_deploy_append () {
+DO_DEPLOY_POSTFUNCS += "do_deploy_dupdate_image"
+do_deploy_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}${DUPDATE_IMAGE_EXT}
 	ln -sf ${IMAGE_FULLNAME}${DUPDATE_IMAGE_EXT} \

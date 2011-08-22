@@ -18,13 +18,15 @@ jffs2_image () {
 		--output=${B}/${IMAGE_BASENAME}.jffs2
 }
 
-do_install_append () {
+DO_INSTALL_POSTFUNCS += "do_install_jffs2_image"
+do_install_jffs2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 ${D}/
 }
 
 FILES_${PN} += "/*.jffs2"
 
-do_deploy_append () {
+DO_DEPLOY_POSTFUNCS += "do_deploy_jffs2_image"
+do_deploy_jffs2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.jffs2
 	ln -sf ${IMAGE_FULLNAME}.jffs2 \

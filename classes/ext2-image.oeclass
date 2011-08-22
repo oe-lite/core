@@ -16,13 +16,15 @@ genext2fs_image () {
 		 ${B}/${IMAGE_BASENAME}.ext2
 }
 
-do_install_append () {
+DO_INSTALL_POSTFUNCS += "do_install_ext2_image"
+do_install_ext2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.ext2 ${D}/
 }
 
 FILES_${PN} += "/*.ext2"
 
-do_deploy_append () {
+DO_DEPLOY_POSTFUNCS += "do_deploy_ext2_image"
+do_deploy_ext2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.ext2 \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.ext2
 	ln -sf ${IMAGE_FULLNAME}.ext2 \

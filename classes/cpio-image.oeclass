@@ -16,13 +16,15 @@ cpio_image () {
 	)
 }
 
-do_install_append () {
+DO_INSTALL_POSTFUNCS += "do_install_cpio_image"
+do_install_cpio_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.cpio ${D}/
 }
 
 FILES_${PN} += "/*.cpio"
 
-do_deploy_append () {
+DO_DEPLOY_POSTFUNCS += "do_deploy_cpio_image"
+do_deploy_cpio_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.cpio \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.cpio
 	ln -sf ${IMAGE_FULLNAME}.cpio \
