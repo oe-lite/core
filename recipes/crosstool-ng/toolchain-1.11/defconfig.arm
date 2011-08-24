@@ -70,7 +70,3 @@ CT_ARCH_ARM_EABI=y
 # Target optimisations
 #
 
-#
-# C compiler
-#
-CT_CC_GCC_SHOW_LINARO=y
