@@ -501,6 +501,7 @@ PACKAGES = "${PN}-dbg ${PN}-g++ ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb ${PN}-lds
 
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "target:${PN}-sysroot-dev"
+RDEPENDS_${PN} = "target:${PN}-sysroot-dev"
 PROVIDES_${PN}-g++ = "c++"
 DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
 
@@ -549,7 +550,7 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/*/.debug \
 
 FILES_${PN}-gdb = "${datadir}/gcc-${GCC_VERSION}/python"
 
-FILES_${PN}-ldscripts = "${libdir}/ldscripts"
+FILES_${PN}-ldscripts = "${base_libdir}/ldscripts"
 
 TARGET_PACKAGES += "${PN}-sysroot-libc"
 FILES_${PN}-sysroot-libc = "\
@@ -775,14 +776,14 @@ do_split_sysroot_mangle () {
 				rm -f include
 			fi
 			if [ -d include ] ; then
-				mkdir -p ../${target_includedir}
-				cp -r include/* ../${target_includedir}
+				mkdir -p ..${target_includedir}
+				cp -r include/* ..${target_includedir}
 				rm -rf include
 			fi
 			rm -f lib
 			if [ -d lib ] ; then
-				mkdir -p ../${target_libdir}
-				mv lib/* ../${target_libdir}
+				mkdir -p ..${target_libdir}
+				mv lib/* ..${target_libdir}
 				rmdir lib
 			fi
 			cd ..
