@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 addtask rstage after do_patch before do_compile
 addtask deploy after do_fixup before do_build
 
@@ -47,7 +49,7 @@ def do_rstage(d):
     if d.get("RECIPE_TYPE") == "canadian-cross":
         def get_dstdir(cwd, package):
             if package.type == "machine":
-                return os.path.join(package.arch, "sysroot")
+                return os.path.join(cwd, package.arch, "sysroot")
             else:
                 return cwd
     else:
