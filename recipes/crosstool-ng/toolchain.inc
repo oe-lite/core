@@ -793,15 +793,15 @@ do_split_sysroot_mangle () {
 }
 
 do_split_sysroot_mangle_mingw32 () {
-    # Move object files (*.o) to usr/lib so that ld can find them through
-    # the mingw/lib dir (mingw symlinks to /usr)
-    for pkg in ${TARGET_PACKAGES} ; do
-        if [ -d $pkg/lib ] ; then
-            for f in $pkg/lib/*.o ; do
-		test -f $f && mv $f $pkg${target_libdir}/
-            done
-	fi
-    done
+	# Move object files (*.o) to usr/lib so that ld can find them through
+	# the mingw/lib dir (mingw symlinks to /usr)
+	for pkg in ${TARGET_PACKAGES} ; do
+		if [ -d $pkg/lib ] ; then
+			for f in $pkg/lib/*.o ; do
+				test -f $f && mv $f $pkg${target_libdir}/
+			done
+		fi
+	done
 }
 
 # Add symlinks to get sysroot back on stage for internal cross packages
