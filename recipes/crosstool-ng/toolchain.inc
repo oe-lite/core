@@ -78,7 +78,7 @@ CT_LIBELF_VERSION	= "${USE_toolchain_libelf_version}"
 TOOLCHAIN_VERSION		 = "${CT_CC}${CT_CC_VERSION}"
 TOOLCHAIN_VERSION		.= "-${CT_LIBC}${@d.get('CT_LIBC_VERSION').replace('_','.')}"
 
-CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_OPTIMIZATION', 1).split()]}"
+CT_EGLIBC_OPT_SIZE = "${@['n','y']['-Os' in d.getVar('TARGET_CFLAGS_OPT', 1).split()]}"
 
 # Depend on the right version of the ct-ng tool
 DEPENDS := "native:crosstool-ng_${PV}"
@@ -241,7 +241,7 @@ do_mangle () {
 	    -e 's%\(CT_BUILD_SUFFIX\)=.*%\1=""%' \
 	    -e 's%\(CT_TARGET_VENDOR\)=.*%\1="${TARGET_VENDOR}"%' \
 	    -e 's%\(CT_TARGET_PREFIX\)=.*%\1="${TARGET_PREFIX}"%' \
-	    -e 's%\(CT_TARGET_CFLAGS\)=.*%\1="${TARGET_OPTIMIZATION}"%' \
+	    -e 's%\(CT_TARGET_CFLAGS\)=.*%\1="${TARGET_CFLAGS_OPT}"%' \
 	    -e 's%\(CT_ARCH_ARCH\)=.*%\1="${CT_ARCH_ARCH}"%' \
 	    -e 's%\(CT_ARCH_CPU\)=.*%\1="${CT_ARCH_CPU}"%' \
 	    -e 's%\(CT_ARCH_TUNE\)=.*%\1="${CT_ARCH_TUNE}"%' \

@@ -6,8 +6,16 @@ oe_runmake() {
 oe_runmake[emit] = "do_compile do_install"
 MAKE ?= "make"
 MAKE[emit] = "do_compile do_install"
+export MAKE = "make"
+#EXTRA_OEMAKE = "-e MAKEFLAGS="
 EXTRA_OEMAKE = ""
 EXTRA_OEMAKE[emit] = "do_compile"
+
+# Pass parallel make options to the compile task only
+# FIXME: verify after implementing onlytask varflag
+export PARALLEL_MAKE ?= ""
+PARALLEL_MAKE[nohash] = True
+PARALLEL_MAKE[onlytask] = "compile"
 
 do_compile() {
 	do_compile_make ${EXTRA_OEMAKE_COMPILE}

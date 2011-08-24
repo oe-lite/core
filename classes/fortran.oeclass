@@ -1,0 +1,8 @@
+# -*- mode:python; -*-
+
+# F77
+export F77 = "${HOST_F77}"
+export BUILD_F77
+BUILD_F77	= "${BUILD_PREFIX}f77"
+HOST_F77	= "${HOST_PREFIX}f77"
+TARGET_F77	= "${TARGET_PREFIX}f77"

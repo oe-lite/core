@@ -1,0 +1,26 @@
+# -*- mode:python; -*-
+
+HOST_TYPE		= "native"
+HOST_CROSS		= "native"
+TARGET_CROSS		= "cross"
+
+# Default packages is stage (cross) packages
+PACKAGES		+= "${TARGET_PACKAGES}"
+TARGET_PACKAGES		?= ""
+
+# Set host=build to get architecture triplet build/build/machine
+HOST_ARCH		= "${BUILD_ARCH}"
+HOST_PREFIX		= "${BUILD_PREFIX}"
+
+require conf/paths/stage-host.conf
+
+# Fixup PACKAGE_TYPE_* variables for target packages
+addhook fixup_package_type to post_recipe_parse first
+def fixup_package_type(d):
+    target_packages = (d.get("TARGET_PACKAGES") or "").split()
+    target_type = d.get("TARGET_TYPE")
+    for pkg in target_packages:
+        d.set("PACKAGE_TYPE_%s"%(pkg), target_type)
+
+REBUILDALL_SKIP = "1"
+RELAXED = "1"

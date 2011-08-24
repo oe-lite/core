@@ -1,12 +1,16 @@
 # -*- mode:python; -*-
 
-RECIPE_ARCH		 = "${MACHINE_ARCH}${MACHINE_OVERRIDE}"
-MACHINE_OVERRIDE	?= ""
-
 HOST_TYPE		 = "machine"
 TARGET_TYPE		 = "machine"
 HOST_CROSS		 = "cross"
 TARGET_CROSS		 = "cross"
+
+RECIPE_ARCH		 = "${MACHINE_ARCH}${MACHINE_OVERRIDE}"
+MACHINE_OVERRIDE	?= ""
+
+require conf/paths/machine.conf
+require conf/paths/machine-host.conf
+require conf/paths/machine-target.conf
 
 STAGE_PATH = "\
 ${STAGE_DIR}/cross${stage_bindir}:\
@@ -17,3 +21,5 @@ LD_LIBRARY_PATH = "\
 ${STAGE_DIR}/cross${stage_libdir}:\
 ${STAGE_DIR}/native${stage_libdir}\
 "
+
+export CROSS	= "${HOST_PREFIX}"
