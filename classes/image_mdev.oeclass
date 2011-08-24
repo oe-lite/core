@@ -5,10 +5,10 @@ require conf/mdev.conf
 IMAGE_PREPROCESS_FUNCS:>USE_mdev = " image_preprocess_mdev"
 
 image_preprocess_mdev () {
-    test -d ./${mdevdir} || return 0
-    for f in ./${mdevdir}/* ; do
-        cat $f >> ./${mdevconf}
-        rm $f
-    done
-    rm -rf ./${mdevdir}
+	test -d ./${mdevdir} || return 0
+	for f in ./${mdevdir}/* ; do
+		cat $f >> ./${mdevconf}
+		rm $f
+	done
+	rm -rf ./${mdevdir}
 }

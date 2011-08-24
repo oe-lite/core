@@ -3,15 +3,14 @@ require conf/inittab.conf
 IMAGE_PREPROCESS_FUNCS:>USE_sysvinit = " image_preprocess_inittab"
 
 image_preprocess_inittab () {
-    if [ -e .${inittabfixupdir} ] ; then
-        (
-        cwd=`pwd`
-        cd .${inittabfixupdir}
-        for f in * ; do
-            echo -e "\n# $f" >> $cwd${sysconfdir}/inittab
-            cat $f >> $cwd${sysconfdir}/inittab
-        done
-        )
-    fi
-    rm -rf .${inittabfixupdir}
+	test -d .${inittabfixupdir} || return 0
+	(
+	cwd=`pwd`
+	cd .${inittabfixupdir}
+	for f in * ; do
+		echo -e "\n# $f" >> $cwd${sysconfdir}/inittab
+		cat $f >> $cwd${sysconfdir}/inittab
+	done
+	)
+	rm -rf .${inittabfixupdir}
 }
