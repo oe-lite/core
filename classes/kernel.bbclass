@@ -75,7 +75,7 @@ KERNEL_UIMAGE_DEPENDS_RECIPE_OPTION_kernel_uimage = "u-boot-mkimage-native"
 DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
 DEFAULT_CONFIG_kernel_uimage = "0"
 DEFAULT_CONFIG_kernel_uimage_entrypoint = "20008000"
-DEFAULT_CONFIG_kernel_uimage_loadaddress = "${RECIPE_OPTION_kernel_image_entrypoint}"
+DEFAULT_CONFIG_kernel_uimage_loadaddress = "${RECIPE_OPTION_kernel_uimage_entrypoint}"
 DEFAULT_CONFIG_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
@@ -85,31 +85,31 @@ kernel_do_compile_append_RECIPE_OPTION_kernel_uimage () {
 	    awk '$3=="${RECIPE_OPTION_kernel_uimage_entrypoint}" {print $1}'`
     fi
 
-    if [ -e "arch/${ARCH}/boot/compressed/vmlinux" ] ; then
-	${OBJCOPY} -O binary -R .note -R .comment \
-	-S arch/${ARCH}/boot/compressed/vmlinux linux.bin
+    if [ -e "arch/${KERNEL_ARCH}/boot/compressed/vmlinux" ] ; then
+	${OBJCOPY} -O binary -R .note -R .note.gnu.build-id -R .comment -S \
+	arch/${KERNEL_ARCH}/boot/compressed/vmlinux linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
 	-a ${RECIPE_OPTION_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
 	-n ${RECIPE_OPTION_kernel_uimage_name} \
-	-d linux.bin arch/${ARCH}/boot/uImage
+	-d linux.bin arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin
-
     else
-	${OBJCOPY} -O binary -R .note -R .comment -S vmlinux linux.bin
+	${OBJCOPY} -O binary -R .note -R .note.gnu.build-id -R .comment -S \
+        vmlinux linux.bin
 	rm -f linux.bin.gz
 	gzip -9 linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C gzip \
 	-a ${RECIPE_OPTION_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
 	-n ${RECIPE_OPTION_kernel_uimage_name} \
-	-d linux.bin.gz arch/${ARCH}/boot/uImage
+	-d linux.bin.gz arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin.gz
     fi
 }
 
 UIMAGE_KERNEL_OUTPUT = ""
-UIMAGE_KERNEL_OUTPUT_append_RECIPE_OPTION_kernel_uimage = "arch/${ARCH}/boot/uImage"
+UIMAGE_KERNEL_OUTPUT_append_RECIPE_OPTION_kernel_uimage = "arch/${KERNEL_ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
 RECIPE_OPTIONS += "kernel_dtb kernel_dtc kernel_dtc_flags kernel_dtc_source"
@@ -167,7 +167,7 @@ kernel_do_install () {
     cp -fR arch/${KERNEL_ARCH}/lib ${D}/kernel/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/include ${D}/kernel/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/Makefile ${D}/kernel/arch/${KERNEL_ARCH}
-    
+
 
     install_kernel_headers
 }
