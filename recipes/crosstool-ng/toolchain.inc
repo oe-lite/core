@@ -95,6 +95,7 @@ S = "${WORKDIR}/build"
 B = "${S}"
 
 TUI_DEPENDS				= "host:libtermcap host:libreadline"
+TUI_DEPENDS:HOST_OS_mingw32		= ""
 DEPENDS:>machine			= "${TUI_DEPENDS}"
 DEPENDS:>sdk				= "${TUI_DEPENDS}"
 DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
@@ -745,7 +746,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot \
 #/${TARGET_ARCH}/debug-root
 
 SPLIT_FUNCS = "do_split_sysroot_mangle"
-SPLIT_FUNCS:>HOST_OS_mingw32 = " do_split_sysroot_mangle_mingw32"
+SPLIT_FUNCS:>TARGET_OS_mingw32 = " do_split_sysroot_mangle_mingw32"
 SPLIT_FUNCS:>cross = " do_split_sysroot_mangle_stage"
 SPLIT_FUNCS:>sdk-cross = " do_split_sysroot_mangle_stage"
 SPLIT_FUNCS:>native = " do_split_sysroot_mangle_stage"
@@ -793,6 +794,7 @@ do_split_sysroot_mangle () {
 }
 
 do_split_sysroot_mangle_mingw32 () {
+	cd ${PKGD}
 	# Move object files (*.o) to usr/lib so that ld can find them through
 	# the mingw/lib dir (mingw symlinks to /usr)
 	for pkg in ${TARGET_PACKAGES} ; do
