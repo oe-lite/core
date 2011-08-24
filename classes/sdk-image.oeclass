@@ -1,8 +1,8 @@
-inherit image
+# -*- mode:python; -*-
 
-INHERIT_SDK_IMAGE = "tar-image"
-INHERIT_SDK_IMAGE:HOST_OS_mingw32 = "zip-image"
-inherit ${INHERIT_SDK_IMAGE}
+inherit archive-image
+
+ARCHIVE_IMAGE_FORMATS:HOST_OS_mingw32 = " zip"
 
 IMAGE_PREPROCESS_NETFILTER = ""
 IMAGE_PREPROCESS_NETFILTER:HOST_OS_mingw32 = "image_preprocess_linux_netfilter_headers"

@@ -1,4 +1,4 @@
-inherit tar-image
+inherit archive-image
 
 IMAGE_BASENAME = "${PN}"
 

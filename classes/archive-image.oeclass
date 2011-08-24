@@ -1,0 +1,84 @@
+# -*- mode:python; -*-
+
+inherit image
+
+ARCHIVE_IMAGE_FORMATS = "tar"
+ARCHIVE_IMAGE_DIRNAME ?= "${IMAGE_BASENAME}"
+ARCHIVE_IMAGE_TAR_EXT ?= "tar.gz"
+
+IMAGE_CREATE_FUNCS += "archive_image"
+
+archive_image () {
+	(
+	if [ -n "${ARCHIVE_IMAGE_DIRNAME}" ]; then
+		cd `dirname ${IMAGE_DIR}`
+		imagedir=`basename ${IMAGE_DIR}`
+		rm -rf $imagedir.tmp
+		mkdir $imagedir.tmp
+		mv $imagedir $imagedir.tmp/${ARCHIVE_IMAGE_DIRNAME}
+		ln -s $imagedir.tmp/${ARCHIVE_IMAGE_DIRNAME} $imagedir
+		for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do (
+			archive_image_$fmt $imagedir.tmp \
+				${ARCHIVE_IMAGE_DIRNAME}
+		) done
+		rm $imagedir
+		mv $imagedir.tmp/${ARCHIVE_IMAGE_DIRNAME} $imagedir
+		rmdir $imagedir.tmp
+        else
+		for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do
+			( archive_image_$fmt ${IMAGE_DIR} . )
+		done
+	fi
+	)
+}
+
+archive_image_tar () {
+	imagedir=$1
+	dirname=$2
+	tar c -C $imagedir \
+		-a -f ${B}/${IMAGE_BASENAME}.${ARCHIVE_IMAGE_TAR_EXT} $dirname
+}
+
+archive_image_zip () {
+	imagedir=$1
+	dirname=$2
+	cd $imagedir
+	if "$dirname" != "." ; then
+		# zip do not support dangeling symlinks so remove them
+		mv $dirname $dirname.orig
+		cp -a $dirname.orig $dirname
+		find -L $dirname -type l -print0 | xargs -tr0 rm -f
+	fi
+	zip -r ${B}/${IMAGE_BASENAME}.zip $dirname
+	if "$dirname" != "." ; then
+		rm -rf $dirname
+		mv $dirname.orig $dirname
+	fi
+}
+
+DO_INSTALL_POSTFUNCS += "do_install_archive_image"
+do_install_archive_image () {
+	for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do
+		case $fmt in
+			tar)	ext="${ARCHIVE_IMAGE_TAR_EXT}" ;;
+			*)	ext="$fmt" ;;
+		esac
+		install -m 664 ${B}/${IMAGE_BASENAME}.$ext ${D}/
+	done
+}
+
+FILES_${PN} += "/*.${ARCHIVE_IMAGE_TAR_EXT} /*.zip"
+
+DO_DEPLOY_POSTFUNCS += "do_deploy_archive_image"
+do_deploy_archive_image () {
+	for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do
+		case $fmt in
+			tar)	ext="${ARCHIVE_IMAGE_TAR_EXT}" ;;
+			*)	ext="$fmt" ;;
+		esac
+		install -m 664 ${B}/${IMAGE_BASENAME}.$ext \
+			${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.$ext
+		ln -sf ${IMAGE_FULLNAME}.$ext \
+			${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}.$ext
+	done
+}
