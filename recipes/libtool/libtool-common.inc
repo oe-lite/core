@@ -11,6 +11,7 @@ require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
 
 inherit autotools
+C_DEPENDS = "target-cross:cc"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 LIBTOOL_DEPENDS:native = ""
@@ -67,7 +68,7 @@ C_DEPENDS:cross = "target-cross:cc"
 # As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
 # host), we need to fixup the mingw32 override to avoid the invalid
 # --hash-style option.
-SDK_LDFLAGS_HASH_STYLE_mingw32 = ""
+SDK_LDFLAGS_HASH_STYLE:TARGET_OS_mingw32 = ""
 
 do_install[postfuncs] += "do_install_symlinks"
 do_install_symlinks () {
