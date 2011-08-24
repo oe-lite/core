@@ -49,6 +49,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir):
         # FIXME: do better
         conflicts = False
         for root, dirs, files in os.walk("."):
+            root = root[2:]
             for f in dirs:
                 srcfile = os.path.join(root, f)
                 dstfile = os.path.join(dstdir, srcfile)
