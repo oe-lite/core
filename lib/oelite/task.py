@@ -10,6 +10,7 @@ import sys
 import os
 import warnings
 import shutil
+import re
 
 def task_name(name):
     if name.startswith("do_"):
@@ -18,6 +19,8 @@ def task_name(name):
 
 
 class OEliteTask:
+
+    TASKFUNC_RE = re.compile(r"^do_([a-z]+).*?")
 
     def __init__(self, id, recipe, name, nostamp, cookbook):
         self.id = id
@@ -161,15 +164,16 @@ class OEliteTask:
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
         for var in meta:
-            emit = meta.get_flag(var, "emit")
-            if emit is not None and not self.name in emit.split():
+            emit = (meta.get_flag(var, "emit") or "").split()
+            taskfunc_match = self.TASKFUNC_RE.match(var)
+            if taskfunc_match:
+                if taskfunc_match.group(0) not in emit:
+                    emit.append(taskfunc_match.group(0))
+            if emit and not self.name in emit:
                 del meta[var]
                 continue
             omit = meta.get_flag(var, "omit")
             if omit is not None and self.name in omit.split():
-                del meta[var]
-                continue
-            if meta.get_flag(var, "task") and var != self.name:
                 del meta[var]
                 continue
 
