@@ -458,6 +458,15 @@ class OEParser(object):
 
     def inherit(self, filename, p):
         #print "inherit", filename
+        try:
+            filename = self.meta.expand(filename,
+                                        method=oelite.meta.FULL_EXPANSION)
+        except oelite.meta.ExpansionError, e:
+            raise oelite.parse.ParseError(
+                self, str(e), p, lineno=(self.lexer.lineno - 1),
+                more_details=e)
+        if not filename:
+            return
         if not os.path.isabs(filename) and not filename.endswith(".oeclass"):
             filename = os.path.join("classes", "%s.oeclass"%(filename))
         if not "__inherits" in self.meta:
