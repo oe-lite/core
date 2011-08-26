@@ -178,7 +178,7 @@ class OEliteBaker:
 
         if self.options.task:
             if self.options.task.startswith("do_"):
-                task = self.otpions.task
+                task = self.options.task
             else:
                 task = "do_" + self.options.task
             self.runq = OEliteRunQueue(self.config, self.cookbook)
