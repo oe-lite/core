@@ -1,12 +1,13 @@
 # -*- mode:python; -*-
 
 DESCRIPTION ?= "Sanitized Linux kernel headers"
-LICENSE ?= "GPL"
+LICENSE ?= "GPLv2"
 
-inherit kernel-common make
+RECIPE_TYPES = "machine"
 
-DEPENDS_KERNEL_HEADERS = "native:cc"
-CLASS_DEPENDS += "${DEPENDS_KERNEL_HEADERS}"
+inherit kernel-common
+
+C_DEPENDS = "native:cc"
 
 do_configure() {
     oe_runmake allnoconfig

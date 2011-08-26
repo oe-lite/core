@@ -17,67 +17,69 @@ DEFCONFIG_FILE ?= "${SRCDIR}/defconfig"
 DEFCONFIG = "${USE_kernel_defconfig}"
 DEFCONFIG[expand] = 3
 
+CLASS_FLAGS += "kernel_initramfs"
+CLASS_DEPENDS:>USE_kernel_initramfs = "initramfs"
+KERNEL_INITRAMFS ?= "${MACHINE_SYSROOT}${bootdir}/initramfs.cpio"
+USE_KERNEL_INITRAMFS = "${USE_kernel_initramfs}"
+USE_KERNEL_INITRAMFS[expand] = "3"
+
 do_configure_kernel () {
-    if [ -e "${DEFCONFIG_FILE}" ]; then
-	cp "${DEFCONFIG_FILE}" "${S}/.config"
-	yes '' | oe_runmake oldconfig
-    else
-	if [ -n "${DEFCONFIG}" ] ; then
-	    oe_runmake ${DEFCONFIG}
+	if [ -e "${DEFCONFIG_FILE}" ]; then
+		cp "${DEFCONFIG_FILE}" "${S}/.config"
+		yes '' | oe_runmake oldconfig
 	else
-	    die "No default configuration for ${MACHINE} available."
+		if [ -n "${DEFCONFIG}" ] ; then
+			oe_runmake ${DEFCONFIG}
+		else
+			die "No default configuration for ${MACHINE} available."
+		fi
 	fi
-    fi
+	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
+		echo "CONFIG_INITRAMFS_SOURCE=${KERNEL_INITRAMFS}" \
+			>> ${S}/.config
+		yes '' | oe_runmake oldconfig
+	fi
 }
 
 do_configure () {
-    do_configure_kernel
+	do_configure_kernel
 }
+oe_runmake[emit] += "do_configure"
 
-#do_menuconfig() {
-#    export TERMWINDOWTITLE="${PN} Kernel Configuration"
-#    export SHELLCMDS="make menuconfig"
-#    ${TERMCMDRUN}
-#    if [ $? -ne 0 ]; then
-#        echo "Fatal: '${TERMCMD}' not found. Check TERMCMD variable."
-#        exit 1
-#    fi
-#}
-#do_menuconfig[nostamp] = "1"
-#addtask menuconfig after do_patch
+export BUILD_TAG
 
 do_compile_kernel () {
-    if [ -n "${BUILD_TAG}" ]; then
-        export KBUILD_BUILD_VERSION="${BUILD_TAG}"
-    fi
+	if [ -n "$BUILD_TAG" ]; then
+		export KBUILD_BUILD_VERSION="$BUILD_TAG"
+	fi
 
-    oe_runmake include/linux/version.h
-    oe_runmake ${USE_kernel_imagetype}
+	oe_runmake include/linux/version.h
+	oe_runmake ${USE_kernel_imagetype}
 
-    if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
-	oe_runmake modules
-    else
-	oenote "no modules to compile"
-    fi
+	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
+		oe_runmake modules
+	else
+		oenote "no modules to compile"
+	fi
 
-    # Check if scripts/genksyms exists and if so, build it
-    if [ -e scripts/genksyms/ ]; then
-	oe_runmake SUBDIRS="scripts/genksyms"
-    fi
+	# Check if scripts/genksyms exists and if so, build it
+	if [ -e scripts/genksyms/ ]; then
+		oe_runmake SUBDIRS="scripts/genksyms"
+	fi
 }
 
 COMPILE_POSTFUNCS = ""
 do_compile[postfuncs] = "${COMPILE_POSTFUNCS}"
 do_compile () {
-    do_compile_kernel
+	do_compile_kernel
 }
 
 DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
-KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-mkimage']['${USE_kernel_imagetype}' == 'uImage']}"
+KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-tools-mkimage']['${USE_kernel_imagetype}' == 'uImage']}"
 
 CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
-KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "u-boot-mkimage-native"
+KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "native:u-boot-tools-mkimage"
 DEFAULT_USE_kernel_uimage = "0"
 DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
 DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_uimage_entrypoint}"
@@ -91,14 +93,14 @@ do_compile_kernel_uimage() {
             awk '$3=="${USE_kernel_uimage_entrypoint}" {print $1}'`
     fi
 
-    if [ -e "arch/${ARCH}/boot/compressed/vmlinux" ] ; then
+    if [ -e "arch/${KERNEL_ARCH}/boot/compressed/vmlinux" ] ; then
 	${OBJCOPY} -O binary -R .note -R .comment \
-	-S arch/${ARCH}/boot/compressed/vmlinux linux.bin
+	-S arch/${KERNEL_ARCH}/boot/compressed/vmlinux linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
 	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
 	-n ${USE_kernel_uimage_name} \
-	-d linux.bin arch/${ARCH}/boot/uImage
+	-d linux.bin arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin
 
     else
@@ -109,13 +111,13 @@ do_compile_kernel_uimage() {
 	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
 	-n ${USE_kernel_uimage_name} \
-	-d linux.bin.gz arch/${ARCH}/boot/uImage
+	-d linux.bin.gz arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin.gz
     fi
 }
 
 UIMAGE_KERNEL_OUTPUT = ""
-UIMAGE_KERNEL_OUTPUT:USE_kernel_uimage = "arch/${ARCH}/boot/uImage"
+UIMAGE_KERNEL_OUTPUT:USE_kernel_uimage = "arch/${KERNEL_ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
 CLASS_FLAGS += "kernel_dtb kernel_dtc kernel_dtc_flags kernel_dtc_source"
@@ -147,7 +149,6 @@ do_compile_kernel_dtc() {
 do_install_kernel () {
     install -d ${D}${bootdir}
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
-    install -m 0644 .config ${D}${bootdir}/config
 
     if [ -n "${KERNEL_DEVICETREE}" ] ; then
 	install -m 0644 ${KERNEL_DEVICETREE} ${D}${bootdir}/${KERNEL_DEVICETREE_FILENAME}
@@ -162,8 +163,9 @@ do_install_kernel () {
 
     install -d ${D}${bootdir}
     for kernel_output in ${KERNEL_OUTPUT} ; do
-	install -m 0644 ${kernel_output} ${D}${bootdir}/
+	install -m 0644 $kernel_output ${D}${bootdir}/
     done
+    install -m 0644 .config ${D}${bootdir}/config
 
     install -d ${D}/kernel
     cp -fR scripts ${D}/kernel/
@@ -174,14 +176,14 @@ do_install_kernel () {
     cp -fR arch/${KERNEL_ARCH}/lib ${D}/kernel/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/include ${D}/kernel/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/Makefile ${D}/kernel/arch/${KERNEL_ARCH}
-    
+    find ${D}/kernel/ \( -name \*.o -o -name .\*.cmd \) -exec rm {} \;
 
-    install_kernel_headers
+    do_install_kernel_headers
 }
 
 INSTALL_HDR_PATH ?= "${D}${includedir}/.."
 
-install_kernel_headers () {
+do_install_kernel_headers () {
     mkdir -p ${D}${includedir}
     oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" headers_install
 }
@@ -199,8 +201,10 @@ FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
     ${bootdir}/config"
 FILES_${PN}-headers = "${includedir}"
 FILES_${PN}-modules = "/lib/modules"
-FILES_${PN}-kernel-headers = "kernel"
+FILES_${PN}-kernel-headers = "/kernel"
+
 PROVIDES_${PN} = "kernel"
+PROVIDES_${PN}-kernel-headers = "kernel-headers"
 
 # FIXME: implement auto-package-kernel-modules.oeclass to split out
 # modules into separate packages
