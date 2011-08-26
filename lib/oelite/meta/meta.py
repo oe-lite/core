@@ -372,14 +372,22 @@ class MetaData(MutableMapping):
         else:
             eol = "\n"
     
+        if self.get_flag(key, "python"):
+            func = "python"
+        elif self.get_flag(key, "bash"):
+            func = "bash"
+        else:
+            func = None
+
         expand = self.get_flag(key, "expand")
         if expand is not None:
             expand = int(expand)
+        elif func == "python":
+            expand = False
         else:
-            if self.get_flag(key, "python"):
-                expand = False
-            else:
-                expand = True
+            expand = FULL_EXPANSION
+        if not expand:
+            expand = OVERRIDES_EXPANSION
         val = self.get(key, expand)
     
         if not val:
@@ -389,13 +397,19 @@ class MetaData(MutableMapping):
     
         for varname in dynvars.keys():
             val = string.replace(val, dynvars[varname], "${%s}"%(varname))
-    
-        if self.get_flag(key, "func"):
+
+        if pretty:
+            o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
+
+        if func == "python":
+            o.write("def %s(%s):\n%s"%(
+                    key, self.get_flag(key, "args"), val))
+            return
+
+        if func == "bash":
             o.write("%s() {\n%s}%s"%(key, val, eol))
             return
-    
-        if pretty:
-            o.write("# %s=%s\n"%(key, self.get(key, False)))
+
         if self.get_flag(key, "export"):
             o.write("export ")
         
