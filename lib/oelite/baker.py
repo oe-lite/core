@@ -188,8 +188,8 @@ class OEliteBaker:
         else:
             meta = recipe.meta
 
-        recipe.meta.dump(pretty=True, nohash=(not self.options.nohash),
-                         only=(self.things_todo[1:] or None))
+        meta.dump(pretty=True, nohash=(not self.options.nohash),
+                  only=(self.things_todo[1:] or None))
 
         return 0
 
