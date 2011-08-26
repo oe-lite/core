@@ -515,9 +515,9 @@ class OEliteRunQueue:
         # and last any provider
 
         preferred_provider = (self.config.get(
-                "PRFERRED_PROVIDER_%s_%s"%(item.type, item.name)) or
+                "PREFERRED_PROVIDER_%s_%s"%(item.type, item.name)) or
                               self.config.get(
-                "PRFERRED_PROVIDER_%s"%(item.name)) or
+                "PREFERRED_PROVIDER_%s"%(item.name)) or
                               None)
 
         if preferred_provider:
