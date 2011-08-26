@@ -195,7 +195,7 @@ addhook toolchain_default_depends_fixup to post_recipe_parse
 def toolchain_default_depends_fixup(d):
     if (d.getVar("RECIPE_TYPE", True) == "cross" and
         d.getVar("MACHINE_CT_KERNEL_VERSION", True) == "custom"):
-        d.setVar("TOOLCHAIN_DEPENDS", "linux-headers")
+        d.setVar("TOOLCHAIN_DEPENDS", "target:linux-headers")
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "\
