@@ -58,7 +58,7 @@ class ExpansionStack:
 
 
 pythonfunc_code_cache = {}
-    
+
 
 class MetaData(MutableMapping):
 
@@ -211,11 +211,11 @@ class MetaData(MutableMapping):
 
     def expand(self, string, method=FULL_EXPANSION):
         """Expand string using variable data.
-    
+
         Arguments:
         string -- String to expand
         method -- Expansion method (default: FULL_EXPANSION)
-    
+
         Expansion methods:
         NO_EXPANSION -- no recursive expansion
         FULL_EXPANSION -- full expansion, all variables must be expanded
@@ -359,19 +359,19 @@ class MetaData(MutableMapping):
         "FILE",
         "_task_deps",
     ]
-    
+
     builtin_nohash_prefix = [
         "OE_REMOTE_",
         "OE_MODULE_",
     ]
-   
-    
+
+
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={}):
         if pretty:
             eol = "\n\n"
         else:
             eol = "\n"
-    
+
         if self.get_flag(key, "python"):
             func = "python"
         elif self.get_flag(key, "bash"):
@@ -389,12 +389,12 @@ class MetaData(MutableMapping):
         if not expand:
             expand = OVERRIDES_EXPANSION
         val = self.get(key, expand)
-    
+
         if not val:
             return 0
-    
+
         val = str(val)
-    
+
         for varname in dynvars.keys():
             val = string.replace(val, dynvars[varname], "${%s}"%(varname))
 
@@ -412,7 +412,7 @@ class MetaData(MutableMapping):
 
         if self.get_flag(key, "export"):
             o.write("export ")
-        
+
         o.write("%s=%s%s"%(key, repr(val), eol))
         return
 
