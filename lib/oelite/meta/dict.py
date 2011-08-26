@@ -143,10 +143,11 @@ class DictMeta(MetaData):
             return (None, None)
         if not isinstance(val, (basestring, types.NoneType)):
             return (val, None)
-        try:
-            return self.expand_cache[var]
-        except KeyError:
-            pass
+        if expand != OVERRIDES_EXPANSION:
+            try:
+                return self.expand_cache[var]
+            except KeyError:
+                pass
 
         override_dep = None
         if "__overrides" in self.dict[var]:
@@ -176,6 +177,9 @@ class DictMeta(MetaData):
                 val = oval
             val = prepend + (val or "") + append
 
+        if expand == OVERRIDES_EXPANSION:
+            return (val, None)
+
         deps = set()
         #print "get expanding %s=%s"%(var, repr(val))
         expand_method = self.get_flag(var, "expand")
@@ -186,7 +190,7 @@ class DictMeta(MetaData):
         else:
             #expand_method = FULL_EXPANSION
             expand_method = expand
-        if expand_method != NO_EXPANSION and val:
+        if val:
             #print "get not expanding anyway"
             self.expand_stack.push("${%s}"%var)
             (val, deps) = self._expand(val, expand_method, var)

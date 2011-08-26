@@ -1,7 +1,8 @@
-NO_EXPANSION      = 0 # and False
-FULL_EXPANSION    = 1 # and True
-PARTIAL_EXPANSION = 2
-CLEAN_EXPANSION   = 3
+NO_EXPANSION        = 0 # and False
+FULL_EXPANSION      = 1 # and True
+PARTIAL_EXPANSION   = 2
+CLEAN_EXPANSION     = 3
+OVERRIDES_EXPANSION = 4
 
 from oelite.meta.meta import MetaData, ExpansionError
 from oelite.meta.dict import DictMeta
@@ -9,6 +10,7 @@ from oelite.meta.cache import MetaCache
 
 __all__ = [
     "NO_EXPANSION", "FULL_EXPANSION", "PARTIAL_EXPANSION", "CLEAN_EXPANSION",
+    "OVERRIDES_EXPANSION",
     "MetaData", "ExpansionError",
     "DictMeta",
     "MetaCache", 

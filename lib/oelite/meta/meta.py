@@ -221,6 +221,7 @@ class MetaData(MutableMapping):
         FULL_EXPANSION -- full expansion, all variables must be expanded
         PARTIAL_EXPANSION -- partial, allow unknown variables to remain unexpanded
         CLEAN_EXPANSION -- clean, expand unknown variables to empty string
+        OVERRIDES_EXPANSION -- no recursive expansion, only overrides
         """
         #print "expand method=%s string=%s"%(method, repr(string))
         assert isinstance(method, int)
