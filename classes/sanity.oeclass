@@ -37,3 +37,6 @@ def sanity(d):
     for override in overrides:
         if '${' in override:
             raise Exception("Unexpanded variables in OVERRIDES")
+
+    if d.get("PROVIDES") is not None:
+        raise Exception("PROVIDES is not supported in OE-lite")

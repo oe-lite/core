@@ -10,7 +10,7 @@ AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
 
-addhook auto_package_libs to post_recipe_parse after base_after_parse before fixup_package_type
+addhook auto_package_libs to post_recipe_parse before fixup_package_type
 
 def auto_package_libs (d):
     import warnings

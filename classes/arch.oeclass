@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 
-addhook arch_update to post_recipe_parse first before base_after_parse
+addhook arch_update to post_recipe_parse first
 
 def arch_update(d):
     import oelite.arch

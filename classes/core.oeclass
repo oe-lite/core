@@ -247,54 +247,6 @@ MACHINE[unexport] = "1"
 DISTRO[unexport] = "1"
 
 
-addhook base_after_parse to post_recipe_parse first
-def base_after_parse(d):
-    source_mirror_fetch = bb.data.getVar('SOURCE_MIRROR_FETCH', d, 0)
-
-    if not source_mirror_fetch:
-        need_host = bb.data.getVar('COMPATIBLE_HOST', d, 1)
-        if need_host:
-            import re
-            this_host = bb.data.getVar('HOST_SYS', d, 1)
-            if not re.match(need_host, this_host):
-                raise bb.parse.SkipPackage("incompatible with host %s" % this_host)
-
-        need_machine = bb.data.getVar('COMPATIBLE_MACHINE', d, 1)
-        if need_machine:
-            import re
-            this_machine = bb.data.getVar('MACHINE', d, 1)
-            if this_machine and not re.match(need_machine, this_machine):
-                raise bb.parse.SkipPackage("incompatible with machine %s" % this_machine)
-
-    pn = bb.data.getVar('PN', d, 1)
-
-    use_nls = bb.data.getVar('USE_NLS_%s' % pn, d, 1)
-    if use_nls != None:
-        bb.data.setVar('USE_NLS', use_nls, d)
-
-    fetcher_depends = ""
-
-    # Git packages should DEPEND on git-native
-    srcuri = bb.data.getVar('SRC_URI', d, 1)
-    if "git://" in srcuri:
-        fetcher_depends += " git-native "
-
-    # Mercurial packages should DEPEND on mercurial-native
-    elif "hg://" in srcuri:
-        fetcher_depends += " mercurial-native "
-
-    # OSC packages should DEPEND on osc-native
-    elif "osc://" in srcuri:
-        fetcher_depends += " osc-native "
-
-    bb.data.setVar('FETCHER_DEPENDS', fetcher_depends[1:], d)
-
-    # FIXME: move to sanity.oeclass
-    provides = bb.data.getVar('PROVIDES', d, True)
-    if provides:
-        bb.note("Ignoring PROVIDES as it does not make sense with OE-core (PROVIDES='%s')"%provides)
-
-
 addhook core_machine_override to post_recipe_parse first after fetch_init
 def core_machine_override(d):
 
