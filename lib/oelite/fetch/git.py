@@ -98,9 +98,10 @@ class GitFetcher():
         cache = self.get_cache()
         cache.setup_cache()
         if self.tag:
-            commit = cache.query_tag(self.tag).hexsha
+            commit = cache.query_tag(self.tag)
             if not commit:
-                raise FetchError(self.uri, "unknown tag: %s"%(self.tag))
+                raise oelite.fetch.FetchError(self.uri, "unknown tag: %s"%(self.tag))
+            commit = commit.hexsha
             if not "_signature" in dir(self):
                 return (self.signature_name, commit)
             return commit == self._signature
