@@ -1,0 +1,60 @@
+# -*- mode:python; -*-
+DESCRIPTION ?= "Barebox - a bootloader that inherits the best of U-Boot and the Linux kernel"
+HOMEPAGE ?= "http://www.barebox.org/"
+LICENSE ?= "GPL"
+
+RECIPE_TYPES = "machine"
+
+require conf/barebox.conf
+
+inherit c make kernel-arch
+
+EXTRA_OEMAKE = "ARCH=${KERNEL_ARCH} CROSS_COMPILE=${TARGET_PREFIX}"
+
+CFLAGS[unexport]   = "1"
+CPPFLAGS[unexport] = "1"
+LDFLAGS[unexport]  = "1"
+
+DEFCONFIG ?= "${USE_barebox_defconfig}"
+
+do_configure() {
+	oe_runmake ${DEFCONFIG}
+}
+oe_runmake[emit] += "do_configure"
+
+do_compile () {
+	oe_runmake all
+}
+
+# Support checking the image size
+inherit sizecheck
+BAREBOX_SIZECHECK = ""
+BAREBOX_SIZECHECK:USE_barebox_maxsize = "${BAREBOX_IMAGE}:${USE_barebox_maxsize}"
+SIZECHECK += "${BAREBOX_SIZECHECK}"
+
+do_install () {
+	install -d ${D}${bootdir}
+	install -m 0644 ${BAREBOX_IMAGE} ${D}${bootdir}
+	install -m 0755 ${BAREBOX_IMAGE_BASE} ${D}${bootdir}
+}
+
+PACKAGES = "${PN} ${PN}-elf"
+FILES_${PN} = "${bootdir}/${BAREBOX_IMAGE_FILENAME}"
+FILES_${PN}-elf = "${bootdir}/${BAREBOX_IMAGE_BASE}"
+
+addtask deploy before do_build after do_compile
+do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
+
+do_deploy () {
+	install -m 0644 ${BAREBOX_IMAGE} \
+		${IMAGE_DEPLOY_DIR}/${BAREBOX_IMAGE_DEPLOY_FILE}
+	cd ${IMAGE_DEPLOY_DIR}
+	if [ -n "${BAREBOX_IMAGE_DEPLOY_LINK}" ] ; then
+		rm -f  ${BAREBOX_IMAGE_DEPLOY_LINK}
+		ln -sf ${BAREBOX_IMAGE_DEPLOY_FILE} \
+			${BAREBOX_IMAGE_DEPLOY_LINK}
+	fi
+}
+
+do_deploy[dirs] = "${S}"
+addtask deploy before do_build after do_compile
