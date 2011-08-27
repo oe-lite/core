@@ -1,11 +1,21 @@
+# -*- mode:python; -*-
+DESCRIPTION ?= "Das U-Boot -- the Universal Boot Loader"
+HOMEPAGE ?= "http://www.denx.de/wiki/U-Boot"
+LICENSE ?= "GPL"
+
 require conf/u-boot.conf
 
+RECIPE_TYPES = "machine"
+
 inherit c make kernel-arch
+
+CLASS_DEPENDS += "native:u-boot-tools-mkimage"
 
 # Why bother?  U-Boot will most likely stay broken for parallel builds
 PARALLEL_MAKE = ""
 
-EXTRA_OEMAKE = "ARCH=${UBOOT_ARCH} CROSS_COMPILE=${TARGET_PREFIX}"
+EXTRA_OEMAKE = "${EXTRA_OEMAKE_ARCH} CROSS_COMPILE=${TARGET_PREFIX}"
+EXTRA_OEMAKE_ARCH ?= "ARCH=${KERNEL_ARCH}"
 
 CFLAGS[unexport]   = "1"
 CPPFLAGS[unexport] = "1"
@@ -39,6 +49,9 @@ do_install () {
 PACKAGES = "${PN} ${PN}-elf"
 FILES_${PN} = "${bootdir}/${UBOOT_IMAGE_FILENAME}"
 FILES_${PN}-elf = "${bootdir}/${UBOOT_IMAGE_BASE}"
+
+PROVIDES_${PN} = "u-boot"
+PROVIDES_${PN}-elf = "u-boot-elf"
 
 addtask deploy before do_build after do_compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
