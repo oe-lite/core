@@ -1,3 +1,4 @@
+# -*- mode:python; -*-
 #
 # OE-lite class for recipes providing content for inetd.conf file
 #
@@ -10,9 +11,7 @@ RDEPENDS_${PN}:>USE_inetd = " inetd"
 
 INETD_CONF_FILES ?= "${SRCDIR}/inetd.conf"
 
-addtask install_inetd after do_install before do_fixup
-do_install_inetd[dirs] = "${D}"
-
+do_install[postfuncs] += "do_install_inetd"
 do_install_inetd[expand] = 3
 do_install_inetd () {
     i=0
