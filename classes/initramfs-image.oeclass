@@ -1,0 +1,14 @@
+# -*- mode:python; -*-
+
+inherit cpio-image
+inherit archive-image
+
+DO_INSTALL_POSTFUNCS += "do_install_initramfs_symlink"
+do_install_initramfs_symlink () {
+	mkdir -p ${D}${bootdir}
+	ln -s ../${IMAGE_BASENAME}.cpio ${D}${bootdir}/initramfs.cpio
+}
+
+FILES_${PN} += "${bootdir}/initramfs.cpio"
+
+PROVIDES_${PN} = "initramfs"
