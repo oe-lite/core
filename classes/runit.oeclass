@@ -1,14 +1,11 @@
-#
+# -*- mode:python; -*-
 # OE-lite class for handling runit services
-#
 
 CLASS_FLAGS += "runit"
 
 RDEPENDS_${PN}:>USE_runit = " runit"
 
-addtask install_runit after do_install before do_fixup
-do_install_runit[dirs] = "${D}"
-
+do_install[postfuncs] += "do_install_runit"
 python do_install_runit () {
     import os, shutil, stat
 
