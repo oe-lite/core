@@ -28,7 +28,6 @@ do_configure () {
     fi
     oe_runmake ${USE_uboot_config}
 }
-oe_runmake[emit] += "do_configure"
 
 do_compile () {
     oe_runmake ${UBOOT_IMAGE}

@@ -12,7 +12,6 @@ C_DEPENDS = "native:cc"
 do_configure() {
     oe_runmake allnoconfig
 }
-oe_runmake[emit] += "do_configure"
 
 do_compile () {
     :

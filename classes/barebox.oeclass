@@ -20,7 +20,6 @@ DEFCONFIG ?= "${USE_barebox_defconfig}"
 do_configure() {
 	oe_runmake ${DEFCONFIG}
 }
-oe_runmake[emit] += "do_configure"
 
 do_compile () {
 	oe_runmake all

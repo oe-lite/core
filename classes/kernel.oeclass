@@ -44,7 +44,6 @@ do_configure_kernel () {
 do_configure () {
 	do_configure_kernel
 }
-oe_runmake[emit] += "do_configure"
 
 export BUILD_TAG
 
