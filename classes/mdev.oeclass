@@ -9,9 +9,7 @@ RDEPENDS_${PN}:>USE_mdev = " mdev"
 
 MDEV_CONF_FILES ?= "${SRCDIR}/mdev.conf"
 
-addtask install_mdev after do_install before do_fixup
-do_install_mdev[dirs] = "${D}"
-
+do_install[postfuncs] += "do_install_mdev"
 do_install_mdev () {
 	test -z "${USE_mdev}" -o "${USE_mdev}"="0" || return
 	i=0
