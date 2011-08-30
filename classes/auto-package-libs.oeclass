@@ -56,7 +56,11 @@ def auto_package_libs (d):
         return libdir
 
     for lib in libs:
-        pkg = "%s-%s%s"%(pn, pkgprefix, lib.replace("_", "-").lower())
+        if ":" in lib:
+            pkg, lib = lib.split(":", 1)
+            pkg = "%s-%s%s"%(pn, pkgprefix, pkg.replace("_", "-").lower())
+        else:
+            pkg = "%s-%s%s"%(pn, pkgprefix, lib.replace("_", "-").lower())
         devpkg = pkg + "-dev"
         packages += [ pkg, devpkg ]
 

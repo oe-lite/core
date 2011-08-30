@@ -27,7 +27,11 @@ def auto_package_utils (d):
         return (files or "").split()
 
     for util in utils:
-        utilname = util.replace("_", "-").replace(".", "-").lower()
+        if ":" in util:
+            utilname, util = util.split(":", 1)
+            utilname = utilname.replace("_", "-").replace(".", "-").lower()
+        else:
+            utilname = util.replace("_", "-").replace(".", "-").lower()
         pkg = "%s-%s"%(pn, utilname)
         utilname = "util/" + utilname
         docpkg = pkg + "-doc"
