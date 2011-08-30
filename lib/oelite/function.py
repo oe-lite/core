@@ -154,7 +154,6 @@ class ShellFunction(OEliteFunction):
                 bb.warn("refusing to export var with '-':", var)
                 continue
             if self.meta.get_flag(var, "unexport"):
-                runfile.write("unset %s\n"%(var))
                 continue
             val = self.meta.get(var)
             if self.meta.get_flag(var, "bash"):
