@@ -1,27 +1,22 @@
 # -*- mode:python; -*-
 
+require conf/make.conf
+
+export MAKE
+
 oe_runmake() {
     ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
 }
-oe_runmake[emit] = "do_compile do_install"
-MAKE ?= "make"
-MAKE[emit] = "do_compile do_install"
-export MAKE = "make"
-#EXTRA_OEMAKE = "-e MAKEFLAGS="
-EXTRA_OEMAKE = ""
-EXTRA_OEMAKE[emit] = "do_compile"
 
 # Pass parallel make options to the compile task only
 # FIXME: verify after implementing onlytask varflag
-export PARALLEL_MAKE ?= ""
+export PARALLEL_MAKE
 PARALLEL_MAKE[nohash] = True
 PARALLEL_MAKE[onlytask] = "compile"
 
 do_compile() {
 	do_compile_make
 }
-EXTRA_OEMAKE_COMPILE ?= ""
-EXTRA_OEMAKE_COMPILE[emit] = "do_compile"
 do_compile_make() {
 	if [ -e Makefile -o -e makefile ]; then
 		oe_runmake ${EXTRA_OEMAKE_COMPILE} || die "make failed"
@@ -29,6 +24,7 @@ do_compile_make() {
 		oenote "nothing to compile"
 	fi
 }
+EXTRA_OEMAKE_COMPILE[emit] = "do_compile"
 
 do_install () {
 	do_install_make
@@ -36,7 +32,4 @@ do_install () {
 do_install_make () {
 	oe_runmake ${MAKE_DESTDIR} ${EXTRA_OEMAKE_INSTALL} install
 }
-MAKE_DESTDIR = "DESTDIR=${D}"
-EXTRA_OEMAKE_INSTALL = "install"
 EXTRA_OEMAKE_INSTALL[emit] = "do_install"
-
