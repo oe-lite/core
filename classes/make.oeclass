@@ -1,7 +1,7 @@
 # -*- mode:python; -*-
 
 oe_runmake() {
-    ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} $@
+    ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
 }
 oe_runmake[emit] = "do_compile do_install"
 MAKE ?= "make"
