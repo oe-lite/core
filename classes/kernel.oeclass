@@ -18,7 +18,7 @@ DEFCONFIG = "${USE_kernel_defconfig}"
 DEFCONFIG[expand] = 3
 
 CLASS_FLAGS += "kernel_initramfs"
-CLASS_DEPENDS:>USE_kernel_initramfs = "initramfs"
+CLASS_DEPENDS:>USE_kernel_initramfs = " initramfs"
 KERNEL_INITRAMFS ?= "${MACHINE_SYSROOT}${bootdir}/initramfs.cpio"
 USE_KERNEL_INITRAMFS = "${USE_kernel_initramfs}"
 USE_KERNEL_INITRAMFS[expand] = "3"
@@ -35,7 +35,7 @@ do_configure_kernel () {
 		fi
 	fi
 	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
-		echo "CONFIG_INITRAMFS_SOURCE=${KERNEL_INITRAMFS}" \
+		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
 			>> ${S}/.config
 		yes '' | oe_runmake oldconfig
 	fi
