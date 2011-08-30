@@ -1,11 +1,8 @@
 # -*- mode:python; -*-
 
-addtask install_makedevs after do_install before do_fixup
-
 require conf/makedevs.conf
 
-do_install_makedevs[dirs] = "${D}"
-
+do_install[postfuncs] += "do_install_makedevs"
 do_install_makedevs () {
 	if [ -z "${MAKEDEVS_FILES}" ]; then
 		return
