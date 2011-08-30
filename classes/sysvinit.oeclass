@@ -1,9 +1,5 @@
-#
+# -*- mode:python; -*-
 # OE-lite class for handling sysvinit style init scripts and symlinks
-#
-
-addtask install_sysvinit after do_install before do_fixup
-do_install_sysvinit[dirs] = "${D}"
 
 sysvinit_install_script () {
 	install -d ${D}${sysconfdir}/init.d
@@ -14,6 +10,7 @@ RDEPENDS_${PN}:>USE_sysvinit = " sysvinit"
 
 CLASS_FLAGS += "sysvinit"
 
+do_install[postfuncs] += "do_install_sysvinit"
 python do_install_sysvinit () {
     import os
 
