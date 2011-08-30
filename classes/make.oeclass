@@ -18,13 +18,13 @@ PARALLEL_MAKE[nohash] = True
 PARALLEL_MAKE[onlytask] = "compile"
 
 do_compile() {
-	do_compile_make ${EXTRA_OEMAKE_COMPILE}
+	do_compile_make
 }
 EXTRA_OEMAKE_COMPILE ?= ""
 EXTRA_OEMAKE_COMPILE[emit] = "do_compile"
 do_compile_make() {
 	if [ -e Makefile -o -e makefile ]; then
-		oe_runmake || die "make failed"
+		oe_runmake ${EXTRA_OEMAKE_COMPILE} || die "make failed"
 	else
 		oenote "nothing to compile"
 	fi
