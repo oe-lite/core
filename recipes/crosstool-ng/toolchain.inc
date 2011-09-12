@@ -220,9 +220,9 @@ do_mangle () {
 		ct_kernel_version="# ${_CT_KERNEL_V}_ is not set"
 	fi
 	ct_binutils_version=${_CT_BINUTILS_V}_`echo ${CT_BINUTILS_VERSION}|tr . _`=y
-	ct_cc_version=${_CT_CC_V}_`echo ${CT_CC_VERSION}|tr . _`=y
+	ct_cc_version=${_CT_CC_V}_`echo ${CT_CC_VERSION}|tr . _|tr - _`=y
 	ct_libc_version=${_CT_LIBC_V}_`echo ${CT_LIBC_VERSION}|tr . _`=y
-	ct_gdb_version=${_CT_GDB_V}_`echo ${CT_GDB_VERSION}|tr . _`=y
+	ct_gdb_version=${_CT_GDB_V}_`echo ${CT_GDB_VERSION}|tr . _|tr - _`=y
 	ct_gmp_version=${_CT_GMP_V}_`echo ${CT_GMP_VERSION}|tr . _`=y
 	ct_mpfr_version=${_CT_MPFR_V}_`echo ${CT_MPFR_VERSION}|tr . _`=y
 	ct_ppl_version=${_CT_PPL_V}_`echo ${CT_PPL_VERSION}|tr . _`=y
