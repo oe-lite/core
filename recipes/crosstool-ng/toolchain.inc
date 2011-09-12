@@ -511,8 +511,8 @@ DEPENDS_${PN}-sysroot-librt-dev		= "${PN}-sysroot-libpthread-dev"
 DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 RDEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 DEPENDS_${PN}-sysroot-libstdc++-dev	= "${PN}-sysroot-libgcc-dev ${PN}-sysroot-libm-dev"
-DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
-RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
+DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm ${PN}-sysroot-c++-dev"
+RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm ${PN}-sysroot-c++-dev"
 
 # 1. The install/ dir maintains it's crosstool-ng layout, and all
 # FILES_* variables must therefore use crosstool-ng layout paths.
