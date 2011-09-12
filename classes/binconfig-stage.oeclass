@@ -14,12 +14,12 @@ def binconfig_stage_fixup(d):
     binconfig_files = open(metafile, "r")
 
     stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
-    subdir = d.getVar("STAGE_FIXUP_SUBDIR", False)
-    sysroot = os.path.join(stage_dir, subdir)
+    pkg_type = d.get("STAGE_FIXUP_PKG_TYPE")
+    sysroot = os.path.join(stage_dir, pkg_type)
 
-    if subdir in ("native", "cross", "sdk-cross"):
+    if pkg_type in ("native", "cross", "sdk-cross"):
         dirname_prefix = "stage_"
-    elif subdir == "canadian-cross":
+    elif pkg_type == "canadian-cross":
         dirname_prefix = "target_"
     else:
         dirname_prefix = ""
