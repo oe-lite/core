@@ -296,6 +296,11 @@ cpumap = {
         'imx514'		: 'cortexa8neon',
         'imx515'		: 'cortexa8neon',
         'imx516'		: 'cortexa8neon',
+        'imx534'		: 'cortexa8neon',
+        'imx535'		: 'cortexa8neon',
+        'imx536'		: 'cortexa8neon',
+        'imx537'		: 'cortexa8neon',
+        'imx538'		: 'cortexa8neon',
         },
 
     'x86'		: {
