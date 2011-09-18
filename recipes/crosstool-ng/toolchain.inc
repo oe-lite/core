@@ -354,6 +354,8 @@ DOT_CONFIG_MANGLING:canadian-cross = "\
 	    -e 's%\(CT_COMP_LIBS_TARGET\)=.*%\1=n%' \
 	    -e 's%\(CT_GDB_NATIVE\)=.*%\1=n%' \
 	    -e 's%\(CT_GDB_GDBSERVER\)=.*%\1=n%' \
+	    -e 's%\(CT_DEBUG_strace\)=.*%\1=n%' \
+	    -e 's%\(CT_DEBUG_ltrace\)=.*%\1=n%' \
 "
 
 do_configure[dirs] = "${B}"
@@ -492,6 +494,16 @@ do_install () {
     mv ${TARGET_ARCH}/sysroot${target_base_libdir}/*.la \
        ${TARGET_ARCH}/sysroot${target_base_libdir}/*.a \
        ${TARGET_ARCH}/sysroot${target_libdir}/ || true
+
+    mkdir -p ${TARGET_ARCH}/debug-root${target_bindir}/
+    mv ${TARGET_ARCH}/debug-root${target_prefix}${target_base_bindir}/* \
+        ${TARGET_ARCH}/debug-root${target_bindir}/ || true
+
+    mv ${TARGET_ARCH}/debug-root${target_prefix}${target_datadir} \
+        ${TARGET_ARCH}/debug-root${target_base_prefix}/ || true
+
+    mv ${TARGET_ARCH}/debug-root${target_prefix}${target_sysconfdir} \
+        ${TARGET_ARCH}/debug-root${target_base_prefix}/ || true
 }
 
 # We always build all packages, so care must be taken to choose the
@@ -578,6 +590,7 @@ PROVIDES_${PN}-sysroot-libc-dev = "libc-dev"
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
 FILES_${PN}-sysroot-gdbserver-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
@@ -585,8 +598,21 @@ FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
 ${datadir}/gdb \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/libinproctrace.so \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
+PROVIDES_${PN}-sysroot-gdbserver += "target:util/gdbserver target:util/ltrace target:util/strace"
+
+TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
+FILES_${PN}-sysroot-gdbserver-doc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir} \
+"
 
 TARGET_PACKAGES += "${PN}-sysroot-dbg"
 FILES_${PN}-sysroot-dbg = "\
