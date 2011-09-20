@@ -385,7 +385,8 @@ def arch_update(d, prefix, gcc_version):
 
 
 def arch_fixup(arch, gcc):
-    gccv=map(int,gcc.split('.'))
+    import re
+    gccv=re.search('(\d+)[.](\d+)[.]?',gcc).groups()
     (cpu, vendor, os) = arch_split(arch)
 
     if vendor == 'pc':
@@ -422,13 +423,14 @@ def arch_fixup(arch, gcc):
 
 
 def arch_gccspec(arch, gcc):
+    import re
     if gcc in gccspecs:
         if arch in gccspecs[gcc]:
             return gccspecs[gcc][arch]
     else:
         gccspecs[gcc] = {}
 
-    gccv=map(int,gcc.split('.'))
+    gccv=re.search('(\d+)[.](\d+)[.]?',gcc).groups()
     (cpu, vendor, os) = arch_split(arch)
 
     gccspec = {}
