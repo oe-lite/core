@@ -106,9 +106,6 @@ DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
 # FIXME: this looks REALLY wrong!
 DEPENDS:>canadian-cross += "target:libdl target:libpthread target:libm"
 
-# Trick install_strip to use installed strip and objcopy
-TARGET_STRIP	= "${D}/bin/${TARGET_PREFIX}strip"
-TARGET_OBJCOPY	= "${D}/bin/${TARGET_PREFIX}objcopy"
 OBJCOPY:TARGET_OS_mingw32 = ""
 
 BLACKLIST_VAR += "LD_LIBRARY_PATH"
@@ -488,6 +485,10 @@ do_compile () {
 # as do_compile actually installs into D, don't clean it on do_install
 do_install[cleandirs] = ""
 do_install[dirs] = "${D}"
+
+# Trick install_strip to use installed strip and objcopy
+TARGET_STRIP	= "${D}/bin/${TARGET_PREFIX}strip"
+TARGET_OBJCOPY	= "${D}/bin/${TARGET_PREFIX}objcopy"
 
 # everything is already installed in do_compile, but let's rearrange it a bit
 do_install () {
