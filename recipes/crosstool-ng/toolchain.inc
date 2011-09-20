@@ -561,7 +561,7 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/*/.debug \
 "
 
-FILES_${PN}-gdb = "${datadir}/gcc-${GCC_VERSION}/python"
+FILES_${PN}-gdb = "${datadir}/gcc-*/python"
 
 FILES_${PN}-ldscripts = "${base_libdir}/ldscripts"
 
