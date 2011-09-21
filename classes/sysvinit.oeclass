@@ -6,7 +6,8 @@ sysvinit_install_script () {
 	install -m 0755 $1 ${D}${sysconfdir}/init.d/$2
 }
 
-RDEPENDS_${PN}:>USE_sysvinit = " sysvinit"
+RDEPENDS_SYSVINIT ?= "sysvinit"
+RDEPENDS_${PN}:>USE_sysvinit = " ${RDEPENDS_SYSVINIT}"
 
 CLASS_FLAGS += "sysvinit"
 
@@ -14,6 +15,8 @@ do_install[postfuncs] += "do_install_sysvinit"
 python do_install_sysvinit () {
     import os
 
+    path = d.get("D")
+    os.chdir(path)
     if not d.get("USE_sysvinit"):
         return
 
@@ -22,7 +25,6 @@ python do_install_sysvinit () {
     sysconfdir = d.get("sysconfdir")
 
     for option in options:
-
         if option.endswith("_sysvinit_start"):
             start_symlink = True
         elif option.endswith("_sysvinit_stop"):
