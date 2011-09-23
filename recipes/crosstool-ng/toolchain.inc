@@ -590,29 +590,46 @@ PROVIDES_${PN}-sysroot-libc-dev = "libc-dev"
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-dbg"
 FILES_${PN}-sysroot-gdbserver-dbg = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/gdb* \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/libgdb* \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
 ${datadir}/gdb \
+"
+RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
+PROVIDES_${PN}-sysroot-gdbserver += "target:util/gdbserver"
+
+TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
+FILES_${PN}-sysroot-gdbserver-doc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir}/gdbserver \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/gdbserver \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
+"
+
+TARGET_PACKAGES += "${PN}-sysroot-trace-dbg"
+FILES_${PN}-sysroot-trace-dbg = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/*trace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/*trace* \
+"
+
+TARGET_PACKAGES += "${PN}-sysroot-trace"
+FILES_${PN}-sysroot-trace = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/libinproctrace.so \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
-RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
-PROVIDES_${PN}-sysroot-gdbserver += "target:util/gdbserver target:util/ltrace target:util/strace"
+PROVIDES_${PN}-sysroot-trace += "target:util/ltrace target:util/strace"
 
-TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
-FILES_${PN}-sysroot-gdbserver-doc = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir} \
+TARGET_PACKAGES += "${PN}-sysroot-trace-doc"
+FILES_${PN}-sysroot-trace-doc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir}/*trace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/*/*trace.* \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/*trace \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-dbg"
