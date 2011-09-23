@@ -98,7 +98,7 @@ class OEliteUri:
     def init_patch_params(self):
         if not "localpath" in dir(self.fetcher):
             return
-        if not "patch" in self.params:
+        if not "apply" in self.params:
             patchfile = self.fetcher.localpath
             try:
                 unpack = self.params["unpack"] or None
@@ -109,10 +109,10 @@ class OEliteUri:
             if unpack and self.fetcher.localpath.endswith(unpack):
                 patchfile = self.fetcher.localpath[-len(unpack):]
             if patchfile.endswith(".patch") or patchfile.endswith(".diff"):
-                self.params["patch"] = 1
-        elif not self.params["patch"] or self.params["patch"] == "0":
-            del self.params["patch"]
-        if "patch" in self.params:
+                self.params["apply"] = "yes"
+        elif not self.params["apply"] in ["yes", "y", "1"]:
+            del self.params["apply"]
+        if "apply" in self.params:
             if "subdir" in self.params:
                 subdir = self.params["subdir"]
                 if (subdir != self.patchsubdir and
