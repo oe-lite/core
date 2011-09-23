@@ -56,3 +56,16 @@ def library_depends(d):
                 devdep = "%s:%s"%(item.type, item.name + "-dev")
             devpkg_rdepends.append(dep + "-dev")
     d.set("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
+
+    if not pkg.startswith("lib"):
+        library_name = d.get("LIBRARY_NAME")
+        if not library_name:
+            library_name = "lib" + pkg
+        provides = (d.get("PROVIDES_" + pkg) or "").split()
+        if not library_name in provides:
+            provides.append(library_name)
+            d.set("PROVIDES_" + pkg, " ".join(provides))
+        provides = (d.get("PROVIDES_" + devpkg) or "").split()
+        if not library_name + "-dev" in provides:
+            provides.append(library_name + "-dev")
+            d.set("PROVIDES_" + devpkg, " ".join(provides))
