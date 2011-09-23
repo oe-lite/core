@@ -525,7 +525,8 @@ DEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 RDEPENDS_${PN}-sysroot-librt		= "${PN}-sysroot-libpthread"
 DEPENDS_${PN}-sysroot-libstdc++-dev	= "${PN}-sysroot-libgcc-dev ${PN}-sysroot-libm-dev"
 DEPENDS_${PN}-sysroot-libstdc++		= "${PN}-sysroot-libgcc ${PN}-sysroot-libm ${PN}-sysroot-c++-dev"
-RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm ${PN}-sysroot-c++-dev"
+RDEPENDS_${PN}-sysroot-libstdc++	= "${PN}-sysroot-libgcc ${PN}-sysroot-libm"
+RDEPENDS_${PN}-sysroot-libdl           += "${PN}-sysroot-libc"
 
 # 1. The install/ dir maintains it's crosstool-ng layout, and all
 # FILES_* variables must therefore use crosstool-ng layout paths.
@@ -694,6 +695,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/i18n \
 FILES_${PN}-sysroot-libgcc = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so.* \
 "
+RDEPENDS_${PN}-sysroot-libgcc += "${PN}-sysroot-libc"
 
 FILES_${PN}-sysroot-libgcc-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
@@ -702,6 +704,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
 FILES_${PN}-sysroot-libm-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libieee.a \
 "
+RDEPENDS_${PN}-sysroot-libm += "${PN}-sysroot-libc"
 
 FILES_${PN}-sysroot-libbfd = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd-*.so \
