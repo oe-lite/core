@@ -1,53 +1,52 @@
-addtask image_qa after do_compile before do_build
+addtask imageqa after do_compile before do_deploy
 
 # FIXME: improve gcc packaging, so that readelf can be obtained
 # without pulling in entire toolchain
 inherit c
 
-do_image_qa[dirs] = "${IMAGE_DIR}"
+do_imageqa[dirs] = "${IMAGE_DIR}"
 
-IMAGE_QA_HOST_READELF ?= "${HOST_PREFIX}readelf"
-IMAGE_QA_HOST_READELF_SEARCH_DIRS ?= "\
+IMAGEQA_HOST_READELF ?= "${HOST_PREFIX}readelf"
+IMAGEQA_HOST_READELF_SEARCH_DIRS ?= "\
 	${base_sbindir} ${base_bindir} ${sbindir} ${bindir} \
 	${base_libdir} ${libdir} \
 "
-IMAGE_QA_HOST_READELF_LIB_DIRS ?= "\
+IMAGEQA_HOST_READELF_LIB_DIRS ?= "\
 	${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
 
-IMAGE_QA_TARGET_READELF:machine ?= "${TARGET_PREFIX}readelf"
-IMAGE_QA_TARGET_READELF:canadian-cross ?= "${TARGET_PREFIX}readelf"
-IMAGE_QA_TARGET_READELF_SEARCH_DIRS ?= "\
-	${TARGET_ARCH}/sysroot${target_base_sbindir} \
-	${TARGET_ARCH}/sysroot${target_base_bindir} \
-	${TARGET_ARCH}/sysroot${target_sbindir} \
-	${TARGET_ARCH}/sysroot${target_bindir} \
-	${TARGET_ARCH}/sysroot${target_base_libdir} \
-	${TARGET_ARCH}/sysroot${target_libdir} \
+IMAGEQA_TARGET_READELF:machine ?= "${TARGET_PREFIX}readelf"
+IMAGEQA_TARGET_READELF:canadian-cross ?= "${TARGET_PREFIX}readelf"
+IMAGEQA_TARGET_READELF_SEARCH_DIRS ?= "\
+	${TARGET_ARCH}/${TARGET_TYPE}${target_base_sbindir} \
+	${TARGET_ARCH}/${TARGET_TYPE}${target_base_bindir} \
+	${TARGET_ARCH}/${TARGET_TYPE}${target_sbindir} \
+	${TARGET_ARCH}/${TARGET_TYPE}${target_bindir} \
+	${TARGET_ARCH}/${TARGET_TYPE}${target_base_libdir} \
+	${TARGET_ARCH}/${TARGET_TYPE}${target_libdir} \
 "
-IMAGE_QA_TARGET_READELF_LIB_DIRS ?= "\
-	${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_base_libdir} \
-	${IMAGE_DIR}/${TARGET_ARCH}/sysroot${target_libdir} \
+IMAGEQA_TARGET_READELF_LIB_DIRS ?= "\
+	${IMAGE_DIR}/${TARGET_ARCH}/${TARGET_TYPE}${target_base_libdir} \
+	${IMAGE_DIR}/${TARGET_ARCH}/${TARGET_TYPE}${target_libdir} \
 "
 
-python do_image_qa () {
+python do_imageqa () {
     import os, magic, re
     from subprocess import Popen, PIPE
     from glob import glob
     import oebakery # die, err, warn, info, debug
-
     os.environ['PATH'] = d.getVar("PATH", True)
     filemagic = magic.open(magic.MAGIC_NONE)
     filemagic.load()
 
     def readelf_check(arch):
-        readelf = d.getVar("IMAGE_QA_"+arch+"_READELF", True)
+        readelf = d.getVar("IMAGEQA_"+arch+"_READELF", True)
         if not readelf:
             return None
 
         oebakery.debug("Checking for missing %s libraries"%(arch.lower()))
-        search_dirs = d.getVar("IMAGE_QA_"+arch+"_READELF_SEARCH_DIRS", True).split()
-        lib_dirs = d.getVar("IMAGE_QA_"+arch+"_READELF_LIB_DIRS", True).split()
-        assumed_libs = (d.getVar("IMAGE_QA_"+arch+"_READELF_ASSUMED_LIBS", True) or "").split()
+        search_dirs = d.getVar("IMAGEQA_"+arch+"_READELF_SEARCH_DIRS", True).split()
+        lib_dirs = d.getVar("IMAGEQA_"+arch+"_READELF_LIB_DIRS", True).split()
+        assumed_libs = (d.getVar("IMAGEQA_"+arch+"_READELF_ASSUMED_LIBS", True) or "").split()
         elf_re = d.getVar(arch+"_ELF", True) or None
 	oebakery.debug("%s_ELF=%s"%(arch, elf_re))
         if elf_re:
