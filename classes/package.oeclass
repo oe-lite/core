@@ -129,6 +129,9 @@ def do_split(d):
 
 do_package[dirs] = "${PKGD}"
 
+PACKAGE_META_VARS = "DESCRIPTION LICENSE FILE_PRIORITY"
+PACKAGE_META_VARS[emit] = "do_package"
+
 python do_package () {
     import bb, os
 
@@ -137,19 +140,32 @@ python do_package () {
         bb.warn(1, "no packages")
         return
 
+    pkgmetadir = d.get("pkgmetadir").lstrip("/")
+    pkgmetavars = d.get("PACKAGE_META_VARS").split()
+    pkgmetadefaults = {}
+    for var in pkgmetavars:
+        pkgmetadefaults[var] = d.get(var) or None
+
+    recipe_arch = d.get("RECIPE_ARCH")
+    recipe_type = d.get("RECIPE_TYPE")
     pkgd = d.getVar("PKGD", True)
     deploy_dir = d.getVar("PACKAGE_DEPLOY_DIR", True)
     for package in packages:
-        pkg_arch = (d.get("PACKAGE_ARCH_" + package) or
-                    d.get("RECIPE_ARCH"))
-        pkg_type = (d.get("PACKAGE_TYPE_" + package) or
-                    d.get("RECIPE_TYPE"))
+        pkg_arch = (d.get("PACKAGE_ARCH_" + package) or recipe_arch)
+        pkg_type = (d.get("PACKAGE_TYPE_" + package) or recipe_type)
         outdir = os.path.join(deploy_dir, pkg_type, pkg_arch)
         pv = d.getVar("PV", True)
         buildhash = d.getVar("TASK_BUILDHASH", False)
         bb.utils.mkdirhier(outdir)
         os.chdir(os.path.join(pkgd, package))
-        # FIXME: add error handling for tar command
+        bb.utils.mkdirhier(pkgmetadir)
+        for var in pkgmetavars:
+            val = d.get(var + "_" + package) or pkgmetadefaults[var]
+            if not val:
+                continue
+            with open(os.path.join(pkgmetadir, var.lower()), "w") as f:
+                f.write(val + "\n")
+        # FIXME: use tarfile module instead, and do proper error handling
         os.system("tar cf %s/%s_%s_%s.tar ."%(outdir, package, pv, buildhash))
         srcfile = "%s_%s_%s.tar"%(package, pv, buildhash)
         symlink = "%s/%s_%s.tar"%(outdir, package, pv)
