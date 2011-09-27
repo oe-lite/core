@@ -40,7 +40,7 @@ do_deploy() {
 }
 do_deploy[postfuncs] = "${DO_DEPLOY_POSTFUNCS}"
 
-do_rstage[cleandirs]	= "${RSTAGE_DIR}"
+do_rstage[cleandirs]	= "${RSTAGE_DIR} ${RSTAGE_DIR}.unpack"
 do_rstage[dirs]		= "${RSTAGE_DIR}"
 do_rstage[recrdeptask]	= "do_package"
 
@@ -55,7 +55,8 @@ def do_rstage(d):
     else:
         def get_dstdir(cwd, package):
             return cwd
-    retval = set_stage(d, "__rstage", "RSTAGE_FIXUP_FUNCS", get_dstdir)
+    retval = set_stage(d, "__rstage", "RSTAGE_FIXUP_FUNCS", get_dstdir,
+                       d.get("RSTAGE_DIR") + ".unpack")
     metadir = d.getVar("metadir", True).lstrip("/")
     if os.path.exists(metadir):
         import shutil
