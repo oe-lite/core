@@ -87,7 +87,7 @@ do_patch[dirs] = "${S} ${PATCHDIR}"
 def do_patch(d):
     uri = oelite.fetch.patch_init(d)
     for uri in d.get("__fetch"):
-        if not "patch" in uri.params:
+        if not "apply" in uri.params:
             continue
         if not uri.patch():
             return False
