@@ -532,7 +532,7 @@ class CookBook(Mapping):
         oelite.pyexec.exechooks(base_meta, "mid_recipe_parse")
         recipe_types = (base_meta.get("RECIPE_TYPES") or "").split()
         if not recipe_types:
-            bb.warn("RECIPE_TYPES not defined")
+            bb.debug("RECIPE_TYPES not defined")
             recipe_types = ["machine"]
             #recipe_types = (["machine"] +
             #                (base_meta.get("BBCLASSEXTEND") or "").split())
