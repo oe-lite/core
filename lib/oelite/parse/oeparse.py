@@ -107,116 +107,143 @@ class OEParser(object):
         p[0] = (self.meta.expand(p[1]), p[2])
         return
 
+    def p_string(self, p):
+        '''string : empty_string
+                  | quoted_string
+                  | STRING'''
+        p[0] = p[1]
+        return
+
+    def p_empty_string(self, p):
+        '''empty_string : QUOTE QUOTE'''
+        p[0] = ""
+        return
+
+    def p_quoted_string(self, p):
+        '''quoted_string : QUOTE string_value QUOTE'''
+        p[0] = p[2]
+        return
+
+    def p_string_value1(self, p):
+        '''string_value : STRING'''
+        p[0] = p[1]
+        return
+
+    def p_string_value2(self, p):
+        '''string_value : STRING string_value'''
+        p[0] = p[1] + p[2]
+        return
+
     def p_simple_var_assignment(self, p):
-        '''assignment : variable ASSIGN STRING'''
+        '''assignment : variable ASSIGN string'''
         self.meta.set(p[1], p[3])
         return
 
     def p_simple_flag_assignment(self, p):
-        '''assignment : varflag ASSIGN STRING'''
+        '''assignment : varflag ASSIGN string'''
         self.meta.set_flag(p[1][0], p[1][1], p[3])
         return
 
     def p_simple_override_assignment(self, p):
-        '''assignment : varoverride ASSIGN STRING'''
+        '''assignment : varoverride ASSIGN string'''
         self.meta.set_override(p[1][0], p[1][1], p[3])
         return
 
     def p_exp_var_assignment(self, p):
-        '''assignment : variable EXPASSIGN STRING'''
+        '''assignment : variable EXPASSIGN string'''
         self.meta.set(p[1], self.meta.expand(p[3]))
         return
 
     def p_exp_flag_assignment(self, p):
-        '''assignment : varflag EXPASSIGN STRING'''
+        '''assignment : varflag EXPASSIGN string'''
         self.meta.set_flag(p[1][0], p[1][1], self.meta.expand(p[3]))
         return
 
     def p_exp_override_assignment(self, p):
-        '''assignment : varoverride EXPASSIGN STRING'''
+        '''assignment : varoverride EXPASSIGN string'''
         self.meta.set_override(p[1][0], p[1][1], self.meta.expand(p[3]))
         return
 
     def p_defaultval_assignment(self, p):
-        '''assignment : variable LAZYASSIGN STRING'''
+        '''assignment : variable LAZYASSIGN string'''
         self.meta.set_flag(p[1], "defaultval", p[3])
         return
 
     def p_weak_var_assignment(self, p):
-        '''assignment : variable WEAKASSIGN STRING'''
+        '''assignment : variable WEAKASSIGN string'''
         if not p[1] in self.meta:
             self.meta.set(p[1], p[3])
         return
 
     def p_weak_flag_assignment(self, p):
-        '''assignment : varflag WEAKASSIGN STRING'''
+        '''assignment : varflag WEAKASSIGN string'''
         if self.meta.get_flag(p[1][0], p[1][1]) == None:
             self.meta.set_flag(p[1][0], p[1][1], p[3])
         return
 
     def p_weak_override_assignment(self, p):
-        '''assignment : varoverride WEAKASSIGN STRING'''
+        '''assignment : varoverride WEAKASSIGN string'''
         if self.meta.get_override(p[1][0], p[1][1]) == None:
             self.meta.set_override(p[1][0], p[1][1], p[3])
         return
 
     def p_append_var_assignment(self, p):
-        '''assignment : variable APPEND STRING'''
+        '''assignment : variable APPEND string'''
         self.meta.append(p[1], p[3], separator=" ")
         return
 
     def p_append_flag_assignment(self, p):
-        '''assignment : varflag APPEND STRING'''
+        '''assignment : varflag APPEND string'''
         self.meta.append_flag(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_append_override_assignment(self, p):
-        '''assignment : varoverride APPEND STRING'''
+        '''assignment : varoverride APPEND string'''
         self.meta.append_override(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_prepend_var_assignment(self, p):
-        '''assignment : variable PREPEND STRING'''
+        '''assignment : variable PREPEND string'''
         self.meta.prepend(p[1], p[3], separator=" ")
         return
 
     def p_prepend_flag_assignment(self, p):
-        '''assignment : varflag PREPEND STRING'''
+        '''assignment : varflag PREPEND string'''
         self.meta.prepend_flag(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_prepend_override_assignment(self, p):
-        '''assignment : varoverride PREPEND STRING'''
+        '''assignment : varoverride PREPEND string'''
         self.meta.prepend_override(p[1][0], p[1][1], p[3], separator=" ")
         return
 
     def p_predot_var_assignment(self, p):
-        '''assignment : variable PREDOT STRING'''
+        '''assignment : variable PREDOT string'''
         self.meta.append(p[1], p[3])
         return
 
     def p_predot_flag_assignment(self, p):
-        '''assignment : varflag PREDOT STRING'''
+        '''assignment : varflag PREDOT string'''
         self.meta.append_flag(p[1][0], p[1][1], p[3])
         return
 
     def p_predot_override_assignment(self, p):
-        '''assignment : varoverride PREDOT STRING'''
+        '''assignment : varoverride PREDOT string'''
         self.meta.append_override(p[1][0], p[1][1], p[3])
         return
 
     def p_postdot_var_assignment(self, p):
-        '''assignment : variable POSTDOT STRING'''
+        '''assignment : variable POSTDOT string'''
         self.meta.prepend(p[1], p[3])
         return
 
     def p_postdot_flag_assignment(self, p):
-        '''assignment : varflag POSTDOT STRING'''
+        '''assignment : varflag POSTDOT string'''
         self.meta.prepend_flag(p[1][0], p[1][1], p[3])
         return
 
     def p_postdot_override_assignment(self, p):
-        '''assignment : varoverride POSTDOT STRING'''
+        '''assignment : varoverride POSTDOT string'''
         self.meta.prepend_override(p[1][0], p[1][1], p[3])
         return
 

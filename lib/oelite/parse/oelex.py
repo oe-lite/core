@@ -5,7 +5,7 @@ tokens = [
     'VARNAME', 'FLAG', 'OVERRIDE',
     'ASSIGN', 'EXPASSIGN', 'WEAKASSIGN', 'LAZYASSIGN',
     'APPEND', 'PREPEND', 'POSTDOT', 'PREDOT',
-    'STRING',
+    'STRING', 'QUOTE',
     'NEWLINE', 'COMMENT',
     'INCLUDEFILE', # 'INCLUDE' and 'REQUIRE' included as reserved word
     'INHERITCLASS', # 'INHERIT' included as reserved word
@@ -36,6 +36,10 @@ states = (
     ('inherit', 'exclusive'),
     ('addtask', 'exclusive'),
     ('addhook', 'exclusive'),
+    ('dquote', 'exclusive'),
+    ('squote', 'exclusive'),
+    ('tripledquote', 'exclusive'),
+    ('triplesquote', 'exclusive'),
     )
 
 precedence = ()
@@ -311,29 +315,128 @@ def t_assign_NUMBER(t):
     t.lexer.pop_state()
     return t
 
-def t_assign_EMPTYSTRING(t):
-    r'""|\'\''
+def t_assign_TRIPLEDQUOTE(t):
+    r'"""'
+    t.type = "QUOTE"
+    t.lexer.push_state('tripledquote')
+    return t
+
+def t_assign_TRIPLESQUOTE(t):
+    r"'''"
+    t.type = "QUOTE"
+    t.lexer.push_state('triplesquote')
+    return t
+
+def t_assign_DQUOTE(t):
+    r'"'
+    t.type = "QUOTE"
+    t.lexer.push_state('dquote')
+    return t
+
+def t_assign_SQUOTE(t):
+    r"'"
+    t.type = "QUOTE"
+    t.lexer.push_state('squote')
+    return t
+
+t_dquote_ignore = ''
+
+def t_dquote_STRING(t):
+    r'(\\"|\\\n|[^"\n])+'
+    t.type = "STRING"
+    t.lexer.lineno += t.value.count('\n')
+    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value)
+    t.value = t.value.decode("string-escape")
+    return t
+
+def t_dquote_QUOTE(t):
+    r'"'
+    t.type = "QUOTE"
+    t.lexer.pop_state()
+    t.lexer.pop_state()
+    return t
+
+t_squote_ignore = ''
+
+def t_squote_STRING(t):
+    r"(\\'|\\\n|[^'\n])+"
+    t.type = "STRING"
+    t.lexer.lineno += t.value.count('\n')
+    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value)
+    t.value = t.value.decode("string-escape")
+    return t
+
+def t_squote_QUOTE(t):
+    r"'"
+    t.type = "QUOTE"
+    t.lexer.pop_state()
+    t.lexer.pop_state()
+    return t
+
+t_tripledquote_ignore = ''
+
+def t_tripledquote_STRING(t):
+    r'([^"\\\n]|\\[0-7]{1,3}|\\x[0-9a-fA-F]{2}|\\[^0-7x\n])+'
+    t.type = "STRING"
+    t.value = t.value.decode("string-escape")
+    return t
+
+def t_tripledquote_ESCEOL(t):
+    r'\\\n'
     t.type = "STRING"
     t.value = ""
+    t.lexer.lineno += 1
+    return t
+
+def t_tripledquote_EOL(t):
+    r'\n'
+    t.type = "STRING"
+    t.lexer.lineno += 1
+    return t
+
+def t_tripledquote_QUOTE(t):
+    r'"{3}'
+    t.type = "QUOTE"
+    t.lexer.pop_state()
     t.lexer.pop_state()
     return t
 
-def t_assign_DQUOTESTRING(t):
-    r'"(\\"|\\\n|[^"\n])*?"'
+def t_tripledquote_INQUOTE(t):
+    r'"{1,2}'
     t.type = "STRING"
-    t.lexer.lineno += t.value.count('\n')
-    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value[1:-1])
-    t.value = t.value.replace("\\\n","").replace('\\"','"')
+    return t
+
+t_triplesquote_ignore = ''
+
+def t_triplesquote_STRING(t):
+    r"([^'\\\n]|\\[0-7]{1,3}|\\x[0-9a-fA-F]{2}|\\[^0-7x\n])+"
+    t.type = "STRING"
+    t.value = t.value.decode("string-escape")
+    return t
+
+def t_triplesquote_ESCEOL(t):
+    r'\\\n'
+    t.type = "STRING"
+    t.value = ""
+    t.lexer.lineno += 1
+    return t
+
+def t_triplesquote_EOL(t):
+    r'\n'
+    t.type = "STRING"
+    t.lexer.lineno += 1
+    return t
+
+def t_triplesquote_QUOTE(t):
+    r'"{3}'
+    t.type = "QUOTE"
+    t.lexer.pop_state()
     t.lexer.pop_state()
     return t
 
-def t_assign_SQUOTESTRING(t):
-    r"'(\\'|\\\n|[^'\n])*?'"
+def t_triplesquote_INQUOTE(t):
+    r'"{1,2}'
     t.type = "STRING"
-    t.lexer.lineno += t.value.count('\n')
-    t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value[1:-1])
-    t.value = t.value.replace("\\\n","").replace("\\'","'")
-    t.lexer.pop_state()
     return t
 
 def t_assign_UNTERMINATEDDQUOTESTRING(t):
