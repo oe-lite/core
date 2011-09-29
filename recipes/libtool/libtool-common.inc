@@ -71,3 +71,7 @@ do_install_symlinks () {
     ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
     ln -sf ../config ${D}${datadir}/libtool/libltdl/config
 }
+
+inherit auto-package-libs
+AUTO_PACKAGE_LIBS = "ltdl"
+FILES_${PN}-libltdl-dev = "${includedir}/libltdl ${includedir}/ltdl.h"
