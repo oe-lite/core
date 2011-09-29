@@ -539,7 +539,7 @@ FILES_${PN} = "\
 ${base_bindir} \
 ${base_libdir}/*.so.* \
 ${base_libdir}/gcc/${TARGET_ARCH} \
-${base_libdir}/libiberty.a \
+${base_libdir}/*.a \
 ${base_libexecdir}/gcc/${TARGET_ARCH} \
 ${base_prefix}/${TARGET_ARCH}/bin \
 ${base_prefix}/${TARGET_ARCH}/lib \
