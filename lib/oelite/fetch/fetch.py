@@ -2,6 +2,7 @@ import re
 import os
 import hashlib
 import shutil
+import string
 
 import bb.utils
 import oe.process
@@ -73,7 +74,33 @@ class OEliteUri:
         self.fetcher = FETCHERS[self.scheme](self, d)
         self.init_unpack_params()
         self.init_patch_params()
+        self.mirrors = d.get("MIRRORS") or None
         return
+
+    def alternative_mirror(self):
+        if self.mirrors is None:
+            return None
+        if isinstance(self.mirrors, str):
+            url = "%s://%s"%(self.scheme, self.location)
+            mirrors = self.mirrors.split("\n")
+            mirrors = map(string.strip, mirrors)
+            mirrors = filter(None, mirrors)
+            mirrors = map(string.split, mirrors)
+            if not mirrors:
+                self.mirrors = None
+                return None
+            self.mirrors = []
+            for mirror in mirrors:
+                (src_uri, mirror_uri) = tuple(mirror)
+                m = re.match(src_uri, url)
+                if m:
+                    self.mirrors.append(mirror_uri + url[m.end():])
+            self.next_mirror = 0
+        if self.next_mirror == len(self.mirrors):
+            return None
+        mirror = self.mirrors[self.next_mirror]
+        self.next_mirror += 1
+        return mirror
 
     def __str__(self):
         return "%s://%s"%(self.scheme, self.location)

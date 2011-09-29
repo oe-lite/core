@@ -4,7 +4,6 @@ inherit arch
 inherit utils
 inherit stage
 inherit package
-inherit mirrors
 
 # FIXME: inherit in specialized classes, so that fx. image does not have
 # to have do_fetch

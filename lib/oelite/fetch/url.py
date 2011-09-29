@@ -32,25 +32,40 @@ class UrlFetcher():
         except KeyError:
             raise oelite.fetch.NoSignature(self.uri, "signature unknown")
 
+    def grab(self, url, reget=None):
+        print "grabbing %s"%(url)
+        if reget:
+            try:
+                return urlgrabber.urlgrab(url, self.localpath, reget=reget)
+            except urlgrabber.grabber.URLGrabError as e:
+                print 'URLGrabError %i: %s' % (e.errno, e.strerror)
+                if not (e[0] == 14 and e[1].startswith("HTTP Error 416")):
+                    return None
+        try:
+            return urlgrabber.urlgrab(url, self.localpath)
+        except urlgrabber.grabber.URLGrabError as e:
+            print 'URLGrabError %i: %s' % (e.errno, e.strerror)
+        return None
+
     def fetch(self):
         localdir = os.path.dirname(self.localpath)
         if not os.path.exists(localdir):
             bb.utils.mkdirhier(localdir)
-        if os.path.exists(self.localpath):
-            if "_signature" in dir(self):
-                m = hashlib.sha1()
-                m.update(open(self.localpath, "r").read())
-                if self._signature == m.hexdigest():
-                    return True
-            try:
-                f = urlgrabber.urlgrab(self.url, self.localpath, reget="simple")
-            except urlgrabber.grabber.URLGrabError as e:
-                if not e[0] == 14 and e[1].startswith("HTTP Error 416"):
-                    return False
-                f = urlgrabber.urlgrab(self.url, self.localpath)
-        else:
-            f = urlgrabber.urlgrab(self.url, self.localpath)
-        if not f == self.localpath:
+        url = self.url
+        while url:
+            if os.path.exists(self.localpath):
+                if "_signature" in dir(self):
+                    m = hashlib.sha1()
+                    m.update(open(self.localpath, "r").read())
+                    if self._signature == m.hexdigest():
+                        return True
+                f = self.grab(url, reget="simple")
+            else:
+                f = self.grab(url)
+            if f:
+                break
+            url = self.uri.alternative_mirror()
+        if not f or f != self.localpath:
             return False
         m = hashlib.sha1()
         m.update(open(self.localpath, "r").read())
