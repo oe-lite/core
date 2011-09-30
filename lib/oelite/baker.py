@@ -124,15 +124,38 @@ class OEliteBaker:
 
         oelite.pyexec.exechooks(self.config, "post_common_inherits")
 
+        self.cookbook = CookBook(self)
+
         # things (ritem, item, recipe, or package) to do
         if args:
             self.things_todo = args
         elif "BB_DEFAULT_THING" in self.config:
             self.things_todo = self.config.get("BB_DEFAULT_THING", 1).split()
         else:
-            self.things_todo = [ "base-rootfs" ]
+            self.things_todo = [ "world" ]
 
-        self.cookbook = CookBook(self)
+        recipe_types = ("machine", "native", "sdk",
+                        "cross", "sdk-cross", "canadian-cross")
+        def thing_todo(thing):
+            if not thing in self.things_todo:
+                self.things_todo.append(thing)
+        def dont_do_thing(thing):
+            while thing in self.things_todo:
+                self.things_todo.remove(thing)
+        self.recipes_todo = set()
+        if "universe" in self.things_todo:
+            dont_do_thing("universe")
+            for recipe_type in recipe_types:
+                thing_todo(recipe_type + ":world")
+        if "world" in self.things_todo:
+            dont_do_thing("world")
+            thing_todo("machine:world")
+        for recipe_type in recipe_types:
+            world = recipe_type + ":world"
+            if world in self.things_todo:
+                dont_do_thing(world)
+                for recipe in self.cookbook.get_recipes(type=recipe_type):
+                    self.recipes_todo.add(recipe)
 
         return
 
@@ -165,6 +188,8 @@ class OEliteBaker:
 
         if len(self.things_todo) == 0:
             die("you must specify something to show")
+        if len(self.recipes_todo) > 0:
+            die("you cannot show world")
 
         thing = oelite.item.OEliteItem(self.things_todo[0])
         recipe = self.cookbook.get_recipe(
@@ -227,20 +252,23 @@ class OEliteBaker:
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
         start = datetime.datetime.now()
-        for thing in self.things_todo:
-            thing = oelite.item.OEliteItem(thing)
-            for task in self.tasks_todo:
-                task = oelite.task.task_name(task)
-                try:
+        for task in self.tasks_todo:
+            task = oelite.task.task_name(task)
+            try:
+                for thing in self.recipes_todo:
+                    if not self.runq.add_recipe(thing, task):
+                        die("No such recipe: %s"%(thing))
+                for thing in self.things_todo:
+                    thing = oelite.item.OEliteItem(thing)
                     if not self.runq.add_something(thing, task):
                         die("No such thing: %s"%(thing))
-                except RecursiveDepends, e:
-                    die("dependency loop: %s\n\t--> %s"%(
-                            e.args[1], "\n\t--> ".join(e.args[0])))
-                except NoSuchTask, e:
-                    die("No such task: %s: %s"%(thing, e.__str__()))
-                except FatalError, e:
-                    die("Failed to add %s:%s to runqueue"%(thing, task))
+            except RecursiveDepends, e:
+                die("dependency loop: %s\n\t--> %s"%(
+                        e.args[1], "\n\t--> ".join(e.args[0])))
+            except NoSuchTask, e:
+                die("No such task: %s: %s"%(thing, e.__str__()))
+            except FatalError, e:
+                die("Failed to add %s:%s to runqueue"%(thing, task))
         if oebakery.DEBUG:
             timing_info("Building dependency tree", start)
 
