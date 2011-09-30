@@ -7,22 +7,22 @@ STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 def binconfig_stage_fixup(d):
     import re, fileinput, os
 
-    metafile = d.getVar("binconfigfilelist", True).lstrip("/")
+    metafile = d.get("binconfigfilelist").lstrip("/")
     if not os.path.exists(metafile):
         return
 
     binconfig_files = open(metafile, "r")
 
-    stage_dir = os.path.realpath(d.getVar("STAGE_DIR", True))
+    stage_dir = os.path.realpath(d.get("STAGE_DIR"))
     pkg_type = d.get("STAGE_FIXUP_PKG_TYPE")
     sysroot = os.path.join(stage_dir, pkg_type)
 
     if pkg_type in ("native", "cross", "sdk-cross"):
         dirname_prefix = "stage_"
-    elif pkg_type == "canadian-cross":
-        dirname_prefix = "target_"
+    elif pkg_type in ("sdk", "canadian-cross"):
+        dirname_prefix = "sdk_"
     else:
-        dirname_prefix = ""
+        dirname_prefix = "machine_"
 
     dirnames = ("prefix", "exec_prefix", "bindir", "sbindir",
                 "libdir", "includedir", "libexecdir",
@@ -30,7 +30,7 @@ def binconfig_stage_fixup(d):
                 "infodir", "mandir")
     dirpaths = {}
     for dirname in dirnames:
-        dirpaths[dirname] = d.getVar(dirname_prefix + dirname, True)
+        dirpaths[dirname] = d.get(dirname_prefix + dirname)
 
     for filename in binconfig_files:
         filename = filename.strip()
@@ -53,16 +53,28 @@ def binconfig_stage_fixup(d):
         for option in ("-isystem ", "-I", "-iquote"):
             binconfig_file = re.sub(
                 re.compile("^(%s)(%s)"%(option, dirpaths["includedir"]), re.MULTILINE),
-                r"\g<1>%s\g<2>"%(sysroot),
+                r"\g<1>%sg<2>"%(sysroot),
                 binconfig_file)
 
         for option in ("-L"):
             binconfig_file = re.sub(
                 re.compile("^(%s)(%s)"%(option, dirpaths["libdir"]), re.MULTILINE),
-                r"\g<1>%s\g<2>"%(sysroot),
+                r"\g<1>%sg<2>"%(sysroot),
                 binconfig_file)
 
         with open(filename, "w") as output_file:
             output_file.write(binconfig_file)
+
+        if pkg_type in ("machine", "sdk"):
+            if pkg_type == "sdk":
+                cross_type = "sdk-cross"
+            else:
+                cross_type = "cross"
+            srcfile = os.path.join(sysroot, filename)
+            dstlink = os.path.join(
+                stage_dir, cross_type, d.get("stage_bindir").lstrip("/"),
+                os.path.basename(filename))
+            print "symlinking %s to %s"%(dstlink, srcfile)
+            os.symlink(srcfile, dstlink)
 
     os.unlink(metafile)
