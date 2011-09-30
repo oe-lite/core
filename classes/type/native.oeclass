@@ -20,10 +20,6 @@ require conf/paths/stage.conf
 require conf/paths/stage-host.conf
 require conf/paths/stage-target.conf
 
-base_do_install() {
-    oe_runmake install
-}
-
 REBUILDALL_SKIP = "1"
 RELAXED = "1"
 
