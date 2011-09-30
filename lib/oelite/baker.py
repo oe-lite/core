@@ -132,9 +132,6 @@ class OEliteBaker:
         else:
             self.things_todo = [ "base-rootfs" ]
 
-        self.appendlist = {}
-        #self.db = OEliteDB()
-
         self.cookbook = CookBook(self)
 
         return

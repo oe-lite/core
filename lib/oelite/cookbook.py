@@ -469,21 +469,11 @@ class CookBook(Mapping):
                     files.append(file)
 
         oerecipes = []
-        #oeappend = []
         for f in files:
             if f.endswith(".oe"):
                 oerecipes.append(f)
-            #elif f.endswith(".oeappend"):
-            #    oeappend.append(f)
             else:
                 warn("skipping %s: unknown file extension"%(f))
-
-        #appendlist = {}
-        #for f in oeappend:
-        #    base = os.path.basename(f).replace(".oeappend", ".oe")
-        #    if not base in appendlist:
-        #        appendlist[base] = []
-        #    appendlist[base].append(f)
 
         return oerecipes
 
