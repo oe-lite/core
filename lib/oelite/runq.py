@@ -93,10 +93,11 @@ class OEliteRunQueue:
         return self._add_package(package, task_name)
 
 
-    def add_recipe(self, name, task_name):
-        recipe = self.cookbook.get_recipe(name=name, strict=False)
-        if not recipe:
-            return False
+    def add_recipe(self, recipe, task_name):
+        if not isinstance(recipe, oelite.recipe.OEliteRecipe):
+            recipe = self.cookbook.get_recipe(name=recipe, strict=False)
+            if not recipe:
+                return False
         return self._add_recipe(recipe, task_name, primary=True)
 
 
