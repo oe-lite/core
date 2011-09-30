@@ -543,24 +543,38 @@ class CookBook(Mapping):
             meta[recipe_type]["RECIPE_TYPE"] = recipe_type
             self.oeparser.set_metadata(meta[recipe_type])
             self.oeparser.parse("classes/type/%s.oeclass"%(recipe_type))
-            compatible_machines = meta[recipe_type].get("COMPATIBLE_MACHINES")
-            if compatible_machines is not None:
-                machine = meta[recipe_type].get("MACHINE")
+            def arch_is_compatible(meta, arch_type):
+                compatible_archs = meta.get("COMPATIBLE_%s_ARCHS"%arch_type)
+                if compatible_archs is None:
+                    return True
+                arch = meta.get(arch_type + "_ARCH")
+                for compatible_arch in compatible_archs.split():
+                    if re.match(compatible_arch, arch):
+                        return True
+                print "skipping %s_ARCH incompatible %s:%s"%(
+                    arch_type, recipe_type, meta.get("PN"))
+                return False
+            def machine_is_compatible(meta):
+                compatible_machines = meta.get("COMPATIBLE_MACHINES")
+                if compatible_machines is None:
+                    return True
+                machine = meta.get("MACHINE")
                 if machine is None:
-                    print "skipping recipe %s:%s (requires machine)"%(
-                        recipe_type, meta[recipe_type].get("PN"))
-                    del meta[recipe_type]
-                    break
-                else:
-                    compatible = False
-                    for compatible_machine in compatible_machines.split():
-                        if re.match(compatible_machine, machine):
-                            compatible = True
-                    if not compatible:
-                        print "skipping incompatible %s:%s"%(
-                            recipe_type, meta[recipe_type].get("PN"))
-                        del meta[recipe_type]
-                        break
+                    print "skipping MACHINE incompatible recipe %s:%s"%(
+                        recipe_type, meta.get("PN"))
+                    return False
+                for compatible_machine in compatible_machines.split():
+                    if re.match(compatible_machine, machine):
+                        return True
+                print "skipping MACHINE incompatible %s:%s"%(
+                    recipe_type, meta.get("PN"))
+                return False
+            if ((not machine_is_compatible(meta[recipe_type])) or
+                (not arch_is_compatible(meta[recipe_type], "BUILD")) or
+                (not arch_is_compatible(meta[recipe_type], "HOST")) or
+                (not arch_is_compatible(meta[recipe_type], "TARGET"))):
+                del meta[recipe_type]
+                break
             oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
         return meta
 
