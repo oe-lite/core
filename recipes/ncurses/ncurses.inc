@@ -70,7 +70,7 @@ AUTO_PACKAGE_LIBS = "ncurses termcap form menu panel"
 
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
 FILES_${PN} = "${bindir}/tput ${bindir}/tset ${datadir}/tabset ${sysconfdir}/terminfo"
-FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack "
+FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack ${bindir}/tabs"
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
 
