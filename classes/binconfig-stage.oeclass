@@ -41,7 +41,7 @@ def binconfig_stage_fixup(d):
         for dirname in dirnames:
             binconfig_file = re.sub(
                 re.compile("^(%s=).*"%(dirname), re.MULTILINE),
-                r"\g<1>%s/%s"%(sysroot, dirpaths[dirname]),
+                r"\g<1>%s%s"%(sysroot, dirpaths[dirname]),
                 binconfig_file)
 
         for flagvar in ("CPPFLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
