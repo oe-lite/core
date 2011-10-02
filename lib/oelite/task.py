@@ -241,6 +241,9 @@ class OEliteTask:
             os.dup2(real_stderr, sys.stderr.fileno())
             stdin.close()
             logfile.close()
+            os.close(real_stdin)
+            os.close(real_stdout)
+            os.close(real_stderr)
             if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
                 os.remove(logsymlink)
                 os.remove(logfn) # prune empty logfiles
