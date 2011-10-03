@@ -8,7 +8,7 @@ AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir}"
 AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
-AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= "${AUTO_PACKAGE_LIBS_DEV_DEPENDS}"
+AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
 
 addhook auto_package_libs to post_recipe_parse before fixup_package_type
 
@@ -23,9 +23,7 @@ def auto_package_libs (d):
     provideprefix = d.get("AUTO_PACKAGE_LIBS_PROVIDEPREFIX") or ""
     packages = []
     dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
-    dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS")
-    if dev_rdepends is None:
-        dev_rdepends = dev_depends
+    dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS") or ""
 
     def get_extra_files(pkg):
         #return (d.get("FILES_" + pkg) or "").split()
