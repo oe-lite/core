@@ -541,8 +541,8 @@ class CookBook(Mapping):
                 for compatible_arch in compatible_archs.split():
                     if re.match(compatible_arch, arch):
                         return True
-                print "skipping %s_ARCH incompatible %s:%s"%(
-                    arch_type, recipe_type, meta.get("PN"))
+                debug("skipping %s_ARCH incompatible recipe %s:%s"%(
+                    arch_type, recipe_type, meta.get("PN")))
                 return False
             def machine_is_compatible(meta):
                 compatible_machines = meta.get("COMPATIBLE_MACHINES")
@@ -550,14 +550,14 @@ class CookBook(Mapping):
                     return True
                 machine = meta.get("MACHINE")
                 if machine is None:
-                    print "skipping MACHINE incompatible recipe %s:%s"%(
-                        recipe_type, meta.get("PN"))
+                    debug("skipping MACHINE incompatible recipe %s:%s"%(
+                        recipe_type, meta.get("PN")))
                     return False
                 for compatible_machine in compatible_machines.split():
                     if re.match(compatible_machine, machine):
                         return True
-                print "skipping MACHINE incompatible %s:%s"%(
-                    recipe_type, meta.get("PN"))
+                debug("skipping MACHINE incompatible recipe %s:%s"%(
+                    recipe_type, meta.get("PN")))
                 return False
             if ((not machine_is_compatible(meta[recipe_type])) or
                 (not arch_is_compatible(meta[recipe_type], "BUILD")) or
@@ -697,7 +697,6 @@ class CookBook(Mapping):
                     self.dbc.execute(
                         "INSERT INTO package_rdepend (package, item) "
                         "VALUES (?, ?)", (package_id, item))
-
 
         return
 
