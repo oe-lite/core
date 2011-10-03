@@ -1,3 +1,4 @@
+# -*- mode:python; -*-
 DESCRIPTION = "Generic library support script \
 This is GNU libtool, a generic library support script.  Libtool hides \
 the complexity of generating special library types (such as shared \
@@ -11,32 +12,11 @@ require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
 
 inherit autotools
+
 C_DEPENDS = "target-cross:cc"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 LIBTOOL_DEPENDS:native = ""
-
-TARGET_PACKAGES = "\
-	${PN}-sysroot-libltdl \
-	${PN}-sysroot-libltdl-dev \
-	${PN}-sysroot-libltdl-dbg \
-"
-PACKAGES:>native += "${TARGET_PACKAGES}"
-
-DEPENDS += "target:libgcc"
-
-DEPENDS_${PN}-sysroot-libltdl-dev	= "${PN}-sysroot-libltdl"
-DEPENDS_${PN}-sysroot-libltdl-dbg	= "${PN}-sysroot-libltdl"
-
-FILES_${PN}	= "\
-${base_bindir}/* ${base_sbindir}/* \
-${bindir}/* ${sbindir}/* \
-${sysconfdir} ${sharedstatedir} ${localstatedir} \
-${datadir}/${PN} ${datadir}/aclocal \
-"
-FILES_${PN}-sysroot-libltdl = "${libdir}/libltdl.so.*"
-FILES_${PN}-sysroot-libltdl-dev = "${libdir}/libltdl.* ${includedir}/ltdl.h"
-FILES_${PN}-sysroot-libltdl-dbg = "${libdir}/.debug/"
 
 EXTRA_OECONF_PROGRAM_PREFIX = "--program-prefix=${TARGET_PREFIX}"
 EXTRA_OECONF_PROGRAM_PREFIX:machine = ""
@@ -59,8 +39,6 @@ HOST_CPPFLAGS:sdk-cross		= "${TARGET_CPPFLAGS}"
 HOST_CFLAGS:sdk-cross		= "${TARGET_CFLAGS}"
 HOST_LDFLAGS:sdk-cross		= "${TARGET_LDFLAGS}"
 
-C_DEPENDS:cross = "target-cross:cc"
-
 # As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
 # host), we need to fixup the mingw32 override to avoid the invalid
 # --hash-style option.
@@ -72,6 +50,19 @@ do_install_symlinks () {
     ln -sf ../config ${D}${datadir}/libtool/libltdl/config
 }
 
+PACKAGES = "${PN}-dbg ${PN}-doc ${PN}"
+
+DEPENDS += "target:libgcc"
+
+FILES_${PN}	= "\
+${base_bindir}/* ${base_sbindir}/* \
+${bindir}/* ${sbindir}/* \
+${sysconfdir} ${sharedstatedir} ${localstatedir} \
+${datadir}/${PN} ${datadir}/aclocal \
+"
+
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "ltdl"
 FILES_${PN}-libltdl-dev = "${includedir}/libltdl ${includedir}/ltdl.h"
+PACKAGE_TYPE_${PN}-libltdl = "${TARGET_TYPE}"
+PACKAGE_TYPE_${PN}-libltdl-dev = "${TARGET_TYPE}"
