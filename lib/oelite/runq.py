@@ -290,7 +290,7 @@ class OEliteRunQueue:
                 continue
             (recipe, package) = self.get_recipe_provider(taskdepend[0])
             if not recipe:
-                raise NoProvider(taskdepend[0])
+                raise NoProvider(taskdepend[0], str(task))
             add_task_depends([taskdepend[1]], [recipe])
 
         # can self references occur?
@@ -336,7 +336,12 @@ class OEliteRunQueue:
             if self.assume_provided(item):
                 #debug("ASSUME_PROVIDED %s"%(item))
                 return ([], [])
-            (recipe, package) = self.get_recipe_provider(item)
+            try:
+                (recipe, package) = self.get_recipe_provider(item)
+            except NoProvider, e:
+                if len(e.args) < 2 and len(recursion_path[0]):
+                    raise NoProvider(e.args[0], recursion_path[0][-1])
+                raise
             return ([recipe], [package])
 
         def recursive_resolve(item, recursion_path, type):
@@ -346,7 +351,12 @@ class OEliteRunQueue:
             if self.assume_provided(item):
                 #debug("ASSUME_PROVIDED %s"%(item))
                 return set([])
-            (recipe, package) = self.get_recipe_provider(item)
+            try:
+                (recipe, package) = self.get_recipe_provider(item)
+            except NoProvider, e:
+                if len(e.args) < 2 and len(recursion_path[0]):
+                    raise NoProvider(e.args[0], recursion_path[0][-1])
+                raise
 
             # detect circular package dependencies
             if str(package) in recursion_path[0]:
@@ -402,12 +412,8 @@ class OEliteRunQueue:
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
-                    try:
-                        _recdepends = recursive_resolve(depend, _recursion_path,
-                                                        package.type)
-                    except NoProvider, e:
-                        raise die("No provider for %s (needed by %s)"%(
-                                e.args[0], item))
+                    _recdepends = recursive_resolve(depend, _recursion_path,
+                                                    package.type)
                     recdepends.update(_recdepends)
 
             set_recdepends(package, recdepends)
@@ -428,8 +434,13 @@ class OEliteRunQueue:
             try:
                 _recdepends = resolve(depend, ([], []), recipe.type)
             except NoProvider, e:
+                if len(e.args) < 2:
+                    needed_by = str(recipe)
+                else:
+                    needed_by = e.args[1]
+                    print "needed_by", needed_by
                 raise die("No provider for %s (needed by %s)"%(
-                        e.args[0], depend))
+                        e.args[0], needed_by))
             recdepends.update(_recdepends)
 
         return recdepends
