@@ -133,8 +133,7 @@ TYPEMAP = (
         "machine" : {
             None		: "machine",
             "machine"		: "machine",
-            "build"		: "native",
-            "host"		: "native",
+            "host"		: "machine",
             "target"		: "machine",
             },
 
