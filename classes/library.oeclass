@@ -24,11 +24,25 @@ addhook library_depends to post_recipe_parse after fixup_package_type
 def library_depends(d):
     pkg = d.get("PN")
     pkg_type = d.get("PACKAGE_TYPE_" + pkg) or d.get("RECIPE_TYPE")
-    if pkg_type == "native":
-        return
     pv = d.get("PV")
     devpkg = pkg + "-dev"
     pkg_depends = (d.get("DEPENDS_" + pkg) or "").split()
+
+    if not pkg.startswith("lib"):
+        library_name = d.get("LIBRARY_NAME")
+        if not library_name:
+            library_name = "lib" + pkg
+        provides = (d.get("PROVIDES_" + pkg) or "").split()
+        if not library_name in provides:
+            provides.append(library_name)
+            d.set("PROVIDES_" + pkg, " ".join(provides))
+        provides = (d.get("PROVIDES_" + devpkg) or "").split()
+        if not library_name + "-dev" in provides:
+            provides.append(library_name + "-dev")
+            d.set("PROVIDES_" + devpkg, " ".join(provides))
+
+    if not pkg_type in ("machine", "sdk", "canadian-cross"):
+        return
 
     pkg_rdepends = d.get("RDEPENDS_" + pkg)
     if pkg_rdepends is None:
@@ -56,16 +70,3 @@ def library_depends(d):
                 devdep = "%s:%s"%(item.type, item.name + "-dev")
             devpkg_rdepends.append(dep + "-dev")
     d.set("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
-
-    if not pkg.startswith("lib"):
-        library_name = d.get("LIBRARY_NAME")
-        if not library_name:
-            library_name = "lib" + pkg
-        provides = (d.get("PROVIDES_" + pkg) or "").split()
-        if not library_name in provides:
-            provides.append(library_name)
-            d.set("PROVIDES_" + pkg, " ".join(provides))
-        provides = (d.get("PROVIDES_" + devpkg) or "").split()
-        if not library_name + "-dev" in provides:
-            provides.append(library_name + "-dev")
-            d.set("PROVIDES_" + devpkg, " ".join(provides))
