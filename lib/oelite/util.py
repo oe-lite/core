@@ -1,3 +1,5 @@
+import tarfile
+
 def format_textblock(text, indent=2, width=78):
     """
     Format a text block.
@@ -74,3 +76,18 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0):
         chdir(pwd, quiet=True)
 
     return retval
+
+
+class TarFile(tarfile.TarFile):
+    def __enter__(self):
+        try:
+            return tarfile.TarFile.__enter__(self)
+        except AttributeError:
+            if self.fileobj is None:
+                raise ValueError("Read Error")
+            return self
+    def __exit__(self, *args):
+        try:
+            tarfile.TarFile.__exit__(self, *args)
+        except AttributeError:
+            self.close()
