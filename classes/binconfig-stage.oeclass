@@ -34,6 +34,7 @@ def binconfig_stage_fixup(d):
 
     for filename in binconfig_files:
         filename = filename.strip()
+        #print "fixing up binconfig file", filename
 
         with open(filename, "r") as input_file:
             binconfig_file = input_file.read()
@@ -52,14 +53,15 @@ def binconfig_stage_fixup(d):
 
         for option in ("-isystem ", "-I", "-iquote"):
             binconfig_file = re.sub(
-                re.compile("^(%s)(%s)"%(option, dirpaths["includedir"]), re.MULTILINE),
-                r"\g<1>%sg<2>"%(sysroot),
+                re.compile("(%s)(%s)"%(option, dirpaths["includedir"]), re.MULTILINE),
+                r"\g<1>%s\g<2>"%(sysroot),
                 binconfig_file)
 
-        for option in ("-L"):
+        for option in ("-L",):
+            foobar1 = binconfig_file
             binconfig_file = re.sub(
-                re.compile("^(%s)(%s)"%(option, dirpaths["libdir"]), re.MULTILINE),
-                r"\g<1>%sg<2>"%(sysroot),
+                re.compile("(%s)(%s)"%(option, dirpaths["libdir"]), re.MULTILINE),
+                r"\g<1>%s\g<2>"%(sysroot),
                 binconfig_file)
 
         with open(filename, "w") as output_file:
@@ -74,7 +76,7 @@ def binconfig_stage_fixup(d):
             dstlink = os.path.join(
                 stage_dir, cross_type, d.get("stage_bindir").lstrip("/"),
                 os.path.basename(filename))
-            print "symlinking %s to %s"%(dstlink, srcfile)
+            #print "symlinking %s to %s"%(dstlink, srcfile)
             os.symlink(srcfile, dstlink)
 
     os.unlink(metafile)
