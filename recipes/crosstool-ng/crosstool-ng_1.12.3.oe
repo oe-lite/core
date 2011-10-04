@@ -7,8 +7,8 @@ FIXES_SRC_URI_BASE = "http://ymorin.is-a-geek.org/download/crosstool-ng/01-fixes
 SRC_URI += ""
 
 SRC_URI += "file://fixbusyboxlinuxissuepatch.patch;apply=0"
-do_install[postfuncs] += "do_install_fixbusyboxissuepath"
-do_install_fixbusyboxissuepath() {
+do_patch[postfuncs] += "do_patch_fixbusyboxissuepath"
+do_patch_fixbusyboxissuepath() {
   mkdir -p ${S}/patches/linux/3.0
   cp ${SRCDIR}/fixbusyboxlinuxissuepatch.patch ${S}/patches/linux/3.0/
 }
