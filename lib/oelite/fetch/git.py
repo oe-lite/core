@@ -96,6 +96,14 @@ class GitFetcher():
     def fetch(self):
         cache = self.get_cache()
         cache.setup_cache()
+        if (self.branch or
+            (self.tag and not cache.has_tag(self.tag)) or
+            (self.commit and not cache.has_commit(self.commit))):
+            try:
+                cache.update()
+            except:
+                print "Error fetching git remote: %s"%(self.url,)
+                return False
         if self.tag:
             commit = cache.query_tag(self.tag)
             if not commit:
