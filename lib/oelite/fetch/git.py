@@ -7,7 +7,7 @@ import warnings
 class GitFetcher():
 
     SUPPORTED_SCHEMES = ("git")
-    COMMIT_ID_RE = re.compile("[0-9a-f]{40}")
+    COMMIT_ID_RE = re.compile("[0-9a-f]{1,40}")
 
     def __init__(self, uri, d):
         if not uri.scheme in self.SUPPORTED_SCHEMES:
@@ -37,7 +37,6 @@ class GitFetcher():
         self.branch = None
         if "commit" in uri.params:
             self.commit = uri.params["commit"]
-            print "commit", self.commit
             if not self.COMMIT_ID_RE.match(self.commit):
                 raise oelite.fetch.InvalidURI(
                     self.uri, "invalid commit id %s"%(repr(self.commit)))
