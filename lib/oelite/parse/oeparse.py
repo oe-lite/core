@@ -375,7 +375,7 @@ class OEParser(object):
 
     def p_addhook_dependencies2(self, p):
         '''addhook_dependencies : addhook_dependency addhook_dependencies'''
-        p[0] = (set(p[1][0] + p[2][0]), set(p[1][1] + p[2][1]))
+        p[0] = (set(p[1][0] + list(p[2][0])), set(p[1][1] + list(p[2][1])))
         return
 
     def p_addhook_dependency(self, p):
