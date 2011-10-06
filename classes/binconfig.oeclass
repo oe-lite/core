@@ -17,7 +17,6 @@ python binconfig_fixup () {
     metafile = bb.data.getVar('binconfigfilelist', d, True).lstrip("/")
     bb.utils.mkdirhier(metadir)
 
-    import glob
     binconfig_files = []
     for pattern in bb.data.getVar('BINCONFIG_GLOB', d, True).split():
         binconfig_files += glob.glob(pattern.lstrip("/"))

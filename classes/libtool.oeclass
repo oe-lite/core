@@ -69,8 +69,6 @@ STAGE_DDIR:native = "${STAGE_DIR}/native"
 
 libtool_lafile_fixup[dirs] = "${D}"
 python libtool_lafile_fixup () {
-    import glob, sys, os
-
     lafiles = []
     for la_dir in d.getVar("LIBTOOL_FIXUP_SEARCH_DIRS", True).split():
         lafiles += glob.glob("%s/*.la"%(la_dir))
