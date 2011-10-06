@@ -202,7 +202,7 @@ class OEliteUri:
             srcpath = os.path.join(srcpath, self.params["subdir"])
             bb.utils.mkdirhier(srcpath)
             os.chdir(srcpath)
-        if not cmd:
+        if not cmd or not "unpack" in self.params:
             if os.path.isdir(self.fetcher.localpath):
                 shutil.rmtree(srcpath, True)
                 shutil.copytree(self.fetcher.localpath, self.srcpath())
