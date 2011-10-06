@@ -347,9 +347,9 @@ class DictMeta(MetaData):
             return []
         functions = sorted(functions.iteritems(), key=operator.itemgetter(1))
         num_functions = len(functions)
-        moved = []
         i = 0
         while i < num_functions:
+            moved = []
             function = functions[i][0]
             sequence = functions[i][1][0]
             after = list(functions[i][1][1])
@@ -364,7 +364,8 @@ class DictMeta(MetaData):
                 i += 1
                 continue
             if function in moved:
-                raise Exception("circular hook dependency detected")
+                raise Exception(
+                    "circular hook dependency detected: %s"%(function))
             del functions[i]
             functions.insert(move_after, (function, (sequence, after)))
             moved.append(function)
