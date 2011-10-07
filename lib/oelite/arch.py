@@ -351,11 +351,13 @@ def sanity(d):
         fail = True
     elif machine_os:
         bb.error("MACHINE_OS set, but not MACHINE_CPU")
+        fail = True
     else:
         bb.error("MACHINE or MACHINE_CPU and MACHINE_OS must be set")
+        fail = True
     if fail:
         bb.fatal("Invalid MACHINE and/or SDK specification\n"
-                 "Check your conf/local.conf file.")
+                 "Check your conf/local.conf file and/or machine and distro config files.")
     return
 
 
