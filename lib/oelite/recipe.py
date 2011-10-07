@@ -87,7 +87,7 @@ class OEliteRecipe:
             version += "-" + self.meta.get("PR")
 
         # FIXME: refactor to post_recipe_parse hook
-        preference = self.meta.getVar("DEFAULT_PREFERENCE", 1) or "0"
+        preference = self.meta.get("DEFAULT_PREFERENCE") or "0"
         try:
             preference = int(preference)
         except ValueError, e:

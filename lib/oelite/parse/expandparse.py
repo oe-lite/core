@@ -73,7 +73,7 @@ class ExpandParser(object):
             expand = 2
         else:
             expand = 1
-        val = self.data.getVar(p[2], expand)
+        val = self.data.get(p[2], expand)
         if val == None:
             if self.allow_unexpand:
                 p[0] = "${" + varname + "}"

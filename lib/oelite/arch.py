@@ -320,7 +320,7 @@ osspecs = {
 
 
 def init(d):
-    gcc_version = d.getVar('GCC_VERSION', True)
+    gcc_version = d.get('GCC_VERSION')
     arch_set_build_arch(d, gcc_version)
     arch_set_cross_arch(d, 'MACHINE', gcc_version)
     arch_set_cross_arch(d, 'SDK', gcc_version)
@@ -328,7 +328,7 @@ def init(d):
 
 
 def update(d):
-    gcc_version = d.getVar('GCC_VERSION', True)
+    gcc_version = d.get('GCC_VERSION')
     arch_update(d, 'BUILD', gcc_version)
     arch_update(d, 'HOST', gcc_version)
     arch_update(d, 'TARGET', gcc_version)
