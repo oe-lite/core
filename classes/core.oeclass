@@ -259,14 +259,14 @@ def core_machine_override(d):
         file_dirname = d.get("FILE_DIRNAME")
         filespaths = []
         for p in d.get("FILESPATHPKG").split(":"):
-            path = os.path.join(file_dirname, p, machine)
+            path = os.path.join(file_dirname, p, "MACHINE_" + machine)
             if os.path.isdir(path):
                 filespaths.append(path)
         if len(filespaths) != 0:
             for fetcher in d["__fetch"]:
                 if not fetcher.scheme == "file":
                     continue
-                path = fetcher.fetcher.fullpath()
+                path = fetcher.fetcher.localpath
                 for filespath in filespaths:
                     if path.startswith(filespath):
                         return True
