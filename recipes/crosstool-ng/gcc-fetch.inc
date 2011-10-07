@@ -11,7 +11,8 @@ SRC_URI += "${SRC_URI_BINUTILS}"
 SRC_URI_BINUTILS = "${GNU_MIRROR}/binutils/binutils-${CT_BINUTILS_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
-	${GNU_MIRROR}/glibc/glibc-ports-${CT_LIBC_VERSION}.tar.bz2;unpack=0"
+	git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14"
+SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
 SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/v3.0/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
 SRC_URI_LINUX:TARGET_OS_mingw32 = ""
@@ -32,8 +33,14 @@ SRC_URI_LTRACE = "${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${CT_LTRACE_VERSION}.ori
 
 do_unpack[postfuncs] += "do_unpack_ltrace_symlink"
 do_unpack_ltrace_symlink () {
-	ln -s ltrace_${CT_LTRACE_VERSION}.orig.tar.gz \
-		${SRCDIR}/ltrace-${CT_LTRACE_VERSION}.tar.gz
+	if [ -n "${SRC_URI_LTRACE}" ] ; then
+		ln -s ltrace_${CT_LTRACE_VERSION}.orig.tar.gz \
+			${SRCDIR}/ltrace-${CT_LTRACE_VERSION}.tar.gz
+        fi
+	if [ -n "${SRC_URI_GLIBC}" ] ; then
+		ln -s glibc-ports \
+			${SRCDIR}/glibc-ports-${CT_LIBC_VERSION}
+        fi
 }
 
 addhook gcc_set_src_uri to post_recipe_parse first before fetch_init after set_useflags gcc_select_gdb

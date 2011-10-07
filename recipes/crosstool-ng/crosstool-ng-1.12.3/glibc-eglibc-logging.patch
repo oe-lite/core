@@ -1,0 +1,15 @@
+--- crosstool-ng-1.12.3/scripts/build/libc/glibc-eglibc.sh-common~orig	2011-09-24 22:08:46.000000000 +0200
++++ crosstool-ng-1.12.3/scripts/build/libc/glibc-eglibc.sh-common	2011-10-07 14:37:45.188016238 +0200
+@@ -29,10 +29,10 @@
+         # either the 'long' or 'short' name, whatever the addons name
+         # but we prefer the 'short' name and avoid duplicates.
+         if [ -d "${CT_LIBC}-${addon}-${CT_LIBC_VERSION}" ]; then
+-            mv "${CT_LIBC}-${addon}-${CT_LIBC_VERSION}" "${addon}"
++            CT_DoExecLog FILE mv "${CT_LIBC}-${addon}-${CT_LIBC_VERSION}" "${addon}"
+         fi
+ 
+-        ln -s "${addon}" "${CT_LIBC}-${addon}-${CT_LIBC_VERSION}"
++        CT_DoExecLog FILE ln -s "${addon}" "${CT_LIBC}-${addon}-${CT_LIBC_VERSION}"
+ 
+         CT_Patch nochdir "${CT_LIBC}" "${addon}-${CT_LIBC_VERSION}"
+ 

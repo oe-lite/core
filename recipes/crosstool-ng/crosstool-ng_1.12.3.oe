@@ -4,7 +4,7 @@ require ${PN}.inc
 FIXES_SRC_URI_BASE = "http://ymorin.is-a-geek.org/download/crosstool-ng/01-fixes/${PV}/"
 
 # Unoffcial fixes
-SRC_URI += ""
+SRC_URI += "file://glibc-eglibc-logging.patch file://extractgit.patch"
 
 SRC_URI += "file://fixbusyboxlinuxissuepatch.patch;apply=0"
 do_patch[postfuncs] += "do_patch_fixbusyboxissuepath"
