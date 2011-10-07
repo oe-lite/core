@@ -290,20 +290,33 @@ class OEliteBaker:
                 count += 1
                 continue
 
+            dephashes = {}
+            task_dependencies = self.runq.task_dependencies(task)
+            depend_recipes = set([])
+            for depend in task_dependencies[0]:
+                dephashes[depend] = self.runq.get_task_metahash(depend)
+                depend_recipes.add(depend.recipe)
+            for depend in [d[0] for d in task_dependencies[1]]:
+                dephashes[depend] = self.runq.get_task_metahash(depend)
+                depend_recipes.add(depend.recipe)
+            for depend in [d[0] for d in task_dependencies[2]]:
+                dephashes[depend] = self.runq.get_task_metahash(depend)
+                depend_recipes.add(depend.recipe)
+            depend_recipes.discard(recipe)
+            # Inherit ${MACHINE_OVERRIDE} from dependencies.  Notice
+            # that it is strictly implied that MACHINE_OVERRIDE is a
+            # recipe thing, and not something that should be tried to
+            # emulate for individual packages!
+            machine = recipe.meta.get("MACHINE")
+            if machine and not recipe.meta.get("MACHINE_OVERRIDE"):
+                for depend_recipe in depend_recipes:
+                    if depend_recipe.meta.get("MACHINE_OVERRIDE"):
+                        recipe.meta.set("MACHINE_OVERRIDE", "." + machine)
             try:
                 datahash = recipe.datahash()
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise
-
-            dephashes = {}
-            task_dependencies = self.runq.task_dependencies(task)
-            for depend in task_dependencies[0]:
-                dephashes[depend] = self.runq.get_task_metahash(depend)
-            for depend in [d[0] for d in task_dependencies[1]]:
-                dephashes[depend] = self.runq.get_task_metahash(depend)
-            for depend in [d[0] for d in task_dependencies[2]]:
-                dephashes[depend] = self.runq.get_task_metahash(depend)
 
             import hashlib
 
