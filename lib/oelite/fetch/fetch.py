@@ -40,6 +40,8 @@ class OEliteUri:
 
     def __init__(self, uri, d):
         # Note, do not store reference to meta
+        self.recipe = "%s:%s_%s"%(d.get("RECIPE_TYPE"),
+                                  d.get("PN"), d.get("PV"))
         self.srcdir = d.get("SRCDIR")
         self.patchsubdir = d.get("PATCHSUBDIR")
         self.patchdir = d.get("PATCHDIR")
@@ -160,7 +162,11 @@ class OEliteUri:
         except oelite.fetch.NoSignature as e:
             if self.strict:
                 raise e
-            print "warning: no checksum known for", self.location
+            try:
+                url = self.fetcher.url
+            except AttributeError:
+                url = self.uri
+            print "%s: no checksum known for %s"%(self.recipe, url)
             return ""
 
     def cache(self):
