@@ -3,7 +3,7 @@
 RECIPE_TYPES = "cross sdk-cross canadian-cross"
 
 DEFAULT_USE_toolchain_libc			= "glibc"
-DEFAULT_USE_toolchain_libc_version		= "2.13"
+DEFAULT_USE_toolchain_libc_version		= "2.14"
 
 DEFAULT_USE_toolchain_libc_linux-uclibc		= "uclibc"
 #DEFAULT_USE_toolchain_libc_version_linux-uclibc = ???
