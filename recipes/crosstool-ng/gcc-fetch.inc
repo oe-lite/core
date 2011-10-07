@@ -14,6 +14,7 @@ SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
 	${GNU_MIRROR}/glibc/glibc-ports-${CT_LIBC_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/v3.0/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
+SRC_URI_LINUX:TARGET_OS_mingw32 = ""
 
 SRC_URI_GDB = "${GNU_MIRROR}/gdb/gdb-${CT_GDB_VERSION}.tar.bz2;unpack=0"
 
