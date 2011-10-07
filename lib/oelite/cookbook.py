@@ -33,8 +33,15 @@ class CookBook(Mapping):
         self.packages = {}
         self.tasks = {}
         self.cachedir = self.config.get("CACHEDIR") or ""
+        fail = False
         for recipefile in self.list_recipefiles():
-            self.add_recipefile(recipefile)
+            try:
+                self.add_recipefile(recipefile)
+            except:
+                err("failed to add to cookbook: %s"%(recipefile))
+                fail = True
+        if fail:
+            die("errors while adding recipes to cookbook")
 
         #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
