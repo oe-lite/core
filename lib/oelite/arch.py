@@ -320,10 +320,42 @@ osspecs = {
 
 
 def init(d):
+    sanity(d)
     gcc_version = d.get('GCC_VERSION')
     arch_set_build_arch(d, gcc_version)
     arch_set_cross_arch(d, 'MACHINE', gcc_version)
     arch_set_cross_arch(d, 'SDK', gcc_version)
+    return
+
+
+def sanity(d):
+    import bb
+    fail = False
+    sdk_cpu = d.get("SDK_CPU")
+    if not sdk_cpu:
+        bb.error("SDK_CPU not set")
+        fail = True
+    sdk_os = d.get("SDK_OS")
+    if not sdk_os:
+        bb.error("SDK_OS not set")
+        fail = True
+    machine = d.get("MACHINE")
+    machine_cpu = d.get("MACHINE_CPU")
+    machine_os = d.get("MACHINE_OS")
+    if machine:
+        pass
+    elif machine_cpu and machine_os:
+        pass
+    elif machine_cpu:
+        bb.error("MACHINE_CPU set, but not MACHINE_OS")
+        fail = True
+    elif machine_os:
+        bb.error("MACHINE_OS set, but not MACHINE_CPU")
+    else:
+        bb.error("MACHINE or MACHINE_CPU and MACHINE_OS must be set")
+    if fail:
+        bb.fatal("Invalid MACHINE and/or SDK specification\n"
+                 "Check your conf/local.conf file.")
     return
 
 
