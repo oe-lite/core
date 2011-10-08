@@ -1,3 +1,5 @@
+# -*- mode:python; -*-
+
 RECIPE_TYPES = "native"
 
 inherit c autotools
@@ -19,7 +21,6 @@ FILES_${PN} += "${libdir}/ct-ng-*"
 FIXUP_FUNCS += "crosstool_ng_fixup"
 
 crosstool_ng_fixup () {
-    pwd
     mv .${stage_bindir}/ct-ng \
        .${stage_bindir}/ct-ng.orig
     sed -e 's%${D}%$(shell dirname $(MAKEFILE_LIST))/..%' \
