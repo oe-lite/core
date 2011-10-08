@@ -21,6 +21,7 @@ CFLAGS[unexport]   = "1"
 CPPFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 
+do_configure[expand] = "2"
 do_configure () {
     if [ ! -z '${USE_uboot_extra_env}' ]; then
       sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/[^\]$/& \\/' include/configs/${USE_uboot_config_file}
