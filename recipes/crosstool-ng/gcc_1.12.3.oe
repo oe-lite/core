@@ -35,3 +35,11 @@ DEFAULT_USE_toolchain_ltrace_version		= "0.5.3"
 DEFAULT_USE_toolchain_strace_version		= "4.5.20"
 
 require gcc.inc
+
+SRC_URI += "file://linux-attribute-packed.patch;apply=0"
+
+do_unpack[postfuncs] += "do_unpack_mvpatches"
+do_unpack_mvpatches () {
+	mkdir -p ${S}/linux/3.0
+	mv ${SRCDIR}/linux-attribute-packed.patch ${S}/linux/3.0
+}
