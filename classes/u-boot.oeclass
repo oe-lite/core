@@ -21,12 +21,47 @@ CFLAGS[unexport]   = "1"
 CPPFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 
-do_configure[expand] = "2"
+do_configure[prefuncs] += "${DO_CONFIGURE_EXTRAENV}"
+DO_CONFIGURE_EXTRAENV = ""
+DO_CONFIGURE_EXTRAENV:USE_uboot_extra_env = "do_configure_extraenv"
+def do_configure_extraenv(d):
+    config_filename = os.path.join("include/configs",
+                                   d.get("USE_uboot_config_file"))
+    extra_env_lines = []
+    for line in (d.get("USE_uboot_extra_env").splitlines()):
+        line = line.strip()
+        if not line:
+            continue
+        extra_env_lines.append('\t"%s\\0"'%(line,))
+    with open(config_filename) as config_file:
+        config = config_file.read()
+    # Search to the CONFIG_EXTRA_ENV_SETTINGS define
+    define = re.search(r"^#define[ \t]+CONFIG_EXTRA_ENV_SETTINGS[ \t]+",
+                       config, re.MULTILINE)
+    if not define:
+        print "ERROR: cannot find CONFIG_EXTRA_ENV_SETTINGS in %s"%(
+            config_filename)
+        return False
+    # Get the current define value
+    current = re.match(r"([^\n]*\\\n)*([^\n]*\n)",
+                       config[define.end():])
+    last_line = config[define.end()+current.start(2):
+                           define.end()+current.end(2)].strip()
+    # Write out config file with USE_uboot_extra_env inserted
+    with open(config_filename, "w") as config_file:
+        config_file.write(config[:define.end() + current.end(1)])
+        if last_line:
+            config_file.write(config[define.end() + current.start(2):
+                                         define.end() + current.end(2) - 1] +
+                              " \\\n")
+        config_file.write(" \\\n".join(extra_env_lines) + "\n")
+        if last_line:
+            config_file.write(config[define.end() + current.end(2):])
+        else:
+            config_file.write(config[define.end() + current.start(2):])
+    return True
+
 do_configure () {
-    if [ ! -z '${USE_uboot_extra_env}' ]; then
-      sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/[^\]$/& \\/' include/configs/${USE_uboot_config_file}
-      sed -i -e '/\#define[ ,\t]CONFIG_EXTRA_ENV_SETTINGS/,/^$/ s/^$/& ${USE_uboot_extra_env} \n/' include/configs/${USE_uboot_config_file}
-    fi
     oe_runmake ${USE_uboot_config}
 }
 
