@@ -191,7 +191,7 @@ do_install () {
     do_install_kernel
 }
 
-PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-kernel-headers"
+PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-kernel-headers ${PN}-firmware"
 
 FILES_${PN} = "${bootdir}/${KERNEL_IMAGE_FILENAME}"
 FILES_${PN}-dtb = "${bootdir}/${KERNEL_DEVICETREE_FILENAME}"
@@ -201,6 +201,7 @@ FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
 FILES_${PN}-headers = "${includedir}"
 FILES_${PN}-modules = "/lib/modules"
 FILES_${PN}-kernel-headers = "/kernel"
+FILES_${PN}-firmware = "/lib/firmware"
 
 PROVIDES_${PN} = "kernel"
 PROVIDES_${PN}-kernel-headers = "kernel-headers"
