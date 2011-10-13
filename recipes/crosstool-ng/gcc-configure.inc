@@ -154,14 +154,27 @@ def do_configure_defconfig(d):
 	rewrites.append((var, '"%s"'%(val)))
 
     rewrites += [
-	("CT_ARCH_FLOAT_HW",
-	 ["n","y"][d.get("TARGET_FPU") != "0"]),
-	("CT_ARCH_FLOAT_SW",
-	 ["y","n"][d.get("TARGET_FPU") != "0"]),
 	("CT_LIBC_%s"%(d.get("CT_LIBC")), "y"),
 	("CT_EGLIBC_OPT_SIZE",
 	 ["n", "y"]["-Os" in (d.get("TARGET_CFLAGS") or "").split()]),
 	]
+
+    target_fpu = d.get("TARGET_FPU")
+    if target_fpu and target_fpu != "0":
+        rewrites.append(("CT_ARCH_FPU", '"%s"'%(target_fpu)))
+
+    rewrites += [
+       ("CT_ARCH_FLOAT_SW",
+        ["n","y"][(d.get("TARGET_FLOAT") == "soft")]),
+       ("CT_ARCH_FLOAT_HW",
+        ["n","y"][(d.get("TARGET_FLOAT") == "hard")]),
+       ]
+    # Not yet supported in ct-ng_1.12
+    #       ("CT_ARCH_FLOAT_SOFTFP",
+    #        ["n","y"][(d.get("TARGET_FLOAT") == "softfp")]),
+
+    rewrites.append(("CT_CC_CORE_EXTRA_CONFIG_ARRAY", '"--with-float=%s"'%(d.get("TARGET_FLOAT"))))
+    rewrites.append(("CT_CC_EXTRA_CONFIG_ARRAY", '"--with-float=%s"'%(d.get("TARGET_FLOAT"))))
 
     ct_parallel_jobs = "1"
     ct_load = "0"

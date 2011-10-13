@@ -22,22 +22,22 @@ cpuspecs = {
             },
         '603e'			: {
             'mcpu'		: '603e',
-            'fpu'		: '1',
+            'float'		: 'hard',
             },
         'e300c1'		: {
             'mcpu'		: 'e300c1',
-            'fpu'		: '1',
+            'float'		: 'hard',
             },
         'e300c2'		: {
             'mcpu'		: 'e300c2',
             },
         'e300c3'		: {
             'mcpu'		: 'e300c3',
-            'fpu'		: '1',
+            'float'		: 'hard',
             },
         'e300c4'		: {
             'mcpu'		: 'e300c4',
-            'fpu'		: '1',
+            'float'		: 'hard',
             },
         },
 
@@ -71,6 +71,7 @@ cpuspecs = {
             'mcpu'		: 'cortex-a8',
             'mtune'		: 'cortex-a8',
             'fpu'		: 'neon',
+            'float'		: 'hard',
             },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
@@ -79,6 +80,7 @@ cpuspecs = {
         'cortexa9neon'		: {
             'mcpu'		: 'cortex-a9',
             'mtune'		: 'cortex-a9',
+            'float'		: 'hard',
             'fpu'		: 'neon',
             },
         },
@@ -146,6 +148,7 @@ cpuspecs = {
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i386',
             'fpu'		: '387',
+            'float'		: 'hard',
             },
         },
 
@@ -156,6 +159,7 @@ cpuspecs = {
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i486',
             'fpu'		: '387',
+            'float'		: 'hard',
             },
         'winchipc6'		: {
             'march'		: 'winchip-c6',
@@ -178,6 +182,7 @@ cpuspecs = {
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i586',
             'fpu'		: '387',
+            'float'		: 'hard',
             },
         'mmx'			: {
             'march'		: 'pentium-mmx',
@@ -200,6 +205,7 @@ cpuspecs = {
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'i686',
             'fpu'		: '387',
+            'float'		: 'hard',
             },
         'mmx'			: {
             'march'		: 'pentium2',
@@ -228,6 +234,7 @@ cpuspecs = {
             'elf'		: 'ELF 32-bit LSB .*, Intel 80386',
             'march'		: 'pentium4',
             'fpu'		: 'sse',
+            'float'		: 'hard',
             },
         'sse3'			: {
             'march'		: 'prescott',
@@ -241,6 +248,7 @@ cpuspecs = {
             'elf'		: 'x86-64',
             'march'		: 'opteron',
             'fpu'		: 'sse',
+            'float'		: 'hard',
             },
         'sse3'			: {
             'march'		: 'k8-sse3',
