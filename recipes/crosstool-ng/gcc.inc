@@ -9,11 +9,6 @@ B = "${WORKDIR}/build"
 # Depend on the right version of the ct-ng tool
 DEPENDS := "native:crosstool-ng_${PV}"
 
-# FIXME: come up with a more elegant solution. if not before, it then when
-# fx. uclibc or eglibc is used, or even more, if llvm compiler is added
-PV .= "-${CT_CC}${CT_CC_VERSION}"
-PV .= "-${CT_LIBC}${@d.get('CT_LIBC_VERSION').replace('_','.')}"
-
 RECIPE_FLAGS += "extra_toolchain_patch"
 EXTRA_TOOLCHAIN_DEPENDS = ""
 EXTRA_TOOLCHAIN_DEPENDS:USE_extra_toolchain_patch = "${USE_extra_toolchain_patch}"
