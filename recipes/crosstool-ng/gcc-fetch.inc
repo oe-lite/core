@@ -5,7 +5,7 @@ require conf/fetch/kernelorg.conf
 require conf/fetch/debian.conf
 
 SRC_URI += "${SRC_URI_GCC}"
-SRC_URI_GCC = "${GNU_MIRROR}/gcc/gcc-${CT_CC_VERSION}/gcc-${CT_CC_VERSION}.tar.bz2;unpack=0"
+SRC_URI_GCC ?= "${GNU_MIRROR}/gcc/gcc-${CT_CC_VERSION}/gcc-${CT_CC_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI += "${SRC_URI_BINUTILS}"
 SRC_URI_BINUTILS = "${GNU_MIRROR}/binutils/binutils-${CT_BINUTILS_VERSION}.tar.bz2;unpack=0"
@@ -17,7 +17,7 @@ SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/v3.0/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
 SRC_URI_LINUX:TARGET_OS_mingw32 = ""
 
-SRC_URI_GDB = "${GNU_MIRROR}/gdb/gdb-${CT_GDB_VERSION}.tar.bz2;unpack=0"
+SRC_URI_GDB ?= "${GNU_MIRROR}/gdb/gdb-${CT_GDB_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_LIBELF = "http://www.mr511.de/software/libelf-${CT_LIBELF_VERSION}.tar.gz;unpack=0"
 
