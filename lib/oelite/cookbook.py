@@ -563,7 +563,28 @@ class CookBook(Mapping):
                 debug("skipping MACHINE incompatible recipe %s:%s"%(
                     recipe_type, meta.get("PN")))
                 return False
-            if ((not machine_is_compatible(meta[recipe_type])) or
+            def recipe_is_compatible(meta):
+                incompatible_recipes = meta.get("INCOMPATIBLE_RECIPES")
+                if incompatible_recipes is None:
+                    return True
+                pn = meta.get("PN")
+                pv = meta.get("PV")
+                for incompatible_recipe in incompatible_recipes.split():
+                    if "_" in incompatible_recipe:
+                        incompatible_recipe = incompatible_recipe.rsplit("_", 1)
+                    else:
+                        incompatible_recipe = (incompatible_recipe, None)
+                    if not re.match("%s$"%(incompatible_recipe[0]), pn):
+                        continue
+                    if incompatible_recipe[1] is None:
+                        return False
+                    if re.match("%s$"%(incompatible_recipe[1]), pv):
+                        debug("skipping incompatible recipe %s:%s"%(
+                            recipe_type, pn, pv))
+                        return False
+                return True
+            if ((not recipe_is_compatible(meta[recipe_type])) or
+                (not machine_is_compatible(meta[recipe_type])) or
                 (not arch_is_compatible(meta[recipe_type], "BUILD")) or
                 (not arch_is_compatible(meta[recipe_type], "HOST")) or
                 (not arch_is_compatible(meta[recipe_type], "TARGET"))):
