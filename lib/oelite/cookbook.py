@@ -724,8 +724,9 @@ class CookBook(Mapping):
                   "FROM package, provide, recipe "
                   "WHERE provide.package=package.id "
                   "AND package.recipe=recipe.id "
-                  "AND provide.item=:item "
-                  "AND package.type=:type ")
+                  "AND provide.item=:item ")
+        if type:
+            select += "AND package.type=:type "
         if recipe:
             select += "AND recipe.name=:recipe "
         if version is not None:
