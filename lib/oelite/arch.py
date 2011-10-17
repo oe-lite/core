@@ -72,6 +72,7 @@ cpuspecs = {
             'mtune'		: 'cortex-a8',
             'fpu'		: 'neon',
             'float'		: 'hard',
+            'thumb'		: '1',
             },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
@@ -82,6 +83,7 @@ cpuspecs = {
             'mtune'		: 'cortex-a9',
             'float'		: 'hard',
             'fpu'		: 'neon',
+            'thumb'		: '1',
             },
         },
 
