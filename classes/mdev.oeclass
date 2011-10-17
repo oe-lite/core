@@ -16,9 +16,9 @@ do_install_mdev () {
 	for f in ${MDEV_CONF_FILES} ; do
 		# only create mdevdir when needed, and let it fail silently when
 		# called more than once
-		mkdir -p ./${mdevdir}
+		mkdir -p ${D}/${mdevdir}
 		let i=$i+1
-		cp $f ./${mdevdir}/${PN}.$i
+		cp $f ${D}/${mdevdir}/${PN}.$i
 	done
 }
 do_install_mdev[expand] = "3"
