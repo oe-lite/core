@@ -136,6 +136,11 @@ class ParseError(Exception):
             errlinebefore = lines[self.errlineno]\
                 [:(lexpos - errlinepos)]
             errlinebefore = len(errlinebefore.expandtabs())
+            try:
+                if self.symbol == self.details.value:
+                    errlinebefore -= len(self.symbol)
+            except AttributeError:
+                pass
         except AttributeError:
             lexpos = None
         linenofmtlen = len(str(lastline))
