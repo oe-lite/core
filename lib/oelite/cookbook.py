@@ -1,6 +1,7 @@
 from oebakery import die, err, warn, info, debug
 from oelite import *
 from oelite.dbutil import *
+import oelite.parse
 from recipe import OEliteRecipe
 from item import OEliteItem
 import oelite.meta
@@ -37,11 +38,20 @@ class CookBook(Mapping):
         for recipefile in self.list_recipefiles():
             try:
                 self.add_recipefile(recipefile)
-            except:
-                err("failed to add to cookbook: %s"%(recipefile))
+            except KeyboardInterrupt:
+                die("Aborted while building cookbook")
+            except oelite.parse.ParseError, e:
+                e.print_details()
+                err("Parse error in %s"%(self.shortfilename(recipefile)))
+                fail = True
+            except Exception, e:
+                import traceback
+                traceback.print_exc()
+                err("Uncaught Python exception in %s"%(
+                        self.shortfilename(recipefile)))
                 fail = True
         if fail:
-            die("errors while adding recipes to cookbook")
+            die("Errors while adding recipes to cookbook")
 
         #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
