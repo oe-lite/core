@@ -3,6 +3,7 @@
 require conf/fetch/gnu.conf
 require conf/fetch/kernelorg.conf
 require conf/fetch/debian.conf
+require conf/fetch/mpfr.conf
 
 SRC_URI += "${SRC_URI_GCC}"
 SRC_URI_GCC ?= "${GNU_MIRROR}/gcc/gcc-${CT_CC_VERSION}/gcc-${CT_CC_VERSION}.tar.bz2;unpack=0"
@@ -23,7 +24,7 @@ SRC_URI_LIBELF = "http://www.mr511.de/software/libelf-${CT_LIBELF_VERSION}.tar.g
 
 SRC_URI_GMP = "${GNU_MIRROR}/gmp/gmp-${CT_GMP_VERSION}.tar.bz2;unpack=0"
 
-SRC_URI_MPFR = "http://www.mpfr.org/mpfr-${CT_MPFR_VERSION}/mpfr-${CT_MPFR_VERSION}.tar.bz2;unpack=0"
+SRC_URI_MPFR = "${MPFR_MIRROR}/mpfr-${CT_MPFR_VERSION}/mpfr-${CT_MPFR_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_MPC = "http://www.multiprecision.org/mpc/download/mpc-${CT_MPC_VERSION}.tar.gz;unpack=0"
 
