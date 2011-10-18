@@ -1,4 +1,6 @@
 import tarfile
+import os
+import sys
 
 def format_textblock(text, indent=2, width=78):
     """
@@ -91,3 +93,20 @@ class TarFile(tarfile.TarFile):
             tarfile.TarFile.__exit__(self, *args)
         except AttributeError:
             self.close()
+
+def progress_info(msg, total, current):
+    if os.isatty(sys.stdout.fileno()):
+        fieldlen = len(str(total))
+        template = "\r%s: %%%dd / %%%dd [%2d %%%%]"%(msg, fieldlen, fieldlen,
+                                                 current*100//total)
+        #sys.stdout.write("\r%s: %04d/%04d [%2d %%]"%(
+        sys.stdout.write(template%(current, total))
+        if current == total:
+            sys.stdout.write("\n")
+        sys.stdout.flush()
+    else:
+        if current == 0:
+            sys.stdout.write("%s, please wait..."%(msg))
+        elif current == total:
+            sys.stdout.write("done.\n")
+        sys.stdout.flush()

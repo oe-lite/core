@@ -281,7 +281,8 @@ class OEliteBaker:
         count = 0
         start = datetime.datetime.now()
         while task:
-            progress_info("Calculating task metadata hashes", total, count)
+            oelite.util.progress_info("Calculating task metadata hashes",
+                                      total, count)
             recipe = self.cookbook.get_recipe(task=task)
 
             if task.nostamp:
@@ -351,7 +352,8 @@ class OEliteBaker:
             count += 1
             continue
 
-        progress_info("Calculating task metadata hashes", total, count)
+        oelite.util.progress_info("Calculating task metadata hashes",
+                                  total, count)
 
         if oebakery.DEBUG:
             timing_info("Calculation task metadata hashes", start)
@@ -567,22 +569,6 @@ class OEliteBaker:
         return None
 
 
-def progress_info(msg, total, current):
-    if os.isatty(sys.stdout.fileno()):
-        fieldlen = len(str(total))
-        template = "\r%s: %%%dd / %%%dd [%2d %%%%]"%(msg, fieldlen, fieldlen,
-                                                 current*100//total)
-        #sys.stdout.write("\r%s: %04d/%04d [%2d %%]"%(
-        sys.stdout.write(template%(current, total))
-        if current == total:
-            sys.stdout.write("\n")
-        sys.stdout.flush()
-    else:
-        if current == 0:
-            sys.stdout.write("%s, please wait..."%(msg))
-        elif current == total:
-            sys.stdout.write("done.\n")
-        sys.stdout.flush()
 
 
 def timing_info(msg, start):
