@@ -2,6 +2,7 @@ from oebakery import die, err, warn, info, debug
 from oelite import *
 from oelite.dbutil import *
 import oelite.parse
+import oelite.util
 from recipe import OEliteRecipe
 from item import OEliteItem
 import oelite.meta
@@ -35,17 +36,29 @@ class CookBook(Mapping):
         self.tasks = {}
         self.cachedir = self.config.get("CACHEDIR") or ""
         fail = False
-        for recipefile in self.list_recipefiles():
+        recipefiles = self.list_recipefiles()
+        total = len(recipefiles)
+        count = 0
+        for recipefile in recipefiles:
+            count += 1
+            oelite.util.progress_info("Adding recipes to cookbook",
+                                      total, count)
             try:
                 self.add_recipefile(recipefile)
             except KeyboardInterrupt:
+                if os.isatty(sys.stdout.fileno()):
+                    print
                 die("Aborted while building cookbook")
             except oelite.parse.ParseError, e:
+                if os.isatty(sys.stdout.fileno()):
+                    print
                 e.print_details()
                 err("Parse error in %s"%(self.shortfilename(recipefile)))
                 fail = True
             except Exception, e:
                 import traceback
+                if os.isatty(sys.stdout.fileno()):
+                    print
                 traceback.print_exc()
                 err("Uncaught Python exception in %s"%(
                         self.shortfilename(recipefile)))
@@ -495,13 +508,19 @@ class CookBook(Mapping):
         return oerecipes
 
 
+    def shortfilename(self, filename):
+        if filename.startswith(self.baker.topdir):
+            return filename[len(self.baker.topdir):].lstrip("/")
+        return filename
+
+
     def cachefilename(self, recipefile):
-        if recipefile.startswith(self.baker.topdir):
-            recipefile = recipefile[len(self.baker.topdir):]
-        return os.path.join(self.cachedir, recipefile.lstrip("/") + ".p")
+        recipefile = self.shortfilename(recipefile)
+        return os.path.join(self.cachedir, recipefile + ".p")
 
 
     def add_recipefile(self, filename):
+        debug("adding %s to cookbook"%(self.shortfilename(filename)))
         cachefile = self.cachefilename(filename)
 
         recipes = None
