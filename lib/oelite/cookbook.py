@@ -1,4 +1,5 @@
 from oebakery import die, err, warn, info, debug
+import oebakery
 from oelite import *
 from oelite.dbutil import *
 import oelite.parse
@@ -41,23 +42,27 @@ class CookBook(Mapping):
         count = 0
         for recipefile in recipefiles:
             count += 1
-            oelite.util.progress_info("Adding recipes to cookbook",
-                                      total, count)
+            if oebakery.DEBUG:
+                debug("Adding %s to cookbook [%s/%s]"%(
+                        self.shortfilename(recipefile), count, total))
+            else:
+                oelite.util.progress_info("Adding recipes to cookbook",
+                                          total, count)
             try:
                 self.add_recipefile(recipefile)
             except KeyboardInterrupt:
-                if os.isatty(sys.stdout.fileno()):
+                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
                     print
                 die("Aborted while building cookbook")
             except oelite.parse.ParseError, e:
-                if os.isatty(sys.stdout.fileno()):
+                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
                     print
                 e.print_details()
                 err("Parse error in %s"%(self.shortfilename(recipefile)))
                 fail = True
             except Exception, e:
                 import traceback
-                if os.isatty(sys.stdout.fileno()):
+                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
                     print
                 traceback.print_exc()
                 err("Uncaught Python exception in %s"%(
@@ -520,7 +525,6 @@ class CookBook(Mapping):
 
 
     def add_recipefile(self, filename):
-        debug("adding %s to cookbook"%(self.shortfilename(filename)))
         cachefile = self.cachefilename(filename)
 
         recipes = None
