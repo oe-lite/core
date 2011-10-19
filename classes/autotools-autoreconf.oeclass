@@ -57,7 +57,7 @@ do_autoreconf () {
                 : do nothing -- we still have an old unmodified configure.ac
             else
                 oenote Executing glib-gettextize --force --copy
-                echo "no" | glib-gettextize --force --copy
+                echo "no" | BUILD_SYSROOT=${BUILD_SYSROOT} glib-gettextize --force --copy
             fi
         elif grep "^[[:space:]]*AM_GNU_GETTEXT" $CONFIGURE_AC >/dev/null; then
             if [ -e ${TARGET_SYSROOT}${datadir}/gettext/config.rpath ]; then
