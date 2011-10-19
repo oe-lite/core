@@ -84,10 +84,10 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
         if os.path.exists(pkgmetadir):
             os.renames(pkgmetadir, dst_pkgmetadir)
 
-        # FIXME: do better
         conflicts = False
         for root, dirs, files in os.walk("."):
             root = root[2:]
+            merged_dirs = []
             for f in dirs:
                 if root == "" and f == pkgmetadir:
                     dirs.remove(f)
@@ -105,7 +105,8 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
                     # FIXME: need more descriptive error message
                     conflicts = True
                 os.renames(srcfile, dstfile)
-                dirs.remove(f)
+                merged_dirs.append(f)
+            dirs = list(set(dirs).difference(set(merged_dirs)))
             for f in files:
                 srcfile = os.path.join(root, f)
                 dstfile = os.path.join(dstdir, srcfile)
