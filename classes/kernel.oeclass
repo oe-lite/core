@@ -73,7 +73,7 @@ do_compile () {
 	do_compile_kernel
 }
 
-DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
+CLASS_DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
 KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-tools-mkimage']['${USE_kernel_imagetype}' == 'uImage']}"
 
 CLASS_FLAGS += "kernel_uimage \
