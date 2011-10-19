@@ -1,5 +1,5 @@
 DEPENDS_GETTEXT = "gettext native:gettext libiconv libintl"
-DEPENDS =+ "${DEPENDS_GETTEXT}"
+CLASS_DEPENDS =+ "${DEPENDS_GETTEXT}"
 
 EXTRA_OECONF_GETTEXT = "--enable-nls"
 EXTRA_OECONF += "${EXTRA_OECONF_GETTEXT}"
