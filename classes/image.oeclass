@@ -19,11 +19,16 @@ FILES_${PN} = ""
 do_compile[dirs] = "${IMAGE_DIR}"
 do_compile[cleandirs] = "${IMAGE_DIR}"
 
+IMAGE_PURGE_PKGMETADIR ?= "1"
+
 fakeroot do_compile () {
     cp -a ${RSTAGE_DIR}/. ./
     for func in ${IMAGE_PREPROCESS_FUNCS}; do
         $func
     done
+    if [ "${IMAGE_PURGE_PKGMETADIR}" = "1" ] ; then
+        rm -rf ${IMAGE_DIR}${pkgmetadir}
+    fi
     for func in ${IMAGE_CREATE_FUNCS}; do
         $func
     done
