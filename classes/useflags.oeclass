@@ -17,7 +17,7 @@ def set_useflags(d):
                 (d.get('CLASS_FLAGS') or "").split())
     if not useflags:
         return
-    machine_override = d.get('MACHINE_OVERRIDE')
+    extra_arch = d.get('EXTRA_ARCH')
     overrides = (d.get('OVERRIDES') or "")
     overrides_changed = False
     for useflag in useflags:
@@ -31,8 +31,8 @@ def set_useflags(d):
         elif local_val is not None:
             val = local_val
         elif machine_val is not None:
-            if not machine_override:
-                d.set('MACHINE_OVERRIDE', '.${MACHINE}')
+            if not extra_arch:
+                d.set('EXTRA_ARCH', '.${MACHINE}')
             val = machine_val
         elif distro_val is not None:
             val = distro_val

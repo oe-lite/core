@@ -304,15 +304,16 @@ class OEliteBaker:
                 dephashes[depend] = self.runq.get_task_metahash(depend)
                 depend_recipes.add(depend.recipe)
             depend_recipes.discard(recipe)
-            # Inherit ${MACHINE_OVERRIDE} from dependencies.  Notice
-            # that it is strictly implied that MACHINE_OVERRIDE is a
+            # Inherit ${EXTRA_ARCH} from dependencies.  Notice
+            # that it is strictly implied that EXTRA_ARCH is a
             # recipe thing, and not something that should be tried to
             # emulate for individual packages!
             machine = recipe.meta.get("MACHINE")
-            if machine and not recipe.meta.get("MACHINE_OVERRIDE"):
+            if machine and not recipe.meta.get("EXTRA_ARCH"):
                 for depend_recipe in depend_recipes:
-                    if depend_recipe.meta.get("MACHINE_OVERRIDE"):
-                        recipe.meta.set("MACHINE_OVERRIDE", "." + machine)
+                    depend_extra_arch = depend_recipe.meta.get("EXTRA_ARCH")
+                    if depend_extra_arch:
+                        recipe.meta.set("EXTRA_ARCH", depend_extra_arch)
             try:
                 datahash = recipe.datahash()
             except oelite.meta.ExpansionError as e:
@@ -418,7 +419,8 @@ class OEliteBaker:
             recipe = self.cookbook.get_recipe(package=package.id)
             buildhash = self.runq.get_package_buildhash(package.id)
             filename = os.path.join(
-                deploy_dir, package.type, package.arch,
+                deploy_dir, package.type,
+                package.arch + (package.recipe.meta.get("EXTRA_ARCH") or ""),
                 "%s_%s_%s.tar"%(package.name, recipe.version, buildhash))
             debug("will use from build: %s"%(filename))
             self.runq.set_package_filename(package.id, filename)
@@ -559,9 +561,10 @@ class OEliteBaker:
         filename = "%s_%s_%s.tar"%(package.name, recipe.version, metahash)
         debug("prebake_path=%s"%(prebake_path))
         for base_dir in prebake_path:
-            debug("base_dir=%s, arch=%s, filename=%s"%(
-                    base_dir, package.arch, filename))
-            path = os.path.join(base_dir, package.arch, filename)
+            path = os.path.join(
+                base_dir,
+                package.arch + (package.recipe.meta.get("EXTRA_ARCH") or ""),
+                filename)
             debug("checking for prebake: %s"%(path))
             if os.path.exists(path):
                 debug("found prebake: %s"%(path))

@@ -139,7 +139,6 @@ class OEliteTask:
         debug("buildhash=%s"%(repr(buildhash)))
         meta.setVar("TASK_BUILDHASH", buildhash)
 
-        deploy_dir = meta.get("PACKAGE_DEPLOY_DIR")
         recipe_type = meta.get("RECIPE_TYPE")
 
         def prepare_stage(get_depend_packages):

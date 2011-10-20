@@ -152,6 +152,7 @@ python do_package () {
     deploy_dir = d.getVar("PACKAGE_DEPLOY_DIR", True)
     for package in packages:
         pkg_arch = (d.get("PACKAGE_ARCH_" + package) or recipe_arch)
+        pkg_arch += d.get("EXTRA_ARCH") or ""
         pkg_type = (d.get("PACKAGE_TYPE_" + package) or recipe_type)
         outdir = os.path.join(deploy_dir, pkg_type, pkg_arch)
         pv = d.getVar("PV", True)

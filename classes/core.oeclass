@@ -259,7 +259,7 @@ def core_machine_override(d):
 
     if src_uri_machine_override():
         if d.get("TARGET_ARCH") == d.get("MACHINE_ARCH"):
-            d["MACHINE_OVERRIDE"] = ".${MACHINE}"
+            d["EXTRA_ARCH"] = ".${MACHINE}"
         else:
             raise Exception("Machine override of %s recipe"%(d["RECIPE_TYPE"]))
 

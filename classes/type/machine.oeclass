@@ -5,8 +5,7 @@ TARGET_TYPE		 = "machine"
 HOST_CROSS		 = "cross"
 TARGET_CROSS		 = "cross"
 
-RECIPE_ARCH		 = "${MACHINE_ARCH}${MACHINE_OVERRIDE}"
-MACHINE_OVERRIDE	?= ""
+RECIPE_ARCH		 = "${MACHINE_ARCH}"
 
 require conf/paths/machine.conf
 require conf/paths/machine-host.conf

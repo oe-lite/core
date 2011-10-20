@@ -2,6 +2,8 @@
 
 addhook arch_update to post_recipe_parse first
 
+EXTRA_ARCH ?= ""
+
 def arch_update(d):
     import oelite.arch
     oelite.arch.update(d)
