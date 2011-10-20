@@ -5,25 +5,22 @@ require conf/meta.conf
 STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 
 def binconfig_stage_fixup(d):
-    import re, fileinput, os
-
-    metafile = d.get("binconfigfilelist").lstrip("/")
-    if not os.path.exists(metafile):
+    pkgmetadir = d.get("pkgmetadir").lstrip("/")
+    metafile_path = os.path.join(pkgmetadir, "binconfig").lstrip("/")
+    if not os.path.exists(metafile_path):
         return
-
-    binconfig_files = open(metafile, "r")
-
+    with open(metafile_path, "r") as metafile:
+        import string
+        binconfig_files = map(string.strip, metafile.readlines())
     stage_dir = os.path.realpath(d.get("STAGE_DIR"))
     pkg_type = d.get("STAGE_FIXUP_PKG_TYPE")
     sysroot = os.path.join(stage_dir, pkg_type)
-
     if pkg_type in ("native", "cross", "sdk-cross"):
         dirname_prefix = "stage_"
     elif pkg_type in ("sdk", "canadian-cross"):
         dirname_prefix = "sdk_"
     else:
         dirname_prefix = "machine_"
-
     dirnames = ("prefix", "exec_prefix", "bindir", "sbindir",
                 "libdir", "includedir", "libexecdir",
                 "datadir", "sysconfdir", "sharedstatedir", "localstatedir",
@@ -31,42 +28,36 @@ def binconfig_stage_fixup(d):
     dirpaths = {}
     for dirname in dirnames:
         dirpaths[dirname] = d.get(dirname_prefix + dirname)
-
     for filename in binconfig_files:
-        filename = filename.strip()
-        #print "fixing up binconfig file", filename
-
+        print "fixing up binconfig file", filename
+        filename = filename.lstrip("/")
         with open(filename, "r") as input_file:
             binconfig_file = input_file.read()
-
         for dirname in dirnames:
             binconfig_file = re.sub(
                 re.compile("^(%s=).*"%(dirname), re.MULTILINE),
                 r"\g<1>%s%s"%(sysroot, dirpaths[dirname]),
                 binconfig_file)
-
         for flagvar in ("CPPFLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
             binconfig_file = re.sub(
                  re.compile("^(%s=[\"'])"%(flagvar), re.MULTILINE),
                  r"\g<1>--sysroot=%s "%(sysroot),
                  binconfig_file)
-
         for option in ("-isystem ", "-I", "-iquote"):
             binconfig_file = re.sub(
-                re.compile("(%s)(%s)"%(option, dirpaths["includedir"]), re.MULTILINE),
+                re.compile("(%s)(%s)"%(option, dirpaths["includedir"]),
+                           re.MULTILINE),
                 r"\g<1>%s\g<2>"%(sysroot),
                 binconfig_file)
-
         for option in ("-L",):
             foobar1 = binconfig_file
             binconfig_file = re.sub(
-                re.compile("(%s)(%s)"%(option, dirpaths["libdir"]), re.MULTILINE),
+                re.compile("(%s)(%s)"%(option, dirpaths["libdir"]),
+                           re.MULTILINE),
                 r"\g<1>%s\g<2>"%(sysroot),
                 binconfig_file)
-
         with open(filename, "w") as output_file:
             output_file.write(binconfig_file)
-
         if pkg_type in ("machine", "sdk"):
             if pkg_type == "sdk":
                 cross_type = "sdk-cross"
@@ -76,7 +67,5 @@ def binconfig_stage_fixup(d):
             dstlink = os.path.join(
                 stage_dir, cross_type, d.get("stage_bindir").lstrip("/"),
                 os.path.basename(filename))
-            #print "symlinking %s to %s"%(dstlink, srcfile)
+            print "symlinking %s to %s"%(dstlink, srcfile)
             os.symlink(srcfile, dstlink)
-
-    os.unlink(metafile)

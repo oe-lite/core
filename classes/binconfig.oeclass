@@ -2,35 +2,24 @@
 
 require conf/meta.conf
 
-BINCONFIG_GLOB += "${bindir}/*-config"
+BINCONFIG_FILES ?= "${bindir}/*-config"
+BINCONFIG_GLOB ?= "${BINCONFIG_FILES}"
+FILES_${PN}-dev += "${BINCONFIG_FILES}"
+BINCONFIG_FIXUP_STRIP_DIRS ?= "${HOST_SYSROOT} ${TARGET_SYSROOT} ${D} ${B} ${S}"
 
-FILES_${PN}-dev += "${bindir}/*-config ${binconfigmetadir}"
+do_install[postfuncs] += "do_install_binconfig_fixup"
+do_install_binconfig_fixup[dirs] = "${D}"
 
-BINCONFIG_FIXUP_STRIP_DIRS  = "${TARGET_SYSROOT} ${D} ${B} ${S}"
-
-FIXUP_FUNCS += "binconfig_fixup"
-
-binconfig_fixup[dirs] = "${D}"
-python binconfig_fixup () {
-
-    metadir = bb.data.getVar('binconfigmetadir', d, True).lstrip("/")
-    metafile = bb.data.getVar('binconfigfilelist', d, True).lstrip("/")
-    bb.utils.mkdirhier(metadir)
-
+def do_install_binconfig_fixup(d):
     binconfig_files = []
-    for pattern in bb.data.getVar('BINCONFIG_GLOB', d, True).split():
+    for pattern in d.get("BINCONFIG_GLOB").split():
         binconfig_files += glob.glob(pattern.lstrip("/"))
-
-    with open(metafile, "w") as output_file:
-        output_file.write("\n".join(binconfig_files) + "\n")
-
     strip_dirs = set()
-    for strip_dir in d.getVar("BINCONFIG_FIXUP_STRIP_DIRS", True).split():
+    for strip_dir in d.get("BINCONFIG_FIXUP_STRIP_DIRS").split():
         strip_dirs.add(strip_dir)
         strip_dirs.add(os.path.realpath(strip_dir))
-
-    import re
     for filename in binconfig_files:
+        print "binconfig fixup of /%s"%(filename)
         with open(filename, "r") as input_file:
             binconfig_file = input_file.read()
         for strip_dirs in strip_dirs:
@@ -50,4 +39,23 @@ python binconfig_fixup () {
                                     r"=", binconfig_file)
         with open(filename, "w") as output_file:
             output_file.write(binconfig_file)
-}
+
+do_split[postfuncs] += "do_split_binconfig_fixup"
+def do_split_binconfig_fixup(d):
+    pkgd = d.get("PKGD")
+    pkgmetadir = d.get("pkgmetadir").lstrip("/")
+    binconfig_globs = d.get("BINCONFIG_GLOB").lstrip("/").split()
+    os.chdir(pkgd)
+    for pkg in os.listdir("."):
+        os.chdir(os.path.join(pkgd, pkg))
+        binconfig_files = []
+        for binconfig_glob in binconfig_globs:
+            for binconfig_file in glob.glob(binconfig_glob.lstrip("/")):
+                binconfig_files.append("/" + binconfig_file)
+        if not binconfig_files:
+            continue
+        print "binconfig files in package", pkg
+        bb.utils.mkdirhier(pkgmetadir)
+        metafile_path = os.path.join(pkgmetadir, "binconfig")
+        with open(metafile_path, "w") as metafile:
+            metafile.write("\n".join(binconfig_files) + "\n")
