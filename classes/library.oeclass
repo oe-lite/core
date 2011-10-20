@@ -6,18 +6,8 @@
 DEPENDS_${PN}		= "${PN}-dev_${PV}"
 DEPENDS_${PN}-dev	= ""
 
-FILES_${PN}	= "${base_libdir}/lib*${SOLIBS} ${libdir}/lib*${SOLIBS}"
-FILES_${PN}-dev = "\
-${base_libdir}/*${SOLIBSDEV} ${base_libdir}/*.a ${base_libdir}/*.la \
-${libdir}/lib*${SOLIBSDEV} ${libdir}/*.a ${libdir}/*.la \
-${base_libdir}/*.o  ${libdir}/*.o \
-${libdir}/pkgconfig \
-${includedir} \
-${libdir}/*/include \
-${datadir}/aclocal ${datadir}/pkgconfig \
-${bindir}/*-config \
-"
-ALLOW_EMPTY_${PN}-dev = "0"
+FILES_${PN}		= "${base_libdir}/lib*${SOLIBS} ${libdir}/lib*${SOLIBS}"
+ALLOW_EMPTY_${PN}-dev	= "0"
 
 addhook library_depends to post_recipe_parse after fixup_package_type
 
