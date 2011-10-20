@@ -1,8 +1,8 @@
-CLASS_FLAGS += "mdev"
+CLASS_FLAGS += "busybox_mdev"
 
 require conf/mdev.conf
 
-IMAGE_PREPROCESS_FUNCS:>USE_mdev = " image_preprocess_mdev"
+IMAGE_PREPROCESS_FUNCS:>USE_busybox_mdev = " image_preprocess_mdev"
 
 image_preprocess_mdev () {
 	test -d ./${mdevdir} || return 0
