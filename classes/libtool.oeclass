@@ -58,7 +58,6 @@ libtool_script_fixup () {
     fi
 }
 
-FIXUP_FUNCS += "libtool_lafile_fixup"
 
 LIBTOOL_FIXUP_SEARCH_DIRS = "${D}${libdir} ${D}${base_libdir}"
 LIBTOOL_FIXUP_STRIP_DIRS  = "${D} ${S} ${STAGE_DDIR}"
@@ -67,18 +66,15 @@ STAGE_DDIR:native = "${STAGE_DIR}/native"
 
 # FIXME: figure out how to handle canadian-cross here...
 
-libtool_lafile_fixup[dirs] = "${D}"
-python libtool_lafile_fixup () {
+do_install[postfuncs] += "do_install_libtool_lafile_fixup"
+def do_install_libtool_lafile_fixup(d):
     lafiles = []
     for la_dir in d.getVar("LIBTOOL_FIXUP_SEARCH_DIRS", True).split():
         lafiles += glob.glob("%s/*.la"%(la_dir))
-
     strip_dirs = set()
     for strip_dir in d.getVar("LIBTOOL_FIXUP_STRIP_DIRS", True).split():
         strip_dirs.add(strip_dir)
         strip_dirs.add(os.path.realpath(strip_dir))
-
-    import re
     for filename in lafiles:
         with open(filename, "r") as input_file:
             lafile = input_file.read()
@@ -91,4 +87,3 @@ python libtool_lafile_fixup () {
         lafile = re.sub(pattern, "installed=yes", lafile)
         with open(filename, "w") as output_file:
             output_file.write(lafile)
-}
