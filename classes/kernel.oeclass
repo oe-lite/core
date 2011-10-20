@@ -125,19 +125,19 @@ DEFAULT_USE_kernel_dtc_source = "arch/${KERNEL_ARCH}/boot/dts/${MACHINE}.dts"
 
 addhook kernel_devicetree_init to post_recipe_parse after set_useflags
 def kernel_devicetree_init(d):
-    kernel_dtc = d.getVar('USE_kernel_dtc', True)
-    kernel_dtb = d.getVar('USE_kernel_dtb', True)
+    kernel_dtc = d.get('USE_kernel_dtc')
+    kernel_dtb = d.get('USE_kernel_dtb')
     if kernel_dtc and kernel_dtc != 0:
-	kernel_dtc_source = d.getVar('USE_kernel_dtc_source', True)
+	kernel_dtc_source = d.get('USE_kernel_dtc_source')
 	dts = os.path.basename(kernel_dtc_source)
 	(dts_name, dts_ext) = os.path.splitext(dts)
 	if dts_ext != '.dts':
 	    dts_name = dts
-	d.setVar('KERNEL_DEVICETREE', dts_name + ".dtb")
+	d.set('KERNEL_DEVICETREE', dts_name + ".dtb")
     elif kernel_dtb:
-	d.setVar('KERNEL_DEVICETREE', kernel_dtb)
+	d.set('KERNEL_DEVICETREE', kernel_dtb)
     else:
-	d.setVar('KERNEL_DEVICETREE', '')
+	d.set('KERNEL_DEVICETREE', '')
 
 COMPILE_POSTFUNCS:>USE_kernel_dtc = "do_compile_kernel_dtc"
 do_compile_kernel_dtc() {
