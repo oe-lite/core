@@ -11,19 +11,12 @@
 
 require conf/fstab.conf
 
-FIXUP_FUNCS += "fstab_fixup"
+RDEPENDS_${PN}:>USE_fstab = " util/mount"
 
-RDEPENDS_${PN}:>USE_fstab += " util/mount"
-
-fstab_fixup[dirs] = "${D}"
-
-fstab_fixup () {
-    echo fstab_fixup
-    set -e
-    pwd
-    tree
-    if [ -e .${sysconfdir}/fstab ] ; then
-        mkdir -p .${fstabfixupdir}
-        mv .${sysconfdir}/fstab .${fstabfixupdir}/${PN}
+do_install[postfuncs] += "do_install_fstab_fixup"
+do_install_fstab_fixup () {
+    if [ -e ${D}${sysconfdir}/fstab ] ; then
+        mkdir -p ${D}${fstabfixupdir}
+        mv ${D}${sysconfdir}/fstab ${D}${fstabfixupdir}/${PN}
     fi
 }
