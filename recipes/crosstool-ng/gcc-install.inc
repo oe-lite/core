@@ -34,8 +34,8 @@ ${D}/${TARGET_ARCH}/sysroot${target_libdir} \
 ${D}/${TARGET_ARCH}/sysroot${target_base_libdir}"
 LIBTOOL_FIXUP_STRIP_DIRS += "${D}/${TARGET_ARCH}/lib"
 
-FIXUP_FUNCS =+ "toolchain_lafile_fixup"
-toolchain_lafile_fixup () {
+do_install[postfuncs] += "do_install_gcc_lafile_fixup"
+do_install_gcc_lafile_fixup () {
     for lafile in ${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la ; do
         sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
             -i $lafile
