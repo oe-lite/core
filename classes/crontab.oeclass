@@ -35,11 +35,11 @@ python do_install_crontab () {
 
 	name = option[0:-len('_crontab')]
 
-	crontab_file = bb.data.getVar('CRONTAB_FILE_'+name, d, True)
+	crontab_file = d.get('CRONTAB_FILE_'+name)
 	if not crontab_file:
 	    crontab_file = os.path.join(srcdir, name + '.crontab')
 
-	crontab_user = bb.data.getVar('CRONTAB_USER_'+name, d, True) or 'root'
+	crontab_user = d.get('CRONTAB_USER_'+name) or 'root'
 
         out_filename = os.path.join(crontabdir, crontab_user +'.'+ name)
 
