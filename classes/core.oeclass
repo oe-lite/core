@@ -108,7 +108,6 @@ do_install[dirs] = "${D} ${S} ${B}"
 do_install[cleandirs] = "${D}"
 
 FIXUP_FUNCS += "\
-install_strip \
 "
 
 def do_fixup(d):
@@ -119,7 +118,9 @@ def do_fixup(d):
 
 do_fixup[dirs] = "${D}"
 
-python install_strip () {
+do_install[postfuncs] += "do_install_strip"
+do_install_strip[import] = "runstrip"
+def do_install_strip(d):
     import stat
     def isexec(path):
         try:
@@ -127,19 +128,15 @@ python install_strip () {
         except (os.error, AttributeError):
             return 0
         return (s[stat.ST_MODE] & stat.S_IEXEC)
-
-    if (bb.data.getVar('INHIBIT_PACKAGE_STRIP', d, True) != '1'):
-        for root, dirs, files in os.walk(os.getcwd()):
+    if d.get("INHIBIT_PACKAGE_STRIP") != '1':
+        os.chdir(d.get("D"))
+        for root, dirs, files in os.walk("."):
             for f in files:
                file = os.path.join(root, f)
                if os.path.islink(file) or os.path.isdir(file):
                    continue
                if isexec(file) or ".so" in os.path.basename(file):
                    runstrip(file, d)
-}
-install_strip[dirs] = "${D}"
-install_strip[import] = "runstrip"
-
 
 def runstrip(file, d):
     # Function to strip a single file, called from populate_packages below
