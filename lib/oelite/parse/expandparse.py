@@ -128,7 +128,5 @@ class ExpandParser(object):
 
 
     def expand(self, s):
-        if s.startswith("oe.path "):
-            raise Exception("Aiee")
         #print "s=%s lexer=%s"%(repr(s), repr(self.lexer))
         return self.yacc.parse(s, lexer=self.lexer)
