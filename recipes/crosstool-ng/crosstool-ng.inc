@@ -18,14 +18,13 @@ MAKE_DESTDIR = ""
 
 FILES_${PN} += "${libdir}/ct-ng-*"
 
-FIXUP_FUNCS += "crosstool_ng_fixup"
-
-crosstool_ng_fixup () {
-    mv .${stage_bindir}/ct-ng \
-       .${stage_bindir}/ct-ng.orig
+do_install[postfuncs] += "do_install_crosstool_ng_fixup"
+do_install_crosstool_ng_fixup () {
+    mv ${D}${bindir}/ct-ng \
+       ${D}${bindir}/ct-ng.orig
     sed -e 's%${D}%$(shell dirname $(MAKEFILE_LIST))/..%' \
-        < .${stage_bindir}/ct-ng.orig \
-        > .${stage_bindir}/ct-ng
-    rm .${stage_bindir}/ct-ng.orig
-    chmod +x .${stage_bindir}/ct-ng
+        < ${D}${bindir}/ct-ng.orig \
+        > ${D}${bindir}/ct-ng
+    rm ${D}${bindir}/ct-ng.orig
+    chmod +x ${D}${bindir}/ct-ng
 }
