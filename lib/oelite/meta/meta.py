@@ -251,7 +251,7 @@ class MetaData(MutableMapping):
             string_ptr = var_match.end(0)
             deps.add(var)
             if recdeps:
-                deps.union(recdeps)
+                deps = deps.union(recdeps)
         expanded_string += string[string_ptr:]
         python_match = python_re.search(expanded_string)
         if python_match:
@@ -264,7 +264,7 @@ class MetaData(MutableMapping):
                                expanded_string[python_match.end(0):])
             deps.add("python")
             if recdeps:
-                deps.union(recdeps)
+                deps = deps.union(recdeps)
             self.expand_stack.pop()
         #print "returning expanded string %s"%(repr(expanded_string))
         return (expanded_string, deps)
