@@ -7,6 +7,8 @@ inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab 
 JFFS2_IMAGE_DEPENDS = "native:mtd-utils-mkfs-jffs2"
 CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
 
+CLASS_FLAGS += "jffs2_maxsize"
+
 IMAGE_CREATE_FUNCS += "jffs2_image"
 
 # Use lzo compression with fallback to none if low compression achieved
@@ -17,6 +19,12 @@ jffs2_image () {
 		--root=${IMAGE_DIR} \
 		--output=${B}/${IMAGE_BASENAME}.jffs2
 }
+
+# Support checking the jffs2 image size
+inherit sizecheck
+JFFS2_SIZECHECK = ""
+JFFS2_SIZECHECK:USE_jffs2_maxsize = "${B}/${IMAGE_BASENAME}.jffs2:${USE_jffs2_maxsize}"
+SIZECHECK += "${JFFS2_SIZECHECK}"
 
 DO_INSTALL_POSTFUNCS += "do_install_jffs2_image"
 do_install_jffs2_image () {
