@@ -11,19 +11,12 @@
 
 require conf/inittab.conf
 
-FIXUP_FUNCS += "inittab_fixup"
-
 RDEPENDS_${PN}:>USE_inittab = " feature/sysvinit"
 
-inittab_fixup[dirs] = "${D}"
-
-inittab_fixup () {
-    echo inittab_fixup
-    set -e
-    pwd
-    tree
-    if [ -e .${sysconfdir}/inittab ] ; then
-        mkdir -p .${inittabfixupdir}
-        mv .${sysconfdir}/inittab .${inittabfixupdir}/${PN}
+do_install[postfuncs] += "do_install_inittab_fixup"
+do_install_inittab_fixup () {
+    if [ -e ${D}${sysconfdir}/inittab ] ; then
+        mkdir -p ${D}${inittabfixupdir}
+        mv ${D}${sysconfdir}/inittab ${D}${inittabfixupdir}/${PN}
     fi
 }
