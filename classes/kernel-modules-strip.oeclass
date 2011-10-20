@@ -1,15 +1,15 @@
 # -*- mode:python; -*-
 
 KERNEL_MODULES_FIXUP_FUNCS ?= "kernel_modules_strip"
-FIXUP_FUNCS += "${KERNEL_MODULES_FIXUP_FUNCS}"
 
-kernel_modules_strip () {
-    if [ -e lib/modules ] ; then
-        modules=`find lib/modules -name \*.ko`
+do_install[postfuncs] += "${KERNEL_MODULES_FIXUP_FUNCS}"
+do_install_kernel_modules_strip () {
+    if [ -e ${D}/lib/modules ] ; then
+        modules=`find ${D}/lib/modules -name \*.ko`
         if [ -n "$modules" ]; then
             for module in $modules ; do
-                if ! [ -d "$module"  ] ; then
-                    ${STRIP} -v -g $module
+                if ! [ -d "${D}/$module"  ] ; then
+                    ${STRIP} -v -g ${D}/$module
                 fi
             done    
         fi
