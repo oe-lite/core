@@ -12,8 +12,7 @@ inherit fetch
 addtask configure after do_unpack do_patch
 addtask compile after do_configure
 addtask install after do_compile
-addtask fixup after do_install
-addtask build after do_fixup
+addtask build after do_install
 addtask buildall after do_build
 addtask clean
 
@@ -106,17 +105,6 @@ do_compile[dirs] = "${S} ${B}"
 
 do_install[dirs] = "${D} ${S} ${B}"
 do_install[cleandirs] = "${D}"
-
-FIXUP_FUNCS += "\
-"
-
-def do_fixup(d):
-    for funcname in (d.get("FIXUP_FUNCS") or "").split():
-        function = d.get_function(funcname)
-        if not function.run(os.getcwd()):
-            return False
-
-do_fixup[dirs] = "${D}"
 
 do_install[postfuncs] += "do_install_strip"
 do_install_strip[import] = "runstrip"

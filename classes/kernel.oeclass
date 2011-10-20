@@ -217,7 +217,7 @@ KERNEL_SIZECHECK = ""
 KERNEL_SIZECHECK:USE_kernel_maxsize = "${KERNEL_IMAGE}:${USE_kernel_maxsize}"
 SIZECHECK += "${KERNEL_SIZECHECK}"
 
-addtask deploy after do_fixup before do_build
+addtask deploy after do_install before do_build
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
 
 do_deploy() {

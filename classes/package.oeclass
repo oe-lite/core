@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 
-addtask split after do_fixup
+addtask split after do_install
 addtask package after do_split before do_build
 
 do_split[cleandirs] = "${PKGD}"
