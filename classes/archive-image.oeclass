@@ -56,7 +56,7 @@ archive_image_zip () {
 	fi
 }
 
-DO_INSTALL_POSTFUNCS += "do_install_archive_image"
+do_install[postfuncs] += "do_install_archive_image"
 do_install_archive_image () {
 	for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do
 		case $fmt in
@@ -69,7 +69,7 @@ do_install_archive_image () {
 
 FILES_${PN} += "/*.${ARCHIVE_IMAGE_TAR_EXT} /*.zip"
 
-DO_DEPLOY_POSTFUNCS += "do_deploy_archive_image"
+do_deploy[postfuncs] += "do_deploy_archive_image"
 do_deploy_archive_image () {
 	for fmt in ${ARCHIVE_IMAGE_FORMATS} ; do
 		case $fmt in
