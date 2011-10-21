@@ -5,6 +5,7 @@ IMAGE_BASENAME = "${PN}"
 CLASS_FLAGS += "rootfs_name"
 DEFAULT_USE_rootfs_name = "base-rootfs"
 CLASS_DEPENDS += "${USE_rootfs_name}"
+RDEPENDS += "base-version"
 
 addtask image_qa_prep before do_image_qa after do_stage_fixup
 do_image_qa_prep[dirs] = "${WORKDIR}/image-qa"
