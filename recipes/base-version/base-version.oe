@@ -1,0 +1,52 @@
+DESCRIPTION = "Distroversion and  build-time file creation."
+LICENSE = "GPL"
+
+DEFAULT_DEPENDS = ""
+
+
+PACKAGES = "${PN}"
+
+do_install () {
+	:
+}
+
+POSTFUNCS = ""
+
+RECIPE_FLAGS += "basefiles_version"
+POSTFUNCS:>USE_basefiles_version += "do_install_basefiles_version"
+do_install_basefiles_version () {
+	echo "${DISTRO_VERSION}" > \
+	      ${SRCDIR}/${USE_basefiles_version}
+	install -m 0755 -d ${D}${sysconfdir}
+	install -m 0644 ${SRCDIR}/${USE_basefiles_version} \
+		${D}${sysconfdir}/${USE_basefiles_version}
+}
+
+
+RECIPE_FLAGS += "basefiles_buildtime"
+POSTFUNCS:>USE_basefiles_version += "do_install_basefiles_buildtime"
+do_install_basefiles_buildtime () {
+	echo "${DATETIME}" > \
+		${SRCDIR}/${USE_basefiles_buildtime}
+
+	install -m 0755 -d ${D}${sysconfdir}
+	install -m 0644 ${SRCDIR}/${USE_basefiles_buildtime} \
+		${D}${sysconfdir}/${USE_basefiles_buildtime}
+}
+
+RECIPE_FLAGS += "basefiles_cross-config"
+DEPENDS:>USE_basefiles_cross-config = "cross:gcc-config"
+POSTFUNCS:>USE_basefiles_version += "do_install_basefiles_cross_config"
+do_install_basefiles_cross_config () {
+	install -m 0755 -d ${D}${sysconfdir}
+	file=$( find ${STAGE_DIR} -name cross:gcc-config )
+	sed -n -e '/NG version/ p' -e 's/#.*//' -e '/PKGVERSION/ d' \
+		-e '/VERSION/ p' $file > \
+		${SRCDIR}/${USE_basefiles_cross-config}
+
+	install -m 0755 -d ${D}${sysconfdir}
+	install -m 0644 ${SRCDIR}/${USE_basefiles_cross-config} \
+		${D}${sysconfdir}/${USE_basefiles_cross-config}
+}
+
+do_install[postfuncs] += "${POSTFUNCS}"
