@@ -11,7 +11,7 @@
 
 require conf/inittab.conf
 
-RDEPENDS_${PN}:>USE_inittab = " feature/sysvinit"
+RDEPENDS_${PN}:>USE_inittab = " sysvinit"
 
 do_install[postfuncs] += "do_install_inittab_fixup"
 do_install_inittab_fixup () {
