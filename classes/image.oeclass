@@ -37,15 +37,11 @@ fakeroot do_compile () {
 do_install () {
     :
 }
-DO_INSTALL_POSTFUNCS ?= ""
-do_install[postfuncs] = "${DO_INSTALL_POSTFUNCS}"
 
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR}"
 do_deploy() {
     :
 }
-DO_DEPLOY_POSTFUNCS ?= ""
-do_deploy[postfuncs] = "${DO_DEPLOY_POSTFUNCS}"
 
 do_rstage[cleandirs]	= "${RSTAGE_DIR} ${RSTAGE_DIR}.unpack"
 do_rstage[dirs]		= "${RSTAGE_DIR}"
