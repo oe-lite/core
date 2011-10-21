@@ -15,16 +15,17 @@ dupdate_image() {
 }
 
 CLASS_FLAGS += "dupdate_script dupdate_version"
+DEFAULT_USE_dupdate_script = ""
+DEFAULT_USE_dupdate_version = ""
 
-DO_INSTALL_POSTFUNCS += "do_install_dupdate_image"
+do_install[postfuncs] += "do_install_dupdate_image"
 do_install_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
 }
 
-RSTAGE_FIXUP_FUNCS:>USE_dupdate_version = " dupdate_version"
-RSTAGE_FIXUP_FUNCS:>USE_dupdate_script = " dupdate_script"
-
-RSTAGE_FIXUP_FUNCS += "dupdate_flatten_bootdir"
+POSTFUNCS:>USE_dupdate_version = " dupdate_version"
+POSTFUNCS:>USE_dupdate_script = " dupdate_script"
+POSTFUNCS += "dupdate_flatten_bootdir"
 dupdate_flatten_bootdir () {
     if [ -d boot ]; then
 	  mv boot/* .
@@ -46,10 +47,14 @@ dupdate_script () {
 }
 dupdate_script[dirs] = "${RSTAGE_DIR}"
 
-DO_DEPLOY_POSTFUNCS += "do_deploy_dupdate_image"
+do_rstage[postfuncs] += "${POSTFUNCS}"
+
+do_deploy[postfuncs] += "do_deploy_dupdate_image"
 do_deploy_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}${DUPDATE_IMAGE_EXT}
 	ln -sf ${IMAGE_FULLNAME}${DUPDATE_IMAGE_EXT} \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT}
 }
+
+FILES_${PN} += "/${MACHINE}-${PN}_${DISTRO_VERSION}.dupdate"
