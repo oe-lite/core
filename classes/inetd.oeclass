@@ -7,15 +7,15 @@ require conf/inetd.conf
 
 CLASS_FLAGS += "inetd"
 
-RDEPENDS_${PN}:>USE_inetd = " inetd"
+RDEPENDS_INETD ?= "inetd"
+RDEPENDS_${PN}:>USE_inetd = " ${RDEPENDS_INETD}"
 
 INETD_CONF_FILES ?= "${SRCDIR}/inetd.conf"
 
-do_install[postfuncs] += "do_install_inetd"
-do_install_inetd[expand] = 3
+do_install[postfuncs] += "${DO_INSTALL_INETD}"
+DO_INSTALL_INETD:USE_inetd = "do_install_inetd"
 do_install_inetd () {
     i=0
-    test -z "${USE_inetd}" || return
     for f in ${INETD_CONF_FILES} ; do
         if [ -f $f ] ; then
             # only create inetddir when needed, and let it fail silently when
