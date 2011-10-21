@@ -1,3 +1,4 @@
+# -*- mode:python; -*-
 IMAGE_BASENAME ?= "${MACHINE}-${PN}"
 IMAGE_FULLNAME ?= "${IMAGE_BASENAME}-${PV}-${DATETIME}"
 
@@ -23,31 +24,31 @@ do_install_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
 }
 
-POSTFUNCS:>USE_dupdate_version = " dupdate_version"
-POSTFUNCS:>USE_dupdate_script = " dupdate_script"
-POSTFUNCS += "dupdate_flatten_bootdir"
-dupdate_flatten_bootdir () {
+do_rstage[postfuncs] += "${DUPDATE_RSTAGE_POSTFUNCS}"
+DUPDATE_RSTAGE_POSTFUNCS = "do_rstage_dupdate_flatten_bootdir"
+DUPDATE_RSTAGE_POSTFUNCS:>USE_dupdate_version = " do_rstage_dupdate_version"
+DUPDATE_RSTAGE_POSTFUNCS:>USE_dupdate_script = " do_rstage_dupdate_script"
+
+do_rstage_dupdate_flatten_bootdir () {
     if [ -d boot ]; then
 	  mv boot/* .
 	  rmdir boot
     fi
 }
-dupdate_flatten_bootdir[dirs] = "${RSTAGE_DIR}"
+do_rstage_dupdate_flatten_bootdir[dirs] = "${RSTAGE_DIR}"
 
-dupdate_version () {
+do_rstage_dupdate_version () {
 	echo "${USE_dupdate_version}" > VERSION
 }
-dupdate_version[dirs] = "${RSTAGE_DIR}"
+do_rstage_dupdate_version[dirs] = "${RSTAGE_DIR}"
 
-dupdate_script () {
+do_rstage_dupdate_script () {
 	script="${USE_dupdate_script}"
 	if [ "$script" != "run_update.sh" ] ; then
 		mv $script run_update.sh
 	fi
 }
-dupdate_script[dirs] = "${RSTAGE_DIR}"
-
-do_rstage[postfuncs] += "${POSTFUNCS}"
+do_rstage_dupdate_script[dirs] = "${RSTAGE_DIR}"
 
 do_deploy[postfuncs] += "do_deploy_dupdate_image"
 do_deploy_dupdate_image () {
