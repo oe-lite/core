@@ -1,8 +1,6 @@
+# -*- mode:python; -*-
 DESCRIPTION = "Distroversion and  build-time file creation."
 LICENSE = "GPL"
-
-DEFAULT_DEPENDS = ""
-
 
 PACKAGES = "${PN}"
 
