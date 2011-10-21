@@ -26,14 +26,14 @@ JFFS2_SIZECHECK = ""
 JFFS2_SIZECHECK:USE_jffs2_maxsize = "${B}/${IMAGE_BASENAME}.jffs2:${USE_jffs2_maxsize}"
 SIZECHECK += "${JFFS2_SIZECHECK}"
 
-DO_INSTALL_POSTFUNCS += "do_install_jffs2_image"
+do_install[postfuncs] += "do_install_jffs2_image"
 do_install_jffs2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 ${D}/
 }
 
 FILES_${PN} += "/*.jffs2"
 
-DO_DEPLOY_POSTFUNCS += "do_deploy_jffs2_image"
+do_deploy[postfuncs] += "do_deploy_jffs2_image"
 do_deploy_jffs2_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.jffs2 \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.jffs2
