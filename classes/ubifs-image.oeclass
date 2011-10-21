@@ -22,14 +22,14 @@ ubifs_image () {
         --output=${B}/${IMAGE_BASENAME}.ubifs
 }
 
-DO_INSTALL_POSTFUNCS += "do_install_ubifs_image"
+do_install[postfuncs] += "do_install_ubifs_image"
 do_install_ubifs_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.ubifs ${D}/
 }
 
 FILES_${PN} += "/*.ubifs"
 
-DO_DEPLOY_POSTFUNCS += "do_deploy_ubifs_image"
+do_deploy[postfuncs] += "do_deploy_ubifs_image"
 do_deploy_ubifs_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}.ubifs \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.ubifs
