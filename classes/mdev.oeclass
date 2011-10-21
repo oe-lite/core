@@ -3,9 +3,9 @@
 
 require conf/mdev.conf
 
-CLASS_FLAGS += "mdev"
+CLASS_FLAGS += "busybox-mdev"
 
-RDEPENDS_${PN}:>USE_mdev = " mdev"
+RDEPENDS_${PN}:>USE_mdev = " busybox-mdev"
 
 MDEV_CONF_FILES ?= "${SRCDIR}/mdev.conf"
 
