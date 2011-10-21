@@ -16,7 +16,7 @@ TARGET_PACKAGES = "${LIBS_AUTO_PACKAGES}"
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
 # (almost) the same
-PACKAGES = "${PN}-dbg ${PN}-g++ ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb ${PN}-ldscripts"
+PACKAGES = "${PN}-dbg ${PN}-g++ ${PN}-config ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb ${PN}-ldscripts"
 
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "target:${PN}-sysroot-dev"
@@ -40,6 +40,8 @@ RDEPENDS_${PN}-sysroot-libdl           += "${PN}-sysroot-libc"
 # 2. A fixup function should then be used to move files around inside
 # the packages directories to get proper cross and sysroot package
 # paths.
+
+FILES_${PN}-config = "/${PN}-config"
 
 FILES_${PN} = "\
 ${base_bindir} \
@@ -107,7 +109,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
 ${datadir}/gdb \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
-PROVIDES_${PN}-sysroot-gdbserver += "target:util/gdbserver"
+PROVIDES_${PN}-sysroot-gdbserver += "util/gdbserver"
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
 FILES_${PN}-sysroot-gdbserver-doc = "\
@@ -130,7 +132,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/libinproctrace.so \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
-PROVIDES_${PN}-sysroot-trace += "target:util/ltrace target:util/strace"
+PROVIDES_${PN}-sysroot-trace += "util/ltrace util/strace"
 
 TARGET_PACKAGES += "${PN}-sysroot-trace-doc"
 FILES_${PN}-sysroot-trace-doc = "\
@@ -207,6 +209,11 @@ FILES_${PN}-sysroot-libgcc-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
 "
 
+
+RDEPENDS_${PN}-sysroot-libcrypt += "${PN}-sysroot-libc"
+RDEPENDS_${PN}-sysroot-libresolv += "${PN}-sysroot-libc"
+RDEPENDS_${PN}-sysroot-libnsl += "${PN}-sysroot-libc"
+
 FILES_${PN}-sysroot-libm-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libieee.a \
 "
@@ -219,7 +226,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd.so"
 TARGET_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/nscd"
-PROVIDES_${PN}-sysroot-nscd = "target:util/rpcgen target:util/nscd"
+PROVIDES_${PN}-sysroot-nscd = "util/rpcgen util/nscd"
 PROVIDES_${PN}-sysroot-nscd:machine = ""
 PROVIDES_${PN}-sysroot-nscd:sdk = ""
 PROVIDES_${PN}-sysroot-nscd:canadian-cross = ""
@@ -229,7 +236,7 @@ FILES_${PN}-sysroot-rpc = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/rpcgen \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/rpcinfo \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_sysconfdir}/rpc"
-PROVIDES_${PN}-sysroot-rpc = "target:util/rpcgen target:util/rpcinfo"
+PROVIDES_${PN}-sysroot-rpc = "util/rpcgen util/rpcinfo"
 PROVIDES_${PN}-sysroot-rpc:machine = ""
 PROVIDES_${PN}-sysroot-rpc:sdk = ""
 PROVIDES_${PN}-sysroot-rpc:canadian-cross = ""
@@ -237,7 +244,7 @@ PROVIDES_${PN}-sysroot-rpc:canadian-cross = ""
 TARGET_PACKAGES += "${PN}-sysroot-ldconfig"
 FILES_${PN}-sysroot-ldconfig = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_sbindir}/ldconfig"
-PROVIDES_${PN}-sysroot-ldconfig = "target:util/ldconfig"
+PROVIDES_${PN}-sysroot-ldconfig = "util/ldconfig"
 PROVIDES_${PN}-sysroot-ldconfig:machine = ""
 PROVIDES_${PN}-sysroot-ldconfig:sdk = ""
 PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
@@ -245,7 +252,7 @@ PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
 TARGET_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/ldd"
-PROVIDES_${PN}-sysroot-ldd = "target:util/ldd"
+PROVIDES_${PN}-sysroot-ldd = "util/ldd"
 PROVIDES_${PN}-sysroot-ldd:machine = ""
 PROVIDES_${PN}-sysroot-ldd:sdk = ""
 PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
@@ -253,7 +260,7 @@ PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
 TARGET_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/catchsegv"
-PROVIDES_${PN}-sysroot-catchsegv = "target:util/catchsegv"
+PROVIDES_${PN}-sysroot-catchsegv = "util/catchsegv"
 PROVIDES_${PN}-sysroot-catchsegv:machine = ""
 PROVIDES_${PN}-sysroot-catchsegv:sdk = ""
 PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
@@ -261,7 +268,7 @@ PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
 TARGET_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/sprof"
-PROVIDES_${PN}-sysroot-sprof = "target:util/sprof"
+PROVIDES_${PN}-sysroot-sprof = "util/sprof"
 PROVIDES_${PN}-sysroot-sprof:machine = ""
 PROVIDES_${PN}-sysroot-sprof:sdk = ""
 PROVIDES_${PN}-sysroot-sprof:canadian-cross = ""
@@ -274,7 +281,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zic \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/zoneinfo \
 "
 PROVIDES_${PN}-sysroot-timezone-utils = "\
-    target:util/tzselect target:util/zdump target:util/zic target:util/zoneinfo"
+    util/tzselect util/zdump util/zic util/zoneinfo"
 PROVIDES_${PN}-sysroot-timezone-utils:machine = ""
 PROVIDES_${PN}-sysroot-timezone-utils:sdk = ""
 PROVIDES_${PN}-sysroot-timezone-utils:canadian-cross = ""
@@ -283,7 +290,7 @@ TARGET_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/iconv \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/iconvconfig"
-PROVIDES_${PN}-sysroot-iconv-utils = "target:util/iconv target:util/iconvconfig"
+PROVIDES_${PN}-sysroot-iconv-utils = "util/iconv util/iconvconfig"
 PROVIDES_${PN}-sysroot-iconv-utils:machine = ""
 PROVIDES_${PN}-sysroot-iconv-utils:sdk = ""
 PROVIDES_${PN}-sysroot-iconv-utils:canadian-cross = ""

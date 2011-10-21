@@ -280,7 +280,7 @@ def do_configure_qa(d):
 	return False
 
     kernel_version = d.get("CT_KERNEL_VERSION")
-    if "kernel_version" != "custom":
+    if kernel_version != "custom":
 	ok = ok and check_version(d.get("_CT_KERNEL_V") + "ERSION",
 				  kernel_version)
     ok = ok and check_version("CT_BINUTILS_VERSION")
