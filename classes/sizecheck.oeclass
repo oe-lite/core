@@ -3,7 +3,7 @@
 
 SIZECHECK ?= ""
 
-addtask sizecheck before do_install after do_compile
+do_install[prefuncs] += "do_sizecheck"
 python do_sizecheck () {
     failed = False
     print "SIZECHECK =", d.getVar("SIZECHECK", 1)
