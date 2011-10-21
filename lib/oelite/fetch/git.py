@@ -67,7 +67,7 @@ class GitFetcher():
                 self.dest += repo_name
         else:
             self.dest = repo_name
-        self.dest = os.path.join(uri.srcdir, self.dest)
+        self.dest = os.path.join(d.get("SRCDIR"), self.dest)
         self.signatures = d.get("FILE") + ".sig"
         self.fetch_signatures = d["__fetch_signatures"]
         return

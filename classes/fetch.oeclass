@@ -77,7 +77,7 @@ def do_unpack(d):
             unpack_cmd = d.get("UNPACK_CMD_%s"%(uri.params["unpack"]))
         else:
             unpack_cmd = None
-        if not uri.unpack(unpack_cmd):
+        if not uri.unpack(d, unpack_cmd):
             return False
     return
 
@@ -89,6 +89,6 @@ def do_patch(d):
     for uri in d.get("__fetch"):
         if not "apply" in uri.params:
             continue
-        if not uri.patch():
+        if not uri.patch(d):
             return False
     return

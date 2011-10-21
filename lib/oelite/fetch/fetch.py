@@ -42,10 +42,11 @@ class OEliteUri:
         # Note, do not store reference to meta
         self.recipe = "%s:%s_%s"%(d.get("RECIPE_TYPE"),
                                   d.get("PN"), d.get("PV"))
-        self.srcdir = d.get("SRCDIR")
-        self.patchsubdir = d.get("PATCHSUBDIR")
-        self.patchdir = d.get("PATCHDIR")
-        self.quiltrc = d.get("QUILTRC")
+        # Try to avoid readinng recipe meta-data here, as it might
+        # change later on, so better to read the meta-data when
+        # needed.  This is especially problematic with variables
+        # depending on ${EXTRA_ARCH} which might be changed after all
+        # parse when resolving task dependencies.
         self.ingredients = d.get("INGREDIENTS")
         self.isubdir = (d.get("INGREDIENTS_SUBDIR") or
                         os.path.basename(d.get("FILE_DIRNAME")))
@@ -75,7 +76,7 @@ class OEliteUri:
                 uri, "unsupported URI scheme: %s"%(self.scheme))
         self.fetcher = FETCHERS[self.scheme](self, d)
         self.init_unpack_params()
-        self.init_patch_params()
+        self.init_patch_params(d)
         self.mirrors = d.get("MIRRORS") or None
         return
 
@@ -124,7 +125,7 @@ class OEliteUri:
                 self.params["unpack"] += "_dos"
         return
 
-    def init_patch_params(self):
+    def init_patch_params(self, d):
         if not "localpath" in dir(self.fetcher):
             return
         if not "apply" in self.params:
@@ -142,13 +143,14 @@ class OEliteUri:
         elif not self.params["apply"] in ["yes", "y", "1"]:
             del self.params["apply"]
         if "apply" in self.params:
+            patchsubdir = d.get("PATCHSUBDIR")
             if "subdir" in self.params:
                 subdir = self.params["subdir"]
-                if (subdir != self.patchsubdir and
-                    not subdir.startswith(self.patchsubdir + "")):
-                    subdir = os.path.join(self.patchsubdir, subdir)
+                if (subdir != patchsubdir and
+                    not subdir.startswith(patchsubdir + "")):
+                    subdir = os.path.join(patchsubdir, subdir)
             else:
-                subdir = self.patchsubdir
+                subdir = patchsubdir
             self.params["subdir"] = subdir
         if not "striplevel" in self.params:
             self.params["striplevel"] = 1
@@ -198,7 +200,7 @@ class OEliteUri:
         print "Fetching", str(self)
         return self.fetcher.fetch()
 
-    def unpack(self, cmd):
+    def unpack(self, d, cmd):
         if "unpack" in dir(self.fetcher):
             return self.fetcher.unpack()
         print "Unpacking", self.fetcher.localpath
@@ -211,40 +213,40 @@ class OEliteUri:
         if not cmd or not "unpack" in self.params:
             if os.path.isdir(self.fetcher.localpath):
                 shutil.rmtree(srcpath, True)
-                shutil.copytree(self.fetcher.localpath, self.srcpath())
+                shutil.copytree(self.fetcher.localpath, self.srcpath(d))
                 return True
             else:
-                shutil.copy2(self.fetcher.localpath, self.srcpath())
+                shutil.copy2(self.fetcher.localpath, self.srcpath(d))
                 return True
         if "unpack_to" in self.params:
-            cmd = cmd%(self.fetcher.localpath, self.srcpath())
+            cmd = cmd%(self.fetcher.localpath, self.srcpath(d))
         else:
             cmd = cmd%(self.fetcher.localpath)
         rc = oe.process.run(cmd)
         return rc == 0
 
-    def srcpath(self):
+    def srcpath(self, d):
+        srcdir = d.get("SRCDIR")
         if "subdir" in self.params:
-            srcdir = os.path.join(self.srcdir, self.params["subdir"])
-        else:
-            srcdir = self.srcdir
+            srcdir = os.path.join(srcdir, self.params["subdir"])
         if "unpack_to" in self.params:
             return os.path.join(srcdir, self.params["unpack_to"])
         else:
             return os.path.join(srcdir,
                                 os.path.basename(self.fetcher.localpath))
 
-    def patchpath(self):
-        srcpath = self.srcpath()
-        assert srcpath.startswith(self.patchdir + "/")
-        return srcpath[len(self.patchdir) + 1:]
+    def patchpath(self, d):
+        srcpath = self.srcpath(d)
+        patchdir = d.get("PATCHDIR")
+        assert srcpath.startswith(patchdir + "/")
+        return srcpath[len(patchdir) + 1:]
 
-    def patch(self):
-        with open("%s/series"%(self.patchdir), "a") as series:
+    def patch(self, d):
+        with open("%s/series"%(d.get("PATCHDIR")), "a") as series:
             series.write("%s -p%s\n"%(
-                    self.patchpath(), self.params["striplevel"]))
+                    self.patchpath(d), self.params["striplevel"]))
 
-        rc = oe.process.run("quilt --quiltrc %s push"%(self.quiltrc))
+        rc = oe.process.run("quilt --quiltrc %s push"%(d.get("QUILTRC")))
         if rc != 0:
             # FIXME: proper error handling
             raise Exception("quilt push failed: %d"%(rc))
