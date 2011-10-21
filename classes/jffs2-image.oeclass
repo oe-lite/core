@@ -4,7 +4,7 @@ IMAGE_BASENAME ?= "${TARGET_MACHINE_ID}-${PN}"
 
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
-JFFS2_IMAGE_DEPENDS = "native:mtd-utils-mkfs-jffs2"
+JFFS2_IMAGE_DEPENDS = "native:util/mkfs-jffs2"
 CLASS_DEPENDS += "${JFFS2_IMAGE_DEPENDS}"
 
 CLASS_FLAGS += "jffs2_maxsize"
