@@ -267,13 +267,22 @@ class OEParser(object):
 
     def p_inherit(self, p):
         '''inherit : INHERIT inherit_classes'''
-        for inherit_class in p[2]:
+        for inherit_classes in p[2]:
             try:
-                self.inherit(inherit_class, p)
-            except oelite.parse.FileNotFound, e:
+                inherit_classes = self.meta.expand(inherit_classes,
+                                                   method=oelite.meta.FULL_EXPANSION)
+            except oelite.meta.ExpansionError, e:
                 raise oelite.parse.ParseError(
-                    self, "Class not found: inherit %s"%(inherit_class), p,
-                    lineno = p.lexer.lineno - 1)
+                    self, str(e), p, lineno=(self.lexer.lineno - 1),
+                    more_details=e)
+
+            for inherit_class in (inherit_classes or "").split():
+                try:
+                    self.inherit(inherit_class, p)
+                except oelite.parse.FileNotFound, e:
+                    raise oelite.parse.ParseError(
+                        self, "Class not found: inherit %s"%(inherit_class), p,
+                        lineno = p.lexer.lineno - 1)
         return
 
     def p_inherit_classes(self, p):
@@ -485,13 +494,6 @@ class OEParser(object):
 
     def inherit(self, filename, p):
         #print "inherit", filename
-        try:
-            filename = self.meta.expand(filename,
-                                        method=oelite.meta.FULL_EXPANSION)
-        except oelite.meta.ExpansionError, e:
-            raise oelite.parse.ParseError(
-                self, str(e), p, lineno=(self.lexer.lineno - 1),
-                more_details=e)
         if not filename:
             return
         if not os.path.isabs(filename) and not filename.endswith(".oeclass"):
