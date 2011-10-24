@@ -1,0 +1,29 @@
+DESCRIPTION ?= "Root filesystem"
+
+inherit image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
+
+RECIPE_TYPES = "machine"
+
+RDEPENDS ?= "busybox"
+
+# Jffs2 recipe flags
+RECIPE_FLAGS += "rootfs_jffs2_options"
+DEFAULT_USE_rootfs_jffs2_options = "--faketime --squash"
+JFFS2_IMAGE_OPTIONS = "${USE_rootfs_jffs2_options}"
+
+# ext2 recipe flags
+RECIPE_FLAGS += "rootfs_ext2_options rootfs_ext2_size_in_blocks"
+DEFAULT_USE_rootfs_ext2_options = "-z -q -f"
+DEFAULT_USE_rootfs_ext2_size_in_blocks = "10240"
+EXT2_IMAGE_OPTIONS = "${USE_rootfs_ext2_options} -b ${USE_rootfs_ext2_size_in_blocks}"
+
+# archive recipe flags
+RECIPE_FLAGS += "rootfs_archive_formats rootfs_archive_tar_ext"
+DEFAULT_USE_rootfs_archive_formats = "tar"
+DEFAULT_USE_rootfs_archive_tar_ext = "tar"
+ARCHIVE_IMAGE_FORMATS = "${USE_rootfs_archive_formats}"
+ARCHIVE_IMAGE_DIRNAME = ""
+ARCHIVE_IMAGE_TAR_EXT = "${USE_rootfs_archive_tar_ext}"
+
+IMAGES ?= "archive-image jffs2-image ext2-image cpio-image"
+inherit image-qa ${IMAGES}

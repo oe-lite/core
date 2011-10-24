@@ -2,13 +2,14 @@
 
 IMAGE_BASENAME ?= "${TARGET_MACHINE_ID}-${PN}"
 
-inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
+inherit image
 
 EXT2_IMAGE_DEPENDS = "native:genext2fs"
 CLASS_DEPENDS += "${EXT2_IMAGE_DEPENDS}"
 
 IMAGE_CREATE_FUNCS += "genext2fs_image"
 
+# Block size is hardcoded in genext2fs to 1024 bytes
 EXT2_IMAGE_SIZE ?= "20480"
 EXT2_IMAGE_OPTIONS ?= "-z -q -f -b ${EXT2_IMAGE_SIZE}"
 
