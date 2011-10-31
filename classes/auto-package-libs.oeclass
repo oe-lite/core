@@ -9,6 +9,7 @@ AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
+AUTO_PACKAGE_LIBS_RDEPENDS ?= ""
 
 addhook auto_package_libs to post_recipe_parse before fixup_package_type
 
@@ -122,6 +123,7 @@ def auto_package_libs (d):
                     pkg_rdepends.append(dep)
         else:
             pkg_rdepends = pkg_rdepends.split()
+        pkg_rdepends.extend((d.get("AUTO_PACKAGE_LIBS_RDEPENDS") or "").split())
         d.set("RDEPENDS_" + pkg, " ".join(pkg_rdepends))
 
         pkg_depends.append("%s_${PV}"%(devpkg))
