@@ -270,7 +270,9 @@ def do_configure_qa(d):
 	configured_version = re.search(
 	    re.compile(r'^%s="(.*)"$'%(var_name), re.MULTILINE), config)
 	if not configured_version:
-	    errmsg = "%s not found"%(var_name)
+	    warningmsg = "%s not found"%(var_name)
+	    bb.warn(warningmsg)
+	    return True
 	elif configured_version.group(1) != desired_version:
 	    errmsg = "%s = %s (!= %s)"%(
 		var_name, configured_version.group(1), desired_version)
