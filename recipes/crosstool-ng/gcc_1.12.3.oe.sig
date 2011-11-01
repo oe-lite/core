@@ -2,6 +2,7 @@
 73c45dfda5eef6b124be53e56828b5925198cc1b  gcc-4.5.3.tar.bz2
 880975322f9b23678a2f8f29ca471dcbb03db873  gcc-linaro-4.5-2011.07.tar.bz2
 deb29d66fa6fc3a0d68081f0ddab9f838dce79db  gcc-linaro-4.5-2011.10.tar.bz2
+c09c33de03caa989b731528cf6406c88d827d8b2  gcc-linaro-4.6-2011.10.tar.bz2
 3b2c0d50533bcf834c2da0a700dfc2f4852a07e4  gdb-7.0.1a.tar.bz2
 ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 14daf8ccf1307f148f80c8db17f8e43f545c2691  gdb-7.2a.tar.bz2
