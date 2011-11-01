@@ -7,7 +7,9 @@ c09c33de03caa989b731528cf6406c88d827d8b2  gcc-linaro-4.6-2011.10.tar.bz2
 ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 14daf8ccf1307f148f80c8db17f8e43f545c2691  gdb-7.2a.tar.bz2
 6e7c9cad1cfa335c04d50ec8c387ea58f759314d  gdb-linaro-7.2-2011.05-0.tar.bz2
+12e1377c8c72f7c20683388f232795e437b01ed7  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.1
 6cc02c7aaedec87cfb2d105f9682b12b2154e54f  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14
+ef5ca1e765719d3290bd24f94705f27534f3744b  glibc-2.12.1.tar.bz2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
 14d83dced873a21a3da6a0bfa0926f40d82ef980  glibc-2.13.tar.bz2
 2236a3530f83637c4338d81d9ac0f5b4c5e69820  glibc-2.14.tar.bz2
