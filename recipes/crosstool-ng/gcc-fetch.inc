@@ -12,7 +12,7 @@ SRC_URI += "${SRC_URI_BINUTILS}"
 SRC_URI_BINUTILS = "${GNU_MIRROR}/binutils/binutils-${CT_BINUTILS_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
-	git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14"
+	git://sourceware.org/git/glibc-ports.git;tag=glibc-${CT_LIBC_VERSION}"
 SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
 SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/v3.0/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
