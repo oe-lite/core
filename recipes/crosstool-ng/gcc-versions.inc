@@ -23,9 +23,12 @@ CT_LIBC_GLIBC_MIN_KERNEL_VERSION:native	= "${USE_toolchain_min_kernel_build}"
 RECIPE_FLAGS += "toolchain_min_kernel_machine \ toolchain_min_kernel_sdk \
 	toolchain_min_kernel_build"
 
+
 CT_LIBC				= "${USE_toolchain_libc}"
 CT_LIBC:TARGET_OS_mingw32	= "mingw"
-CT_LIBC_VERSION			= "${USE_toolchain_libc_version}"
+TOOLCHAIN_LIBC_VERSION = "${USE_toolchain_libc_version}"
+TOOLCHAIN_LIBC_VERSION:sdk-cross = "2.9"
+CT_LIBC_VERSION			= "${TOOLCHAIN_LIBC_VERSION}"
 CT_LIBC_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_mingwrt_version}"
 # *sigh* why don't eglibc do real releases?
 CT_EGLIBC_REVISION:USE_toolchain_libc_eglibc_revision = "${USE_toolchain_libc_eglibc_revision}"
