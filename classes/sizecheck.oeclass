@@ -3,7 +3,7 @@
 
 SIZECHECK ?= ""
 
-do_install[prefuncs] += "do_sizecheck"
+do_compile[postfuncs] += "do_sizecheck"
 python do_sizecheck () {
     failed = False
     print "SIZECHECK =", d.getVar("SIZECHECK", 1)
