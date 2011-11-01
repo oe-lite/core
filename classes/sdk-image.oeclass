@@ -20,3 +20,10 @@ image_preprocess_linux_netfilter_headers () {
 	done
 	)
 }
+
+IMAGE_PREPROCESS_FUNCS += "image_rm_sysroot_pkgmetadir"
+image_rm_sysroot_pkgmetadir() {
+    if [ "${IMAGE_PURGE_PKGMETADIR}" = "1" ] ; then
+        rm -rf ${IMAGE_DIR}/${MACHINE_ARCH}/sysroot${pkgmetadir}
+    fi
+}
