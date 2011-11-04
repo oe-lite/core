@@ -24,6 +24,9 @@ def libtool_stage_fixup(d):
     for filename in lafiles:
         with open(filename, "r") as input_file:
             lafile = input_file.read()
+
+        lafile = re.sub("/+",
+                        "/", lafile)
         lafile = re.sub("-L%s"%(libdir),
                         "-L%s%s"%(sysroot, libdir), lafile)
         lafile = re.sub("-L%s"%(base_libdir),
