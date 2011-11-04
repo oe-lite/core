@@ -1,13 +1,16 @@
 3f0e3746a15f806a95dd079be2a7f43c17b18818  binutils-2.20.1a.tar.bz2
 73c45dfda5eef6b124be53e56828b5925198cc1b  gcc-4.5.3.tar.bz2
+8bf66f7a71534ba564563a0ba0b2517aead8ac30  gcc-4.6.1.tar.bz2
 880975322f9b23678a2f8f29ca471dcbb03db873  gcc-linaro-4.5-2011.07.tar.bz2
 deb29d66fa6fc3a0d68081f0ddab9f838dce79db  gcc-linaro-4.5-2011.10.tar.bz2
-c09c33de03caa989b731528cf6406c88d827d8b2  gcc-linaro-4.6-2011.10.tar.bz2
+cb2df683834701b84417ddcf42befc5b9cd7a028  gcc-linaro-4.6-2011.10.tar.bz2
 3b2c0d50533bcf834c2da0a700dfc2f4852a07e4  gdb-7.0.1a.tar.bz2
 ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 14daf8ccf1307f148f80c8db17f8e43f545c2691  gdb-7.2a.tar.bz2
 6e7c9cad1cfa335c04d50ec8c387ea58f759314d  gdb-linaro-7.2-2011.05-0.tar.bz2
 12e1377c8c72f7c20683388f232795e437b01ed7  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.1
+86db07dc1fbb93a5c72d4e0f880874751a19ef71  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.2
+75bbd6583321cfa8847065d2882f3a883c5228ed  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.13
 6cc02c7aaedec87cfb2d105f9682b12b2154e54f  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14
 ef5ca1e765719d3290bd24f94705f27534f3744b  glibc-2.12.1.tar.bz2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
