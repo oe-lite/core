@@ -103,7 +103,8 @@ class GitFetcher():
                 cache.update()
             except:
                 print "Error fetching git remote: %s"%(self.url,)
-                return False
+                if not self.branch:
+                    return False
         if self.tag:
             commit = cache.query_tag(self.tag)
             if not commit:
