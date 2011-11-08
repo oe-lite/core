@@ -12,7 +12,7 @@ do_install[postfuncs] += "${BASE_VERSION_POSTFUNCS}"
 BASE_VERSION_POSTFUNCS ?= ""
 
 RECIPE_FLAGS += "basefiles_version"
-BASE_VERSION_POSTFUNCS:>USE_basefiles_version += "do_install_basefiles_version"
+BASE_VERSION_POSTFUNCS:>USE_basefiles_version = " do_install_basefiles_version"
 do_install_basefiles_version[expand] = 3
 do_install_basefiles_version () {
 	echo "${DISTRO_VERSION}" > \
@@ -24,7 +24,7 @@ do_install_basefiles_version () {
 
 
 RECIPE_FLAGS += "basefiles_buildtime"
-BASE_VERSION_POSTFUNCS:>USE_basefiles_buildtime += "do_install_basefiles_buildtime"
+BASE_VERSION_POSTFUNCS:>USE_basefiles_buildtime = " do_install_basefiles_buildtime"
 do_install_basefiles_buildtime[expand] = 3
 do_install_basefiles_buildtime () {
 	echo "${DATETIME}" > \
@@ -37,7 +37,7 @@ do_install_basefiles_buildtime () {
 
 RECIPE_FLAGS += "basefiles_cross_config"
 DEPENDS:>USE_basefiles_cross_config = "cross:gcc-config"
-BASE_VERSION_POSTFUNCS:>USE_basefiles_cross_config += "do_install_basefiles_cross_config"
+BASE_VERSION_POSTFUNCS:>USE_basefiles_cross_config = " do_install_basefiles_cross_config"
 do_install_basefiles_cross_config[expand] = 3
 do_install_basefiles_cross_config () {
 	install -m 0755 -d ${D}${sysconfdir}
