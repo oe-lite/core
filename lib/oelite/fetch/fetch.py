@@ -266,6 +266,6 @@ def patch_init(d):
             if rc != 0:
                 # FIXME: proper error handling
                 raise Exception("quilt pop failed")
-        if not os.path.exists(".pc/series"):
+        if not os.path.exists(".pc/series") and not os.path.exists(".pc/.quilt_series"):
             # FIXME: proper error handling
             raise Exception("Bad quilt .pc dir")
