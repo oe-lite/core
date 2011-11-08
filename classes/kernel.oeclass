@@ -84,7 +84,7 @@ DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
 DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_uimage_entrypoint}"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
-KERNEL_COMPILE_POSTFUNCS:>USE_kernel_uimage = "do_compile_kernel_uimage"
+KERNEL_COMPILE_POSTFUNCS:>USE_kernel_uimage = " do_compile_kernel_uimage"
 do_compile_kernel_uimage() {
     ENTRYPOINT=${USE_kernel_uimage_entrypoint}
     if [ -n "$UBOOT_ENTRYSYMBOL" ] ; then
@@ -139,7 +139,7 @@ def kernel_devicetree_init(d):
     else:
 	d.set('KERNEL_DEVICETREE', '')
 
-KERNEL_COMPILE_POSTFUNCS:>USE_kernel_dtc = "do_compile_kernel_dtc"
+KERNEL_COMPILE_POSTFUNCS:>USE_kernel_dtc = " do_compile_kernel_dtc"
 do_compile_kernel_dtc() {
     scripts/dtc/dtc -I dts -O dtb ${USE_kernel_dtc_flags} \
 	-o ${KERNEL_DEVICETREE} ${USE_kernel_dtc_source}

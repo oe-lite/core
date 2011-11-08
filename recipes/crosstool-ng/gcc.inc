@@ -19,9 +19,9 @@ DEPENDS:>canadian-cross = " ${EXTRA_TOOLCHAIN_DEPENDS}"
 
 TUI_DEPENDS				= "host:libtermcap host:libreadline"
 TUI_DEPENDS:HOST_OS_mingw32		= ""
-DEPENDS:>machine			= "${TUI_DEPENDS}"
-DEPENDS:>sdk				= "${TUI_DEPENDS}"
-DEPENDS:>canadian-cross			= "${TUI_DEPENDS}"
+DEPENDS:>machine			+= "${TUI_DEPENDS}"
+DEPENDS:>sdk				+= "${TUI_DEPENDS}"
+DEPENDS:>canadian-cross			+= "${TUI_DEPENDS}"
 
 # FIXME: allow machine/sdk/canadian-cross toolchains to be built
 # statically, to make it more robust against host machine differences

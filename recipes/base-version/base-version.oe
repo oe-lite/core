@@ -36,7 +36,7 @@ do_install_basefiles_buildtime () {
 }
 
 RECIPE_FLAGS += "basefiles_cross_config"
-DEPENDS:>USE_basefiles_cross_config = "cross:gcc-config"
+DEPENDS:>USE_basefiles_cross_config = " cross:gcc-config"
 BASE_VERSION_POSTFUNCS:>USE_basefiles_cross_config = " do_install_basefiles_cross_config"
 do_install_basefiles_cross_config[expand] = 3
 do_install_basefiles_cross_config () {
