@@ -50,3 +50,16 @@ do_install_basefiles_cross_config () {
 	install -m 0644 ${SRCDIR}/${USE_basefiles_cross-config} \
 		${D}${sysconfdir}/${USE_basefiles_cross-config}
 }
+
+export BUILD_TAG
+RECIPE_FLAGS += "basefiles_buildtag"
+BASE_VERSION_POSTFUNCS:>USE_basefiles_buildtag = " do_install_basefiles_buildtag"
+DEFAULT_USE_basefiles_buildtag = "build_tag"
+do_install_basefiles_buildtag () {
+	if [ -n "$BUILD_TAG" ]; then
+		echo "$BUILD_TAG" > ${SRCDIR}/${USE_basefiles_buildtag}
+		install -m 0755 -d ${D}${sysconfdir}
+		install -m 0644 ${SRCDIR}/${USE_basefiles_buildtag} \
+			${D}${sysconfdir}/${USE_basefiles_buildtag}
+	fi
+}
