@@ -71,7 +71,7 @@ def auto_package_libs (d):
             (libdir, libprefix, libsuffix, libexts, devlibexts) = \
                 split_libdir(libdir)
             if pkg_libsuffix is not None:
-                libsuffix = pkg_libsuffix
+                libsuffix = pkg_libsuffix.split()
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
             for libext in libexts:
                 files.append("%s/%s%s"%(libdir, libname, libext))
@@ -84,7 +84,7 @@ def auto_package_libs (d):
             (libdir, libprefix, libsuffix, libexts, devlibexts) = \
                 split_libdir(libdir)
             if pkg_libsuffix is not None:
-                libsuffix = pkg_libsuffix
+                libsuffix = pkg_libsuffix.split()
             libname = "%s%s%s"%(libprefix, lib, libsuffix)
             for libext in devlibexts:
                 files.append("%s/%s%s"%(libdir, libname, libext))
