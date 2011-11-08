@@ -20,7 +20,7 @@ import glob
 import shutil
 import datetime
 
-BB_ENV_WHITELIST = [
+OE_ENV_WHITELIST = [
     "PATH",
     "PWD",
     "SHELL",
@@ -129,8 +129,8 @@ class OEliteBaker:
         # things (ritem, item, recipe, or package) to do
         if args:
             self.things_todo = args
-        elif "BB_DEFAULT_THING" in self.config:
-            self.things_todo = self.config.get("BB_DEFAULT_THING", 1).split()
+        elif "OE_DEFAULT_THING" in self.config:
+            self.things_todo = self.config.get("OE_DEFAULT_THING", 1).split()
         else:
             self.things_todo = [ "world" ]
 
@@ -165,11 +165,11 @@ class OEliteBaker:
 
 
     def import_env(self):
-        whitelist = BB_ENV_WHITELIST
-        if "BB_ENV_WHITELIST" in os.environ:
-            whitelist += os.environ["BB_ENV_WHITELIST"].split()
-        if "BB_ENV_WHITELIST" in self.config:
-            whitelist += self.config.get("BB_ENV_WHITELIST", True).split()
+        whitelist = OE_ENV_WHITELIST
+        if "OE_ENV_WHITELIST" in os.environ:
+            whitelist += os.environ["OE_ENV_WHITELIST"].split()
+        if "OE_ENV_WHITELIST" in self.config:
+            whitelist += self.config.get("OE_ENV_WHITELIST", True).split()
         debug("whitelist=%s"%(whitelist))
         for var in set(os.environ).difference(whitelist):
             del os.environ[var]
@@ -223,8 +223,8 @@ class OEliteBaker:
         # task(s) to do
         if self.options.task:
             tasks_todo = self.options.task
-        elif "BB_DEFAULT_TASK" in self.config:
-            tasks_todo = self.config.get("BB_DEFAULT_TASK", 1)
+        elif "OE_DEFAULT_TASK" in self.config:
+            tasks_todo = self.config.get("OE_DEFAULT_TASK", 1)
         else:
             #tasks_todo = "all"
             tasks_todo = "build"

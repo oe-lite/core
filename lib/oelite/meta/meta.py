@@ -345,7 +345,7 @@ class MetaData(MutableMapping):
     builtin_nohash = [
         "OE_REMOTES",
         "OE_MODULES",
-        "BB_ENV_WHITELIST",
+        "OE_ENV_WHITELIST",
         "PATH",
         "PWD",
         "SHELL",
