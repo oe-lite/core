@@ -1,5 +1,7 @@
 # -*- mode:python; -*-
 
+inherit c make kernel-arch kernel-modules-strip
+
 KERNEL_MODULES_DEPENDS ?= "linux-dev"
 CLASS_DEPENDS += "${KERNEL_MODULES_DEPENDS}"
 
@@ -30,8 +32,6 @@ kernel_modules_do_install() {
 do_install () {
     kernel_modules_do_install
 }
-
-inherit kernel-modules-strip
 
 PACKAGES += "${PN}-modules"
 FILES_${PN}-modules = "/lib/modules"
