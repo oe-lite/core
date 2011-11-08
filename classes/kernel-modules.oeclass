@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 
-KERNEL_MODULES_DEPENDS ?= "linux-headers"
+KERNEL_MODULES_DEPENDS ?= "linux-dev"
 CLASS_DEPENDS += "${KERNEL_MODULES_DEPENDS}"
 
 EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
