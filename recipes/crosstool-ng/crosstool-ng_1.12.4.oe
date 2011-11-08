@@ -9,3 +9,4 @@ FIXES_SRC_URI_BASE = "http://ymorin.is-a-geek.org/download/crosstool-ng/01-fixes
 SRC_URI += "file://glibc-eglibc-logging.patch"
 SRC_URI += "file://extractgit.patch"
 SRC_URI += "file://Upgrade-linaro-2011.07-2011.10.patch"
+SRC_URI += "file://glibc-2.14-patches.patch"
