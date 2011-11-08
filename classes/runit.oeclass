@@ -7,7 +7,7 @@ RDEPENDS_${PN}:>USE_runit = " runit"
 
 do_install[postfuncs] += "do_install_runit"
 python do_install_runit () {
-    import os, shutil, stat
+    import stat
 
     if not bb.data.getVar('USE_runit', d, True):
         return

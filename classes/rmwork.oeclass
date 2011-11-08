@@ -1,3 +1,4 @@
+# -*- mode:python; -*-
 #
 # Cleanup workdir after build (enabled by default!)
 #
@@ -13,7 +14,6 @@ do_rmwork[nohash] = True
 do_rmwork[nostamp] = True
 
 python do_rmwork () {
-    import os, shutil
     tmp = os.path.basename(d.getVar("T", True))
     for entry in os.listdir("."):
         if os.path.basename(entry) == tmp:

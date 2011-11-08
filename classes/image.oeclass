@@ -62,7 +62,6 @@ def do_rstage(d):
                        d.get("RSTAGE_DIR") + ".unpack")
     metadir = d.getVar("metadir", True).lstrip("/")
     if os.path.exists(metadir):
-        import shutil
         shutil.rmtree(metadir)
     return retval
 

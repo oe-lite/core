@@ -17,7 +17,6 @@ def do_stage(d):
 
 def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
     import tempfile
-    import shutil
     from oelite.util import TarFile
     from oebakery import debug, info, warn, err, die
 

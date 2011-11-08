@@ -87,7 +87,6 @@ do_clean[dirs] = "${TOPDIR}"
 do_clean[nostamp] = "1"
 python do_clean() {
     """clear the build and temp directories"""
-    import shutil
     workdir = d.getVar("WORKDIR", True)
     bb.note("removing " + workdir)
     shutil.rmtree(workdir)
