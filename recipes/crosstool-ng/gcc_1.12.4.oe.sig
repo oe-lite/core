@@ -12,6 +12,7 @@ ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 86db07dc1fbb93a5c72d4e0f880874751a19ef71  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.2
 75bbd6583321cfa8847065d2882f3a883c5228ed  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.13
 6cc02c7aaedec87cfb2d105f9682b12b2154e54f  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14
+84b3c1cb5f36caf25612c5728ac65b8407ad7f42  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.9
 ef5ca1e765719d3290bd24f94705f27534f3744b  glibc-2.12.1.tar.bz2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
 14d83dced873a21a3da6a0bfa0926f40d82ef980  glibc-2.13.tar.bz2
@@ -26,6 +27,7 @@ b6ff5c0262418fbca8ce281f9f927e25181f4237  libelf-0.8.12.tar.gz
 c1d6ac5f182d19dd685c4dfd74eedbfe3992425d  libelf-0.8.13.tar.gz
 45b64bffc860f70ab7956da4493c488010714650  linux-3.0.tar.bz2
 d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
+45f5abc0d3d88b06dcb2256df4080ad39ff511d8  mingwrt-3.18-mingw32-src.tar.gz
 07e48c8e2e8f1b3fa84502c310056c01f4cb3ae3  mpc-0.7.tar.gz
 5ef03ca7aee134fe7dfecb6c9d048799f0810278  mpc-0.8.1.tar.gz
 339550cedfb013b68749cd47250cd26163b9edd4  mpc-0.8.2.tar.gz
@@ -38,3 +40,4 @@ fbf402fc196724ae60ef01eb6ca8490b1ea4db69  mpfr-3.0.1.tar.bz2
 50081a7201dc240299396f088abe53c07de98e4c  strace-4.5.18.tar.bz2
 5554c2fd8ffae5c1e2b289b2024aa85a0889c989  strace-4.5.19.tar.bz2
 3f5c8874610d7e3d13fc1c8b2e5fb5513468c45a  strace-4.5.20.tar.bz2
+851d2df6b213c11a30e96c05665f91d68dfb3ce9  w32api-3.14-mingw32-src.tar.gz

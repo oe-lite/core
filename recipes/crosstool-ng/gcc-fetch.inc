@@ -32,6 +32,11 @@ SRC_URI_STRACE = "http://mesh.dl.sourceforge.net/sourceforge/strace/strace-${CT_
 
 SRC_URI_LTRACE = "${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${CT_LTRACE_VERSION}.orig.tar.gz;unpack=0"
 
+SRC_URI:>TARGET_OS_mingw32 += " \
+  http://downloads.sourceforge.net/mingw/w32api-${CT_KERNEL_VERSION}-mingw32-src.tar.gz;unpack=0 \
+  http://downloads.sourceforge.net/mingw/mingwrt-${CT_LIBC_VERSION}-mingw32-src.tar.gz;unpack=0 \
+"
+
 do_unpack[postfuncs] += "do_unpack_ltrace_symlink"
 do_unpack_ltrace_symlink () {
 	if [ -n "${SRC_URI_LTRACE}" ] ; then
