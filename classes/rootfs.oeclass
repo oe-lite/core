@@ -1,6 +1,6 @@
 DESCRIPTION ?= "Root filesystem"
 
-inherit image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
+inherit image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab image_passwd
 
 RECIPE_TYPES = "machine"
 

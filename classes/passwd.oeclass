@@ -1,0 +1,27 @@
+# -*- mode:python; -*-
+# OE-lite class for recipes providing content for /etc/passwd and /etc/group
+
+require conf/passwd.conf
+
+CLASS_DEPENDS:>machine += " base-passwd"
+PASSWD_FILES ?= "${SRCDIR}/passwd"
+GROUP_FILES ?= "${SRCDIR}/group"
+
+PASSWD_POSTFUNC:machine = " do_install_passwd"
+do_install[postfuncs] += "${PASSWD_POSTFUNC}"
+do_install_passwd () {
+	i=0
+	for f in ${PASSWD_FILES} ; do
+		mkdir -p ${D}/${passwddir}
+		let i=$i+1
+		cp $f ${D}/${passwddir}/${PN}.$i
+	done
+
+	i=0
+	for f in ${GROUP_FILES} ; do
+		mkdir -p ${D}/${groupdir}
+		let i=$i+1
+		cp $f ${D}/${groupdir}/${PN}.$i
+	done
+}
+do_install_passwd[expand] = "3"
