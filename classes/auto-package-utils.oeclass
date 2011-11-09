@@ -14,6 +14,7 @@ def auto_package_utils (d):
     auto_rdepends = d.get("AUTO_PACKAGE_UTILS_RDEPENDS")
     exeext = d.get("HOST_EXEEXT") or ""
     packages = []
+    doc_packages = []
     provides = []
 
     def get_extra_files(pkg):
@@ -35,7 +36,8 @@ def auto_package_utils (d):
         pkg = "%s-%s"%(pn, utilname)
         utilname = "util/" + utilname
         docpkg = pkg + "-doc"
-        packages += [ pkg, docpkg ]
+        packages += [ pkg ]
+        doc_packages += [ docpkg ]
         provides += [ utilname ]
 
         d.set("FILES_" + pkg,
@@ -62,4 +64,5 @@ def auto_package_utils (d):
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
     
     d.set("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
+    d.set("AUTO_PACKAGE_UTILS_DOC_PACKAGES", " ".join(doc_packages))
     d.set("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
