@@ -1,6 +1,6 @@
 require conf/inittab.conf
 
-IMAGE_PREPROCESS_FUNCS:>USE_sysvinit = " image_preprocess_inittab"
+IMAGE_PREPROCESS_FUNCS:>USE_inittab = " image_preprocess_inittab"
 
 image_preprocess_inittab () {
 	test -d .${inittabfixupdir} || return 0
