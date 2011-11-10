@@ -2,7 +2,7 @@
 
 inherit c make kernel-arch kernel-modules-strip
 
-KERNEL_MODULES_DEPENDS ?= "linux-dev"
+KERNEL_MODULES_DEPENDS ?= "kernel-dev"
 CLASS_DEPENDS += "${KERNEL_MODULES_DEPENDS}"
 
 EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
