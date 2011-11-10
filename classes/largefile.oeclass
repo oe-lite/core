@@ -1,0 +1,4 @@
+RECIPE_FLAGS += "largefile"
+EXTRA_OECONF_LARGEFILE = "--disable-largefile"
+EXTRA_OECONF_LARGEFILE:USE_largefile = "--enable-largefile"
+EXTRA_OECONF += "${EXTRA_OECONF_LARGEFILE}"
