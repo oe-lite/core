@@ -4,6 +4,8 @@ inherit image_mdev image_inetd image_crontab image_makedevs image_inittab image_
 
 RECIPE_TYPES = "machine"
 
+PROVIDES_${PN} += "rootfs"
+
 RDEPENDS ?= "busybox"
 
 # Jffs2 recipe flags
