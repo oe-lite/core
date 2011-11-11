@@ -176,9 +176,6 @@ def do_configure_defconfig(d):
     #       ("CT_ARCH_FLOAT_SOFTFP",
     #        ["n","y"][(d.get("TARGET_FLOAT") == "softfp")]),
 
-    rewrites.append(("CT_CC_CORE_EXTRA_CONFIG_ARRAY", '"--with-float=%s"'%(d.get("TARGET_FLOAT"))))
-    rewrites.append(("CT_CC_EXTRA_CONFIG_ARRAY", '"--with-float=%s"'%(d.get("TARGET_FLOAT"))))
-
     ct_parallel_jobs = "1"
     ct_load = "0"
     parallel_make = d.get("PARALLEL_MAKE")
