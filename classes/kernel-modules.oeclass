@@ -12,7 +12,7 @@ KERNEL_MODULES_COMPILE_MAKE_TARGETS ?= "modules"
 kernel_modules_do_compile () {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 	oe_runmake V=1 \
-		KERNELDIR=${HOST_SYSROOT}/${kernelsrcdir} \
+		KERNELDIR=${HOST_SYSROOT}${kernelsrcdir} \
 		ARCH=${KERNEL_ARCH} \
 		${KERNEL_MODULES_COMPILE_MAKE_TARGETS}
 }
@@ -27,7 +27,7 @@ kernel_modules_do_install() {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 	oe_runmake V=1 \
 		DEPMOD=echo INSTALL_MOD_PATH="${D}" \
-		KERNELDIR=${HOST_SYSROOT}/${kernelsrcdir} \
+		KERNELDIR=${HOST_SYSROOT}${kernelsrcdir} \
 		ARCH=${KERNEL_ARCH} \
 		${KERNEL_MODULES_INSTALL_MAKE_TARGETS}
 }
