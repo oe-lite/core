@@ -12,7 +12,7 @@ ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 86db07dc1fbb93a5c72d4e0f880874751a19ef71  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.2
 75bbd6583321cfa8847065d2882f3a883c5228ed  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.13
 6cc02c7aaedec87cfb2d105f9682b12b2154e54f  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.14
-84b3c1cb5f36caf25612c5728ac65b8407ad7f42  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.9
+d7f95e85c0d88a96de9e2c9fb650d322bc647e29  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.9
 ef5ca1e765719d3290bd24f94705f27534f3744b  glibc-2.12.1.tar.bz2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
 14d83dced873a21a3da6a0bfa0926f40d82ef980  glibc-2.13.tar.bz2
