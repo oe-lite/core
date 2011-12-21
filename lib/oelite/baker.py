@@ -493,6 +493,7 @@ class OEliteBaker:
         total = self.runq.number_of_tasks_to_build()
         count = 0
         exitcode = 0
+        failed_task_list = ""
         while task:
             count += 1
             debug("")
@@ -506,12 +507,15 @@ class OEliteBaker:
             else:
                 err("%s failed"%(task))
                 exitcode = 1
+                failed_task_list += "\nERROR: %s failed"%(task)
                 task.build_failed()
                 # FIXME: support command-line option to abort on first
                 # failed task
             task = self.runq.get_runabletask()
         timing_info("Build", start)
 
+        if exitcode:
+            print failed_task_list
         return exitcode
 
 
