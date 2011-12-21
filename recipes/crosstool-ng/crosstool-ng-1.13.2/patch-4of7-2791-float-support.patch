@@ -1,0 +1,20 @@
+# HG changeset patch
+# User "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
+# Date 1322160122 -3600
+# Node ID 3722437d10a241c51d3b9cf9dd429047e0c03bcc
+# Parent  66ef6171f65ea7b70f49118dccbd687561cedd47
+arch/mips: MIPS supports setting the floating point type
+
+Signed-off-by: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
+
+diff --git a/config/arch/mips.in b/config/arch/mips.in
+--- a/config/arch/mips.in
++++ b/config/arch/mips.in
+@@ -8,6 +8,7 @@
+ ## select ARCH_DEFAULT_BE
+ ## select ARCH_SUPPORTS_WITH_ARCH
+ ## select ARCH_SUPPORTS_WITH_TUNE
++## select ARCH_SUPPORTS_WITH_FLOAT
+ ##
+ ## help The MIPS architecture, as defined by:
+ ## help     http://www.mips.com/

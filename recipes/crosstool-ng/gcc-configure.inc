@@ -171,10 +171,9 @@ def do_configure_defconfig(d):
         ["n","y"][(d.get("TARGET_FLOAT") == "soft")]),
        ("CT_ARCH_FLOAT_HW",
         ["n","y"][(d.get("TARGET_FLOAT") == "hard")]),
+       ("CT_ARCH_FLOAT_SOFTFP",
+        ["n","y"][(d.get("TARGET_FLOAT") == "softfp")]),
        ]
-    # Not yet supported in ct-ng_1.12
-    #       ("CT_ARCH_FLOAT_SOFTFP",
-    #        ["n","y"][(d.get("TARGET_FLOAT") == "softfp")]),
 
     ct_parallel_jobs = "1"
     ct_load = "0"

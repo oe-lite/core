@@ -6,9 +6,18 @@ require ${PN}.inc
 FIXES_SRC_URI_BASE = "http://ymorin.is-a-geek.org/download/crosstool-ng/01-fixes/${PV}/"
 
 # Unoffcial fixes
-SRC_URI += "file://glibc-eglibc-logging.patch"
-SRC_URI += "file://extractgit.patch"
-SRC_URI += "file://Upgrade-linaro-2011.07-2011.10.patch"
 SRC_URI += "file://glibc-2.14-patches.patch"
+
+# float patches from crosstool-ng tip, expected in 1.14
 SRC_URI += "file://softfp-with-float.patch"
-SRC_URI += "file://softfp-with-float-fix-x86.patch"
+SRC_URI += "file://patch-1of7-2788-float-support.patch \
+file://patch-2of7-2789-float-support.patch \
+file://patch-3of7-2790-float-support.patch \
+file://patch-4of7-2791-float-support.patch \
+file://patch-5of7-2792-float-support.patch \
+file://patch-6of7-2793-float-support.patch \
+file://patch-7of7-2794-float-support.patch"
+
+# Linaro upgrades from crosstool-ng tip, expected in 1.14
+SRC_URI += "file://Update-linaro-1of2-2802.patch \
+file://Update-linaro-2of2-2803.patch"
