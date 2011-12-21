@@ -2,19 +2,50 @@ inherit archive-image
 
 IMAGE_BASENAME = "${PN}"
 
-CLASS_FLAGS += "rootfs_name"
+CLASS_FLAGS += "rootfs_name \
+			basefiles_version basefiles_buildtime \
+			basefiles_cross_config basefiles_buildtag"
+
 DEFAULT_USE_rootfs_name = "base-rootfs"
+
+DEFAULT_USE_basefiles_version = ""
+DEFAULT_USE_basefiles_buildtime = ""
+DEFAULT_USE_basefiles_cross_config = ""
+DEFAULT_USE_basefiles_buildtag = "build_tag"
+
 CLASS_DEPENDS += "${USE_rootfs_name}"
 RDEPENDS += "base-version"
 
-addtask image_qa_prep before do_image_qa after do_stage_fixup
-do_image_qa_prep[dirs] = "${WORKDIR}/image-qa"
-do_image_qa_prep[cleandirs] = "${WORKDIR}/image-qa"
-fakeroot do_image_qa_prep () {
-    tar xfz ${TARGET_SYSROOT}/${USE_rootfs_name}.tar.gz
+
+addtask imageqaprep before do_configure after do_rstage
+do_imageqaprep[dirs] = "${WORKDIR}/image-qa"
+do_imageqaprep[cleandirs] = "${WORKDIR}/image-qa"
+fakeroot do_imageqaprep () {
+    tar xf ${TARGET_SYSROOT}/${USE_rootfs_name}.tar
 }
 
 inherit image-qa
-IMAGE_QA_HOST_READELF_LIB_DIRS += "\
-${WORKDIR}/image-qa/${USE_rootfs_name}${base_libdir} \
-${WORKDIR}/image-qa/${USE_rootfs_name}${libdir}"
+IMAGEQA_HOST_READELF_LIB_DIRS += "\
+${WORKDIR}/image-qa/${base_libdir} \
+${WORKDIR}/image-qa/${libdir}"
+
+addtask removedoubles before do_configure after do_imageqaprep
+do_removedoubles () {
+	cd ${RSTAGE_DIR}
+	for file in $(find *)
+	do
+		if [ ! -d $file ]; then
+			if [ -f ${WORKDIR}/image-qa/$file ] || [ -h ${WORKDIR}/image-qa/$file ]; then
+				if ([ -n ${USE_basefiles_version} ] && [ $(basename $file) = ${USE_basefiles_version} ]) ||
+				  ([ -n ${USE_basefiles_buildtime} ] && [ $(basename $file) = ${USE_basefiles_buildtime} ]) ||
+				  ([ -n ${USE_basefiles_cross_config} ] && [ $(basename $file) = ${USE_basefiles_cross_config} ]) ||
+				  ([ -n ${USE_basefiles_buildtag} ] && [ $(basename $file) = ${USE_basefiles_buildtag} ]); then
+					oenote "Not removing build information: "$file
+				else
+					oenote "Removing file since its already in rootfs: "$file
+					rm $file
+				fi
+			fi
+		fi
+	done
+}
