@@ -12,5 +12,6 @@ image_preprocess_fstab () {
 		cat $f >> $cwd${sysconfdir}/fstab
 	done
 	)
+	cd $cwd
 	rm -rf .${fstabfixupdir}
 }
