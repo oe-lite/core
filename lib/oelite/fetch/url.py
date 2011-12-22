@@ -59,6 +59,10 @@ class UrlFetcher():
                     m.update(open(self.localpath, "r").read())
                     if self._signature == m.hexdigest():
                         return True
+                    else:
+                        print "Expected signature: %s"%self._signature
+                        print "Obtained signature: %s"%m.hexdigest()
+                        raise Exception("Signature mismatch")
                 f = self.grab(url, reget="simple")
             else:
                 f = self.grab(url)
