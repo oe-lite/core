@@ -3,11 +3,14 @@
 
 CLASS_FLAGS += "runit"
 
-RDEPENDS_${PN}:>USE_runit = " runit"
+RDEPENDS_RUNIT ?= "runit"
+RDEPENDS_${PN}:>USE_runit = " ${RDEPENDS_RUNIT}"
 
 do_install[postfuncs] += "do_install_runit"
 python do_install_runit () {
     import stat
+    path = d.get("D")
+    os.chdir(path)
 
     if not bb.data.getVar('USE_runit', d, True):
         return
