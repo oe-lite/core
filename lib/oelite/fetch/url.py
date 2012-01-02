@@ -63,9 +63,8 @@ class UrlFetcher():
                         print "Expected signature: %s"%self._signature
                         print "Obtained signature: %s"%m.hexdigest()
                         raise Exception("Signature mismatch")
-                f = self.grab(url, reget="simple")
-            else:
-                f = self.grab(url)
+                os.unlink(self.localpath)
+            f = self.grab(url)
             if f:
                 break
             url = self.uri.alternative_mirror()
