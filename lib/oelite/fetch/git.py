@@ -67,7 +67,6 @@ class GitFetcher():
                 self.dest += repo_name
         else:
             self.dest = repo_name
-        self.dest = os.path.join(d.get("SRCDIR"), self.dest)
         self.signatures = d.get("FILE") + ".sig"
         self.fetch_signatures = d["__fetch_signatures"]
         return
@@ -114,8 +113,9 @@ class GitFetcher():
             return commit == self._signature
         return True
 
-    def unpack(self):
+    def unpack(self, d):
         cache = self.get_cache()
         rev = self.commit or self.tag or self.branch
-        cache.download(self.dest, rev=rev, force=True)
+        cache.download(os.path.join(d.get("SRCDIR"), self.dest),
+                       rev=rev, force=True)
         return True

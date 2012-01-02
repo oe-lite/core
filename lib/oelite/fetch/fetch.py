@@ -202,7 +202,7 @@ class OEliteUri:
 
     def unpack(self, d, cmd):
         if "unpack" in dir(self.fetcher):
-            return self.fetcher.unpack()
+            return self.fetcher.unpack(d)
         print "Unpacking", self.fetcher.localpath
         srcpath = os.getcwd()
         self.srcfile = None
