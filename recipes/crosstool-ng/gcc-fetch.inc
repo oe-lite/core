@@ -15,7 +15,22 @@ SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
 	git://sourceware.org/git/glibc-ports.git;tag=glibc-${CT_LIBC_VERSION}"
 SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
-SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/v3.0/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
+addhook set_kernel_subdir to post_recipe_parse after set_useflags before fetch_init
+def set_kernel_subdir(d):
+    version = tuple(map(int, d.get("CT_KERNEL_VERSION").split(".")))
+    if version[0] < 3:
+        subdir = "v%d.%d"%(version[0], version[1])
+        if ((version[:3] == (2,6,27) and version[3] >= 58) or
+            (version[:3] == (2,6,32) and version[3] >= 28) or
+            (version[:3] == (2,6,33) and version[3] >= 8) or
+            (version[:3] == (2,6,34) and version[3] >= 8) or
+            (version[:3] == (2,6,35) and version[3] >= 10)):
+            subdir += "/longterm/v%d.%d.%d"%version[:3]
+    else:
+        subdir = "v%d.x"%(version[0])
+    d.set("KERNEL_SUBDIR", subdir)
+
+SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/${KERNEL_SUBDIR}/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
 SRC_URI_LINUX:TARGET_OS_mingw32 = ""
 
 SRC_URI_GDB ?= "${GNU_MIRROR}/gdb/gdb-${CT_GDB_VERSION}.tar.bz2;unpack=0"

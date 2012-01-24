@@ -258,6 +258,9 @@ def patch_init(d):
     patchdir = d.get("PATCHDIR")
     with open(quiltrc, "w") as quiltrcfile:
         quiltrcfile.write("QUILT_PATCHES=%s\n"%(patchdir))
+    series = os.path.join(patchdir, "series")
+    if os.path.exists(series):
+        os.remove(series)
     s = d.get("S")
     os.chdir(s)
     if os.path.exists(".pc"):
