@@ -246,7 +246,7 @@ class OEliteUri:
             series.write("%s -p%s\n"%(
                     self.patchpath(d), self.params["striplevel"]))
 
-        rc = oe.process.run("quilt --quiltrc %s push"%(d.get("QUILTRC")))
+        rc = oe.process.run("quilt -v --quiltrc %s push"%(d.get("QUILTRC")))
         if rc != 0:
             # FIXME: proper error handling
             raise Exception("quilt push failed: %d"%(rc))
@@ -265,7 +265,7 @@ def patch_init(d):
     os.chdir(s)
     if os.path.exists(".pc"):
         while os.path.exists(".pc/applied-patches"):
-            rc = oe.process.run("quilt --quiltrc %s pop"%(quiltrc))
+            rc = oe.process.run("quilt -v --quiltrc %s pop"%(quiltrc))
             if rc != 0:
                 # FIXME: proper error handling
                 raise Exception("quilt pop failed")
