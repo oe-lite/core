@@ -28,6 +28,8 @@ c011e8feaf1bb89158bd55eaabd7ef8fdd101a2c  gmp-4.3.2.tar.bz2
 2968220e1988eabb61f921d11e5d2db5431e0a35  gmp-5.0.2.tar.bz2
 b6ff5c0262418fbca8ce281f9f927e25181f4237  libelf-0.8.12.tar.gz
 c1d6ac5f182d19dd685c4dfd74eedbfe3992425d  libelf-0.8.13.tar.gz
+4af07033de193428f06f1241e96f9b968a8ed896  linux-2.6.35.14.tar.bz2
+4cb1fbfbeedcd658ca37739679c65dfaa136bf4e  linux-2.6.35.tar.bz2
 17dbda22d1437cf1ab81ed33db45b267b9ec8a3b  linux-3.0.4.tar.bz2
 45b64bffc860f70ab7956da4493c488010714650  linux-3.0.tar.bz2
 d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
