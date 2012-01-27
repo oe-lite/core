@@ -70,8 +70,13 @@ do_unpack_ltrace_symlink () {
 
 addhook gcc_set_src_uri to post_recipe_parse first before fetch_init after set_useflags gcc_select_gdb
 def gcc_set_src_uri(d):
-    def add_src(var):
-        d.append("SRC_URI", "${%s}"%(var), " ")
+    def add_src(uri, flag=None):
+        if flag is not None:
+            if d.get(flag) == "1":
+                return
+        d.append("SRC_URI", "${%s}"%(uri), " ")
+        if flag is not None:
+            d.set(flag, "1")
     if d.get("CT_KERNEL_VERSION") != "custom":
         add_src("SRC_URI_LINUX")
     if d.get("CT_LIBC") == "glibc":
@@ -82,19 +87,16 @@ def gcc_set_src_uri(d):
     v = map(int, gcc_version.split("-")[0].split("."))
     if v[0] >= 4:
         if v[1] >= 3:
-            d.set("CT_USE_GMP", "1")
-            add_src("SRC_URI_GMP")
-            d.set("CT_USE_MPFR", "1")
-            add_src("SRC_URI_MPFR")
+            add_src("SRC_URI_GMP", "CT_USE_GMP")
+            add_src("SRC_URI_MPFR", "CT_USE_MPFR")
         if v[1] >= 5:
-            d.set("CT_USE_MPC", "1")
-            add_src("SRC_URI_MPC")
-            d.set("CT_USE_LIBELF", "1")
-            add_src("SRC_URI_LIBELF")
+            add_src("SRC_URI_MPC", "CT_USE_MPC")
+            add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
     if d.get("CT_DEBUG_gdb"):
         add_src("SRC_URI_GDB")
     if d.get("CT_DEBUG_ltrace"):
         add_src("SRC_URI_LTRACE")
+        add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
     if d.get("CT_DEBUG_strace"):
         add_src("SRC_URI_STRACE")
     # FIXME: add support for adding cloog and ppl
