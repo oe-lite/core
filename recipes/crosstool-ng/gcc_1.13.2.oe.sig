@@ -1,4 +1,5 @@
 3f0e3746a15f806a95dd079be2a7f43c17b18818  binutils-2.20.1a.tar.bz2
+2b1427a932a620c909d74f1e4821ed90c90fd350  gcc-4.4.5.tar.bz2
 73c45dfda5eef6b124be53e56828b5925198cc1b  gcc-4.5.3.tar.bz2
 8bf66f7a71534ba564563a0ba0b2517aead8ac30  gcc-4.6.1.tar.bz2
 880975322f9b23678a2f8f29ca471dcbb03db873  gcc-linaro-4.5-2011.07.tar.bz2
@@ -28,6 +29,7 @@ c011e8feaf1bb89158bd55eaabd7ef8fdd101a2c  gmp-4.3.2.tar.bz2
 2968220e1988eabb61f921d11e5d2db5431e0a35  gmp-5.0.2.tar.bz2
 b6ff5c0262418fbca8ce281f9f927e25181f4237  libelf-0.8.12.tar.gz
 c1d6ac5f182d19dd685c4dfd74eedbfe3992425d  libelf-0.8.13.tar.gz
+42697a3cc1ff40b06c870e54f8cb2f75b6a91faa  linux-2.6.27.59.tar.bz2
 4af07033de193428f06f1241e96f9b968a8ed896  linux-2.6.35.14.tar.bz2
 4cb1fbfbeedcd658ca37739679c65dfaa136bf4e  linux-2.6.35.tar.bz2
 17dbda22d1437cf1ab81ed33db45b267b9ec8a3b  linux-3.0.4.tar.bz2
