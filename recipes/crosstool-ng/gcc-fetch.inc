@@ -17,6 +17,9 @@ SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
 addhook set_kernel_subdir to post_recipe_parse after set_useflags before fetch_init
 def set_kernel_subdir(d):
+    if d.get("CT_KERNEL_VERSION") == "custom":
+        return
+
     version = tuple(map(int, d.get("CT_KERNEL_VERSION").split(".")))
     if version[0] < 3:
         subdir = "v%d.%d"%(version[0], version[1])
@@ -30,6 +33,7 @@ def set_kernel_subdir(d):
         subdir = "v%d.x"%(version[0])
     d.set("KERNEL_SUBDIR", subdir)
 
+KERNEL_SUBDIR ??= ""
 SRC_URI_LINUX = "${KERNELORG_MIRROR}/linux/kernel/${KERNEL_SUBDIR}/linux-${CT_KERNEL_VERSION}.tar.bz2;unpack=0"
 SRC_URI_LINUX:TARGET_OS_mingw32 = ""
 
