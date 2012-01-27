@@ -1,0 +1,24 @@
+Index: crosstool-ng-1.13.2/scripts/build/debug/300-gdb.sh
+===================================================================
+--- crosstool-ng-1.13.2.orig/scripts/build/debug/300-gdb.sh	2012-01-24 09:41:55.382038760 +0100
++++ crosstool-ng-1.13.2/scripts/build/debug/300-gdb.sh	2012-01-24 09:43:32.867268291 +0100
+@@ -123,6 +123,11 @@
+         else
+             cross_extra_config+=( "--with-python=no" )
+         fi
++        if [ "${do_expat}" = "y" ]; then
++            cross_extra_config+=( "--with-expat=yes" )
++        else
++            cross_extra_config+=( "--with-expat=no" )
++        fi
+ 
+         CC_for_gdb=
+         LD_for_gdb=
+@@ -145,7 +150,6 @@
+             --prefix="${CT_PREFIX_DIR}"                 \
+             --with-build-sysroot="${CT_SYSROOT_DIR}"    \
+             --with-sysroot="${CT_SYSROOT_DIR}"          \
+-            --with-expat=yes                            \
+             --disable-werror                            \
+             "${cross_extra_config[@]}"
+ 
