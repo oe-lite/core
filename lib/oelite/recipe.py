@@ -101,33 +101,3 @@ class OEliteRecipe:
         # calculate recipe signature
 
         return
-
-
-    def datahash(self):
-        import hashlib
-
-        if self._datahash:
-            return self._datahash
-
-        class StringOutput:
-            def __init__(self):
-                self.blob = ""
-            def write(self, msg):
-                self.blob += str(msg)
-            def __len__(self):
-                return len(self.blob)
-
-        class StringHasher:
-            def __init__(self, hasher):
-                self.hasher = hasher
-            def write(self, msg):
-                self.hasher.update(str(msg))
-            def __str__(self):
-                return self.hasher.hexdigest()
-
-        hasher = StringHasher(hashlib.md5())
-
-        self.meta.dump(hasher, pretty=False, nohash=False)
-
-        self._datahash = str(hasher)
-        return self._datahash

@@ -211,6 +211,8 @@ class OEliteBaker:
         else:
             meta = recipe.meta
 
+        #meta.dump(pretty=False, nohash=False, flags=True,
+        #          ignore_flags=("filename", "lineno"),
         meta.dump(pretty=True, nohash=(not self.options.nohash),
                   only=(self.things_todo[1:] or None))
 
@@ -316,7 +318,7 @@ class OEliteBaker:
                     if depend_extra_arch:
                         recipe.meta.set("EXTRA_ARCH", depend_extra_arch)
             try:
-                datahash = recipe.datahash()
+                datahash = task.meta().signature()
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise

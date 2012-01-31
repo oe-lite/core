@@ -75,6 +75,7 @@ class MetaData(MutableMapping):
             raise Exception("invalid argument: meta=%s"%(repr(meta)))
         self.pythonfunc_init()
         self.expand_stack = ExpansionStack()
+        self._signature = None
         return
 
 
@@ -365,28 +366,41 @@ class MetaData(MutableMapping):
         "OE_MODULE_",
     ]
 
-
-    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={}):
+    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={},
+                 flags=False, ignore_flags=None):
         if pretty:
             eol = "\n\n"
         else:
             eol = "\n"
 
-        if self.get_flag(key, "python"):
+        var_flags = self.get_flags(key).items()
+        var_flags.sort()
+
+        if flags:
+            for flag,val in var_flags:
+                if flag == "expand":
+                    continue
+                if ignore_flags and flag in ignore_flags:
+                    continue
+                if pretty and flag in ("python", "bash", "export"):
+                    continue
+                o.write("%s[%s]=%r\n"%(key, flag, val))
+
+        if self.get_flag(key, "python"): # FIXME: use _flags
             func = "python"
-        elif self.get_flag(key, "bash"):
+        elif self.get_flag(key, "bash"): # FIXME: use _flags
             func = "bash"
         else:
             func = None
 
-        expand = self.get_flag(key, "expand")
+        expand = self.get_flag(key, "expand") # FIXME: use _flags
         if expand is not None:
             expand = int(expand)
         elif func == "python":
             expand = False
         else:
             expand = FULL_EXPANSION
-        if not expand:
+        if not expand and func != "python":
             expand = OVERRIDES_EXPANSION
         val = self.get(key, expand)
 
@@ -398,7 +412,7 @@ class MetaData(MutableMapping):
         for varname in dynvars.keys():
             val = string.replace(val, dynvars[varname], "${%s}"%(varname))
 
-        if pretty:
+        if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
 
         if func == "python":
@@ -410,14 +424,15 @@ class MetaData(MutableMapping):
             o.write("%s() {\n%s}%s"%(key, val, eol))
             return
 
-        if self.get_flag(key, "export"):
+        if pretty and self.get_flag(key, "export"):
             o.write("export ")
 
         o.write("%s=%s%s"%(key, repr(val), eol))
         return
 
 
-    def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None):
+    def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
+             flags=False, ignore_flags=None):
 
         dynvars = {}
         for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
@@ -439,7 +454,7 @@ class MetaData(MutableMapping):
                         break
                 if nohash_prefixed:
                     continue
-            self.dump_var(key, o, pretty, dynvars)
+            self.dump_var(key, o, pretty, dynvars, flags, ignore_flags)
 
 
     def get_function(self, name):
@@ -449,3 +464,34 @@ class MetaData(MutableMapping):
             return oelite.function.PythonFunction(self, name)
         else:
             return oelite.function.ShellFunction(self, name)
+
+
+    def signature(self, ignore_flags=("emit", "omit"), force=False):
+        import hashlib
+
+        if self._signature and not force:
+            return self._signature
+
+        class StringOutput:
+            def __init__(self):
+                self.blob = ""
+            def write(self, msg):
+                self.blob += str(msg)
+            def __len__(self):
+                return len(self.blob)
+
+        class StringHasher:
+            def __init__(self, hasher):
+                self.hasher = hasher
+            def write(self, msg):
+                self.hasher.update(str(msg))
+            def __str__(self):
+                return self.hasher.hexdigest()
+
+        hasher = StringHasher(hashlib.md5())
+
+        self.dump(hasher, pretty=False, nohash=False,
+                  flags=True, ignore_flags=ignore_flags)
+
+        self._signature = str(hasher)
+        return self._signature
