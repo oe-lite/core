@@ -44,7 +44,9 @@ def auto_package_libs (d):
         if len(libdir) < 2:
             libdir.append("lib")
         if len(libdir) < 3:
-            libdir.append("")
+            libdir.append([""])
+        else:
+            libdir[2] = libdir[2].split(",")
         if len(libdir) < 4:
             libdir.append(d.get("SOLIBS").split(","))
         elif libdir[3]:
@@ -68,32 +70,38 @@ def auto_package_libs (d):
         files = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, libexts, devlibexts) = \
+            (libdir, libprefix, libsuffixes, libexts, devlibexts) = \
                 split_libdir(libdir)
-            if pkg_libsuffix is not None:
-                libsuffix = pkg_libsuffix.split()
-            libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            for libext in libexts:
-                files.append("%s/%s%s"%(libdir, libname, libext))
+            if pkg_libsuffix == "":
+                libsuffixes = [""]
+            elif pkg_libsuffix is not None:
+                libsuffixes = pkg_libsuffix.split()
+            for libsuffix in libsuffixes:
+                libname = "%s%s%s"%(libprefix, lib, libsuffix)
+                for libext in libexts:
+                    files.append("%s/%s%s"%(libdir, libname, libext))
         files += get_extra_files(pkg)
         d.set("FILES_" + pkg, " ".join(files))
 
         files = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(devpkg))
         for libdir in libdirs:
-            (libdir, libprefix, libsuffix, libexts, devlibexts) = \
+            (libdir, libprefix, libsuffixes, libexts, devlibexts) = \
                 split_libdir(libdir)
-            if pkg_libsuffix is not None:
-                libsuffix = pkg_libsuffix.split()
-            libname = "%s%s%s"%(libprefix, lib, libsuffix)
-            for libext in devlibexts:
-                files.append("%s/%s%s"%(libdir, libname, libext))
-            if pkg_libsuffix is None:
-                for pcprefix in pcprefixes or [""]:
-                    pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
-                        pcprefix, lib, libsuffix)
-                    if not pcfile in files:
-                        files.append(pcfile)
+            if pkg_libsuffix == "":
+                libsuffixes = [""]
+            elif pkg_libsuffix is not None:
+                libsuffixes = pkg_libsuffix.split()
+            for libsuffix in libsuffixes:
+                libname = "%s%s%s"%(libprefix, lib, libsuffix)
+                for libext in devlibexts:
+                    files.append("%s/%s%s"%(libdir, libname, libext))
+                if pkg_libsuffix is None:
+                    for pcprefix in pcprefixes or [""]:
+                        pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
+                            pcprefix, lib, libsuffix)
+                        if not pcfile in files:
+                            files.append(pcfile)
         if pkg_libsuffix is not None:
             for pcprefix in pcprefixes or [""]:
                 pcfile = "${libdir}/pkgconfig/%s%s%s.pc"%(
