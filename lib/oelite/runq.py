@@ -138,6 +138,11 @@ class OEliteRunQueue:
 
                 recipe = self.cookbook.get_recipe(task=task)
 
+                if task == primary_task or self.is_task_primary(task):
+                    is_primary_task = True
+                else:
+                    is_primary_task = False
+
                 if recipe == primary_recipe:
                     is_primary_recipe = True
                 else:
@@ -152,10 +157,9 @@ class OEliteRunQueue:
                     self.set_task_build(task)
 
                 # set relax flag (based on --sloppy/--relaxed)
-                if ((self.relax == 2 and not is_primary_recipe) or
-                    (self.relax == 1 and
-                     (not is_primary_recipe and
-                      recipe.get("RELAXED")))):
+                if (not is_primary_task and
+                    (self.relax == 2) or
+                    (self.relax == 1 and recipe.get("RELAXED"))):
                     self.set_task_relax(task)
 
                 try:
@@ -1122,7 +1126,7 @@ class OEliteRunQueue:
         return
 
 
-    def is_runq_task_primary(self, task):
+    def is_task_primary(self, task):
         assert isinstance(task, oelite.task.OEliteTask)
         primary = self.dbc.execute(
             "SELECT prime FROM runq.task WHERE task=?", (task.id,)).fetchone()
