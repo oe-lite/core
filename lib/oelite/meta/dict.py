@@ -103,6 +103,11 @@ class DictMeta(MetaData):
         return
 
 
+    def weak_set_flag(self, var, flag, val):
+        if not var in self.dict.keys() or not flag in self.dict[var].keys():
+            self.set_flag(var, flag, val)
+
+
     def set_override(self, var, override, val):
         assert var not in ("OVERRIDES", "__overrides", "", ">", "<")
         assert override[0] in ("", ">", "<")
@@ -337,6 +342,7 @@ class DictMeta(MetaData):
                 functions[other_function][1].add(function)
             except KeyError:
                 functions[other_function] = (None, set([function]))
+        self.weak_set_flag(function, "emit", "")
         return
 
 
