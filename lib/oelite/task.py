@@ -132,7 +132,7 @@ class OEliteTask:
     def prepare(self, runq):
         meta = self.meta()
 
-        buildhash = self.cookbook.baker.runq.get_buildhash(self)
+        buildhash = self.cookbook.baker.runq.get_task_buildhash(self)
         debug("buildhash=%s"%(repr(buildhash)))
         meta.set("TASK_BUILDHASH", buildhash)
 

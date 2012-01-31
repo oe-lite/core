@@ -504,7 +504,7 @@ class OEliteBaker:
             info("Running %d / %d %s"%(count, total, task))
             task.build_started()
             if task.run():
-                task.build_done(self.runq.get_buildhash(task))
+                task.build_done(self.runq.get_task_buildhash(task))
                 self.runq.mark_done(task)
             else:
                 err("%s failed"%(task))

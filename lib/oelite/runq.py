@@ -1264,13 +1264,8 @@ class OEliteRunQueue:
             "SELECT metahash FROM runq.task WHERE task=?", (task.id,)))
 
 
-    def get_buildhash(self, task):
+    def get_task_buildhash(self, task):
         assert isinstance(task, oelite.task.OEliteTask)
         return flatten_single_value(self.dbc.execute(
                 "SELECT buildhash FROM runq.task WHERE task=?", (task.id,)))
 
-
-    def get_task_buildhash(self, task):
-        assert isinstance(task, oelite.task.OEliteTask)
-        return flatten_single_value(self.dbc.execute(
-            "SELECT buildhash FROM runq.task WHERE task=?", (task.id,)))
