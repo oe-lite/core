@@ -27,7 +27,7 @@ RECIPE_FLAGS += "toolchain_min_kernel_machine \ toolchain_min_kernel_sdk \
 CT_LIBC				= "${USE_toolchain_libc}"
 CT_LIBC:TARGET_OS_mingw32	= "mingw"
 TOOLCHAIN_LIBC_VERSION = "${USE_toolchain_libc_version}"
-TOOLCHAIN_LIBC_VERSION:sdk-cross = "2.9"
+TOOLCHAIN_LIBC_VERSION:sdk-cross = "2.12.2"
 CT_LIBC_VERSION			= "${TOOLCHAIN_LIBC_VERSION}"
 CT_LIBC_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_mingwrt_version}"
 # *sigh* why don't eglibc do real releases?
