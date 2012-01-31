@@ -6,6 +6,9 @@ addtask package after do_split before do_build
 do_split[cleandirs] = "${PKGD}"
 do_split[dirs] = "${PKGD} ${D}"
 
+# The FILES_* and ALLOW_EMPTY_* variables are exclusive for do_split task
+META_EMIT_PREFIX += "split:FILES_${PN} split:ALLOW_EMPTY"
+
 def do_split(d):
     import errno, stat
 
@@ -131,6 +134,11 @@ do_package[dirs] = "${PKGD}"
 
 PACKAGE_META_VARS = "DESCRIPTION LICENSE FILE_PRIORITY PN"
 PACKAGE_META_VARS[emit] = "do_package"
+
+# The PACKAGE_TYPE_* and PACKAGE_ARCH_* variables are exclusive for
+# do_package task
+META_EMIT_PREFIX += "package:PACKAGE_TYPE_${PN} package:PACKAGE_ARCH_${PN}"
+META_EMIT_PREFIX += "package:FILE_PRIORITY_${PN} package:LICENSE_${PN}"
 
 PACKAGES[emit]		= "do_split do_package"
 TARGET_PACKAGES[emit]	= "do_split do_package"
