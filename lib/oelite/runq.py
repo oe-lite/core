@@ -1129,7 +1129,7 @@ class OEliteRunQueue:
         return primary[0] == 1
 
 
-    def is_runq_recipe_primary(self, recipe):
+    def is_recipe_primary(self, recipe):
         primary = self.dbc.execute(
             "SELECT runq.task.prime "
             "FROM runq.task, task "
