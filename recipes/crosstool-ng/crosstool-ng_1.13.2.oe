@@ -21,3 +21,5 @@ file://patch-7of7-2794-float-support.patch"
 # Linaro upgrades from crosstool-ng tip, expected in 1.14
 SRC_URI += "file://Update-linaro-1of2-2802.patch \
 file://Update-linaro-2of2-2803.patch"
+
+SRC_URI += "file://gdb-expat.patch"
