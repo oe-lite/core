@@ -247,7 +247,7 @@ cpuspecs = {
         'DEFAULT'		: {
             'wordsize'		: '64',
             'endian'		: 'l',
-            'elf'		: 'x86-64',
+            'elf'		: 'ELF 64-bit LSB .*, x86-64',
             'march'		: 'opteron',
             'fpu'		: 'sse',
             'float'		: 'hard',
