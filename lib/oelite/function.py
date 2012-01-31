@@ -149,7 +149,7 @@ class ShellFunction(OEliteFunction):
             if self.meta.get_flag(var, "python"):
                 continue
             if "-" in var:
-                bb.warn("refusing to export var with '-':", var)
+                bb.warn("cannot emit var with '-' to bash:", var)
                 continue
             if self.meta.get_flag(var, "unexport"):
                 continue
