@@ -15,6 +15,8 @@ def do_stage(d):
     return set_stage(d, "__stage", "STAGE_FIXUP_FUNCS", get_dstdir,
                      d.get("STAGE_DIR") + ".unpack")
 
+set_stage[emit] += "do_stage"
+
 def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
     import tempfile
     from oelite.util import TarFile

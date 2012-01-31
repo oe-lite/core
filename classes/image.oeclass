@@ -65,4 +65,6 @@ def do_rstage(d):
         shutil.rmtree(metadir)
     return retval
 
+set_stage[emit] += "do_rstage"
+
 RSTAGE_FIXUP_FUNCS ?= ""
