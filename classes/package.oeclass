@@ -132,6 +132,14 @@ do_package[dirs] = "${PKGD}"
 PACKAGE_META_VARS = "DESCRIPTION LICENSE FILE_PRIORITY PN"
 PACKAGE_META_VARS[emit] = "do_package"
 
+PACKAGES[emit]		= "do_split do_package"
+TARGET_PACKAGES[emit]	= "do_split do_package"
+HOST_PACKAGES[emit]	= "do_split do_package"
+DESCRIPTION[emit]	= "do_package"
+LICENSE[emit]		= "do_package"
+HOMEPAGE[emit]		= "do_package"
+MAINTAINER[emit]	= "do_package"
+
 python do_package () {
     import bb, os
 
