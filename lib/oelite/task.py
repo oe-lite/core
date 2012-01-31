@@ -28,7 +28,7 @@ class OEliteTask:
         self.name = name
         self.nostamp = nostamp
         self.cookbook = cookbook
-        self.meta = None
+        self._meta = None
         return
 
     def __str__(self):
@@ -129,17 +129,12 @@ class OEliteTask:
             os.remove(hashpath)
 
 
-    def prepare_meta(self, runq):
-        if self.meta is not None:
-            return self.meta
-
-        meta = self.recipe.meta.copy()
+    def prepare(self, runq):
+        meta = self.meta()
 
         buildhash = self.cookbook.baker.runq.get_buildhash(self)
         debug("buildhash=%s"%(repr(buildhash)))
-        meta.setVar("TASK_BUILDHASH", buildhash)
-
-        recipe_type = meta.get("RECIPE_TYPE")
+        meta.set("TASK_BUILDHASH", buildhash)
 
         def prepare_stage(get_depend_packages):
             stage = {}
@@ -160,9 +155,16 @@ class OEliteTask:
         meta.set_flag("__stage", "nohash", True)
         meta.set_flag("__rstage", "nohash", True)
 
+        return
+
+
+    def meta(self):
+        if self._meta is not None:
+            return self._meta
+        meta = self.recipe.meta.copy()
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
-        for var in meta:
+        for var in meta.keys():
             emit_flag = meta.get_flag(var, "emit")
             emit = (emit_flag or "").split()
             taskfunc_match = self.TASKFUNC_RE.match(var)
@@ -177,16 +179,16 @@ class OEliteTask:
                 del meta[var]
                 continue
 
-        self.meta = meta
+        self._meta = meta
         return meta
 
 
     def run(self):
-        assert self.meta is not None
-        function = self.meta.get_function(self.name)
+        meta = self.meta()
+        function = meta.get_function(self.name)
 
         self.do_cleandirs()
-        cwd = self.do_dirs() or self.meta.get("B")
+        cwd = self.do_dirs() or meta.get("B")
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
@@ -251,8 +253,8 @@ class OEliteTask:
     def do_cleandirs(self, name=None):
         if not name:
             name = self.name
-        cleandirs = (self.meta.get_flag(name, "cleandirs",
-                                        oelite.meta.FULL_EXPANSION))
+        cleandirs = (self.meta().get_flag(name, "cleandirs",
+                                          oelite.meta.FULL_EXPANSION))
         if cleandirs:
             for cleandir in cleandirs.split():
                 if not os.path.exists(cleandir):
@@ -268,8 +270,8 @@ class OEliteTask:
         if not name:
             name = self.name
         # Create directories and find directory to execute in
-        dirs = (self.meta.get_flag(name, "dirs",
-                                   oelite.meta.FULL_EXPANSION))
+        dirs = (self.meta().get_flag(name, "dirs",
+                                     oelite.meta.FULL_EXPANSION))
         if dirs:
             dirs = dirs.split()
             for dir in dirs:
@@ -278,14 +280,14 @@ class OEliteTask:
 
     def get_postfuncs(self):
         postfuncs = []
-        for name in (self.meta.get_flag(self.name, "postfuncs", 1)
+        for name in (self.meta().get_flag(self.name, "postfuncs", 1)
                      or "").split():
-            postfuncs.append(self.meta.get_function(name))
+            postfuncs.append(self.meta().get_function(name))
         return postfuncs
 
     def get_prefuncs(self):
         prefuncs = []
-        for name in (self.meta.get_flag(self.name, "prefuncs", 1)
+        for name in (self.meta().get_flag(self.name, "prefuncs", 1)
                      or "").split():
-            prefuncs.append(self.meta.get_function(name))
+            prefuncs.append(self.meta().get_function(name))
         return prefuncs

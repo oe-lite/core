@@ -206,7 +206,8 @@ class OEliteBaker:
             self.runq = OEliteRunQueue(self.config, self.cookbook)
             self.runq._add_recipe(recipe, task)
             task = self.cookbook.get_task(recipe=recipe, name=task)
-            meta = task.prepare_meta(self.runq)
+            task.prepare(self.runq)
+            meta = task.meta()
         else:
             meta = recipe.meta
 
@@ -498,7 +499,8 @@ class OEliteBaker:
             count += 1
             debug("")
             debug("Preparing %s"%(task))
-            meta = task.prepare_meta(self.runq)
+            task.prepare(self.runq)
+            meta = task.meta()
             info("Running %d / %d %s"%(count, total, task))
             task.build_started()
             if task.run():
