@@ -9,7 +9,7 @@ import shutil
 import warnings
 import re
 
-class OEliteFunction:
+class OEliteFunction(object):
 
     def __init__(self, meta, var, name=None, tmpdir=None,
                  set_ld_library_path=True):
@@ -92,9 +92,8 @@ class PythonFunction(OEliteFunction):
         self.code = meta.get_pythonfunc_code(var)
         eval(self.code, g, l)
         self.function = l[var]
-        #super(PythonFunction, self).__init__(var)
-        OEliteFunction.__init__(self, meta, var, name, tmpdir,
-                                set_ld_library_path)
+        super(PythonFunction, self).__init__(meta, var, name, tmpdir,
+                                             set_ld_library_path)
         return
 
     def __call__(self):
@@ -125,9 +124,8 @@ class ShellFunction(OEliteFunction):
 
     def __init__(self, meta, var, name=None, tmpdir=None,
                  set_ld_library_path=True):
-        #super(ShellFunction, self).__init__(meta, var, name, tmpdir)
-        OEliteFunction.__init__(self, meta, var, name, tmpdir,
-                                set_ld_library_path)
+        super(ShellFunction, self).__init__(meta, var, name, tmpdir,
+                                            set_ld_library_path)
         return
 
     def __call__(self):
