@@ -669,7 +669,7 @@ class OEliteRunQueue:
     def get_tasks_to_build_description(self, hashinfo=False):
         tasks = []
         if hashinfo:
-            hashinfo = ", runq.task.metahash, runq.task.tmphash"
+            hashinfo = ", runq.task.metahash, runq.task.tmphash, runq.task.buildhash"
         else:
             hashinfo = ""
         for row in self.dbc.execute(
@@ -686,7 +686,7 @@ class OEliteRunQueue:
                 row[0] += ":"
             row = tuple(row)
             if hashinfo:
-                tasks.append("%s%s_%s:%s meta=%s tmp=%s"%row)
+                tasks.append("%s%s_%s:%s meta=%s tmp=%s build=%s"%row)
             else:
                 tasks.append("%s%s_%s:%s"%row)
         return tasks
