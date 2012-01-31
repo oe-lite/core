@@ -11,7 +11,7 @@ AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
 AUTO_PACKAGE_LIBS_RDEPENDS ?= ""
 
-addhook auto_package_libs to post_recipe_parse before fixup_package_type
+addhook auto_package_libs to post_recipe_parse before fixup_package_type before blacklist
 
 def auto_package_libs (d):
     import warnings
