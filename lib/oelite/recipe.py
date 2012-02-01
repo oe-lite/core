@@ -32,6 +32,8 @@ class OEliteRecipe:
         self.priority = int(self.meta.get("DEFAULT_PREFERENCE") or "0")
         self._datahash = None
         self._hash = None
+        self.recipe_deps = set([])
+        self.tasks = set([])
         return
 
 
@@ -70,6 +72,15 @@ class OEliteRecipe:
             depends.append("%s:%s"%(type, item))
         return depends
         #return self.meta.get_list("RDEPENDS")
+
+
+    def add_task(self, task, task_deps):
+        self.tasks.add(task)
+        for task_dep in task_deps:
+            if task_dep.recipe == self:
+                continue
+            self.recipe_deps.add(task_dep.recipe)
+        return
 
 
     def post_parse(self):

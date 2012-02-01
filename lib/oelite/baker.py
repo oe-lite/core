@@ -275,6 +275,41 @@ class OEliteBaker:
         if oebakery.DEBUG:
             timing_info("Building dependency tree", start)
 
+        # Generate recipe dependency graph
+        recipes = set([])
+        for task in self.runq.get_tasks():
+            task_deps = self.runq.task_dependencies(task, flatten=True)
+            recipe = task.recipe
+            recipe.add_task(task, task_deps)
+            recipes.add(recipe)
+        unresolved_recipes = []
+        for recipe in recipes:
+            unresolved_recipes.append((recipe, list(recipe.recipe_deps)))
+
+        # Traverse recipe dependency graph, propagating EXTRA_ARCH on
+        # recipe level.
+        resolved_recipes = set([])
+        while len(unresolved_recipes) > 0:
+            progress = False
+            for i in xrange(len(unresolved_recipes)-1, -1, -1):
+                recipe, unresolved_deps = unresolved_recipes[i]
+                resolved = True
+                for j in xrange(len(unresolved_deps)-1, -1, -1):
+                    recipe_dep = unresolved_deps[j]
+                    if not recipe_dep in resolved_recipes:
+                        continue
+                    recipe_dep_extra_arch = recipe_dep.meta.get("EXTRA_ARCH")
+                    if recipe_dep_extra_arch:
+                        # FIXME: sanity check for inconsistent EXTRA_ARCH here
+                        recipe.meta.set("EXTRA_ARCH", recipe_dep_extra_arch)
+                    del unresolved_deps[j]
+                if len(unresolved_deps) == 0:
+                    resolved_recipes.add(recipe)
+                    del unresolved_recipes[i]
+                    progress = True
+            if not progress:
+                bb.fatal("recipe EXTRA_ARCH resolving deadlocked!")
+
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
         # examing each task, computing it's hash, and checking if the
@@ -286,7 +321,7 @@ class OEliteBaker:
         while task:
             oelite.util.progress_info("Calculating task metadata hashes",
                                       total, count)
-            recipe = self.cookbook.get_recipe(task=task)
+            recipe = task.recipe
 
             if task.nostamp:
                 self.runq.set_task_metahash(task, "0")
@@ -296,29 +331,19 @@ class OEliteBaker:
 
             dephashes = {}
             task_dependencies = self.runq.task_dependencies(task)
-            depend_recipes = set([])
             for depend in task_dependencies[0]:
                 dephashes[depend] = self.runq.get_task_metahash(depend)
-                depend_recipes.add(depend.recipe)
             for depend in [d[0] for d in task_dependencies[1]]:
                 dephashes[depend] = self.runq.get_task_metahash(depend)
-                depend_recipes.add(depend.recipe)
             for depend in [d[0] for d in task_dependencies[2]]:
                 dephashes[depend] = self.runq.get_task_metahash(depend)
-                depend_recipes.add(depend.recipe)
-            depend_recipes.discard(recipe)
-            # Inherit ${EXTRA_ARCH} from dependencies.  Notice
-            # that it is strictly implied that EXTRA_ARCH is a
-            # recipe thing, and not something that should be tried to
-            # emulate for individual packages!
-            machine = recipe.meta.get("MACHINE")
-            if machine and not recipe.meta.get("EXTRA_ARCH"):
-                for depend_recipe in depend_recipes:
-                    depend_extra_arch = depend_recipe.meta.get("EXTRA_ARCH")
-                    if depend_extra_arch:
-                        recipe.meta.set("EXTRA_ARCH", depend_extra_arch)
+            recipe_extra_arch = recipe.meta.get("EXTRA_ARCH")
+            task_meta = task.meta()
+            if (recipe_extra_arch and
+                task_meta.get("EXTRA_ARCH") != recipe_extra_arch):
+                task_meta.set("EXTRA_ARCH", recipe_extra_arch)
             try:
-                datahash = task.meta().signature()
+                datahash = task_meta.signature()
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise

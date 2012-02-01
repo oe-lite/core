@@ -186,7 +186,7 @@ class OEliteRunQueue:
         return True
 
 
-    def task_dependencies(self, task):
+    def task_dependencies(self, task, flatten=False):
         recipe = self.cookbook.get_recipe(task=task)
 
         # add recipe-internal task parents
@@ -310,6 +310,16 @@ class OEliteRunQueue:
         self.add_runq_task_depends(task, task_depends)
         self.add_runq_package_depends(task, package_depends)
         self.add_runq_package_rdepends(task, package_rdepends)
+
+        if flatten:
+            depends = set([])
+            for depend in task_depends:
+                depends.add(depend)
+            for depend in [d[0] for d in package_depends]:
+                depends.add(depend)
+            for depend in [d[0] for d in package_rdepends]:
+                depends.add(depend)
+            return depends
 
         return (task_depends, package_depends, package_rdepends)
 
@@ -652,6 +662,13 @@ class OEliteRunQueue:
                 (row[0],))
             recipes.append(r.fetchone())
         return recipes
+
+
+    def get_tasks(self):
+        tasks = []
+        for row in self.dbc.execute("SELECT task FROM runq.task"):
+            tasks.append(self.cookbook.get_task(row[0]))
+        return tasks
 
 
     def print_runq_tasks(self):
@@ -1272,4 +1289,3 @@ class OEliteRunQueue:
         assert isinstance(task, oelite.task.OEliteTask)
         return flatten_single_value(self.dbc.execute(
                 "SELECT buildhash FROM runq.task WHERE task=?", (task.id,)))
-
