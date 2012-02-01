@@ -410,8 +410,8 @@ class MetaData(MutableMapping):
 
         val = str(val)
 
-        for varname in dynvars.keys():
-            val = string.replace(val, dynvars[varname], "${%s}"%(varname))
+        for dynvar_name, dynvar_val in dynvars:
+            val = string.replace(val, dynvar_val, "${%s}"%(dynvar_name))
 
         if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
@@ -435,9 +435,9 @@ class MetaData(MutableMapping):
     def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
              flags=False, ignore_flags=None):
 
-        dynvars = {}
+        dynvars = []
         for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
-            dynvars[varname] = self.get(varname, True) or None
+            dynvars.append((varname, self.get(varname, True) or None))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
