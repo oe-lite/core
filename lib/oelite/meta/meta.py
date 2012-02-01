@@ -373,14 +373,15 @@ class MetaData(MutableMapping):
         else:
             eol = "\n"
 
-        var_flags = self.get_flags(key).items()
-        var_flags.sort()
+        var_flags = sorted(self.get_flags(key).items())
 
         if flags:
+            if ignore_flags:
+                ignore_flags = re.compile("|".join(ignore_flags))
             for flag,val in var_flags:
                 if flag == "expand":
                     continue
-                if ignore_flags and flag in ignore_flags:
+                if ignore_flags and ignore_flags.match(flag):
                     continue
                 if pretty and flag in ("python", "bash", "export"):
                     continue
@@ -466,7 +467,8 @@ class MetaData(MutableMapping):
             return oelite.function.ShellFunction(self, name)
 
 
-    def signature(self, ignore_flags=("emit", "omit"), force=False):
+    def signature(self, ignore_flags=("__", "emit$", "omit$"),
+                  force=False, dump=None):
         import hashlib
 
         if self._signature and not force:
@@ -490,6 +492,9 @@ class MetaData(MutableMapping):
 
         hasher = StringHasher(hashlib.md5())
 
+        if dump:
+            self.dump(dump, pretty=False, nohash=False,
+                      flags=True, ignore_flags=ignore_flags)
         self.dump(hasher, pretty=False, nohash=False,
                   flags=True, ignore_flags=ignore_flags)
 
