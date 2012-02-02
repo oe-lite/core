@@ -14,6 +14,7 @@ do_configure () {
     fi
 }
 
+PARALLEL_MAKE = ""
 MAKE_DESTDIR = ""
 
 FILES_${PN} += "${libdir}/ct-ng-*"
