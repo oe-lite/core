@@ -5,10 +5,11 @@ require conf/mdev.conf
 IMAGE_PREPROCESS_FUNCS:>USE_busybox_mdev = " image_preprocess_mdev"
 
 image_preprocess_mdev () {
-	test -d ./${mdevdir} || return 0
-	for f in ./${mdevdir}/* ; do
-		cat $f >> ./${mdevconf}
+	cwd=`pwd`
+	test -d $cwd/${mdevdir} || return 0
+	for f in $cwd/${mdevdir}/* ; do
+		cat $f >> $cwd/${mdevconf}
 		rm $f
 	done
-	rm -rf ./${mdevdir}
+	rm -rf $cwd/${mdevdir}
 }
