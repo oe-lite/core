@@ -22,9 +22,11 @@ OECONF_ARCHTUPLE:>sdk-cross 		= " --target=${TARGET_ARCH}"
 OECONF_ARCHTUPLE:>canadian-cross	= " --target=${TARGET_ARCH}"
 OECONF_ARCHTUPLE[emit] = "do_configure"
 
+CONFIGURE_SCRIPT ?= "${S}/configure"
+
 autotools_configure () {
-    if [ -x ${S}/configure ] ; then
-        ${S}/configure \
+    if [ -x "${CONFIGURE_SCRIPT}" ] ; then
+        ${CONFIGURE_SCRIPT} \
  ${OECONF_ARCHTUPLE}\
  --prefix=${prefix} --exec_prefix=${exec_prefix}\
  --bindir=${bindir} --sbindir=${sbindir}\
@@ -47,7 +49,7 @@ do_configure_autotools () {
         ${MAKE} distclean || true
     fi
 
-    if [ -e ${S}/configure ]; then
+    if [ -e "${CONFIGURE_SCRIPT}" ]; then
         autotools_configure
     else
         oenote "nothing to configure"
