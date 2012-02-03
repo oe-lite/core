@@ -3,21 +3,21 @@ require conf/passwd.conf
 IMAGE_PREPROCESS_FUNCS += "image_preprocess_passwd"
 
 image_preprocess_passwd () {
-	if [ -d "./${passwddir}" ]; then
-		for f in ./${passwddir}/* ; do
-			cat $f >> ./${passwdfile}
+	cwd=`pwd`
+	if [ -d $cwd/${passwddir} ]; then
+		for f in $cwd/${passwddir}/* ; do
+			cat $f >> $cwd/${passwdfile}
 			rm $f
 		done
-		sort -g -t : -k 3 -o ./${passwdfile} ./${passwdfile}
-		rm -rf ./${passwddir}
+		sort -g -t : -k 3 -o $cwd/${passwdfile} $cwd/${passwdfile}
+		rm -rf $cwd/${passwddir}
 	fi
-
-	if [ -d "./${groupdir}" ]; then
-		for f in ./${groupdir}/* ; do
-			cat $f >> ./${groupfile}
+	if [ -d $cwd/${groupdir} ]; then
+		for f in $cwd/${groupdir}/* ; do
+			cat $f >> $cwd/${groupfile}
 			rm $f
 		done
-		sort -g -t : -k 3 -o ./${groupfile} ./${groupfile}
-		rm -rf ./${groupdir}
+		sort -g -t : -k 3 -o $cwd/${groupfile} $cwd/${groupfile}
+		rm -rf $cwd/${groupdir}
 	fi
 }
