@@ -83,7 +83,7 @@ TYPEMAP = (
             "cross"		: "cross",
             "machine"		: "machine",
             "build"		: "native",
-            "host"		: "native",
+            "host"		: "machine",
             "target"		: "machine",
             "host-cross"	: "cross",
             "target-cross"	: "cross",
