@@ -39,13 +39,6 @@ autotools_configure () {
 }
 autotools_configure[emit] = "do_configure"
 
-# OE compatibility/legacy function
-# FIXME: remove at some point in time
-oe_runconf () {
-    autotools_configure
-}
-oe_runconf[emit] = "do_configure"
-
 do_configure () {
     do_configure_autotools
 }
@@ -55,7 +48,7 @@ do_configure_autotools () {
     fi
 
     if [ -e ${S}/configure ]; then
-        oe_runconf
+        autotools_configure
     else
         oenote "nothing to configure"
     fi
