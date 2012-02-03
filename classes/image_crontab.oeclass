@@ -3,9 +3,10 @@ require conf/crontab.conf
 IMAGE_PREPROCESS_FUNCS:>USE_crontab = " image_preprocess_crontab"
 
 image_preprocess_crontab () {
-	test -d .${crontabdir} || return 0
-	for f in .${crontabdir}/root.* ; do
-		cat $f >> .${crontabdir}/root
+	cwd=`pwd`
+	test -d $cwd/${crontabdir} || return 0
+	for f in $cwd/${crontabdir}/root.* ; do
+		cat $f >> $cwd${crontabdir}/root
 		rm $f
 	done
 }
