@@ -5,10 +5,11 @@ require conf/inetd.conf
 IMAGE_PREPROCESS_FUNCS:>USE_inetd = " image_preprocess_inetd"
 
 image_preprocess_inetd () {
-	test -d ./${inetddir} || return 0
-	for f in ./${inetddir}/* ; do
-		cat $f >> ./${inetdconf}
+	cwd=`pwd`
+	test -d $cwd/${inetddir} || return 0
+	for f in $cwd/${inetddir}/* ; do
+		cat $f >> $cwd/${inetdconf}
 		rm $f
 	done
-        rm -rf ./${inetddir}
+        rm -rf $cwd/${inetddir}
 }
