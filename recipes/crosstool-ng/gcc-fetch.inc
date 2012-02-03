@@ -4,6 +4,7 @@ require conf/fetch/gnu.conf
 require conf/fetch/kernelorg.conf
 require conf/fetch/debian.conf
 require conf/fetch/mpfr.conf
+require conf/fetch/sourceforge.conf
 
 SRC_URI += "${SRC_URI_GCC}"
 SRC_URI_GCC ?= "${GNU_MIRROR}/gcc/gcc-${CT_CC_VERSION}/gcc-${CT_CC_VERSION}.tar.bz2;unpack=0"
@@ -47,13 +48,13 @@ SRC_URI_MPFR = "${MPFR_MIRROR}/mpfr-${CT_MPFR_VERSION}/mpfr-${CT_MPFR_VERSION}.t
 
 SRC_URI_MPC = "http://www.multiprecision.org/mpc/download/mpc-${CT_MPC_VERSION}.tar.gz;unpack=0"
 
-SRC_URI_STRACE = "http://mesh.dl.sourceforge.net/sourceforge/strace/strace-${CT_STRACE_VERSION}.tar.bz2;unpack=0"
+SRC_URI_STRACE = "${SOURCEFORGE_MIRROR}/project/strace/strace/${CT_STRACE_VERSION}/strace-${CT_STRACE_VERSION}.tar.bz2;unpack=0"
 
 SRC_URI_LTRACE = "${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${CT_LTRACE_VERSION}.orig.tar.gz;unpack=0"
 
 SRC_URI:>TARGET_OS_mingw32 += " \
-  http://downloads.sourceforge.net/mingw/w32api-${CT_KERNEL_VERSION}-mingw32-src.tar.gz;unpack=0 \
-  http://downloads.sourceforge.net/mingw/mingwrt-${CT_LIBC_VERSION}-mingw32-src.tar.gz;unpack=0 \
+  ${SOURCEFORGE_MIRROR}/mingw/w32api-${CT_KERNEL_VERSION}-mingw32-src.tar.gz;unpack=0 \
+  ${SOURCEFORGE_MIRROR}/mingw/mingwrt-${CT_LIBC_VERSION}-mingw32-src.tar.gz;unpack=0 \
 "
 
 do_unpack[postfuncs] += "do_unpack_ltrace_symlink"
