@@ -3,15 +3,11 @@ require conf/fstab.conf
 IMAGE_PREPROCESS_FUNCS:>USE_fstab = " image_preprocess_fstab"
 
 image_preprocess_fstab () {
-	test -d ./${fstabfixupdir} || return 0
-	(
 	cwd=`pwd`
-	cd .${fstabfixupdir}
-	for f in * ; do
+	test -d $cwd/${fstabfixupdir} || return 0
+	for f in $cwd/${fstabfixupdir}/* ; do
 		echo -e "\n# $f" >> $cwd${sysconfdir}/fstab
 		cat $f >> $cwd${sysconfdir}/fstab
 	done
-	)
-	cd $cwd
-	rm -rf .${fstabfixupdir}
+	rm -rf $cwd/${fstabfixupdir}
 }
