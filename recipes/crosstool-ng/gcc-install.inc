@@ -25,8 +25,13 @@ do_install () {
 
     mv ${TARGET_ARCH}/debug-root${target_prefix}${target_sysconfdir} \
         ${TARGET_ARCH}/debug-root${target_base_prefix}/ || true
-    
-	mv ${B}/.config ${PN}-config
+
+    [ -d share ] \
+        && [ "/share" != "${datadir}" ] \
+        && install -d ${D}${datadir} \
+        && mv share/* ${D}${datadir}/
+
+    install -m 0644 ${B}/.config ${PN}-config
 }
 
 inherit libtool
