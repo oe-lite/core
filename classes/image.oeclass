@@ -16,7 +16,7 @@ FILES_${PN} = ""
 # IMAGE_PREPROCESS_FUNCS could create device nodes, merge crontab
 # entries, mdev.conf and ineted.conf files
 
-do_compile[dirs] = "${IMAGE_DIR}"
+do_compile[dirs] = "${B} ${IMAGE_DIR}"
 do_compile[cleandirs] = "${IMAGE_DIR}"
 
 IMAGE_PURGE_PKGMETADIR ?= "1"
