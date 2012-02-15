@@ -2,11 +2,11 @@
 
 inherit binconfig-stage
 inherit libtool-stage
-addtask stage before do_fetch
+addtask stage
 
 do_stage[cleandirs]	= "${STAGE_DIR} ${STAGE_DIR}.unpack"
 do_stage[dirs]		= "${STAGE_DIR}"
-do_stage[recdeptask]	= "do_package"
+do_stage[recdeptask]	= "DEPENDS:do_package"
 
 do_stage[import] = "set_stage"
 def do_stage(d):

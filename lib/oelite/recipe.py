@@ -53,25 +53,22 @@ class OEliteRecipe:
     def get_task_names(self):
         return self.meta.get_vars(flag="task")
 
-    def get_depends(self):
+    def get_depends(self, deptypes=[]):
         depends = []
+        if deptypes:
+            deptypes_in = " AND deptype IN (%s)"%(
+                ",".join("?" for i in deptypes))
+        else:
+            deptypes_in = ""
         for type, item, version in self.cookbook.dbc.execute(
             "SELECT type, item, version FROM recipe_depend "
-            "WHERE recipe_depend.recipe=?", (self.id,)):
+            "WHERE recipe_depend.recipe=?%s"%(deptypes_in),
+            ([self.id] + deptypes)):
             if version is None:
                 depends.append("%s:%s"%(type, item))
             else:
                 depends.append("%s:%s_%s"%(type, item, version))
         return depends
-        #return self.meta.get_list("DEPENDS")
-
-    def get_rdepends(self):
-        depends = []
-        for type, item in self.cookbook.dbc.execute(
-            "SELECT type, item FROM recipe_rdepend WHERE recipe=?", (self.id,)):
-            depends.append("%s:%s"%(type, item))
-        return depends
-        #return self.meta.get_list("RDEPENDS")
 
 
     def add_task(self, task, task_deps):

@@ -9,11 +9,11 @@ inherit package
 # to have do_fetch
 inherit fetch
 
-addtask configure after do_unpack do_patch
-addtask compile after do_configure
-addtask install after do_compile
-addtask build after do_install
-addtask buildall after do_build
+addtask configure after stage unpack patch
+addtask compile after configure
+addtask install after compile
+addtask build after install
+addtask buildall after build
 addtask clean
 
 addtask listtasks

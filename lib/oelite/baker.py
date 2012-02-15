@@ -330,12 +330,7 @@ class OEliteBaker:
                 continue
 
             dephashes = {}
-            task_dependencies = self.runq.task_dependencies(task)
-            for depend in task_dependencies[0]:
-                dephashes[depend] = self.runq.get_task_metahash(depend)
-            for depend in [d[0] for d in task_dependencies[1]]:
-                dephashes[depend] = self.runq.get_task_metahash(depend)
-            for depend in [d[0] for d in task_dependencies[2]]:
+            for depend in self.runq.task_dependencies(task, flatten=True):
                 dephashes[depend] = self.runq.get_task_metahash(depend)
             recipe_extra_arch = recipe.meta.get("EXTRA_ARCH")
             task_meta = task.meta()
@@ -400,8 +395,6 @@ class OEliteBaker:
         # check for availability of prebaked packages, and set package
         # filename for all packages.
         depend_packages = self.runq.get_depend_packages()
-        rdepend_packages = self.runq.get_rdepend_packages()
-        depend_packages = set(depend_packages).union(rdepend_packages)
         for package in depend_packages:
             # FIXME: skip this package if it is to be rebuild
             prebake = self.find_prebaked_package(package)

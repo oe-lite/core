@@ -38,7 +38,7 @@ def library_depends(d):
     if pkg_rdepends is None:
         pkg_rdepends = []
         for dep in pkg_depends:
-            item = oelite.item.OEliteItem(dep, (0, pkg_type))
+            item = oelite.item.OEliteItem(dep, ("DEPENDS", pkg_type))
             if item.type != pkg_type:
                 continue
             if dep == (devpkg + "_" + pv):
@@ -52,7 +52,7 @@ def library_depends(d):
 
     devpkg_rdepends = (d.get("RDEPENDS_" + devpkg) or "").split()
     for dep in pkg_rdepends:
-        item = oelite.item.OEliteItem(dep, (1, pkg_type))
+        item = oelite.item.OEliteItem(dep, ("RDEPENDS", pkg_type))
         if item.name.startswith("lib") and not item.name.endswith("-dev"):
             if item.version:
                 devdep = "%s:%s_%s"%(item.type, item.name + "-dev", item.type)

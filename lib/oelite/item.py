@@ -3,7 +3,7 @@ from oebakery import die, err, warn, info, debug
 
 class OEliteItem:
 
-    def __init__(self, item, context = (0, None)):
+    def __init__(self, item, context = ("DEPENDS", None)):
         item = item.split(":", 1)
         if len(item) == 1:
             self.type = None
@@ -18,11 +18,12 @@ class OEliteItem:
         else:
             self.version = item[1]
         assert isinstance(context, tuple) and len(context) == 2
+        assert context[0] in ("DEPENDS", "RDEPENDS", "FDEPENDS")
         try:
             self.type = TYPEMAP[context[0]][context[1]][self.type]
         except KeyError:
             raise Exception("Invalid item type %s in %s %s context"%(
-                self.type, ["DEPENDS","RDEPENDS"][context[0]], context[1]))
+                self.type, context[0], context[1]))
         return
 
     def __str__(self):
@@ -40,9 +41,9 @@ class OEliteItem:
                 self.version == other.version)
 
 
-TYPEMAP = (
+TYPEMAP = {
 
-    { # DEPENDS
+    "DEPENDS": {
 
         None : {
             None		: None,
@@ -129,7 +130,8 @@ TYPEMAP = (
             },
         },
 
-    { # RDEPENDS
+    "RDEPENDS": {
+
         "machine" : {
             None		: "machine",
             "machine"		: "machine",
@@ -153,7 +155,45 @@ TYPEMAP = (
             "target"		: "machine",
             },
         },
-)
+
+    "FDEPENDS": {
+
+        None : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "native" : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "cross" : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "machine" : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "sdk-cross" : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "sdk" : {
+            None		: "native",
+            "native"		: "native",
+            },
+
+        "canadian-cross" : {
+            None		: "native",
+            "native"		: "native",
+            },
+        },
+}
 
 def typemap(type):
     assert type

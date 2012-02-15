@@ -43,30 +43,18 @@ class OEliteTask:
             return []
         return self.cookbook.get_tasks(recipe=self.recipe, name=parents)
 
-    def get_deptasks(self):
+    def get_deptasks(self, deptypes):
+        assert isinstance(deptypes, list) and len(deptypes) > 0
         return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT deptask FROM task_deptask WHERE task=?",
-            (self.id,)))
+            "SELECT deptask FROM task_deptask "
+            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
+            "AND task=?", deptypes + [self.id]))
 
-    def get_rdeptasks(self):
+    def get_recdeptasks(self, deptypes):
         return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT rdeptask FROM task_rdeptask WHERE task=?",
-            (self.id,)))
-
-    def get_recdeptasks(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT recdeptask FROM task_recdeptask WHERE task=?",
-            (self.id,)))
-
-    def get_recrdeptasks(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT recrdeptask FROM task_recrdeptask WHERE task=?",
-            (self.id,)))
-
-    def get_recadeptasks(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT recadeptask FROM task_recadeptask WHERE task=?",
-            (self.id,)))
+            "SELECT recdeptask FROM task_recdeptask "
+            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
+            "AND task=?", deptypes + [self.id]))
 
     def get_taskdepends(self):
         return flatten_single_column_rows(self.cookbook.dbc.execute(
@@ -136,11 +124,12 @@ class OEliteTask:
         debug("buildhash=%s"%(repr(buildhash)))
         meta.set("TASK_BUILDHASH", buildhash)
 
-        def prepare_stage(get_depend_packages):
+        def prepare_stage(deptype):
             stage = {}
             recdepends = []
             get_package_filename = self.cookbook.baker.runq.get_package_filename
-            packages = get_depend_packages(self) or []
+            packages = self.cookbook.baker.runq.get_depend_packages(
+                self, deptype) or []
             for package in packages:
                 package = self.cookbook.get_package(id=package)
                 filename = get_package_filename(package)
@@ -148,12 +137,12 @@ class OEliteTask:
                     stage[filename] = package
             return stage
 
-        meta["__stage"] = prepare_stage(
-            self.cookbook.baker.runq.get_depend_packages)
-        meta["__rstage"] = prepare_stage(
-            self.cookbook.baker.runq.get_rdepend_packages)
+        meta["__stage"] = prepare_stage("DEPENDS")
+        meta["__rstage"] = prepare_stage("RDEPENDS")
+        meta["__fstage"] = prepare_stage("FDEPENDS")
         meta.set_flag("__stage", "nohash", True)
         meta.set_flag("__rstage", "nohash", True)
+        meta.set_flag("__fstage", "nohash", True)
 
         return
 

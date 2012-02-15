@@ -6,6 +6,7 @@ import oelite.recipe
 import sys
 import os
 import copy
+import operator
 
 class OEliteRunQueue:
 
@@ -54,23 +55,17 @@ class OEliteRunQueue:
             "task		INTEGER, " # references task.id
             "prime		INTEGER, " # boolean
             "parent_task	INTEGER, " # references task.id
-            "depend_package	INTEGER DEFAULT -1, " # package
-            "rdepend_package	INTEGER DEFAULT -1, " # package
+            "deptype		TEXT, "
+            "package		INTEGER DEFAULT -1, " # package
             "filename		TEXT, "
             "prebake		INTEGER, "
-            "UNIQUE (task, parent_task, depend_package, rdepend_package) "
+            "UNIQUE (task, parent_task, deptype, package) "
             "ON CONFLICT IGNORE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS runq.recdepend ( "
+            "deptype            TEXT, "
             "package		INTEGER, "
-            "parent_recipe	INTEGER, "
-            "parent_package	INTEGER )")
-
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS runq.recrdepend ( "
-            "package		INTEGER, "
-            "parent_recipe	INTEGER, "
             "parent_package	INTEGER )")
 
         return
@@ -126,14 +121,14 @@ class OEliteRunQueue:
         if not primary_task:
             raise NoSuchTask("%s:%s"%(recipe.name, task_name))
 
-        alltasks = set()
+        alltasks = set([])
         addedtasks = set([primary_task])
 
         while addedtasks:
             self.add_runq_tasks(addedtasks)
 
             alltasks.update(addedtasks)
-            newtasks = set()
+            newtasks = set([])
             for task in addedtasks:
 
                 recipe = self.cookbook.get_recipe(task=task)
@@ -163,18 +158,13 @@ class OEliteRunQueue:
                     self.set_task_relax(task)
 
                 try:
-                    # task_dependencies should return tuple:
-                    # task_depends: list of task_id's
-                    # package_depends: list of (task_id, package_id)
-                    # package_rdepends: list of (task_id, package_id)
-                    (task_depends, package_depends, package_rdepends) = \
+                    (task_depends, package_depends) = \
                         self.task_dependencies(task)
                     self.add_runq_task_depends(task, task_depends)
-                    self.add_runq_package_depends(task, package_depends)
-                    self.add_runq_package_rdepends(task, package_rdepends)
                     newtasks.update(task_depends)
-                    newtasks.update([d[0] for d in package_depends])
-                    newtasks.update([d[0] for d in package_rdepends])
+                    for (deptype, depends) in package_depends.items():
+                        self.add_runq_package_depends(task, deptype, depends)
+                        newtasks.update(map(operator.itemgetter(0), depends))
                 except RecursiveDepends, e:
                     recipe = self.cookbook.get_recipe(task=task)
                     raise RecursiveDepends(e.args[0], "%s (%s)"%(
@@ -187,6 +177,12 @@ class OEliteRunQueue:
 
 
     def task_dependencies(self, task, flatten=False):
+        # must return tuple of (task_depends, package_depends), where
+        # task_depends is a list or set of task_id's
+        # and package_depends is a dictionary of
+        # DEPENDTYPE -> set of (task_id, package_id) tuples
+        # or if flatten=True, just a set of task_id's
+
         recipe = self.cookbook.get_recipe(task=task)
 
         # add recipe-internal task parents
@@ -195,8 +191,7 @@ class OEliteRunQueue:
         parents = task.get_parents()
         task_depends = set(parents)
 
-        package_depends = set()
-        package_rdepends = set()
+        package_depends = {}
 
         # helper to add multipe task_depends
         def add_task_depends(task_names, recipes):
@@ -209,78 +204,45 @@ class OEliteRunQueue:
                         debug("not adding unsupported task %s:%s"%(
                                 recipe, task_name))
 
-        # helpers to add multipe package_depends / package_rdepends
-        def add_package_depends(task_names, depends):
-            return _add_package_depends(task_names, depends, package_depends)
-
-        def add_package_rdepends(task_names, rdepends):
-            return _add_package_depends(task_names, rdepends, package_rdepends)
-
-        def _add_package_depends(task_names, depends, package_depends):
+        def add_package_depends(task_names, deptype, depends):
+            if not depends:
+                return
+            if not deptype in package_depends.keys():
+                package_depends[deptype] = set([])
             for task_name in task_names:
-                for (recipe, package) in depends:
-                    if isinstance(recipe, oelite.recipe.OEliteRecipe):
-                        recipe = recipe.id
+                for package in depends:
+                    assert isinstance(package, oelite.package.OElitePackage)
+                    recipe = package.recipe.id
                     task = self.cookbook.get_task(recipe=recipe, name=task_name)
-                    if task:
-                        package_depends.add((task, package))
-                    else:
-                        debug("not adding unsupported task %s:%s"%(
+                    if not task:
+                        bb.fatal("cannot add unsupported task %s:%s"%(
                                 recipe, task_name))
+                    package_depends[deptype].add((task, package))
 
         # add deptask dependencies
-        # (ie. do_sometask[deptask] = "do_someothertask")
-        deptasks = task.get_deptasks()
-        if deptasks:
-            # get list of (recipe, package) providing ${DEPENDS}
-            depends = self.get_depends(recipe)
-            # add each deptask for each (recipe, package)
-            add_package_depends(deptasks, depends)
+        # (ie. do_sometask[deptask] = "DEPTYPE:do_someothertask")
+        for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            deptasks = task.get_deptasks([deptype])
+            if deptasks:
+                # get list of packages providing the dependencies
+                depends = self.get_depends(recipe, deptype)
+                # add each deptask for each package
+                add_package_depends(deptasks, deptype, depends)
 
-        # add rdeptask dependencies
-        # (ie. do_sometask[rdeptask] = "do_someothertask")
-        rdeptasks = task.get_rdeptasks()
-        if rdeptasks:
-            # get list of (recipe, package) providing ${RDEPENDS}
-            rdepends = self.get_rdepends(recipe)
-            # add each rdeptask for each (recipe, package)
-            add_package_rdepends(rdeptasks, rdepends)
-
-        # add recursive (build) depends tasks
-        # (ie. do_sometask[recdeptask] = "do_someothertask")
-        recdeptasks = task.get_recdeptasks()
-        if recdeptasks:
-            # get cumulative list of (recipe, package) providing
-            # ${DEPENDS} and recursively the corresponding
-            # ${PACKAGE_DEPENDS_*}
-            depends = self.get_depends(recipe, recursive=True)
-            # add each recdeptask for each (recipe, package)
-            add_package_depends(recdeptasks, depends)
-
-        # add recursive run-time depends tasks
-        # (ie. do_sometask[recrdeptask] = "do_someothertask")
-        recrdeptasks = task.get_recrdeptasks()
-        if recrdeptasks:
-            # get cumulative list of (recipe, package) providing
-            # ${RDEPENDS} and recursively the corresponding
-            # ${PACKAGE_RDEPENDS_*}
-            rdepends = self.get_rdepends(recipe, recursive=True)
-            # add each recdeptask of each (recipe, package)
-            add_package_rdepends(recrdeptasks, rdepends)
-
-        # add recursive all depends tasks
-        # (ie. do_sometask[recadeptask] = "do_someothertask")
-        recadeptasks = task.get_recadeptasks()
-        if recadeptasks:
-            # get all inclusive cumulative list of (recipe, package)
-            # involved in a full build, including recursively all
-            # ${DEPENDS}, ${RDEPENDS}, ${PACKAGE_DEPENDS_*} and
-            # ${PACKAGE_RDEPENDS_*}
-            depends = self.get_adepends(recipe, recursive=True)
-            # get distinct recipe list
-            depends = dict(depends).keys()
-            # add each recdeptask for each (recipe, package)
-            add_task_depends(recadeptasks, depends)
+        # add recursive depends tasks
+        # (ie. do_sometask[recdeptask] = "DEPTYPE:do_someothertask")
+        for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            recdeptasks = task.get_recdeptasks([deptype])
+            if recdeptasks:
+                # get cumulative list of packages providing the dependencies
+                # and recursively the corresponding package dependencies
+                if deptype == "FDEPENDS":
+                    rec_deptype = "DEPENDS"
+                else:
+                    rec_deptype = deptype
+                depends = self.get_depends(recipe, deptype, rec_deptype)
+                # add each recdeptask for each package
+                add_package_depends(recdeptasks, deptype, depends)
 
         # add inter-task dependencies
         # (ie. do_sometask[depends] = "itemname:do_someothertask")
@@ -308,60 +270,36 @@ class OEliteRunQueue:
 
         # add task dependency information to runq db
         self.add_runq_task_depends(task, task_depends)
-        self.add_runq_package_depends(task, package_depends)
-        self.add_runq_package_rdepends(task, package_rdepends)
+        for (deptype, packages) in package_depends.items():
+            self.add_runq_package_depends(task, deptype, packages)
 
         if flatten:
             depends = set([])
             for depend in task_depends:
                 depends.add(depend)
-            for depend in [d[0] for d in package_depends]:
-                depends.add(depend)
-            for depend in [d[0] for d in package_rdepends]:
-                depends.add(depend)
+            for (deptype, _depends) in package_depends.items():
+                depends.update(map(operator.itemgetter(0), list(_depends)))
             return depends
 
-        return (task_depends, package_depends, package_rdepends)
+        return (task_depends, package_depends)
 
 
-    def get_depends(self, recipe, recursive=False):
-        # this should not return items in ${ASSUME_PROVIDED}
-        return self._get_depends(recipe, recursive, 0,
-                                 self.cookbook.get_package_depends,
-                                 recipe.get_depends,
-                                 self.set_recdepends,
-                                 self.get_recdepends)
+    def get_depends(self, recipe, deptype, rec_deptype=None):
+        # return list/set of packages
 
+        def resolve_dependency(item, recursion_path, deptype):
+            if not rec_deptype:
+                if self.assume_provided(item):
+                    debug("ASSUME_PROVIDED %s"%(item))
+                    return set([])
+                try:
+                    (recipe, package) = self.get_recipe_provider(item)
+                except NoProvider, e:
+                    if len(e.args) < 2 and len(recursion_path[0]):
+                        raise NoProvider(e.args[0], recursion_path[0][-1])
+                    raise
+                return set([package])
 
-    def get_rdepends(self, recipe, recursive=False):
-        return self._get_depends(recipe, recursive, 1,
-                                 self.cookbook.get_package_rdepends,
-                                 recipe.get_rdepends,
-                                 self.set_recrdepends,
-                                 self.get_recrdepends)
-
-
-    def _get_depends(self, recipe, recursive, typemap,
-                     get_package_depends, recipe_get_depends,
-                     set_recdepends, get_recdepends):
-
-        def simple_resolve(item, recursion_path, type):
-            item = oelite.item.OEliteItem(item, (typemap, type))
-            if self.assume_provided(item):
-                #debug("ASSUME_PROVIDED %s"%(item))
-                return ([], [])
-            try:
-                (recipe, package) = self.get_recipe_provider(item)
-            except NoProvider, e:
-                if len(e.args) < 2 and len(recursion_path[0]):
-                    raise NoProvider(e.args[0], recursion_path[0][-1])
-                raise
-            return ([recipe], [package])
-
-        def recursive_resolve(item, recursion_path, type):
-            #print "recursive_resolve %s %s"%(item, recursion_path)
-            orig_item = item
-            item = oelite.item.OEliteItem(item, (typemap, type))
             if self.assume_provided(item):
                 #debug("ASSUME_PROVIDED %s"%(item))
                 return set([])
@@ -412,56 +350,44 @@ class OEliteRunQueue:
 
             recursion_path[0].append(str(package))
             recursion_path[1].append(str(item))
-            #print "recursion_path = %s"%(repr(recursion_path))
 
-            # cache recdepends list of (recipe, package)
-            recdepends = get_recdepends(package)
-            if recdepends:
-                recdepends.append((recipe, package))
-                return recdepends
+            # try to get cached recdepends list of packages
+            packages = self.get_recdepends(package, [deptype])
+            if packages:
+                return packages + [package]
 
-            recdepends = set()
-
-            depends = get_package_depends(package)
+            packages = set([])
+            depends = self.cookbook.get_package_depends(package, [deptype])
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
-                    _recdepends = recursive_resolve(depend, _recursion_path,
-                                                    package.type)
-                    recdepends.update(_recdepends)
+                    _packages = resolve_dependency(
+                        oelite.item.OEliteItem(depend, (deptype, package.type)),
+                        _recursion_path, deptype)
+                    packages.update(_packages)
+            self.set_recdepends(package, deptype, packages)
+            packages.add(package)
+            return packages
 
-            set_recdepends(package, recdepends)
+        depends = set([])
+        depends.update(recipe.get_depends([deptype]))
 
-            recdepends.update([(recipe, package)])
-            return recdepends
-
-        if recursive:
-            resolve = recursive_resolve
-        else:
-            resolve = simple_resolve
-
-        depends = recipe_get_depends()
-
-        recdepends = set()
-
+        packages = set([])
         for depend in depends:
             try:
-                _recdepends = resolve(depend, ([], []), recipe.type)
+                _packages = resolve_dependency(
+                    oelite.item.OEliteItem(depend, (deptype, recipe.type)),
+                    ([], []), rec_deptype)
             except NoProvider, e:
                 if len(e.args) < 2:
                     needed_by = str(recipe)
                 else:
                     needed_by = e.args[1]
-                    print "needed_by", needed_by
                 raise die("No provider for %s (needed by %s)"%(
                         e.args[0], needed_by))
-            recdepends.update(_recdepends)
+            packages.update(_packages)
 
-        return recdepends
-
-
-    def get_adepends(self, recipe, recursive=True):
-        return set()
+        return packages
 
 
     def get_recipe_provider(self, item):
@@ -709,20 +635,6 @@ class OEliteRunQueue:
         return tasks
 
 
-    def print_runq_depends(self):
-        runq_depends = self.dbc.execute(
-            "SELECT prime,task,parent_task,parent_package,parent_rpackage "
-            "FROM runq.depend").fetchall()
-        for row in runq_depends:
-            prime = row[0] or 0
-            print "%d %4d -> %4d %4s %4s  %s:%s -> %s:%s"%(
-                prime, row[1], row[2], row[3], row[4],
-                self.get_recipe(task=row[1]).get_name(),
-                self.cookbook.get_task(task=row[1]),
-                self.get_recipe(task=row[2]).get_name(),
-                self.cookbook.get_task(task=row[2]))
-        return
-
     def number_of_runq_tasks(self):
         return flatten_single_value(self.dbc.execute(
                 "SELECT COUNT(*) FROM runq.task"))
@@ -749,24 +661,29 @@ class OEliteRunQueue:
         return
 
 
-    def add_runq_depend(self, task, depend,
-                        depend_package=None, rdepend_package=None):
+    def add_runq_package_depends(self, task, deptype, depends):
+        if not depends:
+            return
         assert isinstance(task, oelite.task.OEliteTask)
-        assert isinstance(depend, oelite.task.OEliteTask)
-        if depend_package:
-            assert isinstance(depend_package, oelite.package.OElitePackage)
+        for (parent_task, package) in depends:
+            self.add_runq_depend(task, parent_task, deptype, package)
+
+
+    def add_runq_depend(self, task, parent_task, deptype=None, package=None):
+        assert isinstance(task, oelite.task.OEliteTask)
+        assert isinstance(parent_task, oelite.task.OEliteTask)
+        if package:
+            assert deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS")
+            assert isinstance(package, oelite.package.OElitePackage)
             self.dbc.execute(
-                "INSERT INTO runq.depend (task, parent_task, depend_package) "
-                "VALUES (?, ?, ?)", (task.id, depend.id, depend_package.id))
-        elif rdepend_package:
-            assert isinstance(rdepend_package, oelite.package.OElitePackage)
-            self.dbc.execute(
-                "INSERT INTO runq.depend (task, parent_task, rdepend_package) "
-                "VALUES (?, ?, ?)", (task.id, depend.id, rdepend_package.id))
+                "INSERT INTO runq.depend "
+                "(task, parent_task, deptype, package) "
+                "VALUES (?, ?, ?, ?)",
+                (task.id, parent_task.id, deptype, package.id))
         else:
             self.dbc.execute(
                 "INSERT INTO runq.depend (task, parent_task) "
-                "VALUES (?, ?)", (task.id, depend.id))
+                "VALUES (?, ?)", (task.id, parent_task.id))
         return
 
 
@@ -779,33 +696,18 @@ class OEliteRunQueue:
         return
 
 
-    def add_runq_package_depends(self, task, depends):
-        if not depends:
-            return
-        assert isinstance(task, oelite.task.OEliteTask)
-        for depend in depends:
-            self.add_runq_depend(task, depend[0], depend_package=depend[1])
-
-    def add_runq_package_rdepends(self, task, depends):
-        if not depends:
-            return
-        assert isinstance(task, oelite.task.OEliteTask)
-        for depend in depends:
-            self.add_runq_depend(task, depend[0], rdepend_package=depend[1])
-
-
     def set_package_filename(self, package, filename, prebake=False):
         assert isinstance(package, int)
         if prebake:
             self.dbc.execute(
                 "UPDATE runq.depend SET filename=?, prebake=1 "
-                "WHERE depend_package=? OR rdepend_package=?",
-                (filename, package, package))
+                "WHERE package=?",
+                (filename, package))
         else:
             self.dbc.execute(
                 "UPDATE runq.depend SET filename=? "
-                "WHERE depend_package=? OR rdepend_package=?",
-                (filename, package, package))
+                "WHERE package=?",
+                (filename, package))
         return
 
 
@@ -825,15 +727,13 @@ class OEliteRunQueue:
             "  AND NOT EXISTS " # and no task-based dependencies on it
             "    (SELECT * FROM runq.depend "
             "     WHERE runq.depend.parent_task=runq.task.task"
-            "     AND (runq.depend.depend_package < 0 AND"
-            "          runq.depend.rdepend_package < 0)"
+            "     AND (runq.depend.package < 0)"
             "     LIMIT 1)"
             "  AND NOT EXISTS " # and no non-prebaked dependencies on it
             "    (SELECT *"
             "     FROM runq.depend"
             "     WHERE runq.depend.parent_task=runq.task.task"
-            "     AND (runq.depend.depend_package >= 0 OR"
-            "          runq.depend.rdepend_package >= 0)"
+            "     AND (runq.depend.package >= 0)"
             "     AND runq.depend.prebake IS NULL"
             "     LIMIT 1)"
             ))
@@ -854,47 +754,34 @@ class OEliteRunQueue:
         return flatten_single_value(self.dbc.execute(
                 "SELECT filename "
                 "FROM runq.depend "
-                "WHERE depend_package=? OR rdepend_package=? "
-                "LIMIT 1", (package.id, package.id)))
+                "WHERE package=? "
+                "LIMIT 1", (package.id,)))
 
 
-    def set_recdepends(self, package, recdepends):
-        return self._set_recdepends(
-            package, recdepends, "runq.recdepend")
-
-    def set_recrdepends(self, package, recrdepends):
-        return self._set_recdepends(
-            package, recrdepends, "runq.recrdepend")
-
-    def _set_recdepends(self, package, recdepends, runq_recdepend):
+    def set_recdepends(self, package, deptype, recdepends):
         if not recdepends:
             return
         assert isinstance(package, oelite.package.OElitePackage)
         def task_tuple(depend):
-            return (package.id, depend[0].id, depend[1].id)
+            return (deptype, package.id, depend.id)
         recdepends = map(task_tuple, recdepends)
         self.dbc.executemany(
-            "INSERT INTO %s "%(runq_recdepend) +
-            "(package, parent_recipe, parent_package) "
+            "INSERT INTO runq.recdepend "
+            "(deptype, package, parent_package) "
             "VALUES (?, ?, ?)", recdepends)
         return
 
 
-    def get_recdepends(self, package):
-        return self._get_recdepends(package, "runq.recdepend")
-
-    def get_recrdepends(self, package):
-        return self._get_recdepends(package, "runq.recrdepend")
-
-    def _get_recdepends(self, package, runq_recdepend):
+    def get_recdepends(self, package, deptypes):
         assert isinstance(package, oelite.package.OElitePackage)
+        assert isinstance(deptypes, list) and len(deptypes) > 0
         recdepends = []
-        for (recipe_id, package_id) in self.dbc.execute(
-                "SELECT parent_recipe, parent_package "
-                "FROM %s "%(runq_recdepend) +
-                "WHERE package=?", (package.id,)).fetchall():
-            recdepends.append((self.cookbook.get_recipe(id=recipe_id),
-                               self.cookbook.get_package(id=package_id)))
+        for package_id in self.dbc.execute(
+                "SELECT parent_package "
+                "FROM runq.recdepend "
+                "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
+                "AND package=?", (deptypes + [package.id])):
+            recdepends.append(self.cookbook.get_package(id=package_id))
         return recdepends
 
 
@@ -921,14 +808,16 @@ class OEliteRunQueue:
 
 
     def print_metahashable_tasks(self):
-        for r in self.dbc.execute("select task from runq.task where metahash is NULL"):
+        for r in self.dbc.execute(
+            "SELECT task FROM runq.task WHERE metahash is NULL"):
             print self.cookbook.get_task(id=r[0])
-            for r in self.cookbook.db.execute("select parent_task, depend_package, rdepend_package from runq.depend where task=%s"%(r[0])):
+            for r in self.cookbook.db.execute(
+                "SELECT parent_task, package "
+                "FROM runq.depend "
+                "WHERE task=%s"%(r[0])):
                 s = str(self.cookbook.get_task(id=r[0]))
                 if r[1] != -1:
-                    s += " depend_package=%s"%(self.cookbook.get_package(id=r[1]))
-                if r[2] != -1:
-                    s += " rdepend_package=%s"%(self.cookbook.get_package(id=r[2]))
+                    s += " package=%s"%(self.cookbook.get_package(id=r[1]))
                 print " " +s
 
     def get_metahashable_tasks(self):
@@ -953,9 +842,8 @@ class OEliteRunQueue:
                 "  runq.task, runq.depend "
                 "WHERE"
                 "  runq.depend.parent_task=runq.task.task"
-                "  AND (runq.depend.depend_package=? OR"
-                "       runq.depend.rdepend_package=?)"
-                "  LIMIT 1", (package, package)))
+                "  AND runq.depend.package=? "
+                "LIMIT 1", (package,)))
 
 
     def get_package_metahash(self, package):
@@ -973,52 +861,38 @@ class OEliteRunQueue:
                 "  runq.task, runq.depend "
                 "WHERE"
                 "  runq.depend.parent_task=runq.task.task"
-                "  AND (runq.depend.depend_package=? OR"
-                "       runq.depend.rdepend_package=?) "
+                "  AND runq.depend.package=? "
                 "LIMIT 1"%(hash),
-                (package, package)))
+                (package,)))
 
 
-    def get_depend_packages(self, task=None):
+    def get_depend_packages(self, task=None, deptype=None):
+        if deptype:
+            and_deptype = " AND deptype=?"
+            deptype = [deptype]
+        else:
+            and_deptype = ""
+            deptype = []
         if task:
             assert isinstance(task, oelite.task.OEliteTask)
             return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT depend_package "
+                    "SELECT DISTINCT package "
                     "FROM runq.depend "
-                    "WHERE depend_package >= 0 AND task=?",
-                (task.id,)))
+                    "WHERE package >= 0 AND task=?" + and_deptype,
+                    [task.id] + deptype))
         else:
             return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT depend_package "
+                    "SELECT DISTINCT package "
                     "FROM runq.depend "
-                    "WHERE depend_package >= 0"))
-
-
-    def get_rdepend_packages(self, task=None):
-        if task:
-            assert isinstance(task, oelite.task.OEliteTask)
-            return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT rdepend_package "
-                    "FROM runq.depend "
-                    "WHERE rdepend_package >= 0 AND task=?",
-                (task.id,)))
-        else:
-            return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT rdepend_package "
-                    "FROM runq.depend "
-                    "WHERE rdepend_package >= 0"))
+                    "WHERE package >= 0" + and_deptype, deptype))
 
 
     def get_packages_to_build(self):
-        depend_packages = flatten_single_column_rows(self.dbc.execute(
-                "SELECT DISTINCT depend_package "
+        packages = flatten_single_column_rows(self.dbc.execute(
+                "SELECT DISTINCT package "
                 "FROM runq.depend "
-                "WHERE depend_package >= 0 AND prebake IS NULL"))
-        rdepend_packages = flatten_single_column_rows(self.dbc.execute(
-                "SELECT DISTINCT rdepend_package "
-                "FROM runq.depend "
-                "WHERE rdepend_package >= 0 AND prebake IS NULL"))
-        return set(depend_packages).union(rdepend_packages)
+                "WHERE package >= 0 AND prebake IS NULL"))
+        return set(packages)
 
 
     def set_buildhash_for_build_tasks(self):

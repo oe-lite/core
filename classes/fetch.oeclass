@@ -1,12 +1,13 @@
 # -*- mode:python; -*-
 
-addtask fetch after stage_fixup
+addtask fstage
+addtask fetch after fstage
+addtask fetchall after fetch
 addtask unpack after fetch
 addtask patch after unpack
 
 FETCHER_DEPENDS = ""
 CLASS_DEPENDS += "${FETCHER_DEPENDS}"
-
 
 addhook fetch_init to post_recipe_parse first after set_useflags
 
@@ -23,7 +24,8 @@ def fetch_init(d):
     import hashlib
     m = hashlib.sha1()
     uris = []
-    schemes = set()
+    fdepends = set()
+    unpack_cmds = set()
     failed = False
     filespath = d.get("FILESPATH").split(":")
     d["FILESPATH_EXISTS"] = ":".join([
@@ -32,7 +34,9 @@ def fetch_init(d):
         try:
             uri = oelite.fetch.OEliteUri(src_uri, d)
             m.update(uri.signature())
-            schemes.add(uri.scheme)
+            fdepends.update(uri.fdepends)
+            if "unpack" in uri.params:
+                unpack_cmds.add(uri.params["unpack"])
             uris.append(uri)
         except oelite.fetch.FetchException as e:
             print e
@@ -41,11 +45,15 @@ def fetch_init(d):
         print "Bad SRC_URI"
         return False
     d.set("SRC_URI_SIGNATURE", m.hexdigest())
-
-    # FIXME: set FETCH_DEPENDS based on the schemes set.
-
+    d.set("FDEPENDS", " ".join(fdepends))
+    for var in d.keys():
+        if var.startswith("UNPACK_CMD_FDEPENDS_"):
+            del d[var]
+        elif var.startswith("UNPACK_CMD_"):
+            if not var[11:] in unpack_cmds:
+                del d[var]
     d.set("__fetch", uris)
-
+    return
 
 do_fetch[dirs] = "${INGREDIENTS}"
 
@@ -91,4 +99,25 @@ def do_patch(d):
             continue
         if not uri.patch(d):
             return False
+    return
+
+do_fstage[cleandirs]	= "${FSTAGE_DIR} ${FSTAGE_DIR}.unpack"
+do_fstage[dirs]		= "${FSTAGE_DIR}"
+do_fstage[recdeptask]	= "FDEPENDS:do_package"
+
+do_fstage[import] = "set_stage"
+set_stage[emit] += "do_fstage"
+def do_fstage(d):
+    def get_dstdir(cwd, package):
+        return cwd
+    retval = set_stage(d, "__fstage", "", get_dstdir,
+                       d.get("FSTAGE_DIR") + ".unpack")
+    metadir = d.getVar("metadir", True).lstrip("/")
+    if os.path.exists(metadir):
+        shutil.rmtree(metadir)
+    return retval
+
+do_fetchall[recdeptask] = "DEPENDS:do_fetchall RDEPENDS:do_fetchall"
+do_fetchall[dirs] = "${WORKDIR}"
+def do_fetchall(d):
     return

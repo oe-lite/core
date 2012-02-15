@@ -74,9 +74,12 @@ class OEliteUri:
         if not self.scheme in FETCHERS:
             raise oelite.fetch.InvalidURI(
                 uri, "unsupported URI scheme: %s"%(self.scheme))
+        self.fdepends = []
         self.fetcher = FETCHERS[self.scheme](self, d)
         self.init_unpack_params()
+        self.add_unpack_fdepends(d)
         self.init_patch_params(d)
+        self.add_patch_fdepends()
         self.mirrors = d.get("MIRRORS") or None
         return
 
@@ -120,9 +123,19 @@ class OEliteUri:
                         return
         elif self.params["unpack"] == "0":
             del self.params["unpack"]
-        if "unpack" in self.params and self.params["unpack"] == "zip":
+        if not "unpack" in self.params:
+            return
+        if self.params["unpack"] == "zip":
             if "dos" in self.params and self.params["dos"] != "0":
                 self.params["unpack"] += "_dos"
+        return
+
+    def add_unpack_fdepends(self, d):
+        if not "unpack" in self.params or not self.params["unpack"]:
+            return
+        fdepends = d.get("UNPACK_CMD_FDEPENDS_" + self.params["unpack"])
+        if fdepends:
+            self.fdepends.extend(fdepends.split())
         return
 
     def init_patch_params(self, d):
@@ -156,6 +169,12 @@ class OEliteUri:
             self.params["striplevel"] = 1
         if "patchdir" in self.params:
             raise Exception("patchdir URI parameter support not implemented")
+        return
+
+    def add_patch_fdepends(self):
+        if not "apply" in self.params or not self.params["apply"]:
+            return
+        self.fdepends.append("native:quilt")
         return
 
     def signature(self):

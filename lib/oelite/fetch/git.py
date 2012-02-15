@@ -13,6 +13,7 @@ class GitFetcher():
         if not uri.scheme in self.SUPPORTED_SCHEMES:
             raise Exception(
                 "Scheme %s not supported by oelite.fetch.GitFetcher"%(scheme))
+        uri.fdepends.append("native:git")
         self.uri = uri
         try:
             protocol = uri.params["protocol"]

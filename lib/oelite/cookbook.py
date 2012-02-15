@@ -118,10 +118,11 @@ class CookBook(Mapping):
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS recipe_depend ( "
             "recipe      INTEGER, "
+            "deptype     TEXT, "
             "type        TEXT, "
             "item        TEXT, "
             "version     TEXT, "
-            "UNIQUE (recipe, type, item) ON CONFLICT REPLACE )")
+            "UNIQUE (recipe, deptype, type, item) ON CONFLICT REPLACE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS recipe_rdepend ( "
@@ -140,16 +141,9 @@ class CookBook(Mapping):
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS package_depend ( "
             "package     INTEGER, "
-            "type        TEXT, "
+            "deptype     TEXT, "
             "item        TEXT, "
-            "UNIQUE (package, type, item) ON CONFLICT IGNORE )")
-
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS package_rdepend ( "
-            "package     INTEGER, "
-            "type        TEXT, "
-            "item        TEXT, "
-            "UNIQUE (package, type, item) ON CONFLICT IGNORE )")
+            "UNIQUE (package, deptype, item) ON CONFLICT IGNORE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS task_parent ( "
@@ -161,32 +155,16 @@ class CookBook(Mapping):
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS task_deptask ( "
             "task        INTEGER, "
+            "deptype     TEXT,"
             "deptask     TEXT, "
-            "UNIQUE (task, deptask) ON CONFLICT IGNORE )")
-
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS task_rdeptask ( "
-            "task        INTEGER, "
-            "rdeptask    TEXT, "
-            "UNIQUE (task, rdeptask) ON CONFLICT IGNORE )")
+            "UNIQUE (task, deptype, deptask) ON CONFLICT IGNORE )")
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS task_recdeptask ( "
             "task        INTEGER, "
+            "deptype     TEXT,"
             "recdeptask  TEXT, "
-            "UNIQUE (task, recdeptask) ON CONFLICT IGNORE )")
-
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS task_recrdeptask ( "
-            "task        INTEGER, "
-            "recrdeptask TEXT, "
-            "UNIQUE (task, recrdeptask) ON CONFLICT IGNORE )")
-
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS task_recadeptask ( "
-            "task        INTEGER, "
-            "recadeptask TEXT, "
-            "UNIQUE (task, recadeptask) ON CONFLICT IGNORE )")
+            "UNIQUE (task, deptype, recdeptask) ON CONFLICT IGNORE )")
 
         # Note: yes, we do want to keep this type of task
         # dependencies, although in OE-lite, you should NEVER EVER
@@ -648,29 +626,18 @@ class CookBook(Mapping):
                 "INSERT INTO task (recipe, name, nostamp) VALUES (?, ?, ?)",
                 taskseq)
 
-        recipe_depends = []
-        for item in (recipe.meta.get("DEPENDS") or "").split():
-            item = oelite.item.OEliteItem(item, (0, recipe.type))
-            recipe_depends.append((recipe_id, item.type, item.name, item.version))
-        for item in (recipe.meta.get("CLASS_DEPENDS") or "").split():
-            item = oelite.item.OEliteItem(item, (0, recipe.type))
-            recipe_depends.append((recipe_id, item.type, item.name, item.version))
-        if recipe_depends:
-            self.dbc.executemany(
-                "INSERT INTO recipe_depend (recipe, type, item, version) "
-                "VALUES (?, ?, ?, ?)", recipe_depends)
-
-        recipe_rdepends = []
-        for item in (recipe.meta.get("RDEPENDS") or "").split():
-            item = oelite.item.OEliteItem(item, (1, recipe.type))
-            recipe_rdepends.append((recipe_id, item.type, item.name))
-        for item in (recipe.meta.get("CLASS_RDEPENDS") or "").split():
-            item = oelite.item.OEliteItem(item, (1, recipe.type))
-            recipe_rdepends.append((recipe_id, item.type, item.name))
-        if recipe_rdepends:
-            self.dbc.executemany(
-                "INSERT INTO recipe_rdepend (recipe, type, item) "
-                "VALUES (?, ?, ?)", recipe_rdepends)
+        for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            recipe_depends = []
+            for item in (recipe.meta.get(deptype) or "").split():
+                item = oelite.item.OEliteItem(item, (deptype, recipe.type))
+                recipe_depends.append((recipe_id, deptype, item.type, item.name, item.version))
+            for item in (recipe.meta.get("CLASS_"+deptype) or "").split():
+                item = oelite.item.OEliteItem(item, (deptype, recipe.type))
+                recipe_depends.append((recipe_id, deptype, item.type, item.name, item.version))
+            if recipe_depends:
+                self.dbc.executemany(
+                    "INSERT INTO recipe_depend (recipe, deptype, type, item, version) "
+                    "VALUES (?, ?, ?, ?, ?)", recipe_depends)
 
         for task_name in task_names:
             task_id = flatten_single_value(self.dbc.execute(
@@ -683,33 +650,24 @@ class CookBook(Mapping):
                     "VALUES (:recipe_id, :task_name, :parent)",
                     locals())
 
-            for deptask in recipe.meta.get_list_flag(task_name, "deptask"):
+            for _deptask in recipe.meta.get_list_flag(task_name, "deptask"):
+                deptask = _deptask.split(":", 1)
+                if len(deptask) != 2:
+                    bb.fatal("invalid deptask:", _deptask)
+                assert deptask[0] in ("DEPENDS", "RDEPENDS", "FDEPENDS")
                 self.dbc.execute(
-                    "INSERT INTO task_deptask (task, deptask) "
-                    "VALUES (?, ?)", (task_id, deptask))
+                    "INSERT INTO task_deptask (task, deptype, deptask) "
+                    "VALUES (?, ?, ?)", ([task_id] + deptask))
 
-            for rdeptask in recipe.meta.get_list_flag(task_name, "rdeptask"):
-                self.dbc.execute(
-                    "INSERT INTO task_rdeptask (task, rdeptask) "
-                    "VALUES (?, ?)", (task_id, rdeptask))
-
-            for recdeptask in recipe.meta.get_list_flag(task_name,
+            for _recdeptask in recipe.meta.get_list_flag(task_name,
                                                         "recdeptask"):
+                recdeptask = _recdeptask.split(":", 1)
+                if len(recdeptask) != 2:
+                    bb.fatal("invalid deptask:", _recdeptask)
+                assert recdeptask[0] in ("DEPENDS", "RDEPENDS", "FDEPENDS")
                 self.dbc.execute(
-                    "INSERT INTO task_recdeptask (task, recdeptask) "
-                    "VALUES (?, ?)", (task_id, recdeptask))
-
-            for recrdeptask in recipe.meta.get_list_flag(task_name,
-                                                         "recrdeptask"):
-                self.dbc.execute(
-                    "INSERT INTO task_recrdeptask (task, recrdeptask) "
-                    "VALUES (?, ?)", (task_id, recrdeptask))
-
-            for recadeptask in recipe.meta.get_list_flag(task_name,
-                                                         "recadeptask"):
-                self.dbc.execute(
-                    "INSERT INTO task_recadeptask (task, recadeptask) "
-                    "VALUES (?, ?)", (task_id, recadeptask))
+                    "INSERT INTO task_recdeptask (task, deptype, recdeptask) "
+                    "VALUES (?, ?, ?)", ([task_id] + recdeptask))
 
             for depends in recipe.meta.get_list_flag(task_name, "depends"):
                 try:
@@ -744,17 +702,13 @@ class CookBook(Mapping):
                         "INSERT INTO provide (package, item) "
                         "VALUES (?, ?)", (package_id, item))
             
-                depends = recipe.meta.get("DEPENDS_" + package) or ""
-                for item in depends.split():
-                    self.dbc.execute(
-                        "INSERT INTO package_depend (package, item) "
-                        "VALUES (?, ?)", (package_id, item))
-            
-                rdepends = recipe.meta.get("RDEPENDS_" + package) or ""
-                for item in rdepends.split():
-                    self.dbc.execute(
-                        "INSERT INTO package_rdepend (package, item) "
-                        "VALUES (?, ?)", (package_id, item))
+                for deptype in ("DEPENDS", "RDEPENDS"):
+                    depends = recipe.meta.get("%s_%s"%(deptype , package)) or ""
+                    for item in depends.split():
+                        self.dbc.execute(
+                            "INSERT INTO package_depend "
+                            "(package, deptype, item) "
+                            "VALUES (?, ?, ?)", (package_id, deptype, item))
 
         return
 
@@ -771,22 +725,22 @@ class CookBook(Mapping):
     def get_providers(self, type, item, recipe=None, version=None):
         #print "get_providers type=%s item=%s recipe=%s version=%s"%(
         #    repr(type), repr(item), repr(recipe), repr(version))
-        select = ("SELECT package.id "
-                  "FROM package, provide, recipe "
-                  "WHERE provide.package=package.id "
-                  "AND package.recipe=recipe.id "
-                  "AND provide.item=:item ")
+        select_from = "SELECT package.id FROM package,provide,recipe"
+        select_where = "WHERE" + \
+            " provide.package=package.id AND provide.item=:item" + \
+            " AND package.recipe=recipe.id"
         if type:
-            select += "AND package.type=:type "
+            select_where += " AND package.type=:type"
         if recipe:
-            select += "AND recipe.name=:recipe "
+            select_where += " AND recipe.name=:recipe"
         if version is not None:
-            select += "AND recipe.version=:version "
+            select_where += " AND recipe.version=:version"
         providers = self.dbc.execute(
-            select + "ORDER BY recipe.priority DESC, recipe.name", locals())
+            select_from + " " + select_where +
+            " ORDER BY recipe.priority DESC, recipe.name", locals())
         providers = flatten_single_column_rows(providers)
         return self.get_packages(id=providers)
-                                 
+
 
     def get_package_providers(self, item):
         item = self.item_id(item)
@@ -794,13 +748,10 @@ class CookBook(Mapping):
             "SELECT package FROM provide WHERE item=?", (item,)))
 
 
-    def get_package_depends(self, package):
+    def get_package_depends(self, package, deptypes):
         assert isinstance(package, oelite.package.OElitePackage)
+        assert isinstance(deptypes, list) and len(deptypes) > 0
         return flatten_single_column_rows(self.dbc.execute(
-            "SELECT item FROM package_depend WHERE package=?", (package.id,)))
-
-
-    def get_package_rdepends(self, package):
-        assert isinstance(package, oelite.package.OElitePackage)
-        return flatten_single_column_rows(self.dbc.execute(
-            "SELECT item FROM package_rdepend WHERE package=?", (package.id,)))
+            "SELECT item FROM package_depend "
+            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
+            "AND package=?", (deptypes + [package.id])))

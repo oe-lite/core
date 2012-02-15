@@ -45,7 +45,7 @@ do_deploy() {
 
 do_rstage[cleandirs]	= "${RSTAGE_DIR} ${RSTAGE_DIR}.unpack"
 do_rstage[dirs]		= "${RSTAGE_DIR}"
-do_rstage[recrdeptask]	= "do_package"
+do_rstage[recdeptask]	= "RDEPENDS:do_package"
 
 do_rstage[import] = "set_stage"
 def do_rstage(d):
