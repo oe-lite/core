@@ -37,7 +37,6 @@ DEFAULT_USE_toolchain_strace_version		= "4.5.20"
 require gcc.inc
 
 SRC_URI += "file://glibc-rpc-export-again.patch;apply=0"
-SRC_URI += "file://linux-attribute-packed.patch;apply=0"
 SRC_URI += "file://glibc-2.14.1-cpuid-1.patch;apply=0"
 
 do_unpack[postfuncs] += "do_unpack_mvpatches"
@@ -45,6 +44,4 @@ do_unpack_mvpatches () {
 	mkdir -p ${S}/glibc/2.14
 	mv ${SRCDIR}/glibc-rpc-export-again.patch ${S}/glibc/2.14
 	mv ${SRCDIR}/glibc-2.14.1-cpuid-1.patch ${S}/glibc/2.14
-	mkdir -p ${S}/linux/3.0
-	mv ${SRCDIR}/linux-attribute-packed.patch ${S}/linux/3.0
 }
