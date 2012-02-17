@@ -13,7 +13,7 @@ pkgltdldir:native    = "${STAGE_DIR}/native${stage_datadir}/libtool"
 pkgltdldir:cross     = "${STAGE_DIR}/native${stage_datadir}/libtool"
 pkgltdldir:sdk-cross = "${STAGE_DIR}/native${stage_datadir}/libtool"
 
-addtask autoreconf after do_patch before do_configure
+addtask autoreconf after fetch unpack patch stage siteinfo before configure
 do_autoreconf[dirs] = "${S}"
 
 export LIBTOOLIZE = "${HOST_PREFIX}libtoolize"
