@@ -48,7 +48,7 @@ TARGET_SITEFILES		= "common\
  endian-${TARGET_ENDIAN}e\
 "
 
-addtask siteinfo after do_patch	before do_configure
+addtask siteinfo after stage fetch unpack patch before configure
 do_siteinfo[cleandirs]	= "${STAGE_SITE_DIR}"
 do_siteinfo[dirs]	= "${STAGE_SITE_DIR}"
 
