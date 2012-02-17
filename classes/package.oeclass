@@ -1,7 +1,7 @@
 # -*- mode:python; -*-
 
-addtask split after do_install
-addtask package after do_split before do_build
+addtask split after install
+addtask package after split before build
 
 do_split[cleandirs] = "${PKGD}"
 do_split[dirs] = "${PKGD} ${D}"

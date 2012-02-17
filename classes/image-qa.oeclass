@@ -1,4 +1,4 @@
-addtask imageqa after do_compile before do_deploy
+addtask imageqa after compile before deploy
 
 # FIXME: improve gcc packaging, so that readelf can be obtained
 # without pulling in entire toolchain

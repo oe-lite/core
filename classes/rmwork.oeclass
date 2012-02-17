@@ -8,7 +8,7 @@
 # or use --no-rmwork command-line option
 #
 
-addtask rmwork after do_package
+addtask rmwork after package
 do_rmwork[dirs] = "${WORKDIR}"
 do_rmwork[nohash] = True
 do_rmwork[nostamp] = True

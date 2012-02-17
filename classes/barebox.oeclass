@@ -41,7 +41,7 @@ PACKAGES = "${PN} ${PN}-elf"
 FILES_${PN} = "${bootdir}/${BAREBOX_IMAGE_FILENAME}"
 FILES_${PN}-elf = "${bootdir}/${BAREBOX_IMAGE_BASE}"
 
-addtask deploy before do_build after do_compile
+addtask deploy before build after compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
 
 do_deploy () {
@@ -56,4 +56,4 @@ do_deploy () {
 }
 
 do_deploy[dirs] = "${S}"
-addtask deploy before do_build after do_compile
+addtask deploy before build after compile

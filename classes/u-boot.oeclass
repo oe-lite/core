@@ -88,7 +88,7 @@ FILES_${PN}-elf = "${bootdir}/${UBOOT_IMAGE_BASE}"
 PROVIDES_${PN} = "u-boot"
 PROVIDES_${PN}-elf = "u-boot-elf"
 
-addtask deploy before do_build after do_compile
+addtask deploy before build after compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
 
 do_deploy () {

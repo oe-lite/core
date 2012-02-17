@@ -17,7 +17,7 @@ CLASS_DEPENDS += "${USE_rootfs_name}"
 RDEPENDS += "base-version"
 
 
-addtask imageqaprep before do_configure after do_rstage
+addtask imageqaprep before configure after rstage
 do_imageqaprep[dirs] = "${WORKDIR}/image-qa"
 do_imageqaprep[cleandirs] = "${WORKDIR}/image-qa"
 fakeroot do_imageqaprep () {
@@ -29,7 +29,7 @@ IMAGEQA_HOST_READELF_LIB_DIRS += "\
 ${WORKDIR}/image-qa/${base_libdir} \
 ${WORKDIR}/image-qa/${libdir}"
 
-addtask removedoubles before do_configure after do_imageqaprep
+addtask removedoubles before configure after imageqaprep
 do_removedoubles () {
 	cd ${RSTAGE_DIR}
 	for file in $(find *)

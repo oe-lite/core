@@ -1,7 +1,7 @@
 # -*- mode:python; -*-
 
-addtask rstage after do_patch before do_compile
-addtask deploy after do_install before do_build
+addtask rstage after patch before compile
+addtask deploy after install before build
 
 IMAGE_BASENAME ?= "${PN}"
 IMAGE_FULLNAME ?= "${IMAGE_BASENAME}-${DATETIME}"
