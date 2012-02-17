@@ -63,7 +63,9 @@ def do_siteinfo(d):
 
     def generate_siteinfo(d, arch, output_filename):
         import bb, fileinput
+        print "generate_siteinfo",arch,output_filename
         input_files = list_sitefiles(d, arch)
+        print "input_files",input_files
         output_file = open(output_filename, 'w')
         for line in fileinput.input(input_files):
             output_file.write(line)
