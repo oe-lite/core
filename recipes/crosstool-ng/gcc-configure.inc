@@ -234,6 +234,10 @@ def do_configure_defconfig(d):
 		("CT_LIBC_GLIBC_MIN_KERNEL_VERSION", None),
 		]
 
+    if (d.get("SDK_STATIC") and
+        d.get("HOST_TYPE") == "sdk" and d.get("HOST_OS") != "mingw32"):
+        rewrites.append(("CT_STATIC_TOOLCHAIN","y"))
+
     for rewrite in rewrites:
 	reobj = re.compile(r"^(#[ \t]*)?%s([ \t=][^\n]*)?$"%(rewrite[0]),
 			   re.MULTILINE)
