@@ -32,12 +32,17 @@ class UrlFetcher():
         except KeyError:
             raise oelite.fetch.NoSignature(self.uri, "signature unknown")
 
-    def grab(self, url):
+    def grab(self, url, timeout=120, retry=5):
         print "grabbing %s"%(url)
         try:
-            return urlgrabber.urlgrab(url, self.localpath)
+            retrycodes = urlgrabber.grabber.URLGrabberOptions().retrycodes
+            if 12 not in retrycodes:
+                retrycodes.append(12)
+            return urlgrabber.urlgrab(url, self.localpath,timeout=timeout,retry=retry, retrycodes=retrycodes)
         except urlgrabber.grabber.URLGrabError as e:
             print 'URLGrabError %i: %s' % (e.errno, e.strerror)
+            if os.path.exists(self.localpath):
+                os.unlink(self.localpath)
         return None
 
     def fetch(self):
