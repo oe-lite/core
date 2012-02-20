@@ -26,3 +26,5 @@ ${STAGE_DIR}/native${stage_libdir}\
 "
 
 export CROSS	= "${HOST_PREFIX}"
+
+inherit sdk-static
