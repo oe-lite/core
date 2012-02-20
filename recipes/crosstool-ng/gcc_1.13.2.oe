@@ -12,9 +12,9 @@ DEFAULT_USE_toolchain_libc_version		= "2.14"
 #DEFAULT_USE_toolchain_libc_version		= "2_13"
 #DEFAULT_USE_toolchain_libc_eglibc_revision	= "HEAD"
 
-DEFAULT_USE_toolchain_kernel_version_machine	= "2.6.27.59"
-DEFAULT_USE_toolchain_kernel_version_sdk	= "2.6.27.59"
-DEFAULT_USE_toolchain_kernel_version_build	= "2.6.27.59"
+DEFAULT_USE_toolchain_kernel_version_machine	= "2.6.32.46"
+DEFAULT_USE_toolchain_kernel_version_sdk	= "2.6.32.46"
+DEFAULT_USE_toolchain_kernel_version_build	= "2.6.32.46"
 
 DEFAULT_USE_toolchain_mingwrt_version		= "3.18"
 DEFAULT_USE_toolchain_w32api_version		= "3.14"
