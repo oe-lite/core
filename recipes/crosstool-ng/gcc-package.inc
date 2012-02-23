@@ -16,13 +16,14 @@ TARGET_PACKAGES = "${LIBS_AUTO_PACKAGES}"
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
 # (almost) the same
-PACKAGES = "${PN}-dbg ${PN}-g++ ${PN}-config ${PN} ${PN}-doc ${PN}-locale ${PN}-gdb ${PN}-ldscripts"
+PACKAGES = "${PN}-dbg ${PN}-g++ ${PN}-config ${PN}-gdb ${PN} ${PN}-doc ${PN}-locale ${PN}-ldscripts"
 
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "target:${PN}-sysroot-dev"
 RDEPENDS_${PN} = "target:${PN}-sysroot-dev"
 PROVIDES_${PN}-g++ = "c++"
 DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
+RDEPENDS_${PN}-gdb = "host:libncurses"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -70,7 +71,13 @@ ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/.debug \
 ${libexecdir}/gcc/${TARGET_ARCH}/${CT_CC_VERSION}/*/.debug \
 "
 
-FILES_${PN}-gdb = "${datadir}/gcc-*/python"
+FILES_${PN}-gdb = "\
+${base_bindir}/${TARGET_ARCH}-gdb* \
+${datadir}/gcc-*/python \
+${datadir}/gdb/python \
+${datadir}/gdb/syscalls \
+${datadir}/gdb/gdbinit \
+"
 
 FILES_${PN}-ldscripts = "${base_libdir}/ldscripts"
 
@@ -106,7 +113,6 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/libgdb* \
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
-${datadir}/gdb \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 PROVIDES_${PN}-sysroot-gdbserver += "util/gdbserver"
