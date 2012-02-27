@@ -1,6 +1,8 @@
 # -*- mode:python; -*-
 
-inherit cpio-image
+DESCRIPTION ?= "Kernel initramfs filesystem"
+
+inherit cpio-image image-qa archive-image
 
 do_install[postfuncs] += "do_install_initramfs_symlink"
 do_install_initramfs_symlink () {
@@ -11,3 +13,10 @@ do_install_initramfs_symlink () {
 FILES_${PN} += "${bootdir}/initramfs.cpio"
 
 PROVIDES_${PN} = "initramfs"
+
+RECIPE_FLAGS += "initramfs_archive_formats initramfs_archive_tar_ext"
+DEFAULT_USE_initramfs_archive_formats = "tar"
+DEFAULT_USE_initramfs_archive_tar_ext = "tar"
+ARCHIVE_IMAGE_FORMATS = "${USE_initramfs_archive_formats}"
+ARCHIVE_IMAGE_DIRNAME = ""
+ARCHIVE_IMAGE_TAR_EXT = "${USE_initramfs_archive_tar_ext}"
