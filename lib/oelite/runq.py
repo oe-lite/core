@@ -34,6 +34,7 @@ class OEliteRunQueue:
             "CREATE TABLE IF NOT EXISTS runq.provider ( "
             "type		TEXT, "
             "item		TEXT, "
+            "version		TEXT, "
             "package		INTEGER )")
 
         self.dbc.execute(
@@ -397,18 +398,27 @@ class OEliteRunQueue:
         recipe = self.cookbook.get_recipe(package=package)
         return (recipe, package)
 
-
     def _set_provider(self, item, package):
-        self.dbc.execute(
-            "INSERT INTO runq.provider (type, item, package) VALUES (?, ?, ?)",
-            (item.type, item.name, package.id))
+        if item.version is None:
+            self.dbc.execute(
+                "INSERT INTO runq.provider (type, item, package) VALUES (?, ?, ?)",
+                (item.type, item.name, package.id))
+        else:
+            self.dbc.execute(
+                "INSERT INTO runq.provider (type, item, version, package) VALUES (?, ?, ?, ?)",
+                (item.type, item.name, item.version, package.id))
         return
 
 
     def _get_provider(self, item):
-        package_id = flatten_single_value(self.dbc.execute(
-                "SELECT package FROM runq.provider WHERE type=? AND item=?",
-                (item.type, item.name)))
+        if item.version is None:
+            package_id = flatten_single_value(self.dbc.execute(
+                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version IS NULL",
+                    (item.type, item.name)))
+        else:
+            package_id = flatten_single_value(self.dbc.execute(
+                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=?",
+                (item.type, item.name, item.version)))
         if not package_id:
             return None
         return self.cookbook.get_package(id=package_id)
