@@ -3,6 +3,10 @@
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""
+AUTO_PACKAGE_UTILS[emit] = "do_package do_split"
+AUTO_PACKAGE_UTILS_PACKAGES[emit] = "do_package do_split"
+AUTO_PACKAGE_UTILS_DOC_PACKAGES[emit] = "do_package do_split"
+AUTO_PACKAGE_UTILS_PROVIDES[emit] = "do_package do_split"
 
 addhook auto_package_utils to post_recipe_parse before base_detect_machine_override fixup_package_type before blacklist
 
