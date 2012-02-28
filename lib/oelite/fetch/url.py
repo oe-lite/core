@@ -34,11 +34,17 @@ class UrlFetcher():
 
     def grab(self, url, timeout=120, retry=5):
         print "grabbing %s"%(url)
+        def grab_fail_callback(data):
+            "Only print debug here when non fatal retries, debug in other cases is already printed"
+            if (data.exception.errno in retrycodes) and (data.tries != data.retry):
+                print "grabbing retry %d/%d, self.exception %s" %(data.tries,data.retry,data.exception)
         try:
             retrycodes = urlgrabber.grabber.URLGrabberOptions().retrycodes
             if 12 not in retrycodes:
                 retrycodes.append(12)
-            return urlgrabber.urlgrab(url, self.localpath,timeout=timeout,retry=retry, retrycodes=retrycodes)
+            return urlgrabber.urlgrab(url, self.localpath,timeout=timeout,retry=retry,
+                                      retrycodes=retrycodes,
+                                      failure_callback=grab_fail_callback)
         except urlgrabber.grabber.URLGrabError as e:
             print 'URLGrabError %i: %s' % (e.errno, e.strerror)
             if os.path.exists(self.localpath):
