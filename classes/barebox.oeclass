@@ -15,10 +15,35 @@ CFLAGS[unexport]   = "1"
 CPPFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 
-DEFCONFIG ?= "${USE_barebox_defconfig}"
+# Barebox defconfig can be provided in 3 different ways:
+#
+# Use defconfig file from DEPENDS (barebox-defconfig)
+#  + USE_barebox_defconfig not set (this is default)
+#
+# Use defconfig from barebox source.
+#  + Set USE_barebox_defconfig to "blahblah_defconfig"
+#
+# Use defconfig file from SRC_URI
+#  + Set USE_barebox_defconfig to "file"
+
+CLASS_FLAGS += "${DEFCONFIG_FLAG}"
+DEFCONFIG[expand] = "3"
+CLASS_DEPENDS += "${DEPENDS_DEFCONFIG}"
+DEPENDS_DEFCONFIG = "barebox-defconfig"
+DEPENDS_DEFCONFIG:USE_barebox_defconfig = ""
 
 do_configure() {
-	oe_runmake ${DEFCONFIG}
+	if [ "${DEFCONFIG}" = "file" ] ; then
+		cp ${SRCDIR}/defconfig ${S}/.config
+		yes '' | oe_runmake oldconfig
+	elif [ -n "${DEFCONFIG}" ] ; then
+		oe_runmake ${DEFCONFIG}
+        elif [ -e "${HOST_SYSROOT}/barebox_defconfig" ] ; then
+		cp ${HOST_SYSROOT}/barebox_defconfig ${S}/.config
+		yes '' | oe_runmake oldconfig
+	else
+		die "No default configuration available"
+	fi
 }
 
 do_compile () {
@@ -26,6 +51,7 @@ do_compile () {
 }
 
 # Support checking the image size
+CLASS_FLAGS += "barebox_maxsize"
 inherit sizecheck
 BAREBOX_SIZECHECK = ""
 BAREBOX_SIZECHECK:USE_barebox_maxsize = "${BAREBOX_IMAGE}:${USE_barebox_maxsize}"
