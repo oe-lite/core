@@ -2,6 +2,7 @@ import oelite.fetch
 import bb.utils
 import os
 import urlgrabber
+import urlgrabber.progress
 import hashlib
 
 class UrlFetcher():
@@ -44,6 +45,7 @@ class UrlFetcher():
                 retrycodes.append(12)
             return urlgrabber.urlgrab(url, self.localpath,timeout=timeout,retry=retry,
                                       retrycodes=retrycodes,
+                                      progress_obj=SimpleProgress(),
                                       failure_callback=grab_fail_callback)
         except urlgrabber.grabber.URLGrabError as e:
             print 'URLGrabError %i: %s' % (e.errno, e.strerror)
@@ -80,3 +82,11 @@ class UrlFetcher():
         if not "_signature" in dir(self):
             return (self.localname, signature)
         return signature == self._signature
+
+
+class SimpleProgress(urlgrabber.progress.BaseMeter):
+    def _do_end(self, amount_read, now=None):
+        print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
+
+    def update(self, amount_read, now=None):
+        pass
