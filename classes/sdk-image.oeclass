@@ -1,7 +1,10 @@
 # -*- mode:python; -*-
 
-inherit archive-image
+RECIPE_TYPES ?= "canadian-cross"
 
+inherit archive-image
+IMAGE_BASENAME ?= "oe-lite-sdk-${HOST_ARCH}-${TARGET_ARCH}"
+ARCHIVE_IMAGE_DIRNAME ?= "sdk"
 ARCHIVE_IMAGE_FORMATS:HOST_OS_mingw32 = "zip"
 
 IMAGE_PREPROCESS_NETFILTER = ""
@@ -27,3 +30,42 @@ image_rm_sysroot_pkgmetadir() {
         rm -rf ${IMAGE_DIR}/${MACHINE_ARCH}/sysroot${pkgmetadir}
     fi
 }
+
+RDEPENDS += "${RDEPENDS_SDK}"
+RDEPENDS_SDK = " \
+    gcc \
+    target:libc \
+    target:libdl \
+    target:libpthread \
+    target:librt \
+    target:libgcc \
+    target:libm \
+    target:libutil \
+    target:libcrypt \
+    target:libresolv \
+    target:libnss-files \
+    target:libnss-dns \
+    target:gcc-sysroot-garbage \
+    target:gcc-sysroot-locale \
+    target:gcc-sysroot-doc \
+"
+
+CLASS_FLAGS += "sdk_cxx"
+DEFAULT_USE_sdk_cxx = "1"
+RDEPENDS_SDK += "${RDEPENDS_SDK_CXX}"
+RDEPENDS_SDK_CXX = ""
+RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++"
+
+CLASS_FLAGS += "sdk_gdb"
+DEFAULT_USE_sdk_gdb = "1"
+RDEPENDS_SDK += "${RDEPENDS_SDK_GDB}"
+RDEPENDS_SDK_GDB = ""
+RDEPENDS_SDK_GDB:USE_sdk_gdb = "gcc-gdb"
+
+CLASS_FLAGS += "sdk_uboot_mkimage"
+DEFAULT_USE_sdk_uboot_mkimage = "1"
+RDEPENDS_SDK += "${RDEPENDS_SDK_UBOOT_MKIMAGE}"
+RDEPENDS_SDK_UBOOT_MKIMAGE = ""
+RDEPENDS_SDK_UBOOT_MKIMAGE:USE_sdk_uboot_mkimage = "${UBOOT_MKIMAGE}"
+UBOOT_MKIMAGE = "host:u-boot-tools-mkimage"
+UBOOT_MKIMAGE:HOST_OS_mingw32 = ""
