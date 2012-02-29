@@ -735,12 +735,16 @@ class CookBook(Mapping):
             select_where += " AND recipe.name=:recipe"
         if version is not None:
             select_where += " AND recipe.version=:version"
-        providers = self.dbc.execute(
-            select_from + " " + select_where +
-            " ORDER BY recipe.priority DESC, recipe.name", locals())
+        query = select_from + " " + select_where
+        # Grrr... SQLite insists on sorting INTEGER colums as strings :-(
+        #query += " ORDER BY recipe.name DESC"
+        providers = self.dbc.execute(query, locals())
         providers = flatten_single_column_rows(providers)
-        return self.get_packages(id=providers)
-
+        packages = self.get_packages(id=providers)
+        def get_priority(p):
+            return int(p.priority)
+        packages = sorted(packages, key=get_priority, reverse=True)
+        return packages
 
     def get_package_providers(self, item):
         item = self.item_id(item)
