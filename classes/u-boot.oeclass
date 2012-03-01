@@ -25,6 +25,7 @@ do_configure[prefuncs] += "${DO_CONFIGURE_EXTRAENV}"
 DO_CONFIGURE_EXTRAENV = ""
 DO_CONFIGURE_EXTRAENV:USE_uboot_extra_env = "do_configure_extraenv"
 def do_configure_extraenv(d):
+    from oebakery import debug, info, warn, err, die
     config_filename = os.path.join("include/configs",
                                    d.get("USE_uboot_config_file"))
     extra_env_lines = []
