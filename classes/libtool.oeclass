@@ -71,10 +71,13 @@ def do_install_libtool_lafile_fixup(d):
     lafiles = []
     for la_dir in d.getVar("LIBTOOL_FIXUP_SEARCH_DIRS", True).split():
         lafiles += glob.glob("%s/*.la"%(la_dir))
-    strip_dirs = set()
+    strip_dirs = []
+    def add_strip_dir(strip_dir):
+        if not strip_dir in strip_dirs:
+            strip_dirs.append(strip_dir)
     for strip_dir in d.getVar("LIBTOOL_FIXUP_STRIP_DIRS", True).split():
-        strip_dirs.add(strip_dir)
-        strip_dirs.add(os.path.realpath(strip_dir))
+        add_strip_dir(strip_dir)
+        add_strip_dir(os.path.realpath(strip_dir))
     for filename in lafiles:
         with open(filename, "r") as input_file:
             lafile = input_file.read()
