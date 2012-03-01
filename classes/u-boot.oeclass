@@ -33,8 +33,12 @@ def do_configure_extraenv(d):
         if not line:
             continue
         extra_env_lines.append('\t"%s\\0"'%(line,))
-    with open(config_filename) as config_file:
-        config = config_file.read()
+    try:
+        with open(config_filename) as config_file:
+            config = config_file.read()
+    except:
+        err("Failed to open file %s"%(config_filename))
+        return False
     # Search to the CONFIG_EXTRA_ENV_SETTINGS define
     define = re.search(r"^#define[ \t]+CONFIG_EXTRA_ENV_SETTINGS[ \t]+",
                        config, re.MULTILINE)
