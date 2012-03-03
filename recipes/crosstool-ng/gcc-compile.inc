@@ -1,5 +1,8 @@
 # -*- mode:python; -*-
 
+# glibc configure barfs on $MACHINE
+MACHINE[unexport]	= "1"
+
 # Let Crosstool NG manage compiler and linker flags etc.
 AWK[unexport]		= "1"
 CC[unexport]		= "1"
