@@ -171,16 +171,15 @@ class OEliteBaker:
         if "OE_ENV_WHITELIST" in self.config:
             whitelist += self.config.get("OE_ENV_WHITELIST", True).split()
         debug("whitelist=%s"%(whitelist))
-        for var in set(os.environ).difference(whitelist):
-            del os.environ[var]
-        if oebakery.DEBUG:
-            debug("Whitelist filtered shell environment:")
-            for var in os.environ:
-                debug("> %s=%s"%(var, os.environ[var]))
+        debug("Whitelist filtered shell environment:")
         for var in whitelist:
+            if oebakery.DEBUG:
+                if var in os.environ:
+                     debug("> %s=%s"%(var, os.environ[var]))
             if not var in self.config and var in os.environ:
                 self.config[var] = os.environ[var]
                 debug("importing %s=%s"%(var, os.environ[var]))
+        os.environ.clear()
         return
 
 
