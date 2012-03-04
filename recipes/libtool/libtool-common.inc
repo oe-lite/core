@@ -63,6 +63,10 @@ ${datadir}/${PN} ${datadir}/aclocal \
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "ltdl"
+FILES_${PN}-libltdl = "${bindir}/libltdl*.dll"
 FILES_${PN}-libltdl-dev = "${includedir}/libltdl ${includedir}/ltdl.h"
 PACKAGE_TYPE_${PN}-libltdl = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libltdl-dev = "${TARGET_TYPE}"
+
+SOLIBS:HOST_OS_mingw32 = ".dll"
+SOLIBSDEV:HOST_OS_mingw32 = ".dll.a"
