@@ -24,6 +24,7 @@ RDEPENDS_${PN} = "target:${PN}-sysroot-dev"
 PROVIDES_${PN}-g++ = "c++"
 DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
 RDEPENDS_${PN}-gdb = "host:libncurses"
+RDEPENDS_${PN}-gdb:HOST_OS_mingw32 = ""
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
