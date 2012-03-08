@@ -87,6 +87,3 @@ class UrlFetcher():
 class SimpleProgress(urlgrabber.progress.BaseMeter):
     def _do_end(self, amount_read, now=None):
         print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
-
-    def update(self, amount_read, now=None):
-        pass
