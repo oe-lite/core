@@ -563,7 +563,7 @@ class OEParser(object):
                 if len(file_split) > 1:
                     self.meta.set("PV", file_split[1])
                 else:
-                    self.meta.set("PV", 0)
+                    self.meta.set("PV", "0")
 
         # FIXME: write lock file to safeguard against race condition
         mtime = os.path.getmtime(self.filename)
