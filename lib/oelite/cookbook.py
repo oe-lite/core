@@ -590,7 +590,7 @@ class CookBook(Mapping):
                     if incompatible_recipe[1] is None:
                         return False
                     if re.match("%s$"%(incompatible_recipe[1]), pv):
-                        debug("skipping incompatible recipe %s:%s"%(
+                        debug("skipping incompatible recipe %s:%s_%s"%(
                             recipe_type, pn, pv))
                         return False
                 return True
