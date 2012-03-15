@@ -594,6 +594,18 @@ class CookBook(Mapping):
                             recipe_type, pn, pv))
                         return False
                 return True
+            def compatible_use_flags(meta):
+                flags = meta.get("COMPATIBLE_IF_FLAGS")
+                if not flags:
+                    return True
+                for name in flags.split():
+                    val = meta.get("USE_"+name)
+                    if not val:
+                        debug("skipping %s:%s_%s (required %s USE flag not set)"%(
+                                recipe_type, meta.get("PN"), meta.get("PV"),
+                                name))
+                        return False
+                return True
             if ((not recipe_is_compatible(meta[recipe_type])) or
                 (not machine_is_compatible(meta[recipe_type])) or
                 (not arch_is_compatible(meta[recipe_type], "BUILD")) or
@@ -602,6 +614,9 @@ class CookBook(Mapping):
                 del meta[recipe_type]
                 break
             oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
+            if ((not compatible_use_flags(meta[recipe_type]))):
+                del meta[recipe_type]
+                break
         return meta
 
 
