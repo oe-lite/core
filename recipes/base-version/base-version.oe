@@ -41,9 +41,12 @@ BASE_VERSION_POSTFUNCS:>USE_basefiles_cross_config = " do_install_basefiles_cros
 do_install_basefiles_cross_config[expand] = 3
 do_install_basefiles_cross_config () {
 	install -m 0755 -d ${D}${sysconfdir}
-	file=$( find ${STAGE_DIR} -name cross:gcc-config )
+        if [ ! -r "${STAGE_DIR}/cross/gcc-config" ]; then
+                echo "Error unable to read ${STAGE_DIR}/cross/gcc-config"
+                return 1
+        fi
 	sed -n -e '/NG version/ p' -e 's/#.*//' -e '/PKGVERSION/ d' \
-		-e '/VERSION/ p' $file > \
+		-e '/VERSION/ p' ${STAGE_DIR}/cross/gcc-config > \
 		${SRCDIR}/${USE_basefiles_cross_config}
 
 	install -m 0755 -d ${D}${sysconfdir}
