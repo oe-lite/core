@@ -1,0 +1,27 @@
+
+CLASS_FLAGS += "splashutils_progress_information"
+
+SPLASHUTILS_PROGRESS ?= ""
+SPLASHUTILS_PROGRESS:>USE_splashutils_progress_information = "1"
+
+SPLASHUTILS_INITSCRIPTS ?= ""
+
+do_install[postfuncs] += "do_install_fix_splashutils"
+
+python do_install_fix_splashutils () {
+    import os, fileinput
+    path = d.get("D")
+    os.chdir(path)
+    sysconfdir=d.get("sysconfdir")
+    initscripts = ((d.get("SPLASHUTILS_INITSCRIPTS"))).split()
+    for script in initscripts:
+        progress=d.get("USE_" + script + "_splashutils_progress")
+        msg=d.get("USE_" + script + "_splashutils_msg")
+        script = script.replace("_", "-")
+        for line in fileinput.FileInput("." + sysconfdir + "/init.d/" + script, inplace=1):
+            if d.get("USE_splashutils_progress_information"):
+                line=line.replace("splash_progress PLACEHOLDER","test -x /sbin/splash-functions.sh && . /sbin/splash-functions.sh && splash_progress " + progress + " " + msg)
+            else:
+                line=line.replace("splash_progress PLACEHOLDER","")
+            print line,
+}
