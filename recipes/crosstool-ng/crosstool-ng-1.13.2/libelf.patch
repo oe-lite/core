@@ -1,0 +1,52 @@
+diff -urN crosstool-ng-1.13.2/patches/libelf/0.8.13/libelf.patch crosstool-ng-1.13.2new//patches/libelf/0.8.13/libelf.patch
+--- crosstool-ng-1.13.2/patches/libelf/0.8.13/libelf.patch	1970-01-01 01:00:00.000000000 +0100
++++ crosstool-ng-1.13.2new//patches/libelf/0.8.13/libelf.patch	2012-03-30 21:51:53.632917042 +0200
+@@ -0,0 +1,48 @@
++diff -urN libelf-0.8.13/configure libelf-0.8.13new/configure
++--- libelf-0.8.13/configure	2008-05-23 10:18:03.000000000 +0200
+++++ libelf-0.8.13new/configure	2012-03-30 21:54:23.276956481 +0200
++@@ -1486,7 +1486,7 @@
++ #include <stdio.h>
++ main()
++ {
++-  FILE *f=fopen("conftestval", "w");
+++  FILE *f=fopen("conftestval", "wb");
++   if (!f) exit(1);
++   fprintf(f, "%d\n", sizeof(short));
++   exit(0);
++@@ -1525,7 +1525,7 @@
++ #include <stdio.h>
++ main()
++ {
++-  FILE *f=fopen("conftestval", "w");
+++  FILE *f=fopen("conftestval", "wb");
++   if (!f) exit(1);
++   fprintf(f, "%d\n", sizeof(int));
++   exit(0);
++@@ -1564,7 +1564,7 @@
++ #include <stdio.h>
++ main()
++ {
++-  FILE *f=fopen("conftestval", "w");
+++  FILE *f=fopen("conftestval", "wb");
++   if (!f) exit(1);
++   fprintf(f, "%d\n", sizeof(long));
++   exit(0);
++@@ -1603,7 +1603,7 @@
++ #include <stdio.h>
++ main()
++ {
++-  FILE *f=fopen("conftestval", "w");
+++  FILE *f=fopen("conftestval", "wb");
++   if (!f) exit(1);
++   fprintf(f, "%d\n", sizeof(long long));
++   exit(0);
++@@ -1643,7 +1643,7 @@
++ #include <stdio.h>
++ main()
++ {
++-  FILE *f=fopen("conftestval", "w");
+++  FILE *f=fopen("conftestval", "wb");
++   if (!f) exit(1);
++   fprintf(f, "%d\n", sizeof(__int64));
++   exit(0);
