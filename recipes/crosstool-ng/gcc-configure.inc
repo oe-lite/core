@@ -149,7 +149,8 @@ def do_configure_defconfig(d):
     rewrites = []
 
     for var in (d.get("AUTO_CT_BOOLEAN_VARS") or "").split():
-	if d.get(var):
+	val = d.get(var)
+        if val == 'y' or val == '1':
 	    rewrites.append((var, "y"))
 
     for var in (d.get("AUTO_CT_STRING_VARS") or "").split():
