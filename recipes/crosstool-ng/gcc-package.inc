@@ -113,7 +113,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/libgdb* \
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver${TARGET_EXEEXT} \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
 PROVIDES_${PN}-sysroot-gdbserver += "util/gdbserver"
@@ -133,9 +133,9 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/*trace* \
 
 TARGET_PACKAGES += "${PN}-sysroot-trace"
 FILES_${PN}-sysroot-trace = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph${TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/libinproctrace.so \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
@@ -232,7 +232,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd.so"
 
 TARGET_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/nscd"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/nscd${TARGET_EXEEXT}"
 PROVIDES_${PN}-sysroot-nscd = "util/rpcgen util/nscd"
 PROVIDES_${PN}-sysroot-nscd:machine = ""
 PROVIDES_${PN}-sysroot-nscd:sdk = ""
@@ -240,8 +240,8 @@ PROVIDES_${PN}-sysroot-nscd:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-rpc"
 FILES_${PN}-sysroot-rpc = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/rpcgen \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/rpcinfo \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/rpcgen${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/rpcinfo${TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_sysconfdir}/rpc"
 PROVIDES_${PN}-sysroot-rpc = "util/rpcgen util/rpcinfo"
 PROVIDES_${PN}-sysroot-rpc:machine = ""
@@ -258,7 +258,7 @@ PROVIDES_${PN}-sysroot-ldconfig:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-ldd"
 FILES_${PN}-sysroot-ldd = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/ldd"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/ldd${TARGET_EXEEXT}"
 PROVIDES_${PN}-sysroot-ldd = "util/ldd"
 PROVIDES_${PN}-sysroot-ldd:machine = ""
 PROVIDES_${PN}-sysroot-ldd:sdk = ""
@@ -266,7 +266,7 @@ PROVIDES_${PN}-sysroot-ldd:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-catchsegv"
 FILES_${PN}-sysroot-catchsegv = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/catchsegv"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/catchsegv${TARGET_EXEEXT}"
 PROVIDES_${PN}-sysroot-catchsegv = "util/catchsegv"
 PROVIDES_${PN}-sysroot-catchsegv:machine = ""
 PROVIDES_${PN}-sysroot-catchsegv:sdk = ""
@@ -274,7 +274,7 @@ PROVIDES_${PN}-sysroot-catchsegv:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-sprof"
 FILES_${PN}-sysroot-sprof = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/sprof"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/sprof${TARGET_EXEEXT}"
 PROVIDES_${PN}-sysroot-sprof = "util/sprof"
 PROVIDES_${PN}-sysroot-sprof:machine = ""
 PROVIDES_${PN}-sysroot-sprof:sdk = ""
@@ -282,10 +282,10 @@ PROVIDES_${PN}-sysroot-sprof:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-timezone-utils"
 FILES_${PN}-sysroot-timezone-utils = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/tzselect \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zdump \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zic \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/zoneinfo \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/tzselect${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zdump${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/zic${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/zoneinfo${TARGET_EXEEXT} \
 "
 PROVIDES_${PN}-sysroot-timezone-utils = "\
     util/tzselect util/zdump util/zic util/zoneinfo"
@@ -295,8 +295,8 @@ PROVIDES_${PN}-sysroot-timezone-utils:canadian-cross = ""
 
 TARGET_PACKAGES += "${PN}-sysroot-iconv-utils"
 FILES_${PN}-sysroot-iconv-utils = "\
-${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/iconv \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/iconvconfig"
+${base_prefix}/${TARGET_ARCH}/sysroot${target_bindir}/iconv${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sbindir}/iconvconfig${TARGET_EXEEXT}"
 PROVIDES_${PN}-sysroot-iconv-utils = "util/iconv util/iconvconfig"
 PROVIDES_${PN}-sysroot-iconv-utils:machine = ""
 PROVIDES_${PN}-sysroot-iconv-utils:sdk = ""
