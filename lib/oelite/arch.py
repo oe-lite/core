@@ -289,32 +289,39 @@ cpumap = {
     'arm'		: {
         'at91rm9200'		: '920t',
         'at91sam9260'		: '926ejs',
-        'omap3520'		: 'cortexa8neon',
-        'omap3530'		: 'cortexa8neon',
-        'omap4430'		: 'cortexa9neon',
-        'omap4440'		: 'cortexa9neon',
-        'imx21'			: '926ejs',
-        'imx23'			: '926ejs',
-        'imx25'			: '926ejs',
-        'imx27'			: '926ejs',
-        'imx28'			: '926ejs',
-        'imx31'			: '1136jfs',
-        'imx35'			: '1136jfs',
-        'imx51'			: 'cortexa8neon',
-        'imx512'		: 'cortexa8neon',
-        'imx513'		: 'cortexa8neon',
-        'imx514'		: 'cortexa8neon',
-        'imx515'		: 'cortexa8neon',
-        'imx516'		: 'cortexa8neon',
-        'imx534'		: 'cortexa8neon',
-        'imx535'		: 'cortexa8neon',
-        'imx536'		: 'cortexa8neon',
-        'imx537'		: 'cortexa8neon',
-        'imx538'		: 'cortexa8neon',
+        'omap3520'		: ('cortexa8neon', ('omap3', 'omap')),
+        'omap3530'		: ('cortexa8neon', ('omap3', 'omap')),
+        'omap4430'		: ('cortexa9neon', ('omap4', 'omap')),
+        'omap4440'		: ('cortexa9neon', ('omap4', 'omap')),
+        'imx21'			: ('926ejs', 'imx'),
+        'imx23'			: ('926ejs', 'mxs'),
+        'imx25'			: ('926ejs', 'imx'),
+        'imx27'			: ('926ejs', 'imx'),
+        'imx28'			: ('926ejs', 'mxs'),
+        'imx280'		: ('926ejs', ('imx28', 'mxs')),
+        'imx281'		: ('926ejs', ('imx28', 'mxs')),
+        'imx283'		: ('926ejs', ('imx28', 'mxs')),
+        'imx285'		: ('926ejs', ('imx28', 'mxs')),
+        'imx286'		: ('926ejs', ('imx28', 'mxs')),
+        'imx287'		: ('926ejs', ('imx28', 'mxs')),
+        'imx31'			: ('1136jfs', 'imx'),
+        'imx35'			: ('1136jfs', 'imx'),
+        'imx51'			: ('cortexa8neon', 'imx'),
+        'imx512'		: ('cortexa8neon', 'imx', 'imx51'),
+        'imx513'		: ('cortexa8neon', 'imx', 'imx51'),
+        'imx514'		: ('cortexa8neon', 'imx', 'imx51'),
+        'imx515'		: ('cortexa8neon', 'imx', 'imx51'),
+        'imx516'		: ('cortexa8neon', 'imx', 'imx51'),
+        'imx53'			: ('cortexa8neon', 'imx'),
+        'imx534'		: ('cortexa8neon', 'imx', 'imx53'),
+        'imx535'		: ('cortexa8neon', 'imx', 'imx53'),
+        'imx536'		: ('cortexa8neon', 'imx', 'imx53'),
+        'imx537'		: ('cortexa8neon', 'imx', 'imx53'),
+        'imx538'		: ('cortexa8neon', 'imx', 'imx53'),
         },
 
     'x86'		: {
-        'celeronm575'		: ('i686', 'sse2'),
+        'celeronm575'		: (('i686', 'sse2'),),
         },
 
     }
@@ -407,7 +414,9 @@ def arch_set_cross_arch(d, prefix, gcc_version):
                           d.get(prefix+'_OS', True))
     cross_arch = arch_config_sub(d, cross_arch)
     cross_arch = arch_fixup(cross_arch, gcc_version)
-    d[prefix+'_ARCH'] = cross_arch
+    d[prefix+'_ARCH'] = cross_arch[0]
+    if cross_arch[1]:
+        d[prefix+'_CPU_FAMILIES'] = " ".join(cross_arch[1])
     return
 
 
@@ -436,12 +445,27 @@ def arch_fixup(arch, gcc):
     if vendor == 'pc':
         vendor = 'unknown'
 
+    families = []
     if cpu in cpumap and vendor in cpumap[cpu]:
         mapto = cpumap[cpu][vendor]
-        if isinstance(mapto, tuple):
-            (cpu, vendor) = mapto
-        else:
+        families = [vendor]
+        if isinstance(mapto, basestring):
             vendor = mapto
+        else:
+            assert isinstance(mapto, tuple) and len(mapto) in (1, 2)
+            if isinstance(mapto[0], basestring):
+                vendor = mapto[0]
+            else:
+                assert isinstance(mapto[0], tuple) and len(mapto[0]) == 2
+                cpu = mapto[0][0]
+                vendor = mapto[0][1]
+            if len(mapto) > 1:
+                if isinstance(mapto[1], basestring):
+                    families.append(mapto[1])
+                else:
+                    assert isinstance(mapto[1], tuple)
+                    families.extend(mapto[1])
+        families.append(vendor)
 
     if cpu == "powerpc":
         if vendor in ('e300c1', 'e300c4'):
@@ -463,7 +487,7 @@ def arch_fixup(arch, gcc):
     if cpu == 'arm' and os == 'linux-gnu':
         os = 'linux-gnueabi'
 
-    return '-'.join((cpu, vendor, os))
+    return ('-'.join((cpu, vendor, os)), families)
 
 
 def arch_gccspec(arch, gcc):
