@@ -6,7 +6,7 @@
 DEPENDS_${PN}		= "${PN}-dev_${PV}"
 DEPENDS_${PN}-dev	= ""
 
-FILES_${PN}		= "${base_libdir}/lib*${SOLIBS} ${libdir}/lib*${SOLIBS}"
+FILES_${PN}		= "${base_sharedlibdir}/lib*${SOLIBS} ${sharedlibdir}/lib*${SOLIBS}"
 ALLOW_EMPTY_${PN}-dev	= "0"
 
 addhook library_depends to post_recipe_parse after fixup_package_type before blacklist
