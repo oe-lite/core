@@ -73,7 +73,7 @@ def do_siteinfo(d):
 
     #
     # Return list of sitefiles found by searching for sitefiles in the
-    # ${BBPATH}/site directories and any files listed in
+    # ${OEPATH}/site directories and any files listed in
     # ${SRC_*_SITEFILES} for * in BUILD, HOST, TARGET.
     #
     # The SRC_*_SITEFILES come last, so they override any variables from
@@ -93,7 +93,7 @@ def do_siteinfo(d):
         oepath = d.getVar('OEPATH', True) or ''
         pv = d.getVar('PV', True)
 
-        # 1) ${BBPATH}/site
+        # 1) ${OEPATH}/site
         for path in oepath.split(':'):
             for filename in sitefiles:
                 filepath = os.path.join(path, 'site', filename)
