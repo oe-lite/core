@@ -59,9 +59,11 @@ CT_GDB_NATIVE:machine		= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_DEBUG_ltrace"
 CT_DEBUG_ltrace:cross		= "y"
+CT_DEBUG_ltrace:TARGET_OS_mingw32 = ""
 
 AUTO_CT_BOOLEAN_VARS += "CT_DEBUG_strace"
 CT_DEBUG_strace:cross		= "y"
+CT_DEBUG_strace:TARGET_OS_mingw32 = ""
 
 AUTO_CT_BOOLEAN_VARS += "CT_ARCH_ARM_MODE_THUMB"
 CT_ARCH_ARM_MODE_THUMB          = "${TARGET_THUMB}"
