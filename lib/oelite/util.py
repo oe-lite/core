@@ -2,7 +2,7 @@ import tarfile
 import os
 import sys
 
-def format_textblock(text, indent=2, width=78):
+def format_textblock(text, indent=2, width=78, first_indent=None):
     """
     Format a text block.
 
@@ -16,16 +16,25 @@ def format_textblock(text, indent=2, width=78):
         `indent` -- the integer number of spaces to indent by.
         `width`  -- the maximum width of formatted text (including indent).
     """
-    width = width - indent
+    if first_indent is None:
+        line_width = width - indent
+    else:
+        line_width = width - first_indent
     out = []
     stack = [word for word in text.replace("\n", " ").split(" ") if word]
     while stack:
         line = ""
+        #width = width - indent
         while stack:
-            if len(line) + len(" " + stack[0]) > width: break
+            if len(line) + len(" " + stack[0]) > line_width: break
             if line: line += " "
             line += stack.pop(0)
-        out.append(" "*indent + line)
+        if first_indent is None:
+            out.append(" "*indent + line)
+        else:
+            out.append(" "*first_indent + line)
+            line_width = width - indent
+            first_indent = None
     return "\n".join(out)
 
 
