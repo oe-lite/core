@@ -1,42 +1,80 @@
 #Creates a bom list of runtime componets with name, description, and licence
-#N.b. This class requires the pdflatex command to work on the build machine!
 
-do_rstage[postfuncs] += "do_rstage_create_bom_list"
-do_rstage_create_bom_list () {
-	echo "\\documentclass[12pt,a4paper]{article}" > bom.tex
-	echo "\\usepackage{varwidth}" >> bom.tex
-	echo "\\usepackage{array}" >> bom.tex
-	echo "\\newcolumntype{M}{>{\\begin{varwidth}{9cm}}l<{\\end{varwidth}}}" >> bom.tex
-	echo "\\begin{document}" >> bom.tex
-	echo "\\begin{huge}BoM for "${PN}"\\end{huge}" >> bom.tex
-	echo "\\bigskip" >> bom.tex
-	echo "" >> bom.tex
-	echo "\\begin{tabular}{lMr}" >> bom.tex
-	echo "\\hline" >> bom.tex
-	echo "\\textbf{Name} & \\textbf{Description} & \\textbf{Licence} \\\\\\hline" >> bom.tex
-	for dir in ${RSTAGE_DIR}/OE-lite/*; do
-	    if [ -z "$(grep `cat $dir/pn` bom)" ]; then
-	        echo `cat $dir/pn`" & "`cat $dir/description`" & "`cat $dir/license`" \\\\" >> bom.tex
-	    elif [ -z "$(grep `cat $dir/pn` bom | grep `cat $dir/license`)" ]; then
-	        echo $dir" & "`cat $dir/description`" & "`cat $dir/license`" \\\\" >> bom.tex
-	    fi
-	done
-	echo "\\hline" >> bom.tex
-	echo "\\end{tabular}" >> bom.tex
-	echo "\\end{document}" >> bom.tex
-}
+do_rstage[postfuncs] += "do_rstage_bom"
+def do_rstage_bom(d):
+    def read_pkgmetafile(name):
+        with open(os.path.join(pkgmetadir, package, name)) as f:
+            return f.readline().strip()
+    pkgmeta = {}
+    pkgmetadir = d.get("RSTAGE_DIR") + d.get("pkgmetadir")
+    for package in os.listdir(pkgmetadir):
+        path = os.path.join(pkgmetadir, package)
+        if not os.path.isdir(path):
+            continue
+        pn = read_pkgmetafile("pn")
+        if not pn in pkgmeta:
+            pkgmeta[pn] = {
+                "license": {},
+                "description": {},
+                }
+        pkgmeta[pn]["license"][package] = read_pkgmetafile("license")
+        pkgmeta[pn]["description"][package] = read_pkgmetafile("description")
+    bom = []
+    def add_to_bom(name, license, description):
+        bom.append((name, license, description))
+    for recipe in sorted(pkgmeta.keys()):
+        recipe_licenses = set(pkgmeta[recipe]["license"].values())
+        if len(recipe_licenses) == 1:
+            add_to_bom(recipe, recipe_licenses.pop(),
+                       sorted(pkgmeta[recipe]["description"].items())[0][1])
+            continue
+        collapsed = set([])
+        for parent in sorted(pkgmeta[recipe]["license"].keys()):
+            if parent in collapsed:
+                continue
+            parent_license = pkgmeta[recipe]["license"][parent]
+            childs = []
+            collapse = True
+            for package, license in pkgmeta[recipe]["license"].items():
+                if not package.startswith(parent + "-"):
+                    continue
+                if license != parent_license:
+                    collapse = False
+                    continue
+                childs.append(package)
+            if collapse:
+                collapsed.update(childs)
+        for package in sorted(set(pkgmeta[recipe]["license"].keys())
+                              .difference(collapsed)):
+            add_to_bom(package,
+                       pkgmeta[recipe]["license"][package],
+                       pkgmeta[recipe]["description"][package])
+    import operator
+    name_len = max(map(len, map(operator.itemgetter(0), bom)))
+    license_len = max(map(len, map(operator.itemgetter(1), bom)))
+    name_len = max(14, min(30, name_len))
+    license_len = max(7, min(14, license_len))
+    description_len = 79 - (name_len + 2 + license_len + 2)
+    bomfile = open("bom.txt", "w")
+    bomfile.write("%-*s  %-*s  %s\n"%(
+            name_len, "PACKAGE", license_len, "LICENSE", "DESCRIPTION"))
+    bomfile.write("-"*79 + "\n")
+    for name, license, description in bom:
+        space = " " * (max(0, name_len - len(name)) + 2)
+        bomfile.write(name + space + license)
+        l = len(name) + len(space) + len(license)
+        space = " " * (max(0, name_len + 2 + license_len - l) + 2)
+        bomfile.write(space)
+        l += len(space)
+        description_block = oelite.util.format_textblock(
+                description, name_len + license_len + 4,
+                first_indent=l)
+        bomfile.write(description_block[l:] + "\n")
 
-do_compile[postfuncs] += "do_compile_bom_list"
-do_compile_bom_list () {
-	cd ${S}
-	pdflatex ${RSTAGE_DIR}/bom.tex
-}
-
-do_install[postfuncs] += "do_install_bom_list"
-do_install_bom_list () {
-	install -m 0644 ${S}/bom.pdf ${D}/${PN}-bom.pdf
+do_install[postfuncs] += "do_install_bom"
+do_install_bom () {
+	install -m 0644 ${RSTAGE_DIR}/bom.txt ${D}/${PN}-bom.txt
 }
 
 PACKAGES += "${PN}-bom"
-FILES_${PN}-bom = "/${PN}-bom.pdf"
-
+FILES_${PN}-bom = "/${PN}-bom.txt"
