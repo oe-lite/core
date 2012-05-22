@@ -177,7 +177,13 @@ python do_package () {
         os.chdir(os.path.join(pkgd, package))
         bb.utils.mkdirhier(pkgmetadir)
         for var in pkgmetavars:
-            val = d.get(var + "_" + package) or pkgmetadefaults[var]
+            val = None
+            name = package.split("-")
+            while name and val is None:
+                val = d.get(var + "_" + "-".join(name))
+                name.pop()
+            if val is None:
+                val = pkgmetadefaults[var]
             if not val:
                 continue
             with open(os.path.join(pkgmetadir, var.lower()), "w") as f:
