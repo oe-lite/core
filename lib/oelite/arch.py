@@ -65,7 +65,34 @@ cpuspecs = {
             },
         'cortexa8'		: {
             'mcpu'		: 'cortex-a8',
-            'mtune'		: 'cortex-a8',
+            'mtune'	 	: 'cortex-a8',
+            'abi flags'         : [
+                ['float abi', 'hard', {
+                        'hard' : {
+                            'float' : 'hard',
+                            'fpu'   : 'neon',
+                            'vendor' : 'neon',
+                            },
+                        'softfp' : {
+                            'float' : 'softfp',
+                            'fpu'   : 'neon',
+                            'vendor' : 'neonsfp',
+                            },
+                        'soft' : {
+                            'float' : 'soft',
+                            'vendor' : 'sfp',
+                            },
+                        }
+                 ],
+                ['instruction set', 'thumb', {
+                        'arm' : { },
+                        'thumb' : {
+                            'thumb' : '1',
+                            'vendor' : 't',
+                            },
+                        }
+                 ],
+                ]
             },
         'cortexa8neon'		: {
             'mcpu'		: 'cortex-a8',
@@ -289,8 +316,8 @@ cpumap = {
     'arm'		: {
         'at91rm9200'		: '920t',
         'at91sam9260'		: '926ejs',
-        'omap3520'		: ('cortexa8neon', ('omap3', 'omap')),
-        'omap3530'		: ('cortexa8neon', ('omap3', 'omap')),
+        'omap3520'		: ('cortexa8', ('omap3', 'omap')),
+        'omap3530'		: ('cortexa8', ('omap3', 'omap')),
         'omap4430'		: ('cortexa9neon', ('omap4', 'omap')),
         'omap4440'		: ('cortexa9neon', ('omap4', 'omap')),
         'imx21'			: ('926ejs', 'imx'),
@@ -306,18 +333,18 @@ cpumap = {
         'imx287'		: ('926ejs', ('imx28', 'mxs')),
         'imx31'			: ('1136jfs', 'imx'),
         'imx35'			: ('1136jfs', 'imx'),
-        'imx51'			: ('cortexa8neon', 'imx'),
-        'imx512'		: ('cortexa8neon', 'imx', 'imx51'),
-        'imx513'		: ('cortexa8neon', 'imx', 'imx51'),
-        'imx514'		: ('cortexa8neon', 'imx', 'imx51'),
-        'imx515'		: ('cortexa8neon', 'imx', 'imx51'),
-        'imx516'		: ('cortexa8neon', 'imx', 'imx51'),
-        'imx53'			: ('cortexa8neon', 'imx'),
-        'imx534'		: ('cortexa8neon', 'imx', 'imx53'),
-        'imx535'		: ('cortexa8neon', 'imx', 'imx53'),
-        'imx536'		: ('cortexa8neon', 'imx', 'imx53'),
-        'imx537'		: ('cortexa8neon', 'imx', 'imx53'),
-        'imx538'		: ('cortexa8neon', 'imx', 'imx53'),
+        'imx51'			: ('cortexa8', 'imx'),
+        'imx512'		: ('cortexa8', 'imx', 'imx51'),
+        'imx513'		: ('cortexa8', 'imx', 'imx51'),
+        'imx514'		: ('cortexa8', 'imx', 'imx51'),
+        'imx515'		: ('cortexa8', 'imx', 'imx51'),
+        'imx516'		: ('cortexa8', 'imx', 'imx51'),
+        'imx53'			: ('cortexa8', 'imx'),
+        'imx534'		: ('cortexa8', 'imx', 'imx53'),
+        'imx535'		: ('cortexa8', 'imx', 'imx53'),
+        'imx536'		: ('cortexa8', 'imx', 'imx53'),
+        'imx537'		: ('cortexa8', 'imx', 'imx53'),
+        'imx538'		: ('cortexa8', 'imx', 'imx53'),
         },
 
     'x86'		: {
@@ -413,7 +440,8 @@ def arch_set_cross_arch(d, prefix, gcc_version):
     cross_arch = '%s-%s'%(d.get(prefix+'_CPU', True),
                           d.get(prefix+'_OS', True))
     cross_arch = arch_config_sub(d, cross_arch)
-    cross_arch = arch_fixup(cross_arch, gcc_version)
+    abis = (d.get(prefix+'_ABI', True) or "").split(' ')
+    cross_arch = arch_fixup(cross_arch, gcc_version, abis)
     d[prefix+'_ARCH'] = cross_arch[0]
     if cross_arch[1]:
         d[prefix+'_CPU_FAMILIES'] = " ".join(cross_arch[1])
@@ -437,7 +465,7 @@ def arch_update(d, prefix, gcc_version):
     return
 
 
-def arch_fixup(arch, gcc):
+def arch_fixup(arch, gcc, abis):
     import re
     gccv=re.search('(\d+)[.](\d+)[.]?',gcc).groups()
     (cpu, vendor, os) = arch_split(arch)
@@ -486,6 +514,32 @@ def arch_fixup(arch, gcc):
     # When/if OABI is added, os should be kept as linux-gnu for OABI
     if cpu == 'arm' and os == 'linux-gnu':
         os = 'linux-gnueabi'
+
+    # TODO support DEFAULT, keep ordering if merging DEFAULT and vendor abis?
+    if vendor in cpuspecs[cpu] and 'abi flags' in cpuspecs[cpu][vendor]:
+        abi_flags = cpuspecs[cpu][vendor].pop('abi flags')
+        cpuspec = cpuspecs[cpu][vendor]
+        extra_vendor = []
+        for abi_flag in abi_flags:
+            diff = set(abis).intersection(set(abi_flag[2]))
+            if len(diff) > 1:
+                bb.fatal("ABI with %s is invalid, only one of %s should be given"
+                      % (', '.join(diff), ', '.join(abi_flag[2].keys())))
+            if len(diff) == 1:
+                abi_select = diff.pop()
+                abis.remove(abi_select)
+            else:
+                abi_select = abi_flag[1]
+            if 'vendor' in abi_flag[2][abi_select]:
+                extra_vendor.append(abi_flag[2][abi_select].pop('vendor'))
+
+            cpuspec.update(abi_flag[2][abi_select])
+
+        if len(abis) > 0:
+            bb.fatal("ABI %s not valid for cpuspec %s-%s" %(', '.join(abis.keys()), cpu,vendor))
+
+        vendor = vendor+''.join(extra_vendor)
+        cpuspecs[cpu].update({vendor : cpuspec})
 
     return ('-'.join((cpu, vendor, os)), families)
 
