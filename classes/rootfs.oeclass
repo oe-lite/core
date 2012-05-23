@@ -6,7 +6,7 @@ RECIPE_TYPES = "machine"
 
 PROVIDES_${PN} += "rootfs"
 
-RDEPENDS ?= "busybox"
+RDEPENDS ?= "busybox base-hostname"
 
 # Jffs2 recipe flags
 RECIPE_FLAGS += "rootfs_jffs2_options"
