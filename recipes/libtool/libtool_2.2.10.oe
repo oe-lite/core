@@ -1,3 +1,6 @@
+LICENSE = "GPL-2.0+"
+LICENSE_${PN}-libltdl = "LGPL-2.1+"
+
 require libtool-2.2.inc
 
 libtool_cross_compile = ""
