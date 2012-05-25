@@ -1,7 +1,6 @@
 # -*- mode:python; -*-
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
-LICENSE = "MIT"
 
 RECIPE_TYPES = "machine native sdk"
 
