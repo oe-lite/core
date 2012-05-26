@@ -66,9 +66,7 @@ class UrlFetcher():
                     if self._signature == m.hexdigest():
                         return True
                     else:
-                        print "Expected signature: %s"%self._signature
-                        print "Obtained signature: %s"%m.hexdigest()
-                        raise Exception("Signature mismatch")
+                        print "Signature bad, removing local file and regrabbing: %s"%self.localpath
                 os.unlink(self.localpath)
             f = self.grab(url)
             if f:
@@ -81,7 +79,12 @@ class UrlFetcher():
         signature = m.hexdigest()
         if not "_signature" in dir(self):
             return (self.localname, signature)
-        return signature == self._signature
+        if signature != self._signature:
+            print "Expected signature: %s"%self._signature
+            print "Obtained signature: %s"%signature
+            return False
+        else:
+            return True
 
 
 class SimpleProgress(urlgrabber.progress.BaseMeter):
