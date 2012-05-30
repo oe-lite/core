@@ -158,9 +158,26 @@ python do_package () {
 
     pkgmetadir = d.get("pkgmetadir").lstrip("/")
     pkgmetavars = d.get("PACKAGE_META_VARS").split()
-    pkgmetadefaults = {}
+    pkgmetavals = {}
+
+    for package in sorted(packages):
+        pkgmetavals[package] = {}
     for var in pkgmetavars:
-        pkgmetadefaults[var] = d.get(var) or None
+        pkgmetastack = [("", 0, (d.get(var) or None))]
+        pkgmetaval = {}
+        for package in sorted(packages):
+            heritage = pkgmetastack.pop()
+            while not package.startswith(heritage[0]):
+                heritage = pkgmetastack.pop()
+            lvl = heritage[1]
+            pkgmetastack.append(heritage)
+            val = d.get(var + "_" + package)
+            if val is None:
+                val = heritage[2]
+            else:
+                lvl = lvl + 1
+                pkgmetastack.append((package + "-", lvl, val))
+            pkgmetavals[package][var] = (val, lvl)
 
     recipe_arch = d.get("RECIPE_ARCH")
     recipe_type = d.get("RECIPE_TYPE")
@@ -176,18 +193,11 @@ python do_package () {
         bb.utils.mkdirhier(outdir)
         os.chdir(os.path.join(pkgd, package))
         bb.utils.mkdirhier(pkgmetadir)
+        pkgmetaval = pkgmetavals[package]
         for var in pkgmetavars:
-            val = None
-            name = package.split("-")
-            while name and val is None:
-                val = d.get(var + "_" + "-".join(name))
-                name.pop()
-            if val is None:
-                val = pkgmetadefaults[var]
-            if not val:
-                continue
+            val, lvl = pkgmetaval[var]
             with open(os.path.join(pkgmetadir, var.lower()), "w") as f:
-                f.write(val + "\n")
+                f.write("%s\n%d\n"%(val or "", lvl))
         # FIXME: use tarfile module instead, and do proper error handling
         os.system("tar cf %s/%s_%s_%s.tar ."%(outdir, package, pv, buildhash))
         srcfile = "%s_%s_%s.tar"%(package, pv, buildhash)
