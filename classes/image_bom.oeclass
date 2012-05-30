@@ -4,14 +4,14 @@ do_rstage[postfuncs] += "do_rstage_bom"
 def do_rstage_bom(d):
     def read_pkgmetafile(name):
         with open(os.path.join(pkgmetadir, package, name)) as f:
-            return f.readline().strip()
+            return (f.readline().strip(), f.readline().strip())
     pkgmeta = {}
     pkgmetadir = d.get("RSTAGE_DIR") + d.get("pkgmetadir")
     for package in os.listdir(pkgmetadir):
         path = os.path.join(pkgmetadir, package)
         if not os.path.isdir(path):
             continue
-        pn = read_pkgmetafile("pn")
+        pn = read_pkgmetafile("pn")[0]
         if not pn in pkgmeta:
             pkgmeta[pn] = {
                 "license": {},
@@ -25,8 +25,8 @@ def do_rstage_bom(d):
     for recipe in sorted(pkgmeta.keys()):
         recipe_licenses = set(pkgmeta[recipe]["license"].values())
         if len(recipe_licenses) == 1:
-            add_to_bom(recipe, recipe_licenses.pop(),
-                       sorted(pkgmeta[recipe]["description"].items())[0][1])
+            add_to_bom(recipe, recipe_licenses.pop()[0],
+                       sorted(pkgmeta[recipe]["description"].items())[0][1][0])
             continue
         collapsed = set([])
         for parent in sorted(pkgmeta[recipe]["license"].keys()):
@@ -47,8 +47,8 @@ def do_rstage_bom(d):
         for package in sorted(set(pkgmeta[recipe]["license"].keys())
                               .difference(collapsed)):
             add_to_bom(package,
-                       pkgmeta[recipe]["license"][package],
-                       pkgmeta[recipe]["description"][package])
+                       pkgmeta[recipe]["license"][package][0],
+                       pkgmeta[recipe]["description"][package][0])
     import operator
     name_len = max(map(len, map(operator.itemgetter(0), bom)))
     license_len = max(map(len, map(operator.itemgetter(1), bom)))
@@ -58,7 +58,7 @@ def do_rstage_bom(d):
     bomfile = open("bom.txt", "w")
     bomfile.write("%-*s  %-*s  %s\n"%(
             name_len, "PACKAGE", license_len, "LICENSE", "DESCRIPTION"))
-    bomfile.write("-"*79 + "\n")
+    bomfile.write("-"*79 + "\n\n")
     for name, license, description in bom:
         space = " " * (max(0, name_len - len(name)) + 2)
         bomfile.write(name + space + license)
@@ -69,7 +69,7 @@ def do_rstage_bom(d):
         description_block = oelite.util.format_textblock(
                 description, name_len + license_len + 4,
                 first_indent=l)
-        bomfile.write(description_block[l:] + "\n")
+        bomfile.write(description_block[l:] + "\n\n")
 
 do_install[postfuncs] += "do_install_bom"
 do_install_bom () {
