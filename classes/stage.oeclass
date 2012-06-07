@@ -39,7 +39,8 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
                 else:
                     if f == fp[0]:
                         file_priority = fp[1]
-            file_priority = int(file_priority)
+            if file_priority is not None:
+                file_priority = int(file_priority)
         if file_priority is None:
             file_priority = 0
         try:
