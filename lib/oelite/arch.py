@@ -440,7 +440,7 @@ def arch_set_cross_arch(d, prefix, gcc_version):
     cross_arch = '%s-%s'%(d.get(prefix+'_CPU', True),
                           d.get(prefix+'_OS', True))
     cross_arch = arch_config_sub(d, cross_arch)
-    abis = (d.get(prefix+'_ABI', True) or "").split(' ')
+    abis = (d.get(prefix+'_ABI', True) or "").split()
     cross_arch = arch_fixup(cross_arch, gcc_version, abis)
     d[prefix+'_ARCH'] = cross_arch[0]
     if cross_arch[1]:
@@ -535,11 +535,11 @@ def arch_fixup(arch, gcc, abis):
 
             cpuspec.update(abi_flag[2][abi_select])
 
-        if len(abis) > 0:
-            bb.fatal("ABI %s not valid for cpuspec %s-%s" %(', '.join(abis.keys()), cpu,vendor))
-
         vendor = vendor+''.join(extra_vendor)
         cpuspecs[cpu].update({vendor : cpuspec})
+
+    if len(abis) > 0:
+        bb.fatal("ABI %s not valid for arch %s-%s-%s" %(', '.join(abis), cpu,vendor,os))
 
     return ('-'.join((cpu, vendor, os)), families)
 
