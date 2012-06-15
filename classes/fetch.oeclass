@@ -60,7 +60,11 @@ do_fetch[dirs] = "${INGREDIENTS}"
 def do_fetch(d):
     sigfile_changed = False
     for uri in d.get("__fetch"):
-        fetch_result = uri.fetch()
+        try:
+            fetch_result = uri.fetch()
+        except oelite.fetch.FetchError as e:
+            print "Error: Failed to fetch %s: %s"%(uri, e.message)
+            return False
         if fetch_result == False:
             return False
         elif isinstance(fetch_result, tuple):
