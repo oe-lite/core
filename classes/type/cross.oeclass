@@ -9,6 +9,8 @@ RECIPE_ARCH		 = "${MACHINE_ARCH}"
 require conf/paths/machine.conf
 require conf/paths/machine-target.conf
 
+BLACKLIST_PREFIX += "SDK_"
+
 STAGE_PATH = "\
 ${STAGE_DIR}/cross${stage_bindir}:\
 ${STAGE_DIR}/native${stage_bindir}\
