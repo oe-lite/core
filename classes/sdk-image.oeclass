@@ -76,3 +76,5 @@ DEFAULT_USE_sdk_archive_tar_ext = "tar.gz"
 ARCHIVE_IMAGE_FORMATS = "${USE_sdk_archive_formats}"
 ARCHIVE_IMAGE_DIRNAME = ""
 ARCHIVE_IMAGE_TAR_EXT = "${USE_sdk_archive_tar_ext}"
+
+PROVIDES_${PN} = "sdk"
