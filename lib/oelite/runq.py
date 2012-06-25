@@ -147,6 +147,8 @@ class OEliteRunQueue:
                 # set rebuild flag (based on
                 # --rebuild/--rebuildall/--reallyrebuildall)
                 if ((self.rebuild >= 1 and is_primary_recipe) or
+                    (self.rebuild >= 1 and
+                     (recipe.get("REBUILD") or "0") == "1") or
                     (self.rebuild == 2 and
                      recipe.get("REBUILDALL_SKIP") != "1") or
                     (self.rebuild == 3)):
