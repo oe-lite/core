@@ -15,11 +15,11 @@ python do_install_fix_splashutils () {
     sysconfdir=d.get("sysconfdir")
     initscripts = ((d.get("SPLASHUTILS_INITSCRIPTS"))).split()
     for script in initscripts:
-        progress=d.get("USE_" + script + "_splashutils_progress")
         msg=d.get("USE_" + script + "_splashutils_msg")
-        script = script.replace("_", "-")
-        for line in fileinput.FileInput("." + sysconfdir + "/init.d/" + script, inplace=1):
-            if d.get("USE_splashutils_progress_information"):
+        script_file = script.replace("_", "-")
+        for line in fileinput.FileInput("." + sysconfdir + "/init.d/" + script_file, inplace=1):
+            if d.get("USE_splashutils_progress_information") and d.get("USE_" + script + "_splashutils_progress"):
+                progress=d.get("USE_" + script + "_splashutils_progress")
                 line=line.replace("splash_progress PLACEHOLDER","test -x /sbin/splash-functions.sh && . /sbin/splash-functions.sh && splash_progress " + progress + " " + msg)
             else:
                 line=line.replace("splash_progress PLACEHOLDER","")
