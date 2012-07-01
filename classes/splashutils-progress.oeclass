@@ -1,9 +1,6 @@
 
 CLASS_FLAGS += "splashutils_progress_information"
 
-SPLASHUTILS_PROGRESS ?= ""
-SPLASHUTILS_PROGRESS:>USE_splashutils_progress_information = "1"
-
 SPLASHUTILS_INITSCRIPTS ?= ""
 
 do_install[postfuncs] += "do_install_fix_splashutils"
