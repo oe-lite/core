@@ -114,10 +114,10 @@ class DictMeta(MetaData):
         try:
             self.dict[var]["__overrides"][override[0]][override[1]] = val
         except KeyError, e:
-            if e.message == var:
+            if e.args[0] == var:
                 self.dict[var] = {"__overrides": {'':{}, '>':{}, '<':{}}}
             else:
-                assert e.message == "__overrides"
+                assert e.args[0] == "__overrides"
                 self.dict[var]["__overrides"] = {'':{}, '>':{}, '<':{}}
             self.dict[var]["__overrides"][override[0]][override[1]] = val
         self.trim_expand_cache(var)
