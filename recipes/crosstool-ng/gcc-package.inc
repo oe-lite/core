@@ -385,3 +385,31 @@ do_split_sysroot_mangle_sdk () {
 	cd ${PKGD}
 	mkdir -p ${PN}/${TARGET_ARCH}/sysroot
 }
+
+LICENSE_${PN}-sysroot-libgcc		= "GPL-3.0-with-GCC-exception"
+LICENSE_${PN}-sysroot-libstdc++		= "GPL-3.0-with-GCC-exception"
+LICENSE_${PN}-sysroot-libsupc++		= "GPL-3.0-with-GCC-exception"
+
+LICENSE_${PN}-sysroot-libc		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libanl		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libbrokenlocale	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libcrypt		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libdl		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libm		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libmemusage	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnsl		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-compat	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-dns	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-files	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-hesiod	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-nis	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libnss-nisplus	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libpcprofile	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libpthread	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libresolv		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-librt		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libsegfault	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libthread-db	= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libutil		= "LGPL-2.1+"
+
+LICENSE_${PN}-sysroot-libfd		= "GPL-3.0+"
