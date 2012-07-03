@@ -48,3 +48,19 @@ do_install_gcc_lafile_fixup () {
             -i $lafile
     done
 }
+
+# This is useful to provide valgrind with a non-stripped ld lib.
+# Set USE_gcc_ld_so_unstripped = "1" and add valgrind to rootfs.
+RECIPE_FLAGS += "gcc_ld_so_unstripped"
+LD_SO_UNSTRIPPED_PRE:>USE_ldunstripped = "do_install_ld_so_unstripped_pre"
+LD_SO_UNSTRIPPED_POST:>USE_ldunstripped = "do_install_ld_so_unstripped_post"
+do_install[postfuncs] =+ "${LD_SO_UNSTRIPPED_PRE}"
+do_install[postfuncs] += "${LD_SO_UNSTRIPPED_POST}"
+
+do_install_ld_so_unstripped_pre(){
+    cp ${D}/${TARGET_ARCH}/lib/ld-${TOOLCHAIN_LIBC_VERSION}.so ${S}/../.
+}
+
+do_install_ld_so_unstripped_post(){
+    cp ${S}/../ld-${TOOLCHAIN_LIBC_VERSION}.so ${D}/${TARGET_ARCH}/lib/.
+}
