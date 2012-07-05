@@ -225,9 +225,11 @@ class OEliteUri:
         print "Unpacking", self.fetcher.localpath
         srcpath = os.getcwd()
         self.srcfile = None
+        cwd = None
         if "subdir" in self.params:
             srcpath = os.path.join(srcpath, self.params["subdir"])
             bb.utils.mkdirhier(srcpath)
+            cwd = os.getcwd()
             os.chdir(srcpath)
         if not cmd or not "unpack" in self.params:
             if os.path.isdir(self.fetcher.localpath):
@@ -241,6 +243,8 @@ class OEliteUri:
             cmd = cmd%(self.fetcher.localpath, self.srcpath(d))
         else:
             cmd = cmd%(self.fetcher.localpath)
+        if cwd:
+            os.chdir(cwd)
         rc = oe.process.run(cmd)
         return rc == 0
 
