@@ -221,7 +221,13 @@ class OEliteUri:
     def fetch(self):
         if not "fetch" in dir(self.fetcher):
             return True
-        print "Fetching", str(self)
+        url = str(self)
+        try:
+            if url != str(self.fetcher.url):
+                url = "%s %s"%(self.scheme, self.fetcher.url)
+        except AttributeError:
+            pass
+        print "Fetching", url
         return self.fetcher.fetch()
 
     def unpack(self, d, cmd):
