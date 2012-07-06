@@ -39,6 +39,7 @@ unpack_ext = (
 class OEliteUri:
 
     def __init__(self, uri, d):
+        self.uri = uri
         # Note, do not store reference to meta
         self.recipe = "%s:%s_%s"%(d.get("RECIPE_TYPE"),
                                   d.get("PN"), d.get("PV"))
