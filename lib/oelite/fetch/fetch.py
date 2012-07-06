@@ -71,6 +71,10 @@ class OEliteUri:
                     raise oelite.fetch.InvalidURI(
                         uri, "bad parameter: %s"%param)
                 self.params[name] = value
+        try:
+            self.isubdir = self.params["isubdir"]
+        except KeyError:
+            pass
         if not self.scheme in FETCHERS:
             raise oelite.fetch.InvalidURI(
                 uri, "unsupported URI scheme: %s"%(self.scheme))
