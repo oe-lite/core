@@ -15,12 +15,9 @@ class UrlFetcher():
                 "Scheme %s not supported by oelite.fetch.UrlFetcher"%(
                     uri.scheme))
         self.url = "%s://%s"%(uri.scheme, uri.location)
-        try:
-            isubdir = uri.params["isubdir"]
-        except KeyError:
-            isubdir = uri.isubdir
         self.localname = os.path.basename(uri.location)
-        self.localpath = os.path.join(uri.ingredients, isubdir, self.localname)
+        self.localpath = os.path.join(uri.ingredients, uri.isubdir,
+                                      self.localname)
         self.signatures = d.get("FILE") + ".sig"
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
