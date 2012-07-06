@@ -12,6 +12,7 @@ import local
 import url
 import git
 import hg
+import svn
 
 FETCHERS = {
     "file"	: local.LocalFetcher,
@@ -20,6 +21,7 @@ FETCHERS = {
     "ftp"	: url.UrlFetcher,
     "git"	: git.GitFetcher,
     "hg"	: hg.HgFetcher,
+    "svn"	: svn.SvnFetcher,
 }
 
 uri_pattern = re.compile("(?P<scheme>[^:]*)://(?P<location>[^;]+)(;(?P<params>.*))?")
