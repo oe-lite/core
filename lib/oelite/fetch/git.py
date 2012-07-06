@@ -64,7 +64,7 @@ class GitFetcher():
             repo_name = repo_name[:-4]
         if "subdir" in uri.params:
             self.dest = uri.params["subdir"]
-            if subdir[-1] == "/":
+            if self.dest[-1] == "/":
                 self.dest += repo_name
         else:
             self.dest = repo_name
