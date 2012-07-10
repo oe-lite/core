@@ -170,8 +170,7 @@ class ShellFunction(OEliteFunction):
             runfile.write("\n%s() {\n%s\n}\n"%(
                     var, (val or "\t:").rstrip()))
 
-        if oebakery.DEBUG:
-            runfile.write("set -x\n")
+        runfile.write("set -x\n")
         ld_library_path = self.meta.get("LD_LIBRARY_PATH")
         flags = self.meta.get_flags("LD_LIBRARY_PATH")
         if self.ld_library_path:
