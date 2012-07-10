@@ -413,3 +413,6 @@ LICENSE_${PN}-sysroot-libthread-db	= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libutil		= "LGPL-2.1+"
 
 LICENSE_${PN}-sysroot-libfd		= "GPL-3.0+"
+
+LICENSE_${PN}-sysroot-gdbserver		= "GPL-2.0 & GPL-3.0 & LGPL-2.0 & LGPL-3.0"
+LICENSE_${PN}-sysroot-trace		= "BSD-2-Clause"
