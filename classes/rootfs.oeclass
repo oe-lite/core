@@ -8,6 +8,11 @@ PROVIDES_${PN} += "rootfs"
 
 RDEPENDS ?= "busybox"
 
+#Extra RDEPENDS
+RECIPE_FLAGS += "rootfs_extra_rdepends"
+DEFAULT_USE_rootfs_extra_rdepends = ""
+CLASS_RDEPENDS:>USE_rootfs_extra_rdepends = " ${USE_rootfs_extra_rdepends}"
+
 # Jffs2 recipe flags
 RECIPE_FLAGS += "rootfs_jffs2_options"
 DEFAULT_USE_rootfs_jffs2_options = "--faketime --squash"
