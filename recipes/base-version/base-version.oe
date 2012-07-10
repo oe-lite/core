@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 DESCRIPTION = "Distroversion and  build-time file creation."
-
+LICENSE = "N/A"
 PACKAGES = "${PN}"
 
 do_install () {
