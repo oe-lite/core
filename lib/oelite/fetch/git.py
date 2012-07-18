@@ -111,6 +111,10 @@ class GitFetcher():
                 raise oelite.fetch.FetchError(self.uri, "unknown tag: %s"%(self.tag))
             if not "_signature" in dir(self):
                 return (self.signature_name, commit)
+            if (commit != self._signature):
+                print "Error signature mismatch "+self.tag
+                print "  expected: %s"%self._signature
+                print "  obtained: %s"%commit
             return commit == self._signature
         return True
 

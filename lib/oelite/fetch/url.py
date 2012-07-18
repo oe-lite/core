@@ -80,8 +80,9 @@ class UrlFetcher():
         if not "_signature" in dir(self):
             return (self.localname, signature)
         if signature != self._signature:
-            print "Expected signature: %s"%self._signature
-            print "Obtained signature: %s"%signature
+            print "Error signature mismatch:"
+            print "  expected: %s"%self._signature
+            print "  obtained: %s"%signature
             return False
         else:
             return True
