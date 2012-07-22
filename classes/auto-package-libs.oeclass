@@ -3,13 +3,20 @@
 PACKAGES =+ "${LIBS_AUTO_PACKAGES}"
 PACKAGES[expand] = 3
 
+# Default use-case is to package for HOST. If TARGET packaging is
+# needed instead, override the variables below as needed (see
+# fx. crosstool-ng/gcc-package.inc)
+
 AUTO_PACKAGE_LIBS ?= ""
-AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir}"
+AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir} ${sharedlibdir}"
 AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
 AUTO_PACKAGE_LIBS_RDEPENDS ?= ""
+AUTO_PACKAGE_LIBS_FILES ?= "${SOLIBS}"
+AUTO_PACKAGE_LIBS_DEV_FILES ?= "${SOLIBSDEV},.la,.a"
+AUTO_PACKAGE_LIBS_DEV_FILES:>HOST_OS_mingw32 = ",.def,.lib"
 
 addhook auto_package_libs to post_recipe_parse before fixup_package_type before blacklist
 
@@ -19,6 +26,7 @@ def auto_package_libs (d):
     pn = d.get("PN")
     libs = (d.get("AUTO_PACKAGE_LIBS") or "").split()
     libdirs = (d.get("AUTO_PACKAGE_LIBS_LIBDIR") or "").split()
+    libdirs = oelite.util.unique_list(libdirs)
     pkgprefix = d.get("AUTO_PACKAGE_LIBS_PKGPREFIX") or ""
     pcprefixes = (d.get("AUTO_PACKAGE_LIBS_PCPREFIX") or "").split()
     provideprefix = d.get("AUTO_PACKAGE_LIBS_PROVIDEPREFIX") or ""
@@ -48,11 +56,11 @@ def auto_package_libs (d):
         else:
             libdir[2] = libdir[2].split(",")
         if len(libdir) < 4:
-            libdir.append(d.get("SOLIBS").split(","))
+            libdir.append(d.get("AUTO_PACKAGE_LIBS_FILES").split(","))
         else:
             libdir[3] = libdir[3].split(",")
         if len(libdir) < 5:
-            libdir.append("${SOLIBSDEV},.la,.a".split(","))
+            libdir.append(d.get("AUTO_PACKAGE_LIBS_DEV_FILES").split(","))
         else:
             libdir[4] = libdir[4].split(",")
         return libdir
