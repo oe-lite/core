@@ -140,7 +140,7 @@ do_configure[prefuncs] += "do_configure_defconfig"
 def do_configure_defconfig(d):
     # Read in defconfig parts
     defconfig = ""
-    for filename in glob.glob(d.get("SRCDIR") + "/???-*.config"):
+    for filename in sorted(glob.glob(d.get("SRCDIR") + "/???-*.config")):
 	print "adding", filename
 	with open(filename) as defconfig_file:
 	    defconfig += defconfig_file.read()
