@@ -38,11 +38,6 @@ HOST_CPPFLAGS:sdk-cross		= "${TARGET_CPPFLAGS}"
 HOST_CFLAGS:sdk-cross		= "${TARGET_CFLAGS}"
 HOST_LDFLAGS:sdk-cross		= "${TARGET_LDFLAGS}"
 
-# As we are now using SDK_LDFLAGS with the SDK as TARGET (instead of
-# host), we need to fixup the mingw32 override to avoid the invalid
-# --hash-style option.
-SDK_LDFLAGS_HASH_STYLE:TARGET_OS_mingw32 = ""
-
 do_install[postfuncs] += "do_install_symlinks"
 do_install_symlinks () {
     ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
@@ -62,10 +57,6 @@ ${datadir}/${PN} ${datadir}/aclocal \
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "ltdl"
-FILES_${PN}-libltdl = "${bindir}/libltdl*.dll"
 FILES_${PN}-libltdl-dev = "${includedir}/libltdl ${includedir}/ltdl.h"
 PACKAGE_TYPE_${PN}-libltdl = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libltdl-dev = "${TARGET_TYPE}"
-
-SOLIBS:HOST_OS_mingw32 = ".dll"
-SOLIBSDEV:HOST_OS_mingw32 = ".dll.a"
