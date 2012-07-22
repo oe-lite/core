@@ -66,3 +66,6 @@ RECIPE_FLAGS		+= "toolchain_ltrace_version"
 
 CT_STRACE_VERSION	= "${USE_toolchain_strace_version}"
 RECIPE_FLAGS		+= "toolchain_strace_version"
+
+CT_MINGW_PDCURSES_VERSION = "${USE_toolchain_pdcurses_version}"
+RECIPE_FLAGS		+= "toolchain_pdcurses_version"
