@@ -1,7 +1,9 @@
 # -*- mode:python; -*-
 
-SRC_URI =+ "file://000-misc.config file://100-toolchain.config \
-	file://200-${DEFCONFIG_CPU}.config file://300-${DEFCONFIG_OS}.config"
+SRC_URI =+ "file://000-misc.config \
+	file://100-${DEFCONFIG_CPU}.config \
+	file://200-toolchain.config \
+	file://300-${DEFCONFIG_OS}.config"
 
 DEFCONFIG_CPU				= "${TARGET_CPU}"
 DEFCONFIG_CPU:TARGET_CPU_i386		= "x86"
