@@ -119,3 +119,9 @@ def progress_info(msg, total, current):
         elif current == total:
             sys.stdout.write("done.\n")
         sys.stdout.flush()
+
+
+def unique_list(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if x not in seen and not seen_add(x)]
