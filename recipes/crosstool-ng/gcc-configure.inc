@@ -30,6 +30,7 @@ _CT_MPC_V			= "CT_MPC_V"
 _CT_LIBELF_V			= "CT_LIBELF_V"
 _CT_LTRACE_V			= "CT_LTRACE_V"
 _CT_STRACE_V			= "CT_STRACE_V"
+_CT_MINGW_PDCURSES_V		= "CT_MINGW_PDCURSES_V"
 
 _CT_LIBC_VERSION		= "CT_LIBC_VERSION"
 _CT_LIBC_VERSION:TARGET_OS_mingw32 = "CT_MINGWRT_VERSION"
@@ -211,7 +212,8 @@ def do_configure_defconfig(d):
 	rewrites.append(("CT_KERNEL_LINUX_INSTALL", "y"))
 
     for component in ("cc", "binutils", "libc", "gdb", "gmp", "mpfr", "mpc",
-		      "ppl", "cloog", "libelf", "ltrace", "strace"):
+		      "ppl", "cloog", "libelf", "ltrace", "strace",
+                      "mingw_pdcurses"):
 	rewrites.append(version_rewrite(component))
 
     ct_libc = d.get("CT_LIBC")
@@ -307,4 +309,6 @@ def do_configure_qa(d):
 	ok = ok and check_version("CT_LTRACE_VERSION")
     if d.get("CT_DEBUG_strace"):
 	ok = ok and check_version("CT_STRACE_VERSION")
+    if d.get("CT_USE_PDCURSES"):
+	ok = ok and check_version("CT_MINGW_PDCURSES_VERSION")
     return ok

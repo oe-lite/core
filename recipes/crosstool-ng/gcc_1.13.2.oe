@@ -18,6 +18,7 @@ DEFAULT_USE_toolchain_kernel_version_build	= "2.6.32.46"
 
 DEFAULT_USE_toolchain_mingwrt_version		= "3.18"
 DEFAULT_USE_toolchain_w32api_version		= "3.14"
+DEFAULT_USE_toolchain_pdcurses_version		= "3.4"
 
 DEFAULT_USE_toolchain_min_kernel_machine	= "2.6.27"
 DEFAULT_USE_toolchain_min_kernel_sdk		= "2.6.9"

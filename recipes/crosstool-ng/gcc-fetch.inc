@@ -52,6 +52,8 @@ SRC_URI_STRACE = "${SOURCEFORGE_MIRROR}/project/strace/strace/${CT_STRACE_VERSIO
 
 SRC_URI_LTRACE = "${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${CT_LTRACE_VERSION}.orig.tar.gz;unpack=0"
 
+SRC_URI_PDCURSES = "${SOURCEFORGE_MIRROR}/pdcurses/PDCurses-${CT_MINGW_PDCURSES_VERSION}.tar.gz;unpack=0"
+
 SRC_URI:>TARGET_OS_mingw32 += " \
   ${SOURCEFORGE_MIRROR}/mingw/w32api-${CT_KERNEL_VERSION}-mingw32-src.tar.gz;unpack=0 \
   ${SOURCEFORGE_MIRROR}/mingw/mingwrt-${CT_LIBC_VERSION}-mingw32-src.tar.gz;unpack=0 \
@@ -78,7 +80,9 @@ def gcc_set_src_uri(d):
         d.append("SRC_URI", "${%s}"%(uri), " ")
         if flag is not None:
             d.set(flag, "1")
-    if d.get("CT_KERNEL_VERSION") != "custom":
+    target_is_mingw = d.get("TARGET_OS") == "mingw32"
+    target_is_linux = not target_is_mingw
+    if d.get("CT_KERNEL_VERSION") != "custom" and target_is_linux:
         add_src("SRC_URI_LINUX")
     if d.get("CT_LIBC") == "glibc":
         add_src("SRC_URI_GLIBC")
@@ -86,13 +90,14 @@ def gcc_set_src_uri(d):
     if gcc_version.startswith("linaro-"):
         gcc_version = gcc_version[len("linaro-"):]
     v = map(int, gcc_version.split("-")[0].split("."))
-    if v[0] >= 4:
+    if v[0] == 4:
         if v[1] >= 3:
             add_src("SRC_URI_GMP", "CT_USE_GMP")
             add_src("SRC_URI_MPFR", "CT_USE_MPFR")
         if v[1] >= 5:
             add_src("SRC_URI_MPC", "CT_USE_MPC")
-            add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
+            if target_is_linux:
+                add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
     if d.get("CT_DEBUG_gdb"):
         add_src("SRC_URI_GDB")
     if d.get("CT_DEBUG_ltrace"):
@@ -100,6 +105,8 @@ def gcc_set_src_uri(d):
         add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
     if d.get("CT_DEBUG_strace"):
         add_src("SRC_URI_STRACE")
+    if target_is_mingw:
+        add_src("SRC_URI_PDCURSES", "CT_USE_PDCURSES")
     # FIXME: add support for adding cloog and ppl
 
 
