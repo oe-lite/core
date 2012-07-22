@@ -12,3 +12,4 @@ AUTO_PACKAGE_LIBS = "readline history"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
 
 DEPENDS = "libtermcap"
+DEPENDS:HOST_OS_mingw32 = ""
