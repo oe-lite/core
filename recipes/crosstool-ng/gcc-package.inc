@@ -6,12 +6,22 @@ AUTO_PACKAGE_LIBS = "\
   m rt anl BrokenLocale nsl memusage pcprofile SegFault \
   nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod \
 "
+AUTO_PACKAGE_LIBS:TARGET_OS_mingw32 = "gcc stdc++ supc++ m pdcurses"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
 AUTO_PACKAGE_LIBS_LIBDIR = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib::.so,.so.*,-*.so: \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
 "
+AUTO_PACKAGE_LIBS_LIBDIR:TARGET_OS_mingw32 = "\
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_sharedlibdir}:mingw:,10:.dll: \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_sharedlibdir}:mingw:,10:.dll: \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib:::.dll.a,.a,.la \ \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib:::.dll.a,.a,.la \
+"
 TARGET_PACKAGES = "${LIBS_AUTO_PACKAGES}"
+
+PROVIDES_${PN}-sysroot-libpdcurses = "libncurses"
+PROVIDES_${PN}-sysroot-libpdcurses-dev = "libncurses-dev"
 
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
