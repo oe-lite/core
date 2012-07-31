@@ -183,4 +183,10 @@ class SvnFetcher():
         client.update(self.dest, revision=self.get_revision())
         if not self.scmdata_keep:
             os.unlink(os.path.join(self.dest, ".svn"))
+            for root, dirs, files in os.walk(self.dest):
+                if ".svn" in dirs:
+                    dirs.remove(".svn")
+                if root == self.dest:
+                    continue
+                shutil.rmtree(os.path.join(root, ".svn"))
         return True
