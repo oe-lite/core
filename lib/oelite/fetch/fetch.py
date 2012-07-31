@@ -109,7 +109,10 @@ class OEliteUri:
         return mirror
 
     def __str__(self):
-        return "%s://%s"%(self.scheme, self.location)
+        try:
+            return self.fetcher.url
+        except:
+            return "%s://%s"%(self.scheme, self.location)
 
     def init_unpack_params(self):
         if not "localpath" in dir(self.fetcher):
