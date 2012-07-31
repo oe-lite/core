@@ -226,25 +226,27 @@ class OEliteUri:
         srcpath = os.getcwd()
         self.srcfile = None
         cwd = None
-        if "subdir" in self.params:
-            srcpath = os.path.join(srcpath, self.params["subdir"])
-            bb.utils.mkdirhier(srcpath)
-            cwd = os.getcwd()
-            os.chdir(srcpath)
-        if not cmd or not "unpack" in self.params:
-            if os.path.isdir(self.fetcher.localpath):
-                shutil.rmtree(srcpath, True)
-                shutil.copytree(self.fetcher.localpath, self.srcpath(d))
-                return True
+        try:
+            if "subdir" in self.params:
+                srcpath = os.path.join(srcpath, self.params["subdir"])
+                bb.utils.mkdirhier(srcpath)
+                cwd = os.getcwd()
+                os.chdir(srcpath)
+            if not cmd or not "unpack" in self.params:
+                if os.path.isdir(self.fetcher.localpath):
+                    shutil.rmtree(srcpath, True)
+                    shutil.copytree(self.fetcher.localpath, self.srcpath(d))
+                    return True
+                else:
+                    shutil.copy2(self.fetcher.localpath, self.srcpath(d))
+                    return True
+            if "unpack_to" in self.params:
+                cmd = cmd%(self.fetcher.localpath, self.srcpath(d))
             else:
-                shutil.copy2(self.fetcher.localpath, self.srcpath(d))
-                return True
-        if "unpack_to" in self.params:
-            cmd = cmd%(self.fetcher.localpath, self.srcpath(d))
-        else:
-            cmd = cmd%(self.fetcher.localpath)
-        if cwd:
-            os.chdir(cwd)
+                cmd = cmd%(self.fetcher.localpath)
+        finally:
+            if cwd:
+                os.chdir(cwd)
         rc = oe.process.run(cmd)
         return rc == 0
 
