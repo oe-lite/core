@@ -12,6 +12,7 @@ import local
 import url
 import git
 import hg
+import svn
 
 FETCHERS = {
     "file"	: local.LocalFetcher,
@@ -20,6 +21,7 @@ FETCHERS = {
     "ftp"	: url.UrlFetcher,
     "git"	: git.GitFetcher,
     "hg"	: hg.HgFetcher,
+    "svn"	: svn.SvnFetcher,
 }
 
 uri_pattern = re.compile("(?P<scheme>[^:]*)://(?P<location>[^;]+)(;(?P<params>.*))?")
@@ -39,6 +41,7 @@ unpack_ext = (
 class OEliteUri:
 
     def __init__(self, uri, d):
+        self.uri = uri
         # Note, do not store reference to meta
         self.recipe = "%s:%s_%s"%(d.get("RECIPE_TYPE"),
                                   d.get("PN"), d.get("PV"))
@@ -71,6 +74,10 @@ class OEliteUri:
                     raise oelite.fetch.InvalidURI(
                         uri, "bad parameter: %s"%param)
                 self.params[name] = value
+        try:
+            self.isubdir = self.params["isubdir"]
+        except KeyError:
+            pass
         if not self.scheme in FETCHERS:
             raise oelite.fetch.InvalidURI(
                 uri, "unsupported URI scheme: %s"%(self.scheme))
@@ -219,7 +226,13 @@ class OEliteUri:
     def fetch(self):
         if not "fetch" in dir(self.fetcher):
             return True
-        print "Fetching", str(self)
+        url = str(self)
+        try:
+            if url != str(self.fetcher.url):
+                url = "%s %s"%(self.scheme, self.fetcher.url)
+        except AttributeError:
+            pass
+        print "Fetching", url
         return self.fetcher.fetch()
 
     def unpack(self, d, cmd):
@@ -229,12 +242,12 @@ class OEliteUri:
         srcpath = os.getcwd()
         self.srcfile = None
         cwd = None
+        if "subdir" in self.params:
+            srcpath = os.path.join(srcpath, self.params["subdir"])
+            bb.utils.mkdirhier(srcpath)
+            cwd = os.getcwd()
+            os.chdir(srcpath)
         try:
-            if "subdir" in self.params:
-                srcpath = os.path.join(srcpath, self.params["subdir"])
-                bb.utils.mkdirhier(srcpath)
-                cwd = os.getcwd()
-                os.chdir(srcpath)
             if not cmd or not "unpack" in self.params:
                 if os.path.isdir(self.fetcher.localpath):
                     shutil.rmtree(srcpath, True)
