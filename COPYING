@@ -1,0 +1,30 @@
+OE-lite/core License Terms
+--------------------------
+
+The OE-lite/core meta-data is covered by a combination of license terms.
+
+classes/
+conf/
+recipes/
+	Files in the classes, conf, and recipes subdirectories are covered by
+	the MIT License (see COPYING.MIT).
+
+lib/oelite/
+	Files in the lib/oelite subdirectory is covered by the MIT License
+	(see COPYING.MIT).
+
+lib/oe
+	Files in the lib/oe subdirectory originates from the OpenEmbedded
+	project, and is covered by the MIT License (see COPYING.MIT).
+
+lib/bb/
+	Files in the lib/bb subdirectory originates from the BitBake project,
+	and is covered by the GNU General Public License, version 2 (see
+	COPYING.GPL-2.0)
+
+site/
+	Files in the site subdirectory is placed into the public domain.
+
+scripts/
+	Files in the scripts subdirectory is covered by different license
+	terms, as specified in each script file.
