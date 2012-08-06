@@ -1,2 +1,8 @@
-This is the OE-lite core metadata.
-You most likely want to use this as part of a complete OE-lite installation.
+OE-lite/core metadata
+---------------------
+
+This is the core metadata of the OE-lite project, containing core classes and
+configuration files, and recipes for building a cross-compilation toolchain.
+
+OE-lite is an embedded Linux build system,
+See http://oe-lite.org for more information.
