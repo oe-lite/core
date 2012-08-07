@@ -95,6 +95,7 @@ PROVIDES_${PN}-elf = "u-boot-elf"
 
 addtask deploy before build after compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
+REBUILD ?= "1"
 
 do_deploy () {
     install -m 0644 ${UBOOT_IMAGE} \
