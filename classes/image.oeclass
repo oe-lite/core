@@ -42,6 +42,7 @@ do_deploy[dirs] = "${IMAGE_DEPLOY_DIR}"
 do_deploy() {
     :
 }
+REBUILD ?= "1"
 
 do_rstage[cleandirs]	= "${RSTAGE_DIR} ${RSTAGE_DIR}.unpack"
 do_rstage[dirs]		= "${RSTAGE_DIR}"
