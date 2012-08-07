@@ -69,6 +69,7 @@ FILES_${PN}-elf = "${bootdir}/${BAREBOX_IMAGE_BASE}"
 
 addtask deploy before build after compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
+REBUILD ?= "1"
 
 do_deploy () {
 	install -m 0644 ${BAREBOX_IMAGE} \
