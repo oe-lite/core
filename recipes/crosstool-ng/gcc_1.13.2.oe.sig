@@ -36,6 +36,7 @@ f80e8fc3da7d6e48ce969fac365dad69bdfc44e9  linux-2.6.32.46.tar.bz2
 d55ea936e9015820c1a061f64053997071ab4a6d  linux-2.6.35.13.tar.bz2
 4af07033de193428f06f1241e96f9b968a8ed896  linux-2.6.35.14.tar.bz2
 4cb1fbfbeedcd658ca37739679c65dfaa136bf4e  linux-2.6.35.tar.bz2
+ac727da91126fd726d6aa6a81de90c002b2a86d0  linux-2.6.37.6.tar.bz2
 17dbda22d1437cf1ab81ed33db45b267b9ec8a3b  linux-3.0.4.tar.bz2
 45b64bffc860f70ab7956da4493c488010714650  linux-3.0.tar.bz2
 d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
