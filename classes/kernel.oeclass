@@ -223,6 +223,7 @@ SIZECHECK += "${KERNEL_SIZECHECK}"
 
 addtask deploy after install before build
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
+REBUILD ?= "1"
 
 do_deploy() {
     install -m 0644 ${KERNEL_IMAGE} \
