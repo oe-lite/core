@@ -70,7 +70,7 @@ RDEPENDS_SDK_UBOOT_MKIMAGE:USE_sdk_uboot_mkimage = "${UBOOT_MKIMAGE}"
 UBOOT_MKIMAGE = "host:u-boot-tools-mkimage"
 UBOOT_MKIMAGE:HOST_OS_mingw32 = ""
 
-RECIPE_FLAGS += "sdk_archive_formats sdk_archive_tar_ext"
+CLASS_FLAGS += "sdk_archive_formats sdk_archive_tar_ext"
 DEFAULT_USE_sdk_archive_formats = "tar"
 DEFAULT_USE_sdk_archive_tar_ext = "tar.gz"
 ARCHIVE_IMAGE_FORMATS = "${USE_sdk_archive_formats}"
