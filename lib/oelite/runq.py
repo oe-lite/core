@@ -870,33 +870,28 @@ class OEliteRunQueue:
                 "SELECT"
                 "  runq.task.%s "
                 "FROM"
-                "  runq.task, runq.depend "
+                "  runq.depend, runq.task, task "
                 "WHERE"
                 "  runq.depend.parent_task=runq.task.task"
-                "  AND runq.depend.package=? "
+                "  AND runq.depend.package=?"
+                "  AND runq.task.task=task.id AND task.name='do_package' "
                 "LIMIT 1"%(hash),
                 (package,)))
 
 
     def get_depend_packages(self, task=None, deptype=None):
-        if deptype:
-            and_deptype = " AND deptype=?"
-            deptype = [deptype]
-        else:
-            and_deptype = ""
-            deptype = []
+        query = "SELECT DISTINCT package"
+        query += " FROM runq.depend AS depend, task"
+        query += " WHERE package >= 0"
         if task:
             assert isinstance(task, oelite.task.OEliteTask)
-            return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT package "
-                    "FROM runq.depend "
-                    "WHERE package >= 0 AND task=?" + and_deptype,
-                    [task.id] + deptype))
+            query += " AND task=%d"%(task.id)
         else:
-            return flatten_single_column_rows(self.dbc.execute(
-                    "SELECT DISTINCT package "
-                    "FROM runq.depend "
-                    "WHERE package >= 0" + and_deptype, deptype))
+            query += " AND depend.parent_task=task.id"
+            query += " AND task.name='do_package'"
+        if deptype:
+            query += " AND deptype='%s'"%(deptype)
+        return flatten_single_column_rows(self.dbc.execute(query))
 
 
     def get_packages_to_build(self):
