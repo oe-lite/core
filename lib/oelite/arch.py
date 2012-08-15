@@ -534,6 +534,7 @@ def arch_fixup(arch, gcc, abis):
     if abi_flags:
         cpuspec = cpuspecs[cpu][vendor]
         extra_vendor = []
+        extra_os = []
         for abi_flag in abi_flags:
             diff = set(abis).intersection(set(abi_flag[2]))
             if len(diff) > 1:
@@ -546,8 +547,11 @@ def arch_fixup(arch, gcc, abis):
                 abi_select = abi_flag[1]
             if 'vendor' in abi_flag[2][abi_select]:
                 extra_vendor.append(abi_flag[2][abi_select].pop('vendor'))
+            if 'os' in abi_flag[2][abi_select]:
+                extra_os.append(abi_flag[2][abi_select].pop('os'))
             cpuspec.update(abi_flag[2][abi_select])
         vendor = vendor + ''.join(extra_vendor)
+        os = os + ''.join(extra_os)
         cpuspecs[cpu].update({vendor : cpuspec})
 
     if len(abis) > 0:
