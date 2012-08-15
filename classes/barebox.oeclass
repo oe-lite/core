@@ -69,6 +69,8 @@ do_install () {
 	install -m 0755 ${BAREBOX_IMAGE_BASE} ${D}${bootdir}
 }
 
+INHIBIT_PACKAGE_STRIP = "1"
+
 PACKAGES = "${PN} ${PN}-elf"
 FILES_${PN} = "${bootdir}/${BAREBOX_IMAGE_FILENAME}"
 FILES_${PN}-elf = "${bootdir}/${BAREBOX_IMAGE_BASE}"
@@ -87,6 +89,3 @@ do_deploy () {
 			${BAREBOX_IMAGE_DEPLOY_LINK}
 	fi
 }
-
-do_deploy[dirs] = "${S}"
-addtask deploy before build after compile
