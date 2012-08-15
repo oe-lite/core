@@ -119,10 +119,6 @@ CT_ARCH_TUNE			= "${TARGET_MTUNE}"
 AUTO_CT_STRING_VARS += "CT_LOCAL_PATCH_DIR"
 CT_LOCAL_PATCH_DIR		= "${S}"
 
-AUTO_CT_BOOLEAN_VARS += "CT_LIBC_GLIBC_FORCE_UNWIND"
-CT_LIBC_GLIBC_FORCE_UNWIND:TARGET_OS_linux-gnu		= "y"
-CT_LIBC_GLIBC_FORCE_UNWIND:TARGET_OS_linux-gnueabi	= "y"
-
 addhook gcc_select_gdb to post_recipe_parse first after set_useflags
 def gcc_select_gdb(d):
     for var in ("CT_GDB_GDBSERVER", "CT_GDB_CROSS", "CT_GDB_NATIVE"):
