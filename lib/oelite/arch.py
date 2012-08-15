@@ -54,6 +54,17 @@ cpuspecs = {
             'wordsize'		: '32',
             'endian'		: 'l',
             'elf'		: 'ELF 32-bit LSB .*, ARM',
+            'abi flags'         : [
+                ['arm abi', 'eabi', {
+                       'eabi' : {
+                            'os' : 'eabi',
+                            },
+                        # Currently, OE-lite does only support EABI for
+                        # ARM. When/if OABI is added, os should be kept as
+                        # linux-gnu for OABI
+                        }
+                 ],
+                ]
             },
         '920t'			: {
             'mcpu'		: 'arm920t',
@@ -511,10 +522,6 @@ def arch_fixup(arch, gcc, abis):
         bb.fatal("unknown cpu vendor: %s"%vendor)
         vendor = 'unknown'
 
-    # Currently, OE-lite does only support EABI for ARM
-    # When/if OABI is added, os should be kept as linux-gnu for OABI
-    if cpu == 'arm' and os == 'linux-gnu':
-        os = 'linux-gnueabi'
 
     # Merge DEFAULT and vendor abi_flags, keeping DEFAULT flags first
     abi_flags = []
