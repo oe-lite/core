@@ -1,6 +1,7 @@
 import oebakery
 from oebakery import die, err, warn, info, debug
 import os
+import operator
 import bb
 
 # Handle all the arhicture related variables.
@@ -515,9 +516,22 @@ def arch_fixup(arch, gcc, abis):
     if cpu == 'arm' and os == 'linux-gnu':
         os = 'linux-gnueabi'
 
-    # TODO support DEFAULT, keep ordering if merging DEFAULT and vendor abis?
+    # Merge DEFAULT and vendor abi_flags, keeping DEFAULT flags first
+    abi_flags = []
+    if "DEFAULT" in cpuspecs[cpu] and 'abi flags' in cpuspecs[cpu]["DEFAULT"]:
+        abi_flags += cpuspecs[cpu]["DEFAULT"]["abi flags"]
     if vendor in cpuspecs[cpu] and 'abi flags' in cpuspecs[cpu][vendor]:
-        abi_flags = cpuspecs[cpu][vendor].pop('abi flags')
+        for abi_flag in cpuspecs[cpu][vendor]['abi flags']:
+            try:
+                flag_index = map(operator.itemgetter(0), abi_flags).index(
+                    abi_flag)
+                abi_flags[flag_index][1] = abi_flag[1]
+                for flag_value in abi_flag[2].items():
+                    abi_flags[flag_index][2][flag_value[0]] = flag_value[1]
+            except ValueError:
+                abi_flags.append(abi_flag)
+
+    if abi_flags:
         cpuspec = cpuspecs[cpu][vendor]
         extra_vendor = []
         for abi_flag in abi_flags:
@@ -532,10 +546,8 @@ def arch_fixup(arch, gcc, abis):
                 abi_select = abi_flag[1]
             if 'vendor' in abi_flag[2][abi_select]:
                 extra_vendor.append(abi_flag[2][abi_select].pop('vendor'))
-
             cpuspec.update(abi_flag[2][abi_select])
-
-        vendor = vendor+''.join(extra_vendor)
+        vendor = vendor + ''.join(extra_vendor)
         cpuspecs[cpu].update({vendor : cpuspec})
 
     if len(abis) > 0:
