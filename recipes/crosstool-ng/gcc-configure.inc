@@ -11,8 +11,7 @@ DEFCONFIG_CPU:TARGET_CPU_i686		= "x86"
 DEFCONFIG_CPU:TARGET_CPU_i786		= "x86"
 
 # FIXME: find a proper solution for this gnueabi mess
-DEFCONFIG_OS				= "${TARGET_OS}"
-DEFCONFIG_OS:TARGET_OS_linux-gnueabi	= "linux-gnu"
+DEFCONFIG_OS				= "${@re.sub('linux-gnu.*', 'linux-gnu', d.get('TARGET_OS'))}"
 
 _CT_KERNEL_V			= "CT_KERNEL_V"
 _CT_KERNEL_V:TARGET_OS_mingw32	= "CT_W32API_V"
