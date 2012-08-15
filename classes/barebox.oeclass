@@ -30,7 +30,13 @@ CLASS_FLAGS += "${DEFCONFIG_FLAG}"
 DEFCONFIG[expand] = "3"
 CLASS_DEPENDS += "${DEPENDS_DEFCONFIG}"
 DEPENDS_DEFCONFIG = "barebox-defconfig"
-DEPENDS_DEFCONFIG:USE_barebox_defconfig = ""
+
+addhook barebox_depends_defconfig to post_recipe_parse after set_useflags
+def barebox_depends_defconfig(d):
+    flag = "USE_" + d.get("DEFCONFIG_FLAG")
+    if not "DEFCONFIG" in d:
+        d.set("DEFCONFIG", "${%s}"%(flag))
+    d.set_override("DEPENDS_DEFCONFIG", ("", flag), "")
 
 do_configure() {
 	if [ "${DEFCONFIG}" = "file" ] ; then
