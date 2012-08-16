@@ -16,8 +16,7 @@ DEFAULT_USE_basefiles_buildtag = "build_tag"
 CLASS_DEPENDS += "${USE_rootfs_name}"
 RDEPENDS += "base-version"
 
-
-addtask imageqaprep before configure after rstage
+addtask imageqaprep before configure after stage
 do_imageqaprep[dirs] = "${WORKDIR}/image-qa"
 do_imageqaprep[cleandirs] = "${WORKDIR}/image-qa"
 fakeroot do_imageqaprep () {
