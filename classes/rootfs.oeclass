@@ -6,7 +6,8 @@ RECIPE_TYPES = "machine"
 
 PROVIDES_${PN} += "rootfs"
 
-RDEPENDS ?= "busybox"
+RDEPENDS_ROOTFS ?= "busybox"
+CLASS_RDEPENDS += "${RDEPENDS_ROOTFS}"
 
 #Extra RDEPENDS
 RECIPE_FLAGS += "rootfs_extra_rdepends"
