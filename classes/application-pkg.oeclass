@@ -14,7 +14,7 @@ DEFAULT_USE_basefiles_cross_config = ""
 DEFAULT_USE_basefiles_buildtag = "build_tag"
 
 CLASS_DEPENDS += "${USE_rootfs_name}"
-RDEPENDS += "base-version"
+CLASS_RDEPENDS += "base-version"
 
 addtask imageqaprep before configure after stage
 do_imageqaprep[dirs] = "${WORKDIR}/image-qa"
