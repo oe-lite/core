@@ -564,6 +564,8 @@ class CookBook(Mapping):
                 if compatible_cpu_fams is None:
                     return True
                 cpu_fams = meta.get(arch_type + "_CPU_FAMILIES")
+                if not cpu_fams:
+                    return False
                 for compatible_cpu_fam in compatible_cpu_fams.split():
                     for cpu_fam in cpu_fams.split():
                         if re.match(compatible_cpu_fam, cpu_fam):
@@ -620,16 +622,16 @@ class CookBook(Mapping):
                 return True
             if ((not recipe_is_compatible(meta[recipe_type])) or
                 (not machine_is_compatible(meta[recipe_type])) or
-                (not cpu_families_is_compatible(meta[recipe_type], "BUILD")) or
-                (not cpu_families_is_compatible(meta[recipe_type], "HOST")) or
-                (not cpu_families_is_compatible(meta[recipe_type], "TARGET")) or
                 (not arch_is_compatible(meta[recipe_type], "BUILD")) or
                 (not arch_is_compatible(meta[recipe_type], "HOST")) or
                 (not arch_is_compatible(meta[recipe_type], "TARGET"))):
                 del meta[recipe_type]
                 break
             oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
-            if ((not compatible_use_flags(meta[recipe_type]))):
+            if ((not compatible_use_flags(meta[recipe_type])) or
+                (not cpu_families_is_compatible(meta[recipe_type], "BUILD")) or
+                (not cpu_families_is_compatible(meta[recipe_type], "HOST")) or
+                (not cpu_families_is_compatible(meta[recipe_type], "TARGET"))):
                 del meta[recipe_type]
                 break
         return meta
