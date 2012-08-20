@@ -101,8 +101,7 @@ class PythonFunction(OEliteFunction):
             old_ld_library_path = None
             try:
                 old_ld_library_path = os.environ["LD_LIBRARY_PATH"]
-                if old_ld_library_path:
-                    ld_library_path = "%s:%s"%(old_ld_library_path,
+                ld_library_path = "%s:%s"%(old_ld_library_path,
                                                self.ld_library_path)
             except KeyError:
                 ld_library_path = self.ld_library_path
@@ -174,8 +173,12 @@ class ShellFunction(OEliteFunction):
         ld_library_path = self.meta.get("LD_LIBRARY_PATH")
         flags = self.meta.get_flags("LD_LIBRARY_PATH")
         if self.ld_library_path:
-            runfile.write("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:"
-                          + self.ld_library_path + "\"\n")
+            # Prepend already existing content of LD_LIBRARY_PATH only if its set
+            runfile.write("if [ $LD_LIBRARY_PATH ]; then \
+				export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:" + self.ld_library_path + "\" ;\
+			   else \
+				export LD_LIBRARY_PATH=\"" + self.ld_library_path + "\" ;\
+			   fi\n")
         runfile.write("cd %s\n"%(os.getcwd()))
         runfile.write("%s\n"%(self.name))
         runfile.close()
