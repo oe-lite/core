@@ -43,14 +43,14 @@ archive_image_zip () {
 	imagedir=$1
 	dirname=$2
 	cd $imagedir
-	if "$dirname" != "." ; then
+	if [ "$dirname" != "." ] ; then
 		# zip do not support dangeling symlinks so remove them
 		mv $dirname $dirname.orig
 		cp -a $dirname.orig $dirname
 		find -L $dirname -type l -print0 | xargs -tr0 rm -f
 	fi
 	zip -r ${B}/${IMAGE_BASENAME}.zip $dirname
-	if "$dirname" != "." ; then
+	if [ "$dirname" != "." ] ; then
 		rm -rf $dirname
 		mv $dirname.orig $dirname
 	fi
