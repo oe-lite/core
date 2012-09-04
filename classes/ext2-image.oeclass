@@ -1,6 +1,6 @@
 # -*- mode:python; -*-
 
-IMAGE_BASENAME ?= "${TARGET_MACHINE_ID}-${PN}"
+IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
 
 inherit image
 
