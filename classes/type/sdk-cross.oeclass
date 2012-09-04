@@ -13,6 +13,7 @@ require conf/paths/stage-host.conf
 require conf/paths/sdk.conf
 require conf/paths/sdk-target.conf
 
+BLACKLIST_VAR += "MACHINE"
 BLACKLIST_PREFIX += "MACHINE_"
 
 STAGE_PATH = "\
