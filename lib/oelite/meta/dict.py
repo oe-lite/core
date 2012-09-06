@@ -71,6 +71,7 @@ class DictMeta(MetaData):
 
 
     def set(self, var, val):
+        assert not " " in var
         try:
             self.dict[var][""] = val
         except KeyError:
@@ -89,6 +90,7 @@ class DictMeta(MetaData):
 
     def set_flag(self, var, flag, val):
         #print "set_flag %s[%s]=%s"%(var, flag, val)
+        assert not " " in var
         try:
             self.dict[var][flag] = val
         except KeyError:
