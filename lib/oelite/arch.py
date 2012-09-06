@@ -473,6 +473,8 @@ def arch_update(d, prefix, gcc_version):
     else:
         d[prefix+'_BASEOS'] = ""
     for spec in gccspec:
+        if spec in ("abi flags"):
+            continue
         d[prefix+'_'+spec.upper()] = gccspec[spec]
     return
 
