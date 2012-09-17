@@ -9,11 +9,15 @@ CT_KERNEL_VERSION		= "${MACHINE_CT_KERNEL_VERSION}"
 CT_KERNEL_VERSION:sdk-cross	= "${SDK_CT_KERNEL_VERSION}"
 CT_KERNEL_VERSION:sdk		= "${SDK_CT_KERNEL_VERSION}"
 CT_KERNEL_VERSION:native	= "${BUILD_CT_KERNEL_VERSION}"
+USE_KERNEL_VERSION_MACHINE = "toolchain_kernel_version_machine"
+USE_KERNEL_VERSION_MACHINE:sdk-cross = ""
+USE_KERNEL_VERSION_MACHINE:native = ""
+USE_KERNEL_VERSION_MACHINE:sdk = ""
 MACHINE_CT_KERNEL_VERSION	= "${USE_toolchain_kernel_version_machine}"
 SDK_CT_KERNEL_VERSION		= "${USE_toolchain_kernel_version_sdk}"
 SDK_CT_KERNEL_VERSION:TARGET_OS_mingw32 = "${USE_toolchain_w32api_version}"
 BUILD_CT_KERNEL_VERSION		= "${USE_toolchain_kernel_version_build}"
-RECIPE_FLAGS += "toolchain_kernel_version_machine toolchain_kernel_version_sdk \
+RECIPE_FLAGS += " ${USE_KERNEL_VERSION_MACHINE} toolchain_kernel_version_sdk \
 	toolchain_kernel_version_build toolchain_w32api_version"
 
 CT_LIBC_GLIBC_MIN_KERNEL_VERSION = "${USE_toolchain_min_kernel_machine}"
