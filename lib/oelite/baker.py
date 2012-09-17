@@ -331,7 +331,11 @@ class OEliteBaker:
             dephashes = {}
             for depend in self.runq.task_dependencies(task, flatten=True):
                 dephashes[depend] = self.runq.get_task_metahash(depend)
-            recipe_extra_arch = recipe.meta.get("EXTRA_ARCH")
+            try:
+                recipe_extra_arch = recipe.meta.get("EXTRA_ARCH")
+            except oelite.meta.ExpansionError as e:
+                e.msg += " in %s"%(task)
+                raise
             task_meta = task.meta()
             if (recipe_extra_arch and
                 task_meta.get("EXTRA_ARCH") != recipe_extra_arch):
