@@ -75,6 +75,27 @@ cpuspecs = {
             'mcpu'		: 'arm926ej-s',
             'mtune'		: 'arm926ej-s',
             },
+        '1176jzfs'		: {
+             'march'		: 'armv6',
+             'mcpu'		: 'arm1176jzf-s',
+             'mtune'		: 'arm1176jzf-s',
+             'abi flags'	: [
+                ['float abi', 'hard', {
+                        'hard' : {
+                            'float' : 'hard',
+                            'fpu'   : 'vfp',
+                            },
+                        'softfp' : {
+                            'float' : 'softfp',
+                            'fpu'   : 'vfp',
+                            },
+                        'soft' : {
+                            'float' : 'soft',
+                            },
+                        }
+                 ]
+                ]
+             },
         'cortexa8'		: {
             'mcpu'		: 'cortex-a8',
             'mtune'	 	: 'cortex-a8',
