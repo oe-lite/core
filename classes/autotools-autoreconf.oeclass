@@ -6,6 +6,10 @@ CLASS_DEPENDS += "${DEPENDS_AUTORECONF}"
 DEPENDS_AUTORECONF ?= "native:glib-dev"
 
 EXTRA_AUTORECONF = ""
+AUTORECONF_CMD ?= "autoreconf --verbose --install --force \
+	${EXTRA_AUTORECONF} $acpaths \
+"
+
 acpaths = "__default__"
 
 pkgltdldir = "${STAGE_DIR}/${HOST_CROSS}${stage_datadir}/libtool"
@@ -76,9 +80,7 @@ do_autoreconf () {
             export _lt_pkgdatadir="${pkgltdldir}"
         fi
         oenote Executing autoreconf
-        autoreconf --verbose --install --force \
-            ${EXTRA_AUTORECONF} $acpaths \
-            || oefatal "autoreconf execution failed."
+        eval "${AUTORECONF_CMD}" || oefatal 'autoreconf execution failed.'
         if grep "^[[:space:]]*[AI][CT]_PROG_INTLTOOL" $CONFIGURE_AC >/dev/null; then
             oenote Executing intltoolize
             intltoolize --copy --force --automake
