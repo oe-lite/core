@@ -600,7 +600,7 @@ class CookBook(Mapping):
                 (not arch_is_compatible(meta[recipe_type], "HOST")) or
                 (not arch_is_compatible(meta[recipe_type], "TARGET"))):
                 del meta[recipe_type]
-                break
+                continue
             oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
         return meta
 
