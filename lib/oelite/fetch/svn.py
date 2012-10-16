@@ -49,14 +49,14 @@ class SvnFetcher():
                 "Scheme %s not supported by oelite.fetch.SvnFetcher"%(scheme))
         uri.fdepends.append("native:svn")
         self.uri = uri
-        self.wc = os.path.join(
-            uri.ingredients, uri.isubdir, "svn",
-            self.uri.location.rstrip("/").translate(string.maketrans("/", "_")))
         try:
             protocol = uri.params["protocol"]
         except KeyError:
             protocol = "svn"
         self.url = "%s://%s"%(protocol, self.uri.location)
+        wc_name = "%s_%s"%(protocol, self.uri.location.rstrip("/").translate(
+                string.maketrans("/", "_")))
+        self.wc = os.path.join(uri.ingredients, uri.isubdir, "svn", wc_name)
         try:
             self.rev = uri.params["rev"]
         except:
