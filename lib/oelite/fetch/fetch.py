@@ -116,10 +116,15 @@ class OEliteUri:
         return mirror
 
     def __str__(self):
+        url = "%s://%s"%(self.scheme, self.location)
         try:
-            return self.fetcher.url
+            fetcher_url = self.fetcher.url
         except:
-            return "%s://%s"%(self.scheme, self.location)
+            return url
+        if url == fetcher_url:
+            return url
+        else:
+            return "%s %s"%(self.scheme, fetcher_url)
 
     def init_unpack_params(self):
         if not "localpath" in dir(self.fetcher):
@@ -226,13 +231,7 @@ class OEliteUri:
     def fetch(self):
         if not "fetch" in dir(self.fetcher):
             return True
-        url = str(self)
-        try:
-            if url != str(self.fetcher.url):
-                url = "%s %s"%(self.scheme, self.fetcher.url)
-        except AttributeError:
-            pass
-        print "Fetching", url
+        print "Fetching", str(self)
         return self.fetcher.fetch()
 
     def unpack(self, d, cmd):
