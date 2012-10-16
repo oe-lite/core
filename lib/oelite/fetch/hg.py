@@ -6,7 +6,7 @@ class HgFetcher():
         if not uri.scheme in self.SUPPORTED_SCHEMES:
             raise Exception(
                 "Scheme %s not supported by oelite.fetch.HgFetcher"%(scheme))
-        uri.fdepends.append("native:hg")
+        uri.fdepends.append("native:mercurial")
         self.uri = uri
         return
 
