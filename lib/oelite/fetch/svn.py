@@ -78,17 +78,27 @@ class SvnFetcher():
         except KeyError:
             self.scmdata_keep = False
         self.fetch_signatures = d["__fetch_signatures"]
+        self.set_signature()
         return
 
-    def signature(self):
+    def set_signature(self):
         if self.rev == "HEAD":
             warnings.warn("Fetching SVN HEAD breaks source signature handling")
-            return ""
+            self._signature = ""
+            return
         try:
             self._signature = self.fetch_signatures[self.signature_name]
         except KeyError:
+            self._signature = None
+        return
+
+    def signature(self):
+        if self._signature is None:
             raise oelite.fetch.NoSignature(self.uri, "signature unknown")
         return self._signature
+
+    def has_signature(self):
+        return bool(self._signature)
 
     def get_revision(self):
         try:
@@ -168,7 +178,14 @@ class SvnFetcher():
             if ".svn" in dirs:
                 dirs.remove(".svn")
             for filename in files:
-                m.update(open(os.path.join(root, filename), "r").read())
+                filepath = os.path.join(root, filename)
+                stat = os.lstat(filepath)
+                m.update(str(stat.st_mode))
+                if os.path.islink(filepath):
+                    m.update(os.readlink(filepath))
+                else:
+                    with open(filepath, "r") as file:
+                        m.update(file.read())
         signature = m.hexdigest()
         if not "_signature" in dir(self):
             return (self.signature_name, signature)
