@@ -6,6 +6,8 @@ import time
 import warnings
 import hashlib
 import oelite.fetch
+import pysvn
+import tarfile
 
 #
 # Syntax:
@@ -24,19 +26,21 @@ import oelite.fetch
 #
 # The repository is checked out as a working copy under INGREDIENTS.
 #
-# Adding SRC_URI mirror support should be done using tarballs. Need to
-# find out how to handle the .svn dirs in that case.  Perhaps add a
-# parameter for keeping the .svn dirs after unpacking, and if not
-# kept, the tarballs can be done from an svn export, while if keepig
-# .svn dirs is needed, the .svn dirs needs to be packaged together
-# with the src.  In that case, care must be taken to not use a tarball
-# without .svn dirs for a recipe that needs .svn dirs.
+# If using a rev parameter (revision or datetime specification), a signature
+# is calculated.
+#
+# If using a rev parameter and not scmdata=keep, a tarball of the the specific
+# revision is stored and will be used instead of a svn checkout when
+# available.
+#
 #
 # In do_unpack
 # ------------
 #
-# Symbolic link from .svn dir in working copy in INGREDIENTS, and then
-# checkout of the proper version.
+# For non scmdata=keep sources with a rev paramater, the snapshot tarball is
+# simply unpacked.  For other svn sources, the .svn directories are copied
+# from ingredients to a skeleton source directory tree, and svn update is then
+# called to checkout the required revision.
 #
 
 class SvnFetcher():
@@ -61,7 +65,8 @@ class SvnFetcher():
             self.rev = uri.params["rev"]
         except:
             self.rev = "HEAD"
-        if self.rev != "HEAD":
+        self.is_head = self.rev == "HEAD"
+        if not self.is_head:
             self.signature_name = "svn://" + uri.location
             if protocol != "svn":
                 self.signature_name += ";protocol=" + protocol
@@ -79,6 +84,9 @@ class SvnFetcher():
             self.scmdata_keep = False
         self.fetch_signatures = d["__fetch_signatures"]
         self.set_signature()
+        if not self.is_head and not self.scmdata_keep:
+            if self._signature is not None:
+                self.localpath = self.snapshot_tarball_path(self.signature())
         return
 
     def set_signature(self):
@@ -105,7 +113,6 @@ class SvnFetcher():
             return self._rev
         except:
             pass
-        import pysvn
         if self.rev == "HEAD":
             self._rev = pysvn.Revision(pysvn.opt_revision_kind.head)
         elif self.rev.startswith("r"):
@@ -126,9 +133,8 @@ class SvnFetcher():
             self._rev = pysvn.Revision(pysvn.opt_revision_kind.date, t)
         return self._rev
 
-    def fetch(self):
-        import pysvn
-        client = pysvn.Client()
+    def update_ingredients_wc(self, client):
+        print "Updating ingredients working copy"
         if os.path.exists(self.wc):
             badwc = False
             try:
@@ -165,14 +171,12 @@ class SvnFetcher():
             password = getpass.getpass()
             return True, username, password, True
         client.callback_get_login = get_login
-        try:
-            client.checkout(self.url, self.wc, recurse=True,
+        client.checkout(self.url, self.wc, recurse=True,
                         revision=self.get_revision(), ignore_externals=False)
-        except:
-            print "Error: SVN authorization failed"
-            return False
-        if self.rev == "HEAD":
-            return True
+        return
+
+    def get_ingredients_wc_signature(self, client):
+        print "Computing ingredients working copy signature"
         m = hashlib.sha1()
         for root, dirs, files in os.walk(self.wc):
             if ".svn" in dirs:
@@ -186,24 +190,88 @@ class SvnFetcher():
                 else:
                     with open(filepath, "r") as file:
                         m.update(file.read())
-        signature = m.hexdigest()
-        if not "_signature" in dir(self):
+        return m.hexdigest()
+
+    def snapshot_tarball_path(self, signature):
+        return "%s_%s.tar.bz2"%(self.wc, signature)
+
+    def save_snapshot_tarball(self, client, signature):
+        print "Generating snapshot tarball"
+        tarball = tarfile.open(self.snapshot_tarball_path(signature),
+                               mode="w:bz2")
+        def exclude_dot_svn(filename):
+            return os.path.basename(filename) == ".svn"
+        tarball.add(self.wc, arcname=self.dest, exclude=exclude_dot_svn)
+        tarball.close()
+        return
+
+    def has_snapshot_tarball(self):
+        if not self.has_signature():
+            return False
+        return os.path.exists(self.localpath)
+
+    def fetch_snapshot_tarball(self):
+        if not self.has_signature():
+            return False
+        # FIXME: add snapshot_tarball mirror support, downloading a snapshot
+        # file if available, and thus causing this to be preferred over
+        # fetching directly from svn.
+        return False
+
+    def fetch(self):
+        if not self.is_head and not self.scmdata_keep and self.has_signature():
+            if self.has_snapshot_tarball():
+                print "Using available snapshot tarball"
+                return True
+            if self.fetch_snapshot_tarball():
+                print "Using downloaded snapshot tarball"
+                return True
+        client = pysvn.Client()
+        try:
+            self.update_ingredients_wc(client)
+        except Exception, e:
+            if not self.is_head:
+                print "Error: Update of ingredients working copy failed:", e
+                return False
+        if self.is_head:
+            return True
+        signature = self.get_ingredients_wc_signature(client)
+        if not self.scmdata_keep:
+            self.save_snapshot_tarball(client, signature)
+        if not self.has_signature():
             return (self.signature_name, signature)
-        return signature == self._signature
+        if signature == self.signature():
+            return True
+        else:
+            print "Error: signature mismatch for", str(self.uri)
+            print "  Got     ", signature
+            print "  Expected", self.signature()
+            return False
+
+    def clone(self, client, dst):
+        print "Cloning to source working copy"
+        os.makedirs(dst)
+        for root, dirs, files in os.walk(self.wc):
+            if ".svn" in dirs:
+                dirs.remove(".svn")
+                dot_svn_src = os.path.join(root, ".svn")
+                dot_svn_dst = os.path.join(dst, root[len(self.wc)+1:], ".svn")
+                shutil.copytree(dot_svn_src, dot_svn_dst, symlinks=True)
+        client.update(dst, revision=self.get_revision())
+        return
+
+    def clean_scmdata(self, wc):
+        for root, dirs, files in os.walk(wc):
+            if ".svn" in dirs:
+                shutil.rmtree(os.path.join(root, ".svn"))
+                dirs.remove(".svn")
+        return
 
     def unpack(self, d):
-        import pysvn
+        # Note: when self.localpath is set, this method is not called, but
+        # unpacking is instead handled by OEliteUri.unpack method directly.
         client = pysvn.Client()
-        os.makedirs(self.dest)
-        os.symlink(os.path.join(self.wc, ".svn"),
-                   os.path.join(self.dest, ".svn"))
-        client.update(self.dest, revision=self.get_revision())
+        self.clone(client, self.dest)
         if not self.scmdata_keep:
-            os.unlink(os.path.join(self.dest, ".svn"))
-            for root, dirs, files in os.walk(self.dest):
-                if ".svn" in dirs:
-                    dirs.remove(".svn")
-                if root == self.dest:
-                    continue
-                shutil.rmtree(os.path.join(root, ".svn"))
+            self.clean_scmdata(self.dest)
         return True
