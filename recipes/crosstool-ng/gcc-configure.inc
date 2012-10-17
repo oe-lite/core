@@ -58,6 +58,9 @@ CT_GDB_GDBSERVER:cross		= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_GDB_CROSS"
 CT_GDB_CROSS:canadian-cross	= "y"
+RECIPE_FLAGS:>cross                  += " toolchain_cross_gdb"
+CT_GDB_CROSS:USE_toolchain_cross_gdb  = "y"
+DEPENDS:>USE_toolchain_cross_gdb      = " host:libexpat"
 
 AUTO_CT_BOOLEAN_VARS += "CT_GDB_NATIVE"
 CT_GDB_NATIVE:machine		= "y"
