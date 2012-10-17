@@ -27,3 +27,5 @@ do_install() {
 PACKAGES = "${PN}"
 FILES_${PN} = "${includedir}"
 PROVIDES_${PN} = "linux-headers"
+
+REBUILDALL_SKIP = "1"
