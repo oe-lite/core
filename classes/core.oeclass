@@ -145,6 +145,10 @@ def runstrip(file, d):
     filemagic.load()
     filetype = filemagic.file(file)
 
+    if not filetype:
+        bb.error("runstrip() unable to determine file type: %s"%(file))
+        return
+
     if "not stripped" not in filetype:
         print "runstrip() skip %s"%(file)
         return
