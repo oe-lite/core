@@ -120,6 +120,9 @@ class GitFetcher():
                     url += ".git"
                 else:
                     url = os.path.join(url[0], url[1])
+            if not self.uri.allow_url(url):
+                print "Skipping", url
+                continue
             try:
                 cache.update(url)
             except Exception, e:

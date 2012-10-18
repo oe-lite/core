@@ -211,6 +211,8 @@ class SvnFetcher():
                 # only "//" style mirrors for svn snapshots
                 continue
             try:
+                if not self.uri.allow_url(url):
+                    print "Skipping", url
                 if grab(url, self.localpath):
                     print "Downloaded snapshot from", url
                     return True
@@ -230,18 +232,23 @@ class SvnFetcher():
             if self.fetch_snapshot_tarball(self.uri.premirrors):
                 print "Using fetched snapshot tarball"
                 return True
-        try:
-            self.update_ingredients_wc()
-        except Exception, e:
-            if not self.is_head:
-                if self.scmdata_keep:
+        fetched = False
+        if self.uri.allow_url(self.url):
+            try:
+                self.update_ingredients_wc()
+                fetched = True
+            except Exception, e:
+                if self.scmdata_keep and not self.is_head:
                     print "Error: Update of ingredients working copy failed:", e
                     return False
                 print "Warning: Update of ingredients working copy failed:", e
-                if self.fetch_snapshot_tarball(self.uri.mirrors):
-                    return True
-                print "Error: SVN fetching failed"
-                return False
+        else:
+            print "Skipping svn", self.url
+        if not fetched and try_snapshot:
+            if self.fetch_snapshot_tarball(self.uri.mirrors):
+                return True
+            print "Error: SVN fetching failed"
+            return False
         if self.is_head:
             if self.os.path.exists(self.wc):
                 return True
