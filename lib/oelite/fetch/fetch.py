@@ -89,6 +89,8 @@ class OEliteUri:
         self.add_patch_fdepends()
         self.mirrors = self.init_mirrors(d.get("MIRRORS"))
         self.premirrors = self.init_mirrors(d.get("PREMIRRORS"))
+        self.whitelist = self.init_filter(d.get("URL_WHITELIST"))
+        self.blacklist = self.init_filter(d.get("URL_BLACKLIST"))
         return
 
     def init_mirrors(self, all_mirrors):
@@ -113,6 +115,32 @@ class OEliteUri:
             if m:
                 mirrors.append((mirror_uri, url[m.end():]))
         return mirrors
+
+    def init_filter(self, filterstr):
+        if not filterstr:
+            return None
+        assert isinstance(filterstr, basestring)
+        return "|".join(filterstr.split())
+
+    def compile_filter(self, filterre):
+        if not filterre:
+            return None
+        return re.compile(filterre)
+
+    def allow_url(self, url):
+        try:
+            blacklist = self.blacklist_re
+        except AttributeError:
+            blacklist = self.blacklist_re = self.compile_filter(self.blacklist)
+        if blacklist and blacklist.match(url):
+            return False
+        try:
+            whitelist = self.whitelist_re
+        except AttributeError:
+            whitelist = self.whitelist_re = self.compile_filter(self.whitelist)
+        if whitelist and not whitelist.match(url):
+            return False
+        return True
 
     def __str__(self):
         url = "%s://%s"%(self.scheme, self.location)

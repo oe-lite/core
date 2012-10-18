@@ -49,6 +49,9 @@ class UrlFetcher():
             assert not os.path.exists(self.localpath)
             if not isinstance(url, basestring):
                 url = "".join(url)
+            if not self.uri.allow_url(url):
+                print "Skipping", url
+                continue
             if grab(url, self.localpath):
                 grabbed = True
                 break
