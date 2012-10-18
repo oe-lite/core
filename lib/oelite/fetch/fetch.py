@@ -236,6 +236,13 @@ class OEliteUri:
     def unpack(self, d, cmd):
         if not "localpath" in dir(self.fetcher):
             return self.fetcher.unpack(d)
+        if not self._unpack(d, cmd):
+            return False
+        if "verify_unpacked" in dir(self.fetcher):
+            return self.fetcher.verify_unpacked()
+        return True
+
+    def _unpack(self, d, cmd):
         print "Unpacking", self.fetcher.localpath
         srcpath = os.getcwd()
         self.srcfile = None
