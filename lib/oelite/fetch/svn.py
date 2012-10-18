@@ -8,6 +8,7 @@ import hashlib
 import oelite.fetch
 import pysvn
 import tarfile
+from oelite.fetch.url import grab
 
 #
 # Syntax:
@@ -58,9 +59,10 @@ class SvnFetcher():
         except KeyError:
             protocol = "svn"
         self.url = "%s://%s"%(protocol, self.uri.location)
-        wc_name = "%s_%s"%(protocol, self.uri.location.rstrip("/").translate(
-                string.maketrans("/", "_")))
-        self.wc = os.path.join(uri.ingredients, uri.isubdir, "svn", wc_name)
+        self.wc_name = protocol + "_" + \
+            self.uri.location.rstrip("/").translate(string.maketrans("/", "_"))
+        self.wc = os.path.join(uri.ingredients, uri.isubdir, "svn",
+                               self.wc_name)
         try:
             self.rev = uri.params["rev"]
         except:
@@ -133,8 +135,9 @@ class SvnFetcher():
             self._rev = pysvn.Revision(pysvn.opt_revision_kind.date, t)
         return self._rev
 
-    def update_ingredients_wc(self, client):
+    def update_ingredients_wc(self):
         print "Updating ingredients working copy"
+        client = pysvn.Client()
         if os.path.exists(self.wc):
             badwc = False
             try:
@@ -175,27 +178,14 @@ class SvnFetcher():
                         revision=self.get_revision(), ignore_externals=False)
         return
 
-    def get_ingredients_wc_signature(self, client):
+    def get_ingredients_wc_signature(self):
         print "Computing ingredients working copy signature"
-        m = hashlib.sha1()
-        for root, dirs, files in os.walk(self.wc):
-            if ".svn" in dirs:
-                dirs.remove(".svn")
-            for filename in files:
-                filepath = os.path.join(root, filename)
-                stat = os.lstat(filepath)
-                m.update(str(stat.st_mode))
-                if os.path.islink(filepath):
-                    m.update(os.readlink(filepath))
-                else:
-                    with open(filepath, "r") as file:
-                        m.update(file.read())
-        return m.hexdigest()
+        return svn_signature(self.wc)
 
     def snapshot_tarball_path(self, signature):
         return "%s_%s.tar.bz2"%(self.wc, signature)
 
-    def save_snapshot_tarball(self, client, signature):
+    def save_snapshot_tarball(self, signature):
         print "Generating snapshot tarball"
         tarball = tarfile.open(self.snapshot_tarball_path(signature),
                                mode="w:bz2")
@@ -210,42 +200,64 @@ class SvnFetcher():
             return False
         return os.path.exists(self.localpath)
 
-    def fetch_snapshot_tarball(self):
+    def fetch_snapshot_tarball(self, urls):
         if not self.has_signature():
             return False
-        # FIXME: add snapshot_tarball mirror support, downloading a snapshot
-        # file if available, and thus causing this to be preferred over
-        # fetching directly from svn.
+        for url in urls:
+            if url[0].endswith("//"):
+                mirror_name = "%s_%s.tar.bz2"%(self.wc_name, self.signature())
+                url = os.path.join(url[0].rstrip("/"), mirror_name)
+            else:
+                # only "//" style mirrors for svn snapshots
+                continue
+            try:
+                if grab(url, self.localpath):
+                    print "Downloaded snapshot from", url
+                    return True
+            except Exception, e:
+                print "Warning: fetching snapshot %s failed: %s"%(
+                    url, e)
         return False
 
     def fetch(self):
-        if not self.is_head and not self.scmdata_keep and self.has_signature():
+        try_snapshot = (not self.is_head and
+                        not self.scmdata_keep and
+                        self.has_signature())
+        if try_snapshot:
             if self.has_snapshot_tarball():
                 print "Using available snapshot tarball"
                 return True
-            if self.fetch_snapshot_tarball():
-                print "Using downloaded snapshot tarball"
+            if self.fetch_snapshot_tarball(self.uri.premirrors):
+                print "Using fetched snapshot tarball"
                 return True
-        client = pysvn.Client()
         try:
-            self.update_ingredients_wc(client)
+            self.update_ingredients_wc()
         except Exception, e:
             if not self.is_head:
-                print "Error: Update of ingredients working copy failed:", e
+                if self.scmdata_keep:
+                    print "Error: Update of ingredients working copy failed:", e
+                    return False
+                print "Warning: Update of ingredients working copy failed:", e
+                if self.fetch_snapshot_tarball(self.uri.mirrors):
+                    return True
+                print "Error: SVN fetching failed"
                 return False
         if self.is_head:
-            return True
-        signature = self.get_ingredients_wc_signature(client)
+            if self.os.path.exists(self.wc):
+                return True
+            else:
+                return False
+        signature = self.get_ingredients_wc_signature()
         if not self.scmdata_keep:
-            self.save_snapshot_tarball(client, signature)
+            self.save_snapshot_tarball(signature)
         if not self.has_signature():
             return (self.signature_name, signature)
         if signature == self.signature():
             return True
         else:
             print "Error: signature mismatch for", str(self.uri)
-            print "  Got     ", signature
-            print "  Expected", self.signature()
+            print "  Got:     ", signature
+            print "  Expected:", self.signature()
             return False
 
     def clone(self, client, dst):
@@ -275,3 +287,29 @@ class SvnFetcher():
         if not self.scmdata_keep:
             self.clean_scmdata(self.dest)
         return True
+
+    def verify_unpacked(self):
+        signature = svn_signature(self.dest)
+        if not signature == self.signature():
+            print "Error: Invalid snapshot tarball unpacked"
+            print "  Got:     ", signature
+            print "  Expected:", self.signature()
+            return False
+        return True
+
+
+def svn_signature(wc):
+    m = hashlib.sha1()
+    for root, dirs, files in os.walk(wc):
+        if ".svn" in dirs:
+            dirs.remove(".svn")
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            stat = os.lstat(filepath)
+            m.update(str(stat.st_mode))
+            if os.path.islink(filepath):
+                m.update(os.readlink(filepath))
+            else:
+                with open(filepath, "r") as file:
+                    m.update(file.read())
+    return m.hexdigest()
