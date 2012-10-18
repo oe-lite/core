@@ -30,61 +30,82 @@ class UrlFetcher():
         except KeyError:
             raise oelite.fetch.NoSignature(self.uri, "signature unknown")
 
-    def grab(self, url, timeout=120, retry=5):
-        print "grabbing %s"%(url)
-        def grab_fail_callback(data):
-            "Only print debug here when non fatal retries, debug in other cases is already printed"
-            if (data.exception.errno in retrycodes) and (data.tries != data.retry):
-                print "grabbing retry %d/%d, self.exception %s" %(data.tries,data.retry,data.exception)
-        try:
-            retrycodes = urlgrabber.grabber.URLGrabberOptions().retrycodes
-            if 12 not in retrycodes:
-                retrycodes.append(12)
-            return urlgrabber.urlgrab(url, self.localpath,timeout=timeout,retry=retry,
-                                      retrycodes=retrycodes,
-                                      progress_obj=SimpleProgress(),
-                                      failure_callback=grab_fail_callback)
-        except urlgrabber.grabber.URLGrabError as e:
-            print 'URLGrabError %i: %s' % (e.errno, e.strerror)
-            if os.path.exists(self.localpath):
-                os.unlink(self.localpath)
-        return None
-
     def fetch(self):
         localdir = os.path.dirname(self.localpath)
         if not os.path.exists(localdir):
             bb.utils.mkdirhier(localdir)
-        url = self.url
-        while url:
-            if os.path.exists(self.localpath):
-                if "_signature" in dir(self):
-                    m = hashlib.sha1()
-                    m.update(open(self.localpath, "r").read())
-                    if self._signature == m.hexdigest():
-                        return True
-                    else:
-                        print "Signature bad, removing local file and regrabbing: %s"%self.localpath
-                os.unlink(self.localpath)
-            f = self.grab(url)
-            if f:
+
+        if os.path.exists(self.localpath):
+            if "_signature" in dir(self):
+                signature = self.localsignature()
+                if signature == self._signature:
+                    return True
+            print "Removing unverifiable ingredient:", \
+                os.path.join(self.uri.isubdir, self.localname)
+            os.unlink(self.localpath)
+
+        grabbed = False
+        for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
+            assert not os.path.exists(self.localpath)
+            if not isinstance(url, basestring):
+                url = "".join(url)
+            if grab(url, self.localpath):
+                grabbed = True
                 break
-            url = self.uri.alternative_mirror()
-        if not f or f != self.localpath:
+            if os.path.exists(self.localpath):
+                print "Removing ingredient littering:", \
+                    os.path.join(self.uri.isubdir, self.localname)
+                os.unlink(self.localpath)
+        if not grabbed:
             return False
-        m = hashlib.sha1()
-        m.update(open(self.localpath, "r").read())
-        signature = m.hexdigest()
+        assert os.path.exists(self.localpath)
+
+        signature = self.localsignature()
         if not "_signature" in dir(self):
             return (self.localname, signature)
         if signature != self._signature:
-            print "Error signature mismatch:"
+            print "Ingredient signature mismatch:", \
+                os.path.join(self.uri.isubdir, self.localname)
             print "  expected: %s"%self._signature
             print "  obtained: %s"%signature
             return False
         else:
             return True
 
+    def localsignature(self):
+        m = hashlib.sha1()
+        m.update(open(self.localpath, "r").read())
+        return m.hexdigest()
+
 
 class SimpleProgress(urlgrabber.progress.BaseMeter):
     def _do_end(self, amount_read, now=None):
         print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
+
+
+def grab(url, filename, timeout=120, retry=5):
+    print "Grabbing", url
+    def grab_fail_callback(data):
+        # Only print debug here when non fatal retries, debug in other cases
+        # is already printed
+        if (data.exception.errno in retrycodes) and (data.tries != data.retry):
+            print "grabbing retry %d/%d, exception %s"%(
+                data.tries, data.retry, data.exception)
+    try:
+        retrycodes = urlgrabber.grabber.URLGrabberOptions().retrycodes
+        if 12 not in retrycodes:
+            retrycodes.append(12)
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        downloaded_file = urlgrabber.urlgrab(
+            url, filename,timeout=timeout,retry=retry, retrycodes=retrycodes,
+            progress_obj=SimpleProgress(), failure_callback=grab_fail_callback,
+            copy_local=True)
+        if not downloaded_file:
+            return False
+    except urlgrabber.grabber.URLGrabError as e:
+        print 'URLGrabError %i: %s' % (e.errno, e.strerror)
+        if os.path.exists(filename):
+            os.unlink(filename)
+        return False
+    return True
