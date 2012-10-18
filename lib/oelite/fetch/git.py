@@ -68,6 +68,10 @@ class GitFetcher():
                 self.dest += repo_name
         else:
             self.dest = repo_name
+        try:
+            self.remote = uri.params["remote"]
+        except KeyError:
+            self.remote = None
         self.signatures = d.get("FILE") + ".sig"
         self.fetch_signatures = d["__fetch_signatures"]
         return
@@ -90,7 +94,8 @@ class GitFetcher():
         try:
             return self.cache
         except AttributeError:
-            self.cache = fetching.git_cache.Fetcher(self.url, cache=self.repo)
+            self.cache = fetching.git_cache.Fetcher(self.url, cache=self.repo,
+                                                    remote_name=self.remote)
             return self.cache
 
     def fetch(self):
