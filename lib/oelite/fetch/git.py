@@ -105,15 +105,33 @@ class GitFetcher():
     def fetch(self):
         cache = self.get_cache()
         cache.setup_cache()
-        if (self.branch or
-            (self.tag and not cache.has_tag(self.tag)) or
-            (self.commit and not cache.has_commit(self.commit))):
+
+        fetched = False
+        for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
+            if self.tag and cache.has_tag(self.tag):
+                fetched = True
+                break
+            if self.commit and cache.has_commit(self.commit):
+                fetched = True
+                break
+            if not isinstance(url, basestring):
+                if url[0].endswith("//"):
+                    url = os.path.join(url[0].rstrip("/"), self.mirror_name)
+                    url += ".git"
+                else:
+                    url = os.path.join(url[0], url[1])
             try:
-                cache.update()
-            except:
-                print "Error fetching git remote: %s"%(self.url,)
-                if not self.branch:
-                    return False
+                cache.update(url)
+            except Exception, e:
+                print "Warning: fetching %s failed: %s"%(url, e)
+                continue
+            fetched = True
+            break
+
+        if not fetched and not self.branch:
+            print "Error: git fetching failed"
+            return False
+
         if self.tag:
             commit = cache.query_tag(self.tag)
             if not commit:
