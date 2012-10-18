@@ -8,6 +8,7 @@ inherit package
 # FIXME: inherit in specialized classes, so that fx. image does not have
 # to have do_fetch
 inherit fetch
+inherit mirror
 
 addtask configure after stage fetch unpack patch
 addtask compile after configure

@@ -1,0 +1,22 @@
+# -*- mode:python; -*-
+
+addtask mirror after fetch
+addtask mirrorall after mirror
+
+MIRRORDIR ?= ""
+
+do_mirror[dirs] = "${WORKDIR} ${MIRRORDIR}"
+def do_mirror(d):
+    mirrordir = d.get("MIRRORDIR")
+    if not mirrordir:
+        print "Warning: MIRRORDIR not set"
+        return True
+    for uri in d.get("__fetch"):
+        if not uri.mirror(d, mirrordir):
+            return False
+    return
+
+do_mirrorall[recdeptask] = "DEPENDS:do_mirrorall RDEPENDS:do_mirrorall"
+do_mirrorall[dirs] = "${WORKDIR}"
+def do_mirrorall(d):
+    return
