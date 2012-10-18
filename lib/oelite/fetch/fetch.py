@@ -87,33 +87,32 @@ class OEliteUri:
         self.add_unpack_fdepends(d)
         self.init_patch_params(d)
         self.add_patch_fdepends()
-        self.mirrors = d.get("MIRRORS") or None
+        self.mirrors = self.init_mirrors(d.get("MIRRORS"))
+        self.premirrors = self.init_mirrors(d.get("PREMIRRORS"))
         return
 
-    def alternative_mirror(self):
-        if self.mirrors is None:
-            return None
-        if isinstance(self.mirrors, str):
-            url = "%s://%s"%(self.scheme, self.location)
-            mirrors = self.mirrors.split("\n")
-            mirrors = map(string.strip, mirrors)
-            mirrors = filter(None, mirrors)
-            mirrors = map(string.split, mirrors)
-            if not mirrors:
-                self.mirrors = None
-                return None
-            self.mirrors = []
-            for mirror in mirrors:
-                (src_uri, mirror_uri) = tuple(mirror)
-                m = re.match(src_uri, url)
-                if m:
-                    self.mirrors.append(mirror_uri + url[m.end():])
-            self.next_mirror = 0
-        if self.next_mirror == len(self.mirrors):
-            return None
-        mirror = self.mirrors[self.next_mirror]
-        self.next_mirror += 1
-        return mirror
+    def init_mirrors(self, all_mirrors):
+        if not all_mirrors:
+            return []
+        assert isinstance(all_mirrors, basestring)
+        url = "%s://%s"%(self.scheme, self.location)
+        all_mirrors = all_mirrors.split("\n")
+        all_mirrors = map(string.strip, all_mirrors)
+        all_mirrors = filter(None, all_mirrors)
+        all_mirrors = map(string.split, all_mirrors)
+        if not all_mirrors:
+            return []
+        mirrors = []
+        for mirror in all_mirrors:
+            if len(mirror) != 2:
+                print "Warning: skipping invalid mirror line:", \
+                    " ".join(mirror)
+                continue
+            (src_uri, mirror_uri) = tuple(mirror)
+            m = re.match(src_uri, url)
+            if m:
+                mirrors.append((mirror_uri, url[m.end():]))
+        return mirrors
 
     def __str__(self):
         url = "%s://%s"%(self.scheme, self.location)
