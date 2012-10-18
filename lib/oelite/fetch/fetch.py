@@ -298,6 +298,36 @@ class OEliteUri:
             raise Exception("quilt push failed: %d"%(rc))
         return True
 
+    def mirror(self, d, mirror):
+        if not "localpath" in dir(self.fetcher):
+            if not "mirror" in dir(self.fetcher):
+                return True
+            return self.fetcher.mirror(mirror)
+        src = self.fetcher.localpath
+        if not src.startswith(self.ingredients):
+            return True
+        dst = os.path.join(mirror, src[len(self.ingredients)+1:])
+        if os.path.exists(dst):
+            m = hashlib.md5()
+            with open(src, "r") as srcfile:
+                m.update(srcfile.read())
+                src_md5 = m.hexdigest()
+            m = hashlib.md5()
+            with open(dst, "r") as dstfile:
+                m.update(dstfile.read())
+                dst_md5 = m.hexdigest()
+            if src_md5 != dst_md5:
+                print "Mirror inconsistency:", dst
+                print "%s != %s"%(src_md5, dst_md5)
+                return False
+            return True
+        mirrordir = os.path.dirname(dst)
+        if not os.path.exists(mirrordir):
+            os.makedirs(mirrordir)
+        print "Mirroring", dst[len(mirror)+1:]
+        shutil.copy(src, dst)
+        return True
+
 
 def patch_init(d):
     quiltrc = d.get("QUILTRC")
