@@ -3,6 +3,7 @@ import fetching.git_cache
 import os
 import re
 import warnings
+import string
 
 class GitFetcher():
 
@@ -20,6 +21,9 @@ class GitFetcher():
         except KeyError:
             protocol = "git"
         self.url = "%s://%s"%(protocol, uri.location)
+        self.mirror_name = "%s_%s"%(protocol, uri.location.translate(string.maketrans("/", "_")))
+        if self.mirror_name.endswith(".git"):
+            self.mirror_name = self.mirror_name[:-4]
         try:
             self.remote = uri.params["origin"]
         except KeyError:
@@ -128,4 +132,12 @@ class GitFetcher():
         rev = self.commit or self.tag or self.branch
         cache.download(os.path.join(d.get("SRCDIR"), self.dest),
                        rev=rev, force=True)
+        return True
+
+    def mirror(self, mirror=os.getcwd()):
+        path = os.path.join(self.uri.isubdir, "git", self.mirror_name) + ".git"
+        print "Updating git mirror", path
+        cache = self.get_cache()
+        repo = cache.update_bare_dest(path)
+        repo.git.update_server_info()
         return True
