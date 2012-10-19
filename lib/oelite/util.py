@@ -1,6 +1,7 @@
 import tarfile
 import os
 import sys
+import subprocess
 
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
@@ -54,13 +55,15 @@ class TeeStream:
         return
 
 
-def shcmd(cmd, dir=None, quiet=False, success_returncode=0):
+def shcmd(cmd, dir=None, quiet=False, success_returncode=0, **kwargs):
 
-    if type(cmd) == type([]):
-        cmdlist = cmd
-        cmd = cmdlist[0]
-        for arg in cmdlist[1:]:
-            cmd = cmd + ' ' + arg
+    if isinstance(cmd, basestring):
+        cmdstr = cmd
+        cmdname = cmd.split(None, 1)[0]
+        kwargs["shell"] = True
+    else:
+        cmdstr = " ".join(cmd)
+        cmdname = cmd[0]
 
     if dir:
         pwd = os.getcwd()
@@ -68,23 +71,32 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0):
 
     if not quiet:
         if dir:
-            print '%s> %s'%(dir, cmd)
+            print '%s> %s'%(dir, cmdstr)
         else:
-            print '> %s'%(cmd)
+            print '> %s'%(cmdstr,)
 
-    retval = None
-    if quiet:
-        process = subprocess.Popen(cmd, shell=True, stdin=sys.stdin,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
-        output = process.communicate()[0]
-        if process.returncode == success_returncode:
-            retval = output
-
-    else:
-        returncode = subprocess.call(cmd, shell=True, stdin=sys.stdin)
-        if returncode == success_returncode:
-            retval = True
+    try:
+        retval = None
+        if quiet:
+            process = subprocess.Popen(cmd, stdin=sys.stdin,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, **kwargs)
+            output = process.communicate()[0]
+            if process.returncode == success_returncode:
+                retval = output
+            else:
+                print "Error: Command failed: %r: %d"%(cmdstr, returncode)
+        else:
+            returncode = subprocess.call(cmd, stdin=sys.stdin, **kwargs)
+            if returncode == success_returncode:
+                retval = True
+            else:
+                print "Error: Command failed: %r: %d"%(cmdstr, returncode)
+    except OSError, e:
+        if e.errno == 2:
+            print "Error: Command not found:", cmdname
+        else:
+            print "Error: Command failed: %r"%(cmdstr)
 
     if dir:
         chdir(pwd, quiet=True)
