@@ -1,7 +1,6 @@
 import oelite.meta
 import bb.utils
 import oebakery
-import oe.process
 
 import sys
 import os
@@ -187,5 +186,4 @@ class ShellFunction(OEliteFunction):
         if self.meta.get_flag(self.name, "fakeroot"):
             cmd = "%s "%(self.meta.get("FAKEROOT") or "fakeroot") + cmd
         cmd = "LC_ALL=C " + cmd
-        rc = oe.process.run(cmd)
-        return rc == 0
+        return oelite.util.shcmd(cmd)
