@@ -5,9 +5,9 @@ import shutil
 import string
 
 import bb.utils
-import oe.process
 
 import oelite.fetch
+import oelite.util
 import local
 import url
 import git
@@ -296,8 +296,7 @@ class OEliteUri:
         finally:
             if cwd:
                 os.chdir(cwd)
-        rc = oe.process.run(cmd)
-        return rc == 0
+        return oelite.util.shcmd(cmd)
 
     def srcpath(self, d):
         srcdir = d.get("SRCDIR")
@@ -319,12 +318,8 @@ class OEliteUri:
         with open("%s/series"%(d.get("PATCHDIR")), "a") as series:
             series.write("%s -p%s\n"%(
                     self.patchpath(d), self.params["striplevel"]))
-
-        rc = oe.process.run("quilt -v --quiltrc %s push"%(d.get("QUILTRC")))
-        if rc != 0:
-            # FIXME: proper error handling
-            raise Exception("quilt push failed: %d"%(rc))
-        return True
+        cmd = ["quilt", "-v", "--quiltrc", d.get("QUILTRC"), "push"]
+        return oelite.util.shcmd(cmd)
 
     def mirror(self, d, mirror):
         if not "localpath" in dir(self.fetcher):
@@ -369,8 +364,7 @@ def patch_init(d):
     os.chdir(s)
     if os.path.exists(".pc"):
         while os.path.exists(".pc/applied-patches"):
-            rc = oe.process.run("quilt -v --quiltrc %s pop"%(quiltrc))
-            if rc != 0:
+            if oelite.util.shcmd("quilt -v --quiltrc %s pop"%(quiltrc)):
                 # FIXME: proper error handling
                 raise Exception("quilt pop failed")
         if not os.path.exists(".pc/series") and not os.path.exists(".pc/.quilt_series"):
