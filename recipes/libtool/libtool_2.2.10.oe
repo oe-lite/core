@@ -7,6 +7,7 @@ libtool_cross_compile = ""
 libtool_cross_compile:cross = "file://cross_compile.patch"
 libtool_cross_compile:sdk-cross = "file://cross_compile.patch"
 SRC_URI += "${libtool_cross_compile}"
+SRC_URI += "file://lzma_removed.patch"
 
 addtask bootstrap before configure after fetch unpack patch stage
 do_bootstrap[dirs] = "${S}"
