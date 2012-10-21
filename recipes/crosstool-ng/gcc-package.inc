@@ -65,6 +65,7 @@ ${base_libexecdir}/gcc/${TARGET_ARCH} \
 ${base_prefix}/${TARGET_ARCH}/bin \
 ${base_prefix}/${TARGET_ARCH}/lib \
 ${base_libdir}64 \
+${base_libdir}/x86_64 \
 ${base_prefix}/${TARGET_ARCH}/lib64 \
 "
 
