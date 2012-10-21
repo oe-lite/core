@@ -1,3 +1,5 @@
 LICENSE = "GPL-3.0+"
 
 require readline.inc
+
+SRC_URI:>TARGET_OS_darwin = " file://patch-shobj-conf.patch"
