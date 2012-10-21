@@ -8,24 +8,20 @@ CLASS_DEPENDS += "${C_DEPENDS}"
 export CPPFLAGS = "${HOST_CPPFLAGS}"
 export BUILD_CPPFLAGS
 
-BUILD_CPPFLAGS		?= "-U_FORTIFY_SOURCE"
+BUILD_CPPFLAGS		?= "-U_FORTIFY_SOURCE -isystem ${BUILD_SYSROOT}${stage_includedir}"
 MACHINE_CPPFLAGS	?= ""
 SDK_CPPFLAGS		?= ""
 
-HOST_CPPFLAGS:native		 = "${BUILD_CPPFLAGS} \
-	-isystem ${BUILD_SYSROOT}${stage_includedir}"
-HOST_CPPFLAGS:cross		 = "${BUILD_CPPFLAGS} \
-	-isystem ${BUILD_SYSROOT}${stage_includedir}"
+HOST_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
+HOST_CPPFLAGS:cross		 = "${BUILD_CPPFLAGS}"
 HOST_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} \
 	--sysroot=${MACHINE_SYSROOT}"
 HOST_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS} \
 	--sysroot=${SDK_SYSROOT}"
-HOST_CPPFLAGS:sdk-cross		 = "${BUILD_CPPFLAGS} \
-	-isystem ${BUILD_SYSROOT}${stage_includedir}"
+HOST_CPPFLAGS:sdk-cross		 = "${BUILD_CPPFLAGS}"
 HOST_CPPFLAGS:canadian-cross	 = "${SDK_CPPFLAGS} \
 	--sysroot=${SDK_SYSROOT}"
-TARGET_CPPFLAGS:native		 = "${BUILD_CPPFLAGS} \
-	-isystem ${BUILD_SYSROOT}${stage_includedir}"
+TARGET_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
 TARGET_CPPFLAGS:cross		 = "${MACHINE_CPPFLAGS} \
 	--sysroot=${MACHINE_SYSROOT}"
 TARGET_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} \
