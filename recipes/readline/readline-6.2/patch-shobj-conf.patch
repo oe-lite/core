@@ -1,0 +1,12 @@
+diff -urN readline-6.2/support/shobj-conf readline-6.2.mod/support/shobj-conf
+--- readline-6.2/support/shobj-conf	2009-10-28 14:20:21.000000000 +0100
++++ readline-6.2.mod/support/shobj-conf	2012-10-09 12:30:52.000000000 +0200
+@@ -190,7 +190,7 @@
+ 			SHLIB_XLDFLAGS='-dynamiclib -arch_only `/usr/bin/arch` -install_name $(libdir)/$@ -current_version $(SHLIB_MAJOR)$(SHLIB_MINOR) -compatibility_version $(SHLIB_MAJOR) -v'
+ 			;;
+ 	*)		SHOBJ_LDFLAGS='-dynamic'
+-			SHLIB_XLDFLAGS='-arch_only `/usr/bin/arch` -install_name $(libdir)/$@ -current_version $(SHLIB_MAJOR)$(SHLIB_MINOR) -compatibility_version $(SHLIB_MAJOR) -v'
++			SHLIB_XLDFLAGS='-dynamiclib -arch_only `/usr/bin/arch` -install_name $(libdir)/$@ -current_version $(SHLIB_MAJOR)$(SHLIB_MINOR) -compatibility_version $(SHLIB_MAJOR) -v'
+ 			;;
+ 	esac
+ 
