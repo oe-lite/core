@@ -4,7 +4,7 @@ HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 
 RECIPE_TYPES = "machine native sdk"
 
-COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.*"
+COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.* .*darwin.*"
 
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
@@ -39,7 +39,7 @@ do_install() {
         ln -sf curses.h ${D}${includedir}/ncurses.h
 
         # our ncurses has termcap support
-        ln -sf libncurses.so ${D}${libdir}/libtermcap.so
+        ln -sf libncurses${SOLIBSDEV} ${D}${libdir}/libtermcap${SOLIBSDEV}
         ln -sf libncurses.a ${D}${libdir}/libtermcap.a
 
         # include some basic terminfo files
@@ -68,7 +68,7 @@ PACKAGES =+ "${PN}-tools ${PN}-terminfo"
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "ncurses form menu panel"
-FILES_${PN}-libncurses-dev = "${libdir}/libtermcap.a ${libdir}/libtermcap.so"
+FILES_${PN}-libncurses-dev = "${libdir}/libtermcap.a ${libdir}/libtermcap${SOLIBSDEV}"
 PROVIDES_${PN}-libncurses = "libtermcap"
 PROVIDES_${PN}-libncurses-dev = "libtermcap-dev"
 
