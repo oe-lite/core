@@ -507,9 +507,12 @@ class CookBook(Mapping):
 
         recipes = None
         if os.path.exists(cachefile):
-            meta_cache = oelite.meta.MetaCache(cachefile)
-            if meta_cache.is_current():
-                recipes = meta_cache.load(filename, self)
+            try:
+                meta_cache = oelite.meta.MetaCache(cachefile)
+                if meta_cache.is_current():
+                    recipes = meta_cache.load(filename, self)
+            except:
+                print "Ignoring bad metadata cache:", cachefile
 
         if not recipes:
             recipe_meta = self.parse_recipe(filename)
