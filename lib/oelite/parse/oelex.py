@@ -356,6 +356,12 @@ def t_dquote_QUOTE(t):
     t.lexer.pop_state()
     return t
 
+def t_dquote_UNTERMINATEDSTRING(t):
+    r'\n'
+    t.lexer.lineno += t.value.count('\n')
+    # ParseError-5
+    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
+
 t_squote_ignore = ''
 
 def t_squote_STRING(t):
@@ -372,6 +378,12 @@ def t_squote_QUOTE(t):
     t.lexer.pop_state()
     t.lexer.pop_state()
     return t
+
+def t_squote_UNTERMINATEDSTRING(t):
+    r"\n"
+    t.lexer.lineno += t.value.count('\n')
+    # ParseError-6
+    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
 
 t_tripledquote_ignore = ''
 
@@ -439,22 +451,14 @@ def t_triplesquote_INQUOTE(t):
     t.type = "STRING"
     return t
 
-def t_assign_UNTERMINATEDDQUOTESTRING(t):
-    r'"(\\"|\\\n|[^"\n])*?\n'
-    t.lexer.lineno += t.value.count('\n')
-    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
-
-def t_assign_UNTERMINATEDSQUOTESTRING(t):
-    r"'(\\'|\\\n|[^'\n])*?\n"
-    t.lexer.lineno += t.value.count('\n')
-    raise oelite.parse.ParseError(t.lexer.parser, "Unterminated string", t)
-
+# ParseError-7
 def t_assign_UNQUOTEDSTRING(t):
     r".+"
     raise oelite.parse.ParseError(t.lexer.parser, "Unquoted string", t)
 
 
 def t_ANY_error(t):
+    # ParseError-8
     raise oelite.parse.ParseError(t.lexer.parser, "Illegal character", t)
 
 

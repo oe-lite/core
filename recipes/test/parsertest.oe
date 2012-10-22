@@ -1,0 +1,31 @@
+# This is a dummy recipe for testing the OE-lite parser error handling.
+# Comment in the sections one at a time, verifying that a proper error message
+# is displayed.  The corresponding error handling in the code is marked with
+# the same "ParseError-N" comment as below.
+
+# ParseError-1
+#= foobar
+
+# ParseError-2 -- shows wrongly at next line
+#require foobar.inc
+
+# ParseError-3 -- shows wrongly at next line
+#hello_world = "${abc}"
+#FOOBAR = "${hello_world}"
+#inherit ${FOOBAR}
+
+# ParseError-4 -- shows wrongly at next line
+#inherit fetch foobar mirror
+
+# ParseError-5
+#FOO = "foobar
+
+# ParseError-6
+#FOO = 'foobar
+
+# ParseError-7
+#FOO = foobar
+
+# ParseError-8
+#;
+

@@ -26,80 +26,71 @@ class ExpandError(Exception):
 
 class ParseError(Exception):
 
-    def __init__(self, parser, msg, details=None, symbol=None, lineno=None,
-                 more_details=None):
-        """
-        parser = OEParser instance
-        msg = string
-        details = 
-        """
-        assert isinstance(parser, oelite.parse.oeparse.OEParser)
-        assert isinstance(msg, basestring)
-
+    def __init__(self, parser, msg, details=None, more_details=None):
         self.parser = parser
         self.msg = msg
         self.more_details = more_details
-        try:
-            self.lexer = details.lexer
-        except:
-            self.lexer = parser.lexer
-        #print "parser=%s"%(parser)
-        #print dir(self.parser)
-        #print dir(self.parser.lexer)
-        #print "lineno arg", lineno
-        #print "lineno", self.parser.lexer.lineno
-        if not self.parser and "parser" in dir(self.lexer):
-        #if not self.parser:
-            self.parser = self.lexer.parser
-        if details:
-            self.details = details
-        elif "yacc" in dir(self.parser) and "lexer" in dir(self.parser.yacc):
-            self.details = self.parser.yacc.lexer
-        elif self.parser and "lexer" in dir(self.parser):
-            self.details = self.parser.lexer
-        else:
-            self.details = None
-        if lineno is not None:
-            self.errlineno = lineno
-        elif "lexer" in dir(self.parser) and "lineno" in dir(self.parser.lexer):
-            self.errlineno = self.parser.lexer.lineno
-        elif "details" in self and "lexer" in dir(self.details):
-            self.errlineno = self.details.lexer.lineno
-        elif "details" in self and "lineno" in dir(self.details):
-            self.errlineno = self.details.lineno
-        else:
-            # FIXME: try harder to get a proper errlineno
-            self.errlineno = 0
-        if symbol:
-            self.symbol = symbol
-        #elif self.details is None:
-        #    self.symbol = ""
-        elif not "value" in dir(self.details):
-            self.symbol = None
-        elif self.details.type == "error":
-            self.symbol = self.details.value[0]
-        else:
-            self.symbol = self.details.value
-        if isinstance(self.symbol, basestring) and self.symbol.endswith("\n"):
-            # FIXME: is this always correct?
-            self.errlineno -= 1
+        self.lexer = parser.lexer
+        self.errlineno = self.lexer.lineno
+        self.details = details
+
+        assert isinstance(self.parser, oelite.parse.oeparse.OEParser)
+        assert isinstance(self.msg, basestring)
+        assert isinstance(self.lexer, ply.lex.Lexer)
+
         if "filename" in dir(self.parser):
             self.filename = self.parser.filename
-        elif not self.filename:
+        else:
             self.filename = "<unknown file>",
-        #if isinstance(self.parser, oelite.parse.oeparse.OEParser):
-        #    self.parser = parser.yacc
-        if not self.symbol:
+
+        if isinstance(self.details, ply.yacc.YaccProduction):
+            self.errlineno -= 1
+            self.symbol = None
             self.msg += " in %s at line %d"%(
                 self.filename, self.errlineno + 1)
-        elif self.details.type == "error":
-            self.msg += " in %s at line %d: %s"%(
-                self.filename, self.errlineno + 1,
-                repr(self.symbol))
+        elif isinstance(self.details, ply.lex.LexToken):
+            if self.details.type == "error":
+                self.symbol = self.details.value[0]
+            else:
+                self.symbol = self.details.value
+            assert isinstance(self.symbol, basestring)
+            if self.symbol.endswith("\n"):
+                self.errlineno -= 1
+            if self.details.type == "error":
+                self.msg += " in %s at line %d: %s"%(
+                    self.filename, self.errlineno + 1,
+                    repr(self.symbol))
+            else:
+                self.msg += " in %s at line %d: %s %s"%(
+                    self.filename, self.errlineno + 1,
+                    self.details.type, repr(self.symbol))
         else:
-            self.msg += " in %s at line %d: %s %s"%(
-                self.filename, self.errlineno + 1,
-                self.details.type, repr(self.symbol))
+            raise Exception("unsupported details type: %s", type(self.details))
+
+        try:
+            self.lines = self.parser.text.splitlines()
+        except:
+            return
+
+        self.firstline = max(self.errlineno - 5, 0)
+        self.lastline = min(self.errlineno + 5, len(self.lines))
+        errlinepos = 0
+        for lineno in xrange(self.errlineno):
+            errlinepos += len(self.lines[lineno]) + 1
+        try:
+            self.lexpos = self.lexer.lexpos
+            errpos = (self.lexpos - 1) - errlinepos
+            self.errlinebefore = self.lines[self.errlineno]\
+                [:(self.lexpos - errlinepos)]
+            self.errlinebefore = len(self.errlinebefore.expandtabs())
+            try:
+                if self.details.type != "error" and self.symbol != "\n":
+                    self.errlinebefore -= len(self.symbol)
+            except AttributeError:
+                pass
+        except AttributeError:
+            self.lexpos = None
+
         return
 
     def __str__(self):
@@ -107,56 +98,22 @@ class ParseError(Exception):
 
     def print_details(self):
         print self.msg
-        if not self.details:
-            return ""
-        if "text" in dir(self.parser):
-            lines = self.parser.text.splitlines()
-        elif "yacc" in dir(self.parser) and "text" in dir(self.parser.yacc):
-            lines = self.parser.yacc.text.splitlines()
-        else:
-            print type(self.lexer.lexdata)
-            lines = self.lexer.lexdata.splitlines()
-        #errlineno = self.details.lineno
-        #errlineno = self.lexer.lineno
-        firstline = max(self.errlineno - 5, 0)
-        lastline = min(self.errlineno + 5, len(lines))
-        errlinepos = 0
-        for lineno in xrange(self.errlineno):
-            errlinepos += len(lines[lineno]) + 1
-        #if isinstance(self.details, ply.lex.LexToken):
-        #    print "this is a LexToken"
-        #    lexpos = self.details.lexpos
-        #elif isinstance(self.details, ply.lex.Lexer):
-        #    print "this is a Lexer"
-        #    lexpos = self.details.lexpos - len(self.symbol)
-        try:
-            #lexpos = self.details.lexpos
-            lexpos = self.lexer.lexpos
-            errpos = (lexpos - 1) - errlinepos
-            errlinebefore = lines[self.errlineno]\
-                [:(lexpos - errlinepos)]
-            errlinebefore = len(errlinebefore.expandtabs())
-            try:
-                if self.symbol == self.details.value:
-                    errlinebefore -= len(self.symbol)
-            except AttributeError:
-                pass
-        except AttributeError:
-            lexpos = None
-        linenofmtlen = len(str(lastline))
+
+        linenofmtlen = len(str(self.lastline))
         lineprintfmt = "%%s%%%dd %%s"%(linenofmtlen)
-        for lineno in xrange(firstline, lastline):
+        for lineno in xrange(self.firstline, self.lastline):
             if lineno == self.errlineno:
-                #print ""
                 prefix = "-> "
             else:
                 prefix = "   "
             print lineprintfmt%(prefix, lineno + 1,
-                                lines[lineno].expandtabs())
+                                self.lines[lineno].expandtabs())
             if lineno == self.errlineno:
-                if lexpos:
+                if not self.symbol:
+                    continue
+                if self.lexpos is not None:
                     prefixlen = len(prefix) + linenofmtlen + 1
-                    print "%s%s"%(" "*(prefixlen + errlinebefore),
+                    print "%s%s"%(" "*(prefixlen + self.errlinebefore),
                                   "^"*len(self.symbol or ""))
                 else:
                     print ""
@@ -185,10 +142,10 @@ class StatementNotAllowed(ParseError):
 
 class FileNotFound(ParseError):
 
-    def __init__(self, parser, filename, p, lineno=None):
+    def __init__(self, parser, filename, p):
         self.filename = filename
         super(FileNotFound, self).__init__(
-            parser, "%s not found"%(filename), p, lineno=lineno)
+            parser, "%s not found"%(filename), p)
         return
 
 
