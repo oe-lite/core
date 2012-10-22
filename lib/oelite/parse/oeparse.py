@@ -249,11 +249,7 @@ class OEParser(object):
 
     def p_include(self, p):
         '''include : INCLUDE INCLUDEFILE'''
-        try:
-            self.include(p[2], p)
-        except oelite.parse.FileNotFound, e:
-            raise oelite.parse.ParseError(
-                self, "File not found: include %s"%(e.filename), p)
+        self.include(p[2], p)
         return
 
     def p_require(self, p):
@@ -261,8 +257,9 @@ class OEParser(object):
         try:
             self.include(p[2], p, require=True)
         except oelite.parse.FileNotFound, e:
+            # ParseError-2
             raise oelite.parse.ParseError(
-                self, "File not found: require %s"%(e.filename), p)
+                self, "File not found: require %s"%(p[2]), p)
         return
 
     def p_inherit(self, p):
@@ -272,17 +269,17 @@ class OEParser(object):
                 inherit_classes = self.meta.expand(inherit_classes,
                                                    method=oelite.meta.FULL_EXPANSION)
             except oelite.meta.ExpansionError, e:
+                # ParseError-3
                 raise oelite.parse.ParseError(
-                    self, str(e), p, lineno=(self.lexer.lineno - 1),
-                    more_details=e)
+                    self, str(e), p, more_details=e)
 
             for inherit_class in (inherit_classes or "").split():
                 try:
                     self.inherit(inherit_class, p)
                 except oelite.parse.FileNotFound, e:
+                    # ParseError-4
                     raise oelite.parse.ParseError(
-                        self, "Class not found: inherit %s"%(inherit_class), p,
-                        lineno = p.lexer.lineno - 1)
+                        self, "Class not found: inherit %s"%(inherit_class), p)
         return
 
     def p_inherit_classes(self, p):
@@ -489,6 +486,7 @@ class OEParser(object):
         return
 
     def p_error(self, p):
+        # ParseError-1
         raise oelite.parse.ParseError(self, "Syntax error", p)
 
 
@@ -513,10 +511,7 @@ class OEParser(object):
         try:
             filename = self.meta.expand(filename)
         except oelite.meta.ExpansionError, e:
-            #raise oelite.parse.ParseError(
-            #    self, str(e), p, lineno=(self.lexer.lineno - 1),
-            #    more_details=e)
-            #debug("ignoring include of in-expandable variable")
+            #print "ignoring include of in-expandable filename:", filename
             return None
         #print "including", filename
         parser = self.__class__(self.meta, parent=self)
