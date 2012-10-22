@@ -299,7 +299,7 @@ def core_varname_expansion(d):
         except oelite.meta.ExpansionError as e:
             print "Unable to expand variable name:", varname
             e.print_details()
-            raise Exception(42)
+            return False
         if expanded_varname != varname:
             flags = d.get_flags(varname, prune_var_value=False)
             #print "flags =",flags
