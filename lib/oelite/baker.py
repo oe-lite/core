@@ -19,6 +19,7 @@ import os
 import glob
 import shutil
 import datetime
+import hashlib
 
 OE_ENV_WHITELIST = [
     "PATH",
@@ -172,13 +173,16 @@ class OEliteBaker:
             whitelist += self.config.get("OE_ENV_WHITELIST", True).split()
         debug("whitelist=%s"%(whitelist))
         debug("Whitelist filtered shell environment:")
+        hasher = hashlib.md5()
         for var in whitelist:
             if oebakery.DEBUG:
                 if var in os.environ:
                      debug("> %s=%s"%(var, os.environ[var]))
             if not var in self.config and var in os.environ:
-                self.config[var] = os.environ[var]
-                debug("importing %s=%s"%(var, os.environ[var]))
+                env_val = os.environ[var]
+                self.config[var] = env_val
+                hasher.update("%s=%r\n"%(var, env_val))
+        self.env_signature = hasher.hexdigest()
         os.environ.clear()
         return
 
@@ -345,8 +349,6 @@ class OEliteBaker:
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise
-
-            import hashlib
 
             hasher = hashlib.md5()
             hasher.update(str(sorted(dephashes.values())))

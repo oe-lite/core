@@ -9,11 +9,12 @@ import cPickle
 
 class MetaCache:
 
-    def __init__(self, cachefile, recipes=None):
+    def __init__(self, cachefile, recipes=None, baker=None):
         if not recipes:
             try:
                 self.file = open(cachefile)
                 self.abi = cPickle.load(self.file)
+                self.env_signature = cPickle.load(self.file)
                 self.mtimes = cPickle.load(self.file)
             finally:
                 return
@@ -21,6 +22,8 @@ class MetaCache:
         if os.path.exists(cachefile):
             os.unlink(cachefile)
         bb.utils.mkdirhier(os.path.dirname(cachefile))
+        self.abi = pickle_abi()
+        self.env_signature = baker.env_signature
         self.mtimes = set()
         self.meta = {}
         self.expand_cache = {}
@@ -28,7 +31,8 @@ class MetaCache:
             for mtime in recipes[type].meta.get_input_mtimes():
                 self.mtimes.add(mtime)
         self.file = open(cachefile, "w")
-        cPickle.dump(pickle_abi(), self.file, 2)
+        cPickle.dump(self.abi, self.file, 2)
+        cPickle.dump(self.env_signature, self.file, 2)
         cPickle.dump(self.mtimes, self.file, 2)
         cPickle.dump(len(recipes), self.file, 2)
         for type in recipes:
@@ -36,9 +40,11 @@ class MetaCache:
         return
 
 
-    def is_current(self):
+    def is_current(self, baker):
         try:
             if pickle_abi() != self.abi:
+                return False
+            if baker.env_signature != self.env_signature:
                 return False
             if not isinstance(self.mtimes, set):
                 return False
