@@ -358,6 +358,15 @@ class MetaData(MutableMapping):
         "OERECIPES",
         "OERECIPES_PRETTY",
         "FILE",
+        "COMPATIBLE_BUILD_ARCHS",
+        "COMPATIBLE_HOST_ARCHS",
+        "COMPATIBLE_TARGET_ARCHS",
+        "COMPATIBLE_BUILD_CPU_FAMILIES",
+        "COMPATIBLE_HOST_CPU_FAMILIES",
+        "COMPATIBLE_TARGET_CPU_FAMILIES",
+        "COMPATIBLE_MACHINES",
+        "INCOMPATIBLE_RECIPES",
+        "COMPATIBLE_IF_FLAGS",
         "_task_deps",
     ]
 
