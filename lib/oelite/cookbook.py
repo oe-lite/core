@@ -509,7 +509,7 @@ class CookBook(Mapping):
         if os.path.exists(cachefile):
             try:
                 meta_cache = oelite.meta.MetaCache(cachefile)
-                if meta_cache.is_current():
+                if meta_cache.is_current(self.baker):
                     recipes = meta_cache.load(filename, self)
             except:
                 print "Ignoring bad metadata cache:", cachefile
@@ -523,7 +523,7 @@ class CookBook(Mapping):
                                       recipe_meta[recipe_type], self)
                 recipe.post_parse()
                 recipes[recipe_type] = recipe
-            meta_cache = oelite.meta.MetaCache(cachefile, recipes)
+            meta_cache = oelite.meta.MetaCache(cachefile, recipes, self.baker)
 
         for recipe_type in recipes:
             oelite.pyexec.exechooks(recipes[recipe_type].meta,
