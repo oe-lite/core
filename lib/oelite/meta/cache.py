@@ -80,28 +80,51 @@ class MetaCache:
 
 PICKLE_ABI = None
 
+PICKLE_ABI_MODULES = [
+    "oelite.meta",
+    "oelite.meta.meta",
+    "oelite.meta.dict",
+    "oelite.meta.cache",
+    "oelite.parse",
+    "oelite.parse.oelex",
+    "oelite.parse.oeparse",
+    "oelite.parse.confparse",
+    "oelite.parse.expandlex",
+    "oelite.parse.expandparse",
+    "oelite.fetch",
+    "oelite.fetch.fetch",
+    "oelite.fetch.sigfile",
+    "oelite.fetch.local",
+    "oelite.fetch.url",
+    "oelite.fetch.git",
+    "oelite.fetch.svn",
+    "oelite.fetch.hg",
+    "oelite",
+    "oelite.arch",
+    "oelite.baker",
+    "oelite.cookbook",
+    "oelite.dbutil",
+    "oelite.function",
+    "oelite.item",
+    "oelite.package",
+    "oelite.pyexec",
+    "oelite.recipe",
+    "oelite.runq",
+    "oelite.task",
+    "oelite.util",
+    "oelite.meta",
+    "oelite.meta.cache",
+    ]
+
 def pickle_abi():
     global PICKLE_ABI
     if not PICKLE_ABI:
         import inspect
         import hashlib
-        import oelite.meta
-        import oelite.parse
-        srcfiles = [__file__,
-                    oelite.meta.__file__,
-                    inspect.getsourcefile(oelite.meta.MetaData),
-                    inspect.getsourcefile(oelite.meta.DictMeta),
-                    oelite.parse.oelex.__file__,
-                    oelite.parse.oeparse.__file__,
-                    oelite.parse.confparse.__file__,
-                    inspect.getsourcefile(oelite.fetch),
-                    inspect.getsourcefile(oelite.fetch.fetch),
-                    inspect.getsourcefile(oelite.fetch.local),
-                    inspect.getsourcefile(oelite.fetch.url),
-                    inspect.getsourcefile(oelite.fetch.sigfile),
-                    inspect.getsourcefile(oelite.fetch.git),
-                    inspect.getsourcefile(oelite.fetch.hg),
-                    ]
+        srcfiles = []
+        for module in PICKLE_ABI_MODULES:
+            exec "import %s"%(module)
+            srcfiles.append(inspect.getsourcefile(eval(module)))
         m = hashlib.md5()
         for srcfile in srcfiles:
             with open(srcfile) as _srcfile:
