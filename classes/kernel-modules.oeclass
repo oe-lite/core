@@ -1,5 +1,8 @@
 # -*- mode:python; -*-
 
+RECIPE_TYPES = "machine"
+COMPATIBLE_MACHINES = ".*"
+
 inherit c make kernel-arch kernel-modules-strip
 
 KERNEL_MODULES_DEPENDS ?= "kernel-dev"
