@@ -476,7 +476,7 @@ class MetaData(MutableMapping):
             return oelite.function.ShellFunction(self, name)
 
 
-    def signature(self, ignore_flags=("__", "emit$", "omit$"),
+    def signature(self, ignore_flags=("__", "emit$", "omit$", "filename"),
                   force=False, dump=None):
         import hashlib
 
