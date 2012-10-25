@@ -112,13 +112,13 @@ class OEliteBaker:
         # and inherit rmwork when needed
         try:
             rmwork = self.options.rmwork
-            inherits.append("rmwork")
             if rmwork is None:
                 rmwork = self.config.get("RMWORK", True)
                 if rmwork == "0":
                     rmwork = False
             if rmwork:
                 debug("rmwork")
+                inherits.append("rmwork")
                 self.options.rmwork = True
         except AttributeError:
             pass
