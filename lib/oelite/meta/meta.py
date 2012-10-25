@@ -502,8 +502,14 @@ class MetaData(MutableMapping):
         hasher = StringHasher(hashlib.md5())
 
         if dump:
-            self.dump(dump, pretty=False, nohash=False,
+            assert isinstance(dump, basestring)
+            dumper = StringOutput()
+            self.dump(dumper, pretty=False, nohash=False,
                       flags=True, ignore_flags=ignore_flags)
+            dumpdir = os.path.dirname(dump)
+            if dumpdir and not os.path.exists(dumpdir):
+                os.makedirs(dumpdir)
+            open(dump, "w").write(dumper.blob)
         self.dump(hasher, pretty=False, nohash=False,
                   flags=True, ignore_flags=ignore_flags)
 
