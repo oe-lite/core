@@ -43,6 +43,8 @@ def exechooks(meta, name, hooks=None):
         hook = meta.get_pythonfunc(function, name, tmpdir=tmpdir,
                                    set_ld_library_path=False)
         retval = hook.run(tmpdir)
-        if retval is not None and not retval:
+        if isinstance(retval, basestring):
+            raise oelite.HookFailed(name, function, retval)
+        elif not retval:
             raise oelite.HookFailed(name, function, retval)
     return
