@@ -68,6 +68,10 @@ def add_bake_parser_options(parser):
                       action="store_false", dest="prebake", default=True,
                       help="do not use prebaked packages")
 
+    parser.add_option("--dump-signature-metadata",
+                      action="store", type="str", default=None, metavar="DIR",
+                      help="dump task metadata used for calculating task signatures to DIR")
+
     return
 
 
@@ -345,7 +349,14 @@ class OEliteBaker:
                 task_meta.get("EXTRA_ARCH") != recipe_extra_arch):
                 task_meta.set("EXTRA_ARCH", recipe_extra_arch)
             try:
-                datahash = task_meta.signature()
+                if self.options.dump_signature_metadata:
+                    self.normpath(task.recipe.filename)
+                    dump = os.path.join(self.options.dump_signature_metadata,
+                                        self.normpath(task.recipe.filename),
+                                        str(task))
+                else:
+                    dump = None
+                datahash = task_meta.signature(dump=dump)
             except oelite.meta.ExpansionError as e:
                 e.msg += " in %s"%(task)
                 raise
@@ -602,6 +613,12 @@ class OEliteBaker:
                 return path
         return None
 
+
+    def normpath(self, path):
+        topdir = self.config.get("TOPDIR")
+        if path.startswith(topdir):
+            topdir = path[len(topdir)+1:]
+        return topdir
 
 
 
