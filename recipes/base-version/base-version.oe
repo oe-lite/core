@@ -10,11 +10,20 @@ do_install () {
 do_install[postfuncs] += "${BASE_VERSION_POSTFUNCS}"
 BASE_VERSION_POSTFUNCS ?= ""
 
+BASE_VERSION ?= "${DISTRO_VERSION}"
+
+inherit manifest-version
+OESTACK_VERSION[nohash] = "1"
+RECIPE_FLAGS += "basefiles_manifest_version"
+BASE_VERSION:USE_basefiles_manifest_version = "${OESTACK_VERSION}"
+
+DEFAULT_USE_basefiles_manifest_version = "1"
+
 RECIPE_FLAGS += "basefiles_version"
 BASE_VERSION_POSTFUNCS:>USE_basefiles_version = " do_install_basefiles_version"
 do_install_basefiles_version[expand] = 3
 do_install_basefiles_version () {
-	echo "${DISTRO_VERSION}" > \
+	echo "${BASE_VERSION}" > \
 	      ${SRCDIR}/${USE_basefiles_version}
 	install -m 0755 -d ${D}${sysconfdir}
 	install -m 0644 ${SRCDIR}/${USE_basefiles_version} \
