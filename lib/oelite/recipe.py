@@ -109,3 +109,10 @@ class OEliteRecipe:
         # calculate recipe signature
 
         return
+
+
+    def is_cacheable(self):
+        dont_cache = self.get("__dont_cache")
+        if dont_cache and dont_cache != "0":
+            return False
+        return True

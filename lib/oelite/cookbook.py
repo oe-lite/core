@@ -517,13 +517,18 @@ class CookBook(Mapping):
         if not recipes:
             recipe_meta = self.parse_recipe(filename)
             recipes = {}
-            
+            is_cacheable = True
             for recipe_type in recipe_meta:
                 recipe = OEliteRecipe(filename, recipe_type,
                                       recipe_meta[recipe_type], self)
                 recipe.post_parse()
                 recipes[recipe_type] = recipe
-            meta_cache = oelite.meta.MetaCache(cachefile, recipes, self.baker)
+                is_cacheable = is_cacheable and recipe.is_cacheable()
+            if is_cacheable:
+                meta_cache = oelite.meta.MetaCache(cachefile, recipes,
+                                                   self.baker)
+            elif os.path.exists(cachefile):
+                os.remove(cachefile)
 
         for recipe_type in recipes:
             oelite.pyexec.exechooks(recipes[recipe_type].meta,
