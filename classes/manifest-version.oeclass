@@ -1,0 +1,19 @@
+# -*- mode:python; -*-
+
+CLASS_DEPENDS += "native:git"
+__dont_cache = True
+
+addhook manifest_version to post_recipe_parse
+def manifest_version(d):
+    import subprocess
+    os.chdir(d.get("TOPDIR"))
+    if os.path.exists(".git"):
+        cmd = subprocess.Popen(["git", "describe", "--dirty", "--always"],
+                               stdout=subprocess.PIPE)
+        version = cmd.communicate()[0].strip()
+    elif os.path.exists("VERSION"):
+        version = open("VERSION").readline().strip()
+    else:
+        version = "unknown"
+    d.set("OESTACK_VERSION", version)
+    return
