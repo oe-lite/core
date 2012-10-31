@@ -266,7 +266,10 @@ class OEliteTask:
                     continue
                 try:
                     #print "cleandir %s"%(cleandir)
-                    shutil.rmtree(cleandir)
+                    if os.path.islink(cleandir):
+                        os.unlink(cleandir)
+                    else:
+                        shutil.rmtree(cleandir)
                 except Exception, e:
                     err("cleandir %s failed: %s"%(cleandir, e))
                     raise
