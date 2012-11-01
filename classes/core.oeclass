@@ -144,6 +144,7 @@ def runstrip(file, d):
     filemagic = magic.open(magic.MAGIC_NONE)
     filemagic.load()
     filetype = filemagic.file(file)
+    filemagic.close()
 
     if not filetype:
         bb.error("runstrip() unable to determine file type: %s"%(file))
