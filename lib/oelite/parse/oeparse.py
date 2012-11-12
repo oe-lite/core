@@ -574,7 +574,9 @@ class OEParser(object):
 
     def _parse(self, s):
         self.lexer.lineno = 0
-        self.yacc.parse(s + '\n', lexer=self.lexer)
+        # To be able to properly stop parsing of Python functions at end
+        # of file, we need a non-empty line
+        self.yacc.parse(s + '\n#EOF', lexer=self.lexer)
         return self.meta
 
 
