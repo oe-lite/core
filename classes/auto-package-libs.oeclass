@@ -18,6 +18,8 @@ AUTO_PACKAGE_LIBS_FILES ?= "${SOLIBS}"
 AUTO_PACKAGE_LIBS_DEV_FILES ?= "${SOLIBSDEV},.la,.a"
 AUTO_PACKAGE_LIBS_DEV_FILES:>HOST_OS_mingw32 = ",.def,.lib"
 
+META_EMIT_PREFIX += "package:AUTO_PACKAGE_LIBS split:AUTO_PACKAGE_LIBS"
+
 addhook auto_package_libs to post_recipe_parse before fixup_package_type before blacklist
 
 def auto_package_libs (d):
