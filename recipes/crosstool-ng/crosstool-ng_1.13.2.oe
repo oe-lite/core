@@ -2,9 +2,6 @@
 
 require ${PN}.inc
 
-# Official fixes
-FIXES_SRC_URI_BASE = "http://ymorin.is-a-geek.org/download/crosstool-ng/01-fixes/${PV}/"
-
 # Unoffcial fixes
 SRC_URI += "file://glibc-2.14-patches.patch"
 
@@ -24,3 +21,25 @@ file://Update-linaro-2of2-2803.patch"
 
 SRC_URI += "file://gdb-expat.patch"
 SRC_URI += "file://libelf.patch"
+
+do_configure () {
+    if [ -x "${S}/configure" ] ; then
+        ${S}/configure --prefix="${D}/${prefix}"
+    else
+        oefatal "no configure script found"
+    fi
+}
+
+PARALLEL_MAKE = ""
+MAKE_DESTDIR = ""
+
+do_install[postfuncs] += "do_install_crosstool_ng_fixup"
+do_install_crosstool_ng_fixup () {
+    mv ${D}${bindir}/ct-ng \
+       ${D}${bindir}/ct-ng.orig
+    sed -e 's%${D}%$(shell dirname $(MAKEFILE_LIST))/..%' \
+        < ${D}${bindir}/ct-ng.orig \
+        > ${D}${bindir}/ct-ng
+    rm ${D}${bindir}/ct-ng.orig
+    chmod +x ${D}${bindir}/ct-ng
+}
