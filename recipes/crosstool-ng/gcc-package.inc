@@ -4,7 +4,7 @@ inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "\
   gcc dl stdc++ supc++ resolv util crypt pthread thread_db bfd \
   m rt anl BrokenLocale nsl memusage pcprofile SegFault \
-  nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod \
+  nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace \
 "
 AUTO_PACKAGE_LIBS:TARGET_OS_mingw32 = "gcc stdc++ supc++ m pdcurses"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
@@ -125,7 +125,7 @@ TARGET_PACKAGES += "${PN}-sysroot-gdbserver"
 FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver${TARGET_EXEEXT} \
 "
-RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl"
+RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl ${PN}-sysroot-libinproctrace"
 PROVIDES_${PN}-sysroot-gdbserver += "util/gdbserver"
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
@@ -135,27 +135,44 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/gdbserver \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/man1/gdbserver.1 \
 "
 
-TARGET_PACKAGES += "${PN}-sysroot-trace-dbg"
-FILES_${PN}-sysroot-trace-dbg = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/*trace \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/*trace* \
-"
-
-TARGET_PACKAGES += "${PN}-sysroot-trace"
-FILES_${PN}-sysroot-trace = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace${TARGET_EXEEXT} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace${TARGET_EXEEXT} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph${TARGET_EXEEXT} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/libinproctrace.so \
+TARGET_PACKAGES += "${TARGET_PACKAGES_LTRACE}"
+TARGET_PACKAGES_LTRACE = ""
+TARGET_PACKAGES_LTRACE:USE_toolchain_ltrace = "${PN}-sysroot-ltrace \
+	${PN}-sysroot-ltrace-doc ${PN}-sysroot-ltrace-dbg"
+FILES_${PN}-sysroot-ltrace = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace{TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
-PROVIDES_${PN}-sysroot-trace += "util/ltrace util/strace"
+PROVIDES_${PN}-sysroot-ltrace += "util/ltrace"
+FILES_${PN}-sysroot-ltrace-doc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir}/ltrace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/*/ltrace.* \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/ltrace \
+"
+FILES_${PN}-sysroot-ltrace-dbg = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/ltrace{TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/ltrace* \
+"
 
-TARGET_PACKAGES += "${PN}-sysroot-trace-doc"
-FILES_${PN}-sysroot-trace-doc = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir}/*trace \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/*/*trace.* \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/*trace \
+TARGET_PACKAGES += "${TARGET_PACKAGES_STRACE}"
+TARGET_PACKAGES_STRACE = ""
+TARGET_PACKAGES_STRACE:USE_toolchain_strace = "${PN}-sysroot-strace \
+	${PN}-sysroot-strace-doc ${PN}-sysroot-strace-dbg"
+FILES_${PN}-sysroot-strace = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph{TARGET_EXEEXT} \
+"
+PROVIDES_${PN}-sysroot-strace += "util/strace"
+TARGET_PACKAGES_STRACE += "${PN}-sysroot-strace-doc"
+FILES_${PN}-sysroot-strace-doc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_infodir}/strace \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/*/strace.* \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/strace \
+"
+TARGET_PACKAGES_STRACE += "${PN}-sysroot-strace-dbg"
+FILES_${PN}-sysroot-strace-dbg = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/strace${TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/strace* \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-dbg"
