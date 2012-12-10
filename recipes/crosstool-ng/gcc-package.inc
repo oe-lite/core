@@ -201,6 +201,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.py \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.la \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/*.ld \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ldscripts \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.a \
