@@ -1,0 +1,30 @@
+# HG changeset patch
+# User Esben Haabendal <esben.haabendal@prevas.dk>
+# Date 1348575902 -7200
+# Node ID 893b394644d2228baead66c2bb599f3ab1796a28
+# Parent  f46a1d105896c89f697ff7f2c8ebb6b7b8403d5d
+kernel/linux: change arch tuple to use -uclinux for uclinux toolchains
+
+This fixes at least ColdFire uClinux builds, as gcc filters out
+all m68k no-mmu cpus for linux builds and (some) mmu cpus for uclinux
+builds.
+
+diff -r f46a1d105896 -r 893b394644d2 scripts/build/kernel/linux.sh
+--- a/scripts/build/kernel/linux.sh	Sun Sep 23 11:59:28 2012 +0900
++++ b/scripts/build/kernel/linux.sh	Tue Sep 25 14:25:02 2012 +0200
+@@ -6,12 +6,7 @@
+     if [ "${CT_ARCH_USE_MMU}" = "y" ]; then
+         CT_TARGET_KERNEL="linux"
+     else
+-    # Sometime, noMMU linux targets have a -uclinux tuple, while
+-    # sometime it's -linux. We currently have only one noMMU linux
+-    # target, and it uses -linux, so let's just use that. Time
+-    # to fix that later...
+-    #    CT_TARGET_KERNEL="uclinux"
+-        CT_TARGET_KERNEL="linux"
++        CT_TARGET_KERNEL="uclinux"
+     fi
+ }
+ 
+exporting patch:
+<fdopen>

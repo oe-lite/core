@@ -22,6 +22,7 @@ file://Update-linaro-2of2-2803.patch"
 
 SRC_URI += "file://gdb-expat.patch"
 SRC_URI += "file://libelf.patch"
+SRC_URI += "file://uclinux.patch"
 
 do_configure () {
     if [ -x "${S}/configure" ] ; then
