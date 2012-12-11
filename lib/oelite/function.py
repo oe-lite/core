@@ -113,9 +113,11 @@ class PythonFunction(OEliteFunction):
                     os.environ["LD_LIBRARY_PATH"] = old_ld_library_path
                 else:
                     del os.environ["LD_LIBRARY_PATH"]
-        if retval or retval is None:
+        if isinstance(retval, basestring):
+            return retval or True
+        if retval is None:
             return True
-        return False
+        return bool(retval)
 
 
 class ShellFunction(OEliteFunction):
