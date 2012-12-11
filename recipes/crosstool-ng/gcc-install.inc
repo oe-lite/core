@@ -44,8 +44,10 @@ LIBTOOL_FIXUP_STRIP_DIRS =+ "${D}/${TARGET_ARCH}/lib32 ${D}/${TARGET_ARCH}/lib64
 do_install[postfuncs] += "do_install_gcc_lafile_fixup"
 do_install_gcc_lafile_fixup () {
     for lafile in ${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la ; do
-        sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
-            -i $lafile
+        if "$lafile" != "${D}/${TARGET_ARCH}/sysroot${target_libdir}/*.la"; then
+            sed -e "s:-L`readlink -f ${B}`/targets/${TARGET_ARCH}/[^ ']* *::" \
+                -i $lafile
+        fi
     done
 }
 
