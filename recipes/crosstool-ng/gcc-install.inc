@@ -60,9 +60,9 @@ do_install[postfuncs] =+ "${LD_SO_UNSTRIPPED_PRE}"
 do_install[postfuncs] += "${LD_SO_UNSTRIPPED_POST}"
 
 do_install_ld_so_unstripped_pre(){
-    cp ${D}/${TARGET_ARCH}/lib/ld-${TOOLCHAIN_LIBC_VERSION}.so ${S}/../.
+    cp ${D}/${TARGET_ARCH}/lib/ld-${CT_LIBC_VERSION}.so ${S}/../.
 }
 
 do_install_ld_so_unstripped_post(){
-    cp ${S}/../ld-${TOOLCHAIN_LIBC_VERSION}.so ${D}/${TARGET_ARCH}/lib/.
+    cp ${S}/../ld-${CT_LIBC_VERSION}.so ${D}/${TARGET_ARCH}/lib/.
 }

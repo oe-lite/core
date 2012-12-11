@@ -16,8 +16,10 @@ SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
 	git://sourceware.org/git/glibc-ports.git;tag=glibc-${CT_LIBC_VERSION}"
 SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
-addhook set_kernel_subdir to post_recipe_parse after set_useflags before fetch_init
+addhook set_kernel_subdir to post_recipe_parse after libc_useflags before fetch_init
 def set_kernel_subdir(d):
+    if d.get("CT_KERNEL") != "linux":
+        return
     if d.get("CT_KERNEL_VERSION") == "custom":
         return
 
@@ -71,7 +73,7 @@ do_unpack_ltrace_symlink () {
         fi
 }
 
-addhook gcc_set_src_uri to post_recipe_parse first before fetch_init after set_useflags gcc_select_gdb
+addhook gcc_set_src_uri to post_recipe_parse first before fetch_init after libc_useflags gcc_select_gdb
 def gcc_set_src_uri(d):
     def add_src(uri, flag=None):
         if flag is not None:
