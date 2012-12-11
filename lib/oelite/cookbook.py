@@ -49,7 +49,8 @@ class CookBook(Mapping):
                 oelite.util.progress_info("Adding recipes to cookbook",
                                           total, count)
             try:
-                self.add_recipefile(recipefile)
+                if not self.add_recipefile(recipefile):
+                    fail = True
             except KeyboardInterrupt:
                 if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
                     print
@@ -516,6 +517,9 @@ class CookBook(Mapping):
 
         if not recipes:
             recipe_meta = self.parse_recipe(filename)
+            if recipe_meta is False:
+                print "ERROR: parsing %s failed"%(filename)
+                return False
             recipes = {}
             is_cacheable = True
             for recipe_type in recipe_meta:
@@ -535,7 +539,7 @@ class CookBook(Mapping):
                                     "pre_cookbook")
             self.add_recipe(recipes[recipe_type])
 
-        return
+        return True
 
 
     def parse_recipe(self, recipe):
@@ -635,7 +639,12 @@ class CookBook(Mapping):
                 (not arch_is_compatible(meta[recipe_type], "TARGET"))):
                 del meta[recipe_type]
                 continue
-            oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
+            try:
+                oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
+            except oelite.HookFailed, e:
+                print "ERROR: %s:%s %s hook: %s"%(
+                    recipe_type, base_meta.get("PN"), e.function, e.retval)
+                return False
             if ((not compatible_use_flags(meta[recipe_type])) or
                 (not cpu_families_is_compatible(meta[recipe_type], "BUILD")) or
                 (not cpu_families_is_compatible(meta[recipe_type], "HOST")) or
