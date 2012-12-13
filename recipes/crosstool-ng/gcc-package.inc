@@ -141,7 +141,7 @@ TARGET_PACKAGES_LTRACE = ""
 TARGET_PACKAGES_LTRACE:USE_toolchain_ltrace = "${PN}-sysroot-ltrace \
 	${PN}-sysroot-ltrace-doc ${PN}-sysroot-ltrace-dbg"
 FILES_${PN}-sysroot-ltrace = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace{TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/ltrace${TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_sysconfdir}/ltrace.conf \
 "
 PROVIDES_${PN}-sysroot-ltrace += "util/ltrace"
@@ -151,7 +151,7 @@ ${base_prefix}/${TARGET_ARCH}/debug-root${target_mandir}/*/ltrace.* \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_docdir}/ltrace \
 "
 FILES_${PN}-sysroot-ltrace-dbg = "\
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/ltrace{TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/ltrace${TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/ltrace* \
 "
 
@@ -161,7 +161,7 @@ TARGET_PACKAGES_STRACE:USE_toolchain_strace = "${PN}-sysroot-strace \
 	${PN}-sysroot-strace-doc ${PN}-sysroot-strace-dbg"
 FILES_${PN}-sysroot-strace = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace${TARGET_EXEEXT} \
-${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph{TARGET_EXEEXT} \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/strace-graph${TARGET_EXEEXT} \
 "
 PROVIDES_${PN}-sysroot-strace += "util/strace"
 TARGET_PACKAGES_STRACE += "${PN}-sysroot-strace-doc"
