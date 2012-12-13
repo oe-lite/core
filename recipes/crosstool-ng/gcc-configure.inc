@@ -70,12 +70,12 @@ CT_DEBUG_ltrace:TARGET_LIBC_mingw	= ""
 
 RECIPE_FLAGS += "toolchain_strace"
 DEFAULT_USE_toolchain_strace = "1"
-AUTO_CT_BOOLEAN_VARS:>USE_toolchain_strace += "CT_DEBUG_strace"
+AUTO_CT_BOOLEAN_VARS:>USE_toolchain_strace = " CT_DEBUG_strace"
 CT_DEBUG_strace:cross			= "y"
 CT_DEBUG_strace:TARGET_LIBC_mingw	= ""
 
 RECIPE_FLAGS += "toolchain_dmalloc"
-AUTO_CT_BOOLEAN_VARS:>USE_toolchin_dmalloc = "CT_DEBUG_dmalloc"
+AUTO_CT_BOOLEAN_VARS:>USE_toolchain_dmalloc = " CT_DEBUG_dmalloc"
 CT_DEBUG_dmalloc:cross			= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_ARCH_ARM_MODE_THUMB"
