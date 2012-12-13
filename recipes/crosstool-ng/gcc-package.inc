@@ -5,6 +5,7 @@ AUTO_PACKAGE_LIBS = "\
   gcc dl stdc++ supc++ resolv util crypt pthread thread_db bfd \
   m rt anl BrokenLocale nsl memusage pcprofile SegFault \
   nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace \
+  dmalloc \
 "
 AUTO_PACKAGE_LIBS:TARGET_OS_mingw32 = "gcc stdc++ supc++ m pdcurses"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
@@ -174,6 +175,17 @@ FILES_${PN}-sysroot-strace-dbg = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/strace${TARGET_EXEEXT} \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug/strace* \
 "
+
+TARGET_PACKAGES += "${PN}-sysroot-dmalloc-dbg"
+FILES_${PN}-sysroot-dmalloc-dbg = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/.debug/dmalloc \
+"
+
+TARGET_PACKAGES += "${PN}-sysroot-dmalloc"
+FILES_${PN}-sysroot-dmalloc = "\
+${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/dmalloc \
+"
+PROVIDES_${PN}-sysroot-dmalloc += "util/dmalloc"
 
 TARGET_PACKAGES += "${PN}-sysroot-dbg"
 FILES_${PN}-sysroot-dbg = "\
@@ -444,3 +456,4 @@ LICENSE_${PN}-sysroot-libfd		= "GPL-3.0+"
 
 LICENSE_${PN}-sysroot-gdbserver		= "GPL-2.0 & GPL-3.0 & LGPL-2.0 & LGPL-3.0"
 LICENSE_${PN}-sysroot-trace		= "BSD-2-Clause"
+LICENSE_${PN}-sysroot-dmalloc		= "CC-BY-NC-SA-3.0"
