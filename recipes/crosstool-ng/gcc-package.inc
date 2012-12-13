@@ -5,7 +5,7 @@ AUTO_PACKAGE_LIBS = "\
   gcc dl stdc++ supc++ resolv util crypt pthread thread_db bfd \
   m rt anl BrokenLocale nsl memusage pcprofile SegFault \
   nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace \
-  dmalloc \
+  dmalloc dmallocxx dmallocth dmallocthcxx \
 "
 AUTO_PACKAGE_LIBS:TARGET_OS_mingw32 = "gcc stdc++ supc++ m pdcurses"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
@@ -256,7 +256,6 @@ FILES_${PN}-sysroot-libgcc-dev = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so \
 "
 
-
 RDEPENDS_${PN}-sysroot-libcrypt += "${PN}-sysroot-libc"
 RDEPENDS_${PN}-sysroot-libresolv += "${PN}-sysroot-libc"
 RDEPENDS_${PN}-sysroot-libnsl += "${PN}-sysroot-libc"
@@ -269,6 +268,15 @@ RDEPENDS_${PN}-sysroot-libm += "${PN}-sysroot-libc"
 FILES_${PN}-sysroot-libbfd = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd-*.so \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libbfd.so"
+
+FILES_${PN}-sysroot-libdmalloc = "\
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libdmalloc.so"
+FILES_${PN}-sysroot-libdmallocxx = "\
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libdmallocxx.so"
+FILES_${PN}-sysroot-libdmallocth = "\
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libdmallocth.so"
+FILES_${PN}-sysroot-libdmallocthcxx = "\
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/libdmallocthcxx.so"
 
 TARGET_PACKAGES += "${PN}-sysroot-nscd"
 FILES_${PN}-sysroot-nscd = "\
