@@ -139,3 +139,6 @@ RECIPE_FLAGS		+= "toolchain_strace_version"
 
 CT_MINGW_PDCURSES_VERSION = "${USE_toolchain_pdcurses_version}"
 RECIPE_FLAGS		+= "toolchain_pdcurses_version"
+
+CT_DMALLOC_VERSION	= "${USE_toolchain_dmalloc_version}"
+RECIPE_FLAGS		+= "toolchain_dmalloc_version"

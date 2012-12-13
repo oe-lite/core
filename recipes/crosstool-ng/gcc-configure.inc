@@ -32,6 +32,7 @@ _CT_LIBELF_V			= "CT_LIBELF_V"
 _CT_LTRACE_V			= "CT_LTRACE_V"
 _CT_STRACE_V			= "CT_STRACE_V"
 _CT_MINGW_PDCURSES_V		= "CT_MINGW_PDCURSES_V"
+_CT_DMALLOC_V			= "CT_DMALLOC_V"
 
 _CT_LIBC_VERSION		= "CT_LIBC_VERSION"
 _CT_LIBC_VERSION:TARGET_OS_mingw32 = "CT_MINGWRT_VERSION"
@@ -72,6 +73,10 @@ DEFAULT_USE_toolchain_strace = "1"
 AUTO_CT_BOOLEAN_VARS:>USE_toolchain_strace += "CT_DEBUG_strace"
 CT_DEBUG_strace:cross			= "y"
 CT_DEBUG_strace:TARGET_LIBC_mingw	= ""
+
+RECIPE_FLAGS += "toolchain_dmalloc"
+AUTO_CT_BOOLEAN_VARS:>USE_toolchin_dmalloc = "CT_DEBUG_dmalloc"
+CT_DEBUG_dmalloc:cross			= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_ARCH_ARM_MODE_THUMB"
 CT_ARCH_ARM_MODE_THUMB          = "${TARGET_THUMB}"
@@ -218,7 +223,7 @@ def do_configure_defconfig(d):
 
     for component in ("cc", "binutils", "libc", "gdb", "gmp", "mpfr", "mpc",
                       "ppl", "cloog", "libelf", "ltrace", "strace",
-                      "mingw_pdcurses"):
+                      "mingw_pdcurses", "dmalloc"):
         rewrites.append(version_rewrite(component))
 
     ct_libc = d.get("CT_LIBC")
@@ -316,4 +321,6 @@ def do_configure_qa(d):
         ok = ok and check_version("CT_STRACE_VERSION")
     if d.get("CT_USE_PDCURSES"):
         ok = ok and check_version("CT_MINGW_PDCURSES_VERSION")
+    if d.get("CT_DEBUG_dmalloc"):
+        ok = ok and check_version("CT_DMALLOC_VERSION")
     return ok

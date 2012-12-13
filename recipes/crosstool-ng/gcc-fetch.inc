@@ -52,6 +52,8 @@ SRC_URI_MPC = "http://www.multiprecision.org/mpc/download/mpc-${CT_MPC_VERSION}.
 
 SRC_URI_STRACE = "${SOURCEFORGE_MIRROR}/project/strace/strace/${CT_STRACE_VERSION}/strace-${CT_STRACE_VERSION}.tar.bz2;unpack=0"
 
+SRC_URI_DMALLOC = "http://dmalloc.com/releases/dmalloc-${CT_DMALLOC_VERSION}.tgz;unpack=0"
+
 SRC_URI_LTRACE = "${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${CT_LTRACE_VERSION}.orig.tar.gz;unpack=0"
 
 SRC_URI_PDCURSES = "${SOURCEFORGE_MIRROR}/pdcurses/PDCurses-${CT_MINGW_PDCURSES_VERSION}.tar.gz;unpack=0"
@@ -109,6 +111,8 @@ def gcc_set_src_uri(d):
         add_src("SRC_URI_STRACE")
     if target_is_mingw:
         add_src("SRC_URI_PDCURSES", "CT_USE_PDCURSES")
+    if d.get("CT_DEBUG_dmalloc"):
+        add_src("SRC_URI_DMALLOC")
     # FIXME: add support for adding cloog and ppl
 
 
