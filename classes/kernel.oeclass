@@ -176,6 +176,14 @@ do_install_kernel () {
     cp -fR arch/${KERNEL_ARCH}/lib ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/include ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/Makefile ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
+    for d in arch/${KERNEL_ARCH}/mach-*/include ; do
+        if [ "$d" = "arch/${KERNEL_ARCH}/mach-*/include" ] ; then
+            continue
+        fi
+        machdir=`dirname $d`
+        mkdir -p ${D}${kernelsrcdir}/$machdir
+        cp -fR $d ${D}${kernelsrcdir}/$machdir/
+    done
     #find ${D}${kernelsrcdir}/ \( -name \*.o -o -name .\*.cmd \) -exec rm {} \;
 
     do_install_kernel_headers
