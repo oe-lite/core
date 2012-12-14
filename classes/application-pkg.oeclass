@@ -28,9 +28,9 @@ IMAGEQA_HOST_READELF_LIB_DIRS += "\
 ${WORKDIR}/image-qa/${base_libdir} \
 ${WORKDIR}/image-qa/${libdir}"
 
-addtask removedoubles before configure after imageqaprep
+addtask removedoubles before configure after imageqaprep rstage
+do_removedoubles[dirs] = "${RSTAGE_DIR}"
 do_removedoubles () {
-	cd ${RSTAGE_DIR}
 	for file in $(find *)
 	do
 		if [ ! -d $file ]; then
