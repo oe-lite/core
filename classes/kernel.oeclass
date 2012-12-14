@@ -52,7 +52,12 @@ do_compile_kernel () {
 		export KBUILD_BUILD_VERSION="$BUILD_TAG"
 	fi
 
-	oe_runmake include/linux/version.h
+	if [ `grep "^VERSION =" Makefile | cut -d'=' -f2` -ge 3 -a \
+		`grep "^PATCHLEVEL =" Makefile | cut -d'=' -f2` -ge 7 ]; then
+		oe_runmake include/generated/uapi/linux/version.h
+	else
+		oe_runmake include/linux/version.h
+	fi
 	oe_runmake ${USE_kernel_imagetype}
 
 	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
