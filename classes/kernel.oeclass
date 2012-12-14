@@ -74,7 +74,7 @@ do_compile () {
 }
 
 CLASS_DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
-KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-tools-mkimage']['${USE_kernel_imagetype}' == 'uImage']}"
+KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-tools-mkimage']['${USE_kernel_imagetype}'.startswith('uImage')]}"
 
 CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
