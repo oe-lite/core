@@ -484,6 +484,18 @@ class OEliteRunQueue:
                 "PREFERRED_PROVIDER_%s"%(item.name)) or
                               None)
 
+        # If all providers are the same recipe with different versions, assume
+        # preferred_provider of that recipe
+        if not preferred_provider:
+            providers = self.cookbook.get_providers(item.type, item.name)
+            if len(providers) > 1:
+                same_provider = True
+                preferred_provider = providers[0].recipe.name
+                for provider in providers[1:]:
+                    if provider.recipe.name != preferred_provider:
+                        preferred_provider = None
+                        break
+
         if preferred_provider:
             preferred_version = (item.version
                                  or self.config.get(
