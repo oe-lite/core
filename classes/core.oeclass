@@ -273,6 +273,8 @@ def core_machine_override(d):
         else:
             raise Exception("Machine override of %s recipe"%(d["RECIPE_TYPE"]))
 
+BLACKLIST_PREFIX += "PREFERRED_PROVIDER_ PREFERRED_VERSION_"
+
 addhook blacklist to post_recipe_parse first after preconditions
 def blacklist(d):
     import re
