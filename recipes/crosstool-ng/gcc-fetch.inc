@@ -77,14 +77,20 @@ do_unpack_fixup () {
 		ln -s glibc-ports \
 			${SRCDIR}/glibc-ports-${CT_LIBC_VERSION}
 	elif [ "${CT_LIBC}" == "eglibc" ] ; then
-		for d in eglibc-${CT_LIBC_VERSION}/* ; do
-			case `basename $d` in
-			libc)	;;
-			*)	mv $d eglibc-${CT_LIBC_VERSION}/libc/ ;;
+		mv eglibc-${CT_LIBC_VERSION} eglibc-${CT_LIBC_VERSION}.tmp
+		for d in eglibc-${CT_LIBC_VERSION}.tmp/* ; do
+			addon=`basename $d`
+			case $addon in
+			libc)
+				mv $d eglibc-${CT_LIBC_VERSION}
+				;;
+			*)
+				mv $d eglibc-$addon-${CT_LIBC_VERSION}
+                                #ln -s ../eglibc-$addon-${CT_LIBC_VERSION} \
+				#	eglibc-${CT_LIBC_VERSION}/$addon
+				;;
 			esac
 		done
-		mv eglibc-${CT_LIBC_VERSION} eglibc-${CT_LIBC_VERSION}.tmp
-		mv eglibc-${CT_LIBC_VERSION}.tmp/libc eglibc-${CT_LIBC_VERSION}
 		rmdir eglibc-${CT_LIBC_VERSION}.tmp
 	fi
 }
