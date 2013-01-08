@@ -1,10 +1,13 @@
 e36684442a6171cc3a5165c8c49c70f67db7288c  PDCurses-3.4.tar.gz
 3f0e3746a15f806a95dd079be2a7f43c17b18818  binutils-2.20.1a.tar.bz2
+525255ca6874b872540c9967a1d26acfbc7c8230  binutils-2.21.1a.tar.bz2
+65b304a0b9a53a686ce50a01173d1f40f8efe404  binutils-2.22.tar.bz2
 20719de78decbd724bc3ab9d6dce2ea5e5922335  dmalloc-5.5.2.tgz
 73c45dfda5eef6b124be53e56828b5925198cc1b  gcc-4.5.3.tar.bz2
 ce317ca5c8185b58bc9300182b534608c578637f  gcc-4.6.3.tar.bz2
 a464ba0f26eef24c29bcd1e7489421117fb9ee35  gcc-4.7.2.tar.bz2
 14daf8ccf1307f148f80c8db17f8e43f545c2691  gdb-7.2a.tar.bz2
+1b0f8c3778d4b10c8d2be6922ac01a9900e8116c  gdb-7.4.1.tar.bz2
 86db07dc1fbb93a5c72d4e0f880874751a19ef71  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
 2968220e1988eabb61f921d11e5d2db5431e0a35  gmp-5.0.2.tar.bz2
@@ -16,5 +19,6 @@ d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
 229722d553030734d49731844abfef7617b64f1a  mpc-0.9.tar.gz
 fbf402fc196724ae60ef01eb6ca8490b1ea4db69  mpfr-3.0.1.tar.bz2
 3f5c8874610d7e3d13fc1c8b2e5fb5513468c45a  strace-4.5.20.tar.bz2
+f2a13c4e7ba0949bd10225652c1dc30d833c315a  svn://www.eglibc.org/svn/branches/eglibc-2_16;protocol=http;rev=r21913
 4d8d67d6754409bd10015d67d1ce7a04c0b001ba  uClibc-0.9.33.2.tar.bz2
 851d2df6b213c11a30e96c05665f91d68dfb3ce9  w32api-3.14-mingw32-src.tar.gz
