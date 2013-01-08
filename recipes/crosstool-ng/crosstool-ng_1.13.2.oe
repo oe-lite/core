@@ -4,6 +4,7 @@ require ${PN}.inc
 
 # Unoffcial fixes
 SRC_URI += "file://glibc-2.14-patches.patch"
+SRC_URI += "file://dir-extract-with-copy.patch"
 
 # float patches from crosstool-ng tip, expected in 1.14
 SRC_URI += "file://softfp-with-float.patch"

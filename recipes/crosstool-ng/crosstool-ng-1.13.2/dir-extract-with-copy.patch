@@ -1,0 +1,11 @@
+diff -urN crosstool-ng-1.13.2~orig/scripts/functions crosstool-ng-1.13.2/scripts/functions
+--- crosstool-ng-1.13.2~orig/scripts/functions	2013-01-08 09:21:59.855162469 +0100
++++ crosstool-ng-1.13.2/scripts/functions	2013-01-08 09:23:11.163160682 +0100
+@@ -772,6 +772,7 @@
+         .tar.gz|.tgz) CT_DoExecLog FILE tar "${tar_opts[@]}" -z -f "${full_file}";;
+         .tar)         CT_DoExecLog FILE tar "${tar_opts[@]}" -f "${full_file}";;
+         /.git)        CT_ExtractGit "${basename}" "${@}";;
++        "")           CT_DoExecLog FILE cp -a ${full_file}/. ${basename}/ ;;
+         *)            CT_DoLog WARN "Don't know how to handle '${basename}${ext}': unknown extension"
+                       return 1
+                       ;;
