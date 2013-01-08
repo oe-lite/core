@@ -16,6 +16,10 @@ SRC_URI_GLIBC = "${GNU_MIRROR}/glibc/glibc-${CT_LIBC_VERSION}.tar.bz2;unpack=0 \
 	git://sourceware.org/git/glibc-ports.git;tag=glibc-${CT_LIBC_VERSION}"
 SRC_URI_GLIBC:TARGET_OS_mingw32 = ""
 
+CT_EGLIBC_REVISION ?= ""
+SRC_URI_EGLIBC = "svn://www.eglibc.org/svn/branches/eglibc-${CT_LIBC_VERSION};protocol=http;rev=${CT_EGLIBC_REVISION}"
+SRC_URI_EGLIBC:TARGET_OS_mingw32 = ""
+
 addhook set_kernel_subdir to post_recipe_parse after libc_useflags before fetch_init
 def set_kernel_subdir(d):
     if d.get("CT_KERNEL") != "linux":
@@ -63,16 +67,26 @@ SRC_URI:>TARGET_OS_mingw32 += " \
   ${SOURCEFORGE_MIRROR}/mingw/mingwrt-${CT_LIBC_VERSION}-mingw32-src.tar.gz;unpack=0 \
 "
 
-do_unpack[postfuncs] += "do_unpack_ltrace_symlink"
-do_unpack_ltrace_symlink () {
+do_unpack[postfuncs] += "do_unpack_fixup"
+do_unpack_fixup () {
 	if [ -n "${SRC_URI_LTRACE}" ] ; then
 		ln -s ltrace_${CT_LTRACE_VERSION}.orig.tar.gz \
 			${SRCDIR}/ltrace-${CT_LTRACE_VERSION}.tar.gz
-        fi
-	if [ -n "${SRC_URI_GLIBC}" ] ; then
+	fi
+	if [ "${CT_LIBC}" == "glibc" ] ; then
 		ln -s glibc-ports \
 			${SRCDIR}/glibc-ports-${CT_LIBC_VERSION}
-        fi
+	elif [ "${CT_LIBC}" == "eglibc" ] ; then
+		for d in eglibc-${CT_LIBC_VERSION}/* ; do
+			case `basename $d` in
+			libc)	;;
+			*)	mv $d eglibc-${CT_LIBC_VERSION}/libc/ ;;
+			esac
+		done
+		mv eglibc-${CT_LIBC_VERSION} eglibc-${CT_LIBC_VERSION}.tmp
+		mv eglibc-${CT_LIBC_VERSION}.tmp/libc eglibc-${CT_LIBC_VERSION}
+		rmdir eglibc-${CT_LIBC_VERSION}.tmp
+	fi
 }
 
 addhook gcc_set_src_uri to post_recipe_parse first before fetch_init after libc_useflags gcc_select_gdb
@@ -90,6 +104,8 @@ def gcc_set_src_uri(d):
         add_src("SRC_URI_LINUX")
     if d.get("CT_LIBC") == "glibc":
         add_src("SRC_URI_GLIBC")
+    if d.get("CT_LIBC") == "eglibc":
+        add_src("SRC_URI_EGLIBC")
     gcc_version = d.get("GCC_VERSION")
     if gcc_version.startswith("linaro-"):
         gcc_version = gcc_version[len("linaro-"):]
