@@ -87,11 +87,15 @@ def libc_useflags(d):
         d.set("CT_LIBC", "glibc")
         d.set("CT_LIBC_VERSION", libc[1])
     elif libc[0] == "eglibc":
-        if len(libc) != 3:
+        if len(libc) == 2:
+            rev = "HEAD"
+        elif len(libc) == 3:
+            rev = libc[2]
+        else:
             return "ERROR: Invalid %s flag: %r"%(libc_useflag, libc_str)
         d.set("CT_LIBC", "eglibc")
         d.set("CT_LIBC_VERSION", libc[1])
-        d.set("CT_EGLIBC_REVISION", libc[2])
+        d.set("CT_EGLIBC_REVISION", rev)
     elif libc[0] == "uclibc":
         if len(libc) != 2:
             return "ERROR: Invalid %s flag: %r"%(libc_useflag, libc_str)
