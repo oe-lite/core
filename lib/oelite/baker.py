@@ -1,5 +1,5 @@
 import oebakery
-from oebakery import die, err, warn, info, debug, FatalError
+from oebakery import die, err, warn, info, debug
 from oelite import *
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
@@ -278,7 +278,7 @@ class OEliteBaker:
                         e.args[1], "\n\t--> ".join(e.args[0])))
             except NoSuchTask, e:
                 die("No such task: %s: %s"%(thing, e.__str__()))
-            except FatalError, e:
+            except oebakery.FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
         if self.debug:
             timing_info("Building dependency tree", start)
