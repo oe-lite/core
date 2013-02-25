@@ -91,6 +91,7 @@ class OEliteBaker:
 
     def __init__(self, options, args, config):
         self.options = options
+        self.debug = self.options.debug
 
         self.config = oelite.meta.DictMeta(meta=config)
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
@@ -179,7 +180,7 @@ class OEliteBaker:
         debug("Whitelist filtered shell environment:")
         hasher = hashlib.md5()
         for var in whitelist:
-            if oebakery.DEBUG:
+            if self.debug:
                 if var in os.environ:
                      debug("> %s=%s"%(var, os.environ[var]))
             if not var in self.config and var in os.environ:
@@ -279,7 +280,7 @@ class OEliteBaker:
                 die("No such task: %s: %s"%(thing, e.__str__()))
             except FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
-        if oebakery.DEBUG:
+        if self.debug:
             timing_info("Building dependency tree", start)
 
         # Generate recipe dependency graph
@@ -373,7 +374,7 @@ class OEliteBaker:
             # FIXME: instad of all of the above
             # metasig = task.get_meta_signature()
 
-            #if oebakery.DEBUG:
+            #if self.debug:
             #    recipe_name = self.db.get_recipe(recipe_id)
             #    task_name = self.db.get_task(task=task)
             #    debug(" %d %s:%s data=%s dep=%s meta=%s"%(
@@ -395,7 +396,7 @@ class OEliteBaker:
         oelite.util.progress_info("Calculating task metadata hashes",
                                   total, count)
 
-        if oebakery.DEBUG:
+        if self.debug:
             timing_info("Calculation task metadata hashes", start)
 
         if count != total:

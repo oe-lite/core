@@ -28,6 +28,7 @@ class OEliteTask:
         self.name = name
         self.nostamp = nostamp
         self.cookbook = cookbook
+        self.debug = self.cookbook.debug
         self._meta = None
         return
 
@@ -201,7 +202,7 @@ class OEliteTask:
         logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
         bb.utils.mkdirhier(os.path.dirname(logfn))
         try:
-            if oebakery.DEBUG:
+            if self.debug:
                 logfile = os.popen("tee %s"%logfn, "w")
             else:
                 logfile = open(logfn, "w")
