@@ -36,13 +36,14 @@ class CookBook(Mapping):
         self.packages = {}
         self.tasks = {}
         self.cachedir = self.config.get("CACHEDIR") or ""
+        self.debug = self.baker.debug
         fail = False
         recipefiles = self.list_recipefiles()
         total = len(recipefiles)
         count = 0
         for recipefile in recipefiles:
             count += 1
-            if oebakery.DEBUG:
+            if self.debug:
                 debug("Adding %s to cookbook [%s/%s]"%(
                         self.shortfilename(recipefile), count, total))
             else:
@@ -52,18 +53,18 @@ class CookBook(Mapping):
                 if not self.add_recipefile(recipefile):
                     fail = True
             except KeyboardInterrupt:
-                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
+                if os.isatty(sys.stdout.fileno()) and not self.debug:
                     print
                 die("Aborted while building cookbook")
             except oelite.parse.ParseError, e:
-                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
+                if os.isatty(sys.stdout.fileno()) and not self.debug:
                     print
                 e.print_details()
                 err("Parse error in %s"%(self.shortfilename(recipefile)))
                 fail = True
             except Exception, e:
                 import traceback
-                if os.isatty(sys.stdout.fileno()) and not oebakery.DEBUG:
+                if os.isatty(sys.stdout.fileno()) and not self.debug:
                     print
                 traceback.print_exc()
                 err("Uncaught Python exception in %s"%(
