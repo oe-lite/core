@@ -20,6 +20,7 @@ import glob
 import shutil
 import datetime
 import hashlib
+import logging
 
 OE_ENV_WHITELIST = [
     "PATH",
@@ -92,6 +93,15 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
+
+        # Bakery 3 compatibility, configure the logging module
+        if (not hasattr(oebakery, "__version__") or
+            oebakery.__version__.split(".")[0] < 4):
+            logging.basicConfig(format="%(message)s")
+            if self.debug:
+                logging.getLogger().setLevel(logging.DEBUG)
+            else:
+                logging.getLogger().setLevel(logging.INFO)
 
         self.config = oelite.meta.DictMeta(meta=config)
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
