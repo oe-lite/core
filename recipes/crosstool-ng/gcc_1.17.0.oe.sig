@@ -19,6 +19,6 @@ d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
 229722d553030734d49731844abfef7617b64f1a  mpc-0.9.tar.gz
 fbf402fc196724ae60ef01eb6ca8490b1ea4db69  mpfr-3.0.1.tar.bz2
 3f5c8874610d7e3d13fc1c8b2e5fb5513468c45a  strace-4.5.20.tar.bz2
-f2a13c4e7ba0949bd10225652c1dc30d833c315a  svn://www.eglibc.org/svn/branches/eglibc-2_16;protocol=http;rev=r21913
+17ee58a9d5c3f7d4056d0f098a89d6f9732b4fd2  svn://www.eglibc.org/svn/branches/eglibc-2_16;protocol=http;rev=r21913
 4d8d67d6754409bd10015d67d1ce7a04c0b001ba  uClibc-0.9.33.2.tar.bz2
 851d2df6b213c11a30e96c05665f91d68dfb3ce9  w32api-3.14-mingw32-src.tar.gz
