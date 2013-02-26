@@ -308,6 +308,8 @@ class SvnFetcher():
 def svn_signature(wc):
     m = hashlib.sha1()
     for root, dirs, files in os.walk(wc):
+        dirs.sort()
+        files.sort()
         if ".svn" in dirs:
             dirs.remove(".svn")
         for filename in files:
