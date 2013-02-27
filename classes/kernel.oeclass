@@ -47,6 +47,10 @@ do_configure () {
 
 export BUILD_TAG
 
+export HOSTCFLAGS   = "${BUILD_CFLAGS}"
+export HOSTCPPFLAGS = "${BUILD_CPPFLAGS}"
+export HOSTLDFLAGS  = "${BUILD_LDFLAGS}"
+
 do_compile_kernel () {
 	if [ -n "$BUILD_TAG" ]; then
 		export KBUILD_BUILD_VERSION="$BUILD_TAG"
