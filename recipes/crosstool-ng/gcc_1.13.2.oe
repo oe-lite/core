@@ -31,6 +31,7 @@ DEFAULT_USE_toolchain_cloog_version		= "0.15.11"
 DEFAULT_USE_toolchain_libelf_version		= "0.8.13"
 DEFAULT_USE_toolchain_ltrace_version		= "0.5.3"
 DEFAULT_USE_toolchain_strace_version		= "4.5.20"
+DEFAULT_USE_toolchain_dmalloc_version		= "5.5.2"
 
 require gcc.inc
 
