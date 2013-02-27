@@ -54,7 +54,7 @@ CLASS_FLAGS += "sdk_cxx"
 DEFAULT_USE_sdk_cxx = "1"
 RDEPENDS_SDK += "${RDEPENDS_SDK_CXX}"
 RDEPENDS_SDK_CXX = ""
-RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++"
+RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++-dev target:libstdc++"
 
 CLASS_FLAGS += "sdk_gdb"
 DEFAULT_USE_sdk_gdb = "1"
