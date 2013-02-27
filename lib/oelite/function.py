@@ -25,6 +25,10 @@ class OEliteFunction(object):
             if not self.tmpdir:
                 die("T variable not set, unable to build")
         self.flags = meta.get_flags(var, oelite.meta.FULL_EXPANSION)
+        if self.meta.get("BUILD_OS") == "darwin":
+            self.ld_library_path_var = "DYLD_LIBRARY_PATH"
+        else:
+            self.ld_library_path_var = "LD_LIBRARY_PATH"
         if set_ld_library_path:
             self.ld_library_path = self.meta.get("LD_LIBRARY_PATH")
         else:
@@ -99,20 +103,20 @@ class PythonFunction(OEliteFunction):
         if self.ld_library_path:
             old_ld_library_path = None
             try:
-                old_ld_library_path = os.environ["LD_LIBRARY_PATH"]
+                old_ld_library_path = os.environ[self.ld_library_path_var]
                 ld_library_path = "%s:%s"%(old_ld_library_path,
-                                               self.ld_library_path)
+                                           self.ld_library_path)
             except KeyError:
                 ld_library_path = self.ld_library_path
-            os.environ["LD_LIBRARY_PATH"] = ld_library_path
+            os.environ[self.ld_library_path_var] = ld_library_path
         try:
             retval = self.function(self.meta)
         finally:
             if self.ld_library_path:
                 if old_ld_library_path:
-                    os.environ["LD_LIBRARY_PATH"] = old_ld_library_path
+                    os.environ[self.ld_library_path_var] = old_ld_library_path
                 else:
-                    del os.environ["LD_LIBRARY_PATH"]
+                    del os.environ[self.ld_library_path_var]
         if isinstance(retval, basestring):
             return retval or True
         if retval is None:
@@ -175,10 +179,10 @@ class ShellFunction(OEliteFunction):
         flags = self.meta.get_flags("LD_LIBRARY_PATH")
         if self.ld_library_path:
             # Prepend already existing content of LD_LIBRARY_PATH only if its set
-            runfile.write("if [ $LD_LIBRARY_PATH ]; then \
-				export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:" + self.ld_library_path + "\" ;\
+            runfile.write("if [ $" + self.ld_library_path_var + " ]; then \
+				export " + self.ld_library_path_var + "=\"$" + self.ld_library_path_var + ":" + self.ld_library_path + "\" ;\
 			   else \
-				export LD_LIBRARY_PATH=\"" + self.ld_library_path + "\" ;\
+				export " + self.ld_library_path_var + "=\"" + self.ld_library_path + "\" ;\
 			   fi\n")
         runfile.write("cd %s\n"%(os.getcwd()))
         runfile.write("%s\n"%(self.name))
