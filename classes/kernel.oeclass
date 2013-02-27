@@ -51,6 +51,8 @@ export HOSTCFLAGS   = "${BUILD_CFLAGS}"
 export HOSTCPPFLAGS = "${BUILD_CPPFLAGS}"
 export HOSTLDFLAGS  = "${BUILD_LDFLAGS}"
 
+CLASS_DEPENDS:>BUILD_KERNEL_darwin += "build:libelf"
+
 do_compile_kernel () {
 	if [ -n "$BUILD_TAG" ]; then
 		export KBUILD_BUILD_VERSION="$BUILD_TAG"
