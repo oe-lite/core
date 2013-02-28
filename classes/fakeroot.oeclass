@@ -1,0 +1,2 @@
+CLASS_DEPENDS += "native:fakeroot"
+FAKEROOT="fakeroot -l ${BUILD_SYSROOT}${base_libdir}/libfakeroot.so -f ${BUILD_SYSROOT}${base_bindir}/faked"
