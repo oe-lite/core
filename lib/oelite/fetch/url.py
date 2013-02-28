@@ -21,6 +21,7 @@ class UrlFetcher():
         self.signatures = d.get("FILE") + ".sig"
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
+        self.proxies = self.get_proxy(d)
         return
 
     def signature(self):
@@ -52,7 +53,7 @@ class UrlFetcher():
             if not self.uri.allow_url(url):
                 print "Skipping", url
                 continue
-            if grab(url, self.localpath):
+            if grab(url, self.localpath, proxy=self.proxies):
                 grabbed = True
                 break
             if os.path.exists(self.localpath):
@@ -80,13 +81,33 @@ class UrlFetcher():
         m.update(open(self.localpath, "r").read())
         return m.hexdigest()
 
+    def get_proxy(self, d):
+        proxy = d.get("http_proxy")
+        proxies = None
+        if not proxy is None:
+            proxies = {}
+            proxies["http"] = proxy
+
+            ftpproxy = d.get("ftp_proxy")
+            if ftpproxy is None:
+                proxies["ftp"] = proxy
+            else:
+                proxies["ftp"] = ftpproxy
+
+            httpsproxy = d.get("https_proxy")
+            if httpsproxy is None:
+                proxies["https"] = proxy
+            else:
+                proxies["https"] = httpsproxy
+        return proxies
+
 
 class SimpleProgress(urlgrabber.progress.BaseMeter):
     def _do_end(self, amount_read, now=None):
         print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
 
 
-def grab(url, filename, timeout=120, retry=5):
+def grab(url, filename, timeout=120, retry=5, proxy=None):
     print "Grabbing", url
     def grab_fail_callback(data):
         # Only print debug here when non fatal retries, debug in other cases
@@ -103,7 +124,7 @@ def grab(url, filename, timeout=120, retry=5):
         downloaded_file = urlgrabber.urlgrab(
             url, filename,timeout=timeout,retry=retry, retrycodes=retrycodes,
             progress_obj=SimpleProgress(), failure_callback=grab_fail_callback,
-            copy_local=True)
+            copy_local=True, proxies=proxy)
         if not downloaded_file:
             return False
     except urlgrabber.grabber.URLGrabError as e:
