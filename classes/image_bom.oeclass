@@ -16,17 +16,20 @@ def do_rstage_bom(d):
             pkgmeta[pn] = {
                 "license": {},
                 "description": {},
+                "version": {},
                 }
         pkgmeta[pn]["license"][package] = read_pkgmetafile("license")
         pkgmeta[pn]["description"][package] = read_pkgmetafile("description")
+        pkgmeta[pn]["version"][package] = read_pkgmetafile("pv")
     bom = []
-    def add_to_bom(name, license, description):
-        bom.append((name, license, description))
+    def add_to_bom(name, license, description, version):
+        bom.append((name, license, description, version))
     for recipe in sorted(pkgmeta.keys()):
         recipe_licenses = set(pkgmeta[recipe]["license"].values())
         if len(recipe_licenses) == 1:
             add_to_bom(recipe, recipe_licenses.pop()[0],
-                       sorted(pkgmeta[recipe]["description"].items())[0][1][0])
+                       sorted(pkgmeta[recipe]["description"].items())[0][1][0],
+                       sorted(pkgmeta[recipe]["version"].items())[0][1][0])
             continue
         collapsed = set([])
         for parent in sorted(pkgmeta[recipe]["license"].keys()):
@@ -48,26 +51,32 @@ def do_rstage_bom(d):
                               .difference(collapsed)):
             add_to_bom(package,
                        pkgmeta[recipe]["license"][package][0],
-                       pkgmeta[recipe]["description"][package][0])
+                       pkgmeta[recipe]["description"][package][0],
+                       pkgmeta[recipe]["version"][package][0])
     import operator
     name_len = max(map(len, map(operator.itemgetter(0), bom)))
     license_len = max(map(len, map(operator.itemgetter(1), bom)))
+    version_len = max(map(len, map(operator.itemgetter(3), bom)))
     name_len = max(14, min(30, name_len))
     license_len = max(7, min(14, license_len))
-    description_len = 79 - (name_len + 2 + license_len + 2)
+    version_len = max(5, min(10, version_len))
+    description_len = 79 - (name_len + 2 + license_len + 2 + version_len + 2)
     bomfile = open("bom.txt", "w")
-    bomfile.write("%-*s  %-*s  %s\n"%(
-            name_len, "PACKAGE", license_len, "LICENSE", "DESCRIPTION"))
+    bomfile.write("%-*s  %-*s  %-*s %s\n"%(
+            name_len, "PACKAGE", license_len, "LICENSE", version_len, "VERSION", "DESCRIPTION"))
     bomfile.write("-"*79 + "\n\n")
-    for name, license, description in bom:
+    for name, license, description, version in bom:
         space = " " * (max(0, name_len - len(name)) + 2)
         bomfile.write(name + space + license)
         l = len(name) + len(space) + len(license)
         space = " " * (max(0, name_len + 2 + license_len - l) + 2)
+        bomfile.write(space + version)
+        l += len(space) + len(version)
+        space = " " * (max(0, name_len + 2 + license_len + 2 + version_len -l) + 2)
         bomfile.write(space)
         l += len(space)
         description_block = oelite.util.format_textblock(
-                description, name_len + license_len + 4,
+                description, name_len + 2 + license_len + 2 + version_len + 2,
                 first_indent=l)
         bomfile.write(description_block[l:] + "\n\n")
 
