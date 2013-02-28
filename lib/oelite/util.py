@@ -28,7 +28,8 @@ def format_textblock(text, indent=2, width=78, first_indent=None):
         line = ""
         #width = width - indent
         while stack:
-            if len(line) + len(" " + stack[0]) > line_width: break
+            if line and (len(line) + len(" " + stack[0]) > line_width):
+                break
             if line: line += " "
             line += stack.pop(0)
         if first_indent is None:
