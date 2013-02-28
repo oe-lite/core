@@ -3,6 +3,8 @@
 addtask rstage after patch before compile
 addtask deploy after install before build
 
+inherit fakeroot
+
 IMAGE_BASENAME ?= "${PN}"
 IMAGE_FULLNAME ?= "${IMAGE_BASENAME}-${DATETIME}"
 
