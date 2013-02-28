@@ -1,4 +1,4 @@
-inherit archive-image
+inherit archive-image fakeroot
 
 IMAGE_BASENAME = "${PN}"
 
