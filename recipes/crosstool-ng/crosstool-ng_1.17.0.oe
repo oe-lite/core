@@ -11,6 +11,8 @@ SRC_URI += "${SRC_URI_FIXES_BASE}/002-scripts_functions_fix_debug_shell.patch"
 SRC_URI += "file://prefix.patch"
 SRC_URI += "file://canadian-skip-cc-core.patch"
 SRC_URI += "file://dir-extract-with-copy.patch"
+SRC_URI += "file://dmalloc-5.5.2-powerpc.patch"
+SRC_URI += "file://dmalloc-5.5.2-fix-recursion.patch"
 
 # For some odd reason, ct-NG configure scripts end up setting make path
 # to just "make" and not the full path.  And even more odd, this breaks
