@@ -132,7 +132,7 @@ def do_split(d):
 
 do_package[dirs] = "${PKGD}"
 
-PACKAGE_META_VARS = "DESCRIPTION LICENSE FILE_PRIORITY PN"
+PACKAGE_META_VARS = "DESCRIPTION LICENSE FILE_PRIORITY PN PV"
 PACKAGE_META_VARS[emit] = "do_package"
 
 # The PACKAGE_TYPE_* and PACKAGE_ARCH_* variables are exclusive for
