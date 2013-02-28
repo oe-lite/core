@@ -27,7 +27,9 @@ DEPENDS:>canadian-cross			+= " ${TUI_DEPENDS} host:libexpat"
 # statically, to make it more robust against host machine differences
 
 # FIXME: this looks REALLY wrong!
-DEPENDS:>canadian-cross += "target:libdl target:libpthread target:libm"
+BUILD_DEPENDS_CANADIAN = "host:libdl target:libdl target:libpthread target:libm"
+BUILD_DEPENDS_CANADIAN:HOST_OS_mingw32 = "target:libdl target:libpthread target:libm"
+DEPENDS:>canadian-cross += " ${BUILD_DEPENDS_CANADIAN}"
 
 DEPENDS += "${TOOLCHAIN_DEPENDS}"
 TOOLCHAIN_DEPENDS = ""

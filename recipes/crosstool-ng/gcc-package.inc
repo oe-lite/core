@@ -27,14 +27,14 @@ PROVIDES_${PN}-sysroot-libpdcurses-dev = "libncurses-dev"
 # We always build all packages, so care must be taken to choose the
 # right sysroot packages as there can be multiple builds providing
 # (almost) the same
-PACKAGES = "${PN}-dbg ${PN}-g++ ${PN}-config ${PN}-gdb ${PN} ${PN}-doc ${PN}-locale ${PN}-ldscripts"
+PACKAGES = "${PN}-dbg ${PN}-g++ ${PN}-config ${PN}-gdb ${PN} ${PN}-doc ${PN}-locale ${PN}-ldscripts ${PN}-gdb-dev"
 
 PROVIDES_${PN} = "cc"
 DEPENDS_${PN} = "target:${PN}-sysroot-dev"
 RDEPENDS_${PN} = "target:${PN}-sysroot-dev"
 PROVIDES_${PN}-g++ = "c++"
 DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
-RDEPENDS_${PN}-gdb = "host:libncurses"
+RDEPENDS_${PN}-gdb = "host:libncurses host:libdl"
 RDEPENDS_${PN}-gdb:HOST_OS_mingw32 = ""
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -92,6 +92,7 @@ ${datadir}/gdb/python \
 ${datadir}/gdb/syscalls \
 ${datadir}/gdb/gdbinit \
 "
+FILES_${PN}-gdb-dev = "${base_includedir}/gdb"
 
 FILES_${PN}-ldscripts = "${base_libdir}/ldscripts"
 
