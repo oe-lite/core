@@ -24,15 +24,19 @@ class GitFetcher():
         self.mirror_name = "%s_%s"%(protocol, uri.location.translate(string.maketrans("/", "_")))
         if self.mirror_name.endswith(".git"):
             self.mirror_name = self.mirror_name[:-4]
+        if self.mirror_name.endswith("/"):
+            self.mirror_name = self.mirror_name.strip("/")
         try:
             self.remote = uri.params["origin"]
         except KeyError:
             self.remote = "origin"
-        repo_name = uri.location.split("/")[-1]
+        repo_name = uri.location.strip("/").split("/")[-1]
         try:
             self.repo = uri.params["repo"]
         except KeyError:
             self.repo = repo_name
+        if not self.repo.endswith(".git"):
+            self.repo += ".git"
         if not "/" in self.repo:
             self.repo = os.path.join(uri.isubdir, self.repo)
         if not os.path.isabs(self.repo):
