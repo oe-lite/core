@@ -135,6 +135,9 @@ RECIPE_FLAGS		+= "toolchain_mpc_version"
 CT_LIBELF_VERSION	= "${USE_toolchain_libelf_version}"
 RECIPE_FLAGS		+= "toolchain_libelf_version"
 
+CT_ELF2FLT_VERSION	= "${USE_toolchain_elf2flt_version}"
+RECIPE_FLAGS		+= "toolchain_elf2flt_version"
+
 CT_LTRACE_VERSION	= "${USE_toolchain_ltrace_version}"
 RECIPE_FLAGS		+= "toolchain_ltrace_version"
 
