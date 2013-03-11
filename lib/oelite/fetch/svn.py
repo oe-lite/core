@@ -250,7 +250,7 @@ class SvnFetcher():
             print "Error: SVN fetching failed"
             return False
         if self.is_head:
-            if self.os.path.exists(self.wc):
+            if os.path.exists(self.wc):
                 return True
             else:
                 return False
