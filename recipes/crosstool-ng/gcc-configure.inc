@@ -15,6 +15,7 @@ DEFCONFIG_CPU:TARGET_CPU_i786		= "x86"
 # FIXME: find a proper solution for this gnueabi mess
 DEFCONFIG_OS = "${TARGET_OS}"
 DEFCONFIG_OS:TARGET_LIBC_glibc		= "linux-glibc"
+DEFCONFIG_OS:TARGET_LIBC_uclibc		= "linux-uclibc"
 
 _CT_KERNEL_V			= "CT_KERNEL_V"
 _CT_KERNEL_V:TARGET_OS_mingw32	= "CT_W32API_V"
@@ -50,6 +51,7 @@ CT_BINUTILS_FOR_TARGET:cross	= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_COMP_LIBS_TARGET"
 CT_COMP_LIBS_TARGET:cross	= "y"
+CT_COMP_LIBS_TARGET:sdk-cross	= "y"
 
 AUTO_CT_BOOLEAN_VARS += "CT_DEBUG_gdb"
 
@@ -65,16 +67,27 @@ DEPENDS:>USE_toolchain_cross_gdb      = " host:libexpat"
 AUTO_CT_BOOLEAN_VARS += "CT_GDB_NATIVE"
 CT_GDB_NATIVE:machine		= "y"
 
+AUTO_CT_BOOLEAN_VARS += "CT_ARCH_BINFMT_FLAT CT_ARCH_BINFMT_FDPIC"
+CT_ARCH_BINFMT_FLAT:TARGET_BINFMT_flat	= "y"
+CT_ARCH_BINFMT_FLAT:TARGET_BINFMT_fdpic	= "y"
+
 RECIPE_FLAGS += "toolchain_ltrace"
 DEFAULT_USE_toolchain_ltrace = "1"
 AUTO_CT_BOOLEAN_VARS:>USE_toolchain_ltrace = " CT_DEBUG_ltrace"
 CT_DEBUG_ltrace:cross			= "y"
+CT_DEBUG_ltrace:TARGET_LIBC_uclibc	= ""
 CT_DEBUG_ltrace:TARGET_LIBC_mingw	= ""
+
+RECIPE_FLAGS += "toolchain_threads"
+AUTO_CT_BOOLEAN_VARS:>TARGET_LIBC_uclibc = "CT_THREADS"
+CT_THREADS				= "nptl"
+CT_THREADS:TARGET_CPU_m68k		= "linuxthreads"
 
 RECIPE_FLAGS += "toolchain_strace"
 DEFAULT_USE_toolchain_strace = "1"
 AUTO_CT_BOOLEAN_VARS:>USE_toolchain_strace = " CT_DEBUG_strace"
 CT_DEBUG_strace:cross			= "y"
+CT_DEBUG_strace:TARGET_LIBC_uclibc	= ""
 CT_DEBUG_strace:TARGET_LIBC_mingw	= ""
 
 RECIPE_FLAGS += "toolchain_dmalloc"
@@ -135,6 +148,9 @@ CT_ARCH_TUNE			= "${TARGET_MTUNE}"
 
 AUTO_CT_STRING_VARS += "CT_LOCAL_PATCH_DIR"
 CT_LOCAL_PATCH_DIR		= "${S}"
+
+AUTO_CT_STRING_VARS += "CT_LIBC_UCLIBC_CONFIG_FILE"
+CT_LIBC_UCLIBC_CONFIG_FILE:TARGET_LIBC_uclibc = "${SRCDIR}/uClibc-${CT_LIBC_VERSION}.config"
 
 addhook gcc_select_gdb to post_recipe_parse first after set_useflags
 def gcc_select_gdb(d):

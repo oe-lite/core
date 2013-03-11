@@ -9,6 +9,7 @@ SRC_URI += "${SRC_URI_FIXES_BASE}/002-scripts_functions_fix_debug_shell.patch"
 
 # Unofficial fixes
 SRC_URI += "file://prefix.patch"
+SRC_URI += "file://elf2flt-for-build.patch"
 SRC_URI += "file://canadian-skip-cc-core.patch"
 SRC_URI += "file://dir-extract-with-copy.patch"
 SRC_URI += "file://dmalloc-5.5.2-powerpc.patch"
