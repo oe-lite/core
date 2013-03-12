@@ -109,7 +109,7 @@ do_compile_kernel_uimage() {
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
 	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
-	-n ${USE_kernel_uimage_name} \
+	-n "${USE_kernel_uimage_name}" \
 	-d linux.bin arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin
 
@@ -120,7 +120,7 @@ do_compile_kernel_uimage() {
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C gzip \
 	-a ${USE_kernel_uimage_loadaddress} \
 	-e $ENTRYPOINT \
-	-n ${USE_kernel_uimage_name} \
+	-n "${USE_kernel_uimage_name}" \
 	-d linux.bin.gz arch/${KERNEL_ARCH}/boot/uImage
 	rm -f linux.bin.gz
     fi
