@@ -12,7 +12,23 @@ inherit kernel-common kernel-modules-strip
 
 EXTRA_OEMAKE += "CROSS_COMPILE=${TARGET_PREFIX}"
 
+# Kernel defconfig can be provided in 3 different ways:
+#
+# Use defconfig file from SRC_URI (this is default)
+#  + Set USE_kernel_defconfig to "file"
+#
+# Use defconfig from kernel source
+#  + Set USE_kernel_defconfig to "blahblah_defconfig"
+#
+# Use defconfig file from DEPENDS (kernel-defconfig)
+#  + USE_kernel_defconfig not set
+#
 CLASS_FLAGS += "kernel_defconfig"
+DEFAULT_USE_kernel_defconfig = "file"
+CLASS_DEPENDS += "${DEPENDS_DEFCONFIG}"
+DEPENDS_DEFCONFIG = ""
+DEPENDS_DEFCONFIG:USE_kernel_defconfig = "kernel-defconfig"
+
 DEFCONFIG_FILE ?= "${SRCDIR}/defconfig"
 DEFCONFIG = "${USE_kernel_defconfig}"
 DEFCONFIG[expand] = 3
@@ -24,15 +40,16 @@ USE_KERNEL_INITRAMFS = "${USE_kernel_initramfs}"
 USE_KERNEL_INITRAMFS[expand] = "3"
 
 do_configure_kernel () {
-	if [ -e "${DEFCONFIG_FILE}" ]; then
-		cp "${DEFCONFIG_FILE}" "${S}/.config"
+	if [ "${DEFCONFIG}" = "file" ] ; then
+		cp ${DEFCONFIG_FILE} ${S}/.config
+		yes '' | oe_runmake oldconfig
+	elif [ -n "${DEFCONFIG}" ] ; then
+		oe_runmake ${DEFCONFIG}
+	elif [ -e "${HOST_SYSROOT}/kernel_defconfig" ] ; then
+		cp ${HOST_SYSROOT}/kernel_defconfig ${S}/.config
 		yes '' | oe_runmake oldconfig
 	else
-		if [ -n "${DEFCONFIG}" ] ; then
-			oe_runmake ${DEFCONFIG}
-		else
-			die "No default configuration for ${MACHINE} available."
-		fi
+		die "No default configuration available"
 	fi
 	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
 		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
