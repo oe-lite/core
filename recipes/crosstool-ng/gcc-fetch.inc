@@ -135,6 +135,7 @@ def gcc_set_src_uri(d):
                 add_src("SRC_URI_LIBELF", "CT_USE_LIBELF")
     if d.get("CT_ARCH_BINFMT_FLAT"):
         add_src("SRC_URI_ELF2FLT", "CT_USE_ELF2FLT")
+        d.append("DEPENDS", "host:libz", " ")
     if d.get("CT_DEBUG_gdb"):
         add_src("SRC_URI_GDB")
     if d.get("CT_DEBUG_ltrace"):
