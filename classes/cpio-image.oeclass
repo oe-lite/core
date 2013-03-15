@@ -2,7 +2,7 @@
 IMAGE_BASENAME ?= "${PN}-${TARGET_MACHINE_ID}"
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
-RECIPE_FLAGS += "ramdisk_image \
+CLASS_FLAGS += "ramdisk_image \
     ramdisk_image_name ramdisk_image_compression"
 DEFAULT_USE_ramdisk_image = "0"
 DEFAULT_USE_ramdisk_image_name = "${IMAGE_BASENAME}"
@@ -27,13 +27,13 @@ cpio_mkimage () {
 	case "${USE_ramdisk_image_compression}" in
 		none) cp ${B}/${IMAGE_BASENAME}.cpio ${B}/image.bin
 			;;
-		bzip2) echo "TODO: ${USE_ramdisk_image_compression}"
+		bzip2) bzip2 ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
 		gzip) gzip ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
-		lzma) echo "TODO: ${USE_ramdisk_image_compression}"
+		lzma) lzma ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
-		lzo) echo "TODO: ${USE_ramdisk_image_compression}"
+		lzo)  lzop ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
 		*) echo "ERROR: mkimage compression ${USE_ramdisk_image_compression} not supported"
 			;;
