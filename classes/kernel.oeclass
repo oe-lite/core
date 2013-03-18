@@ -39,6 +39,9 @@ KERNEL_INITRAMFS ?= "${MACHINE_SYSROOT}${bootdir}/initramfs.cpio"
 USE_KERNEL_INITRAMFS = "${USE_kernel_initramfs}"
 USE_KERNEL_INITRAMFS[expand] = "3"
 
+CLASS_FLAGS += "ramdisk_image_compression"
+DEFAULT_USE_ramdisk_image_compression = "none"
+
 do_configure_kernel () {
 	if [ "${DEFCONFIG}" = "file" ] ; then
 		cp ${DEFCONFIG_FILE} ${S}/.config
@@ -55,6 +58,13 @@ do_configure_kernel () {
 		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
 			>> ${S}/.config
 		yes '' | oe_runmake oldconfig
+	case "${USE_ramdisk_image_compression}" in
+	lzma)	echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
+		echo 'CONFIG_INITRAMFS_COMPRESSION_LZMA=y' >> ${S}/.config
+		;;
+	*)
+		;;
+	esac
 	fi
 }
 
