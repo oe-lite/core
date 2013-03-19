@@ -109,7 +109,13 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/ld-*.so.* \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}64 \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}64 \
 "
+FILES_${PN}-sysroot-libc:>TARGET_LIBC_uclibc = " \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libuClibc.so.* \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libuClibc-*.so \
+"
 DEPENDS_${PN}-sysroot-libc = "${PN}-sysroot-libc-dev_${PV}"
+DEPENDS_${PN}-sysroot-libc:>TARGET_LIBC_uclibc = " libubacktrace"
+RDEPENDS_${PN}-sysroot-libc:>TARGET_LIBC_uclibc = " libubacktrace"
 PROVIDES_${PN}-sysroot-libc = "libc"
 
 TARGET_PACKAGES += "${PN}-sysroot-libc-dev"
