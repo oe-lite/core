@@ -1,13 +1,16 @@
 # -*- mode:python; -*-
 
 inherit auto-package-libs
-AUTO_PACKAGE_LIBS = "\
-  gcc dl stdc++ supc++ resolv util crypt pthread thread_db bfd \
-  m rt anl BrokenLocale nsl memusage pcprofile SegFault \
-  nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace \
-  dmalloc dmallocxx dmallocth dmallocthcxx \
-"
-AUTO_PACKAGE_LIBS:TARGET_OS_mingw32 = "gcc stdc++ supc++ m pdcurses"
+AUTO_PACKAGE_LIBS = "gcc stdc++ supc++ m"
+AUTO_PACKAGE_LIBS:>TARGET_LIBC_glibc = " \
+  dl resolv util crypt pthread thread_db bfd rt nsl \
+  anl BrokenLocale memusage pcprofile SegFault \
+  nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace"
+AUTO_PACKAGE_LIBS:>TARGET_LIBC_uclibc = " \
+  dl resolv util crypt pthread thread_db bfd rt nsl ubacktrace"
+AUTO_PACKAGE_LIBS:>TARGET_LIBC_mingw = " pdcurses"
+AUTO_PACKAGE_LIBS:>USE_toolchain_dmalloc = " \
+  dmalloc dmallocxx dmallocth dmallocthcxx"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
 AUTO_PACKAGE_LIBS_LIBDIR = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib::.so,.so.*,-*.so: \
