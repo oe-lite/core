@@ -231,6 +231,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.o \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.a \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.la \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/*.so \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/pkgconfig/*.pc \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv \
 ${base_prefix}/${TARGET_ARCH}/sysroot/mingw \
 "
