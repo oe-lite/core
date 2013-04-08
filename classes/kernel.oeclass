@@ -108,23 +108,30 @@ CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
 KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "native:u-boot-tools-mkimage"
 DEFAULT_USE_kernel_uimage = "0"
-DEFAULT_USE_kernel_uimage_entrypoint = "20008000"
-DEFAULT_USE_kernel_uimage_loadaddress = "${USE_kernel_uimage_entrypoint}"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_uimage = " do_compile_kernel_uimage"
+UIMAGE_ENTRYPOINT_SYMBOL ?= "_start"
+export USE_kernel_uimage_loadaddress
+export USE_kernel_uimage_entrypoint
 do_compile_kernel_uimage() {
-    ENTRYPOINT=${USE_kernel_uimage_entrypoint}
-    if [ -n "$UBOOT_ENTRYSYMBOL" ] ; then
+    if [ -n "$USE_kernel_uimage_entrypoint" ] ; then
+        ENTRYPOINT="$USE_kernel_uimage_entrypoint"
+    else
         ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
-            awk '$3=="${USE_kernel_uimage_entrypoint}" {print $1}'`
+            awk '$3=="${UIMAGE_ENTRYPOINT_SYMBOL}" {print $1}'`
+    fi
+    if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
+        LOADADDRESS="$USE_kernel_uimage_loadaddress"
+    else
+        LOADADDRESS="$ENTRYPOINT"
     fi
 
     if [ -e "arch/${KERNEL_ARCH}/boot/compressed/vmlinux" ] ; then
 	${OBJCOPY} -O binary -R .note -R .comment \
 	-S arch/${KERNEL_ARCH}/boot/compressed/vmlinux linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C none \
-	-a ${USE_kernel_uimage_loadaddress} \
+	-a $LOADADDRESS \
 	-e $ENTRYPOINT \
 	-n "${USE_kernel_uimage_name}" \
 	-d linux.bin arch/${KERNEL_ARCH}/boot/uImage
@@ -135,7 +142,7 @@ do_compile_kernel_uimage() {
 	rm -f linux.bin.gz
 	gzip -9 linux.bin
 	mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C gzip \
-	-a ${USE_kernel_uimage_loadaddress} \
+	-a $LOADADDRESS \
 	-e $ENTRYPOINT \
 	-n "${USE_kernel_uimage_name}" \
 	-d linux.bin.gz arch/${KERNEL_ARCH}/boot/uImage
