@@ -112,3 +112,44 @@ do_deploy () {
 	done
     fi
 }
+
+CLASS_FLAGS += "uboot_srec"
+
+UBOOT_SREC_IMAGE = "${UBOOT_IMAGE_BASE}.s19"
+UBOOT_SREC_IMAGE_DEPLOY_EXT ?= ".s19"
+UBOOT_SREC_IMAGE_DEPLOY_FILE ?= "${MACHINE}-${UBOOT_IMAGE_DEPLOY_NAME}-${PV}-${DATETIME}${UBOOT_SREC_IMAGE_DEPLOY_EXT}"
+UBOOT_SREC_IMAGE_DEPLOY_LINK ?= "${MACHINE}-${UBOOT_IMAGE_DEPLOY_NAME}${UBOOT_SREC_IMAGE_DEPLOY_EXT}"
+
+do_compile[postfuncs] += "${DO_COMPILE_SREC}"
+DO_COMPILE_SREC:USE_uboot_srec = "do_compile_srec"
+do_compile_srec () {
+	srec_cat ${UBOOT_IMAGE} -Binary -o ${UBOOT_SREC_IMAGE} -Motorola
+}
+
+do_install[postfuncs] += "${DO_INSTALL_SREC}"
+DO_INSTALL_SREC:USE_uboot_srec = "do_install_srec"
+do_install_srec () {
+	install -m 0644 ${UBOOT_SREC_IMAGE} ${D}${bootdir}
+}
+
+PACKAGES += "${PN}-srec"
+FILES_${PN}-srec = "${bootdir}/${UBOOT_SREC_IMAGE}"
+PROVIDES_${PN}-srec = "u-boot-srec"
+
+do_deploy[postfuncs] += "${DO_DEPLOY_SREC}"
+DO_DEPLOY_SREC:USE_uboot_srec = "do_deploy_srec"
+do_deploy_srec () {
+	install -m 0644 ${UBOOT_SREC_IMAGE} \
+		${IMAGE_DEPLOY_DIR}/${UBOOT_SREC_IMAGE_DEPLOY_FILE}
+	md5sum <${UBOOT_IMAGE} \
+		>${IMAGE_DEPLOY_DIR}/${UBOOT_SREC_IMAGE_DEPLOY_FILE}.md5
+
+	cd ${IMAGE_DEPLOY_DIR}
+	if [ -n "${UBOOT_SREC_IMAGE_DEPLOY_LINK}" ] ; then
+		for ext in "" ".md5"; do
+			rm -f  ${UBOOT_SREC_IMAGE_DEPLOY_LINK}$ext
+			ln -sf ${UBOOT_SREC_IMAGE_DEPLOY_FILE}$ext \
+			       ${UBOOT_SREC_IMAGE_DEPLOY_LINK}$ext
+		done
+	fi
+}
