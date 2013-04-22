@@ -27,18 +27,12 @@ def libtool_stage_fixup(d):
 
         lafile = re.sub("/{2,}",
                         "/", lafile)
-        lafile = re.sub("-L%s"%(libdir),
-                        "-L%s%s"%(sysroot, libdir), lafile)
-        lafile = re.sub("-L%s"%(base_libdir),
-                        "-L%s%s"%(sysroot, base_libdir), lafile)
-        lafile = re.sub("libdir='%s'"%(libdir),
-                        "libdir='%s%s'"%(sysroot, libdir), lafile)
-        lafile = re.sub("libdir='%s'"%(base_libdir),
-                        "libdir='%s%s'"%(sysroot, base_libdir), lafile)
-        lafile = re.sub("([' ])%s"%(libdir),
-                        r"\g<1>%s%s"%(sysroot, libdir), lafile)
-        lafile = re.sub("([' ])%s"%(base_libdir),
-                        r"\g<1>%s%s"%(sysroot, base_libdir), lafile)
+        lafile = re.sub(r"-L(%s|%s)(|32|64)"%(libdir, base_libdir),
+                        r"-L%s\g<1>\g<2>"%(sysroot), lafile)
+        lafile = re.sub(r"libdir='(%s|%s)(|32|64)'"%(libdir,base_libdir),
+                        r"libdir='%s\g<2>\g<1>'"%(sysroot), lafile)
+        lafile = re.sub(r"([' ])(%s|%s)(|32|64)"%(libdir, base_libdir),
+                        r"\g<1>%s\g<2>\g<3>"%(sysroot), lafile)
         pattern = re.compile("^installed=yes", re.MULTILINE)
         lafile = re.sub(pattern, "installed=no", lafile)
         with open(filename, "w") as output_file:
