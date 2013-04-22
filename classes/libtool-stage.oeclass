@@ -33,8 +33,8 @@ def libtool_stage_fixup(d):
                         r"libdir='%s\g<2>\g<1>'"%(sysroot), lafile)
         lafile = re.sub(r"([' ])(%s|%s)(|32|64)"%(libdir, base_libdir),
                         r"\g<1>%s\g<2>\g<3>"%(sysroot), lafile)
-        pattern = re.compile("^installed=yes", re.MULTILINE)
-        lafile = re.sub(pattern, "installed=no", lafile)
+        pattern = re.compile("^installed=no", re.MULTILINE)
+        lafile = re.sub(pattern, "installed=yes", lafile)
         with open(filename, "w") as output_file:
             output_file.write(lafile)
         print "processed lafile", filename
