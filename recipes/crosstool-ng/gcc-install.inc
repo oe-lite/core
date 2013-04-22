@@ -39,7 +39,7 @@ LIBTOOL_DEPENDS = ""
 LIBTOOL_FIXUP_SEARCH_DIRS += "\
 ${D}/${TARGET_ARCH}/sysroot${target_libdir} \
 ${D}/${TARGET_ARCH}/sysroot${target_base_libdir}"
-LIBTOOL_FIXUP_STRIP_DIRS =+ "${D}/${TARGET_ARCH}/lib32 ${D}/${TARGET_ARCH}/lib64 ${D}/${TARGET_ARCH}/lib"
+LIBTOOL_FIXUP_STRIP_DIRS =+ "${D}/${TARGET_ARCH}/sysroot ${D}/${TARGET_ARCH}"
 
 do_install[postfuncs] += "do_install_gcc_lafile_fixup"
 do_install_gcc_lafile_fixup () {
