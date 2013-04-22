@@ -499,7 +499,7 @@ def arch_set_build_arch(d, gcc_version):
         # comparable with arch_cross().
         if guess[1] == 'pc':
             guess[1] = 'unknown'
-
+    guess[1] = "build_" + guess[1]
     d.set('BUILD_ARCH', '-'.join(guess))
     return
 
@@ -509,7 +509,11 @@ def arch_set_cross_arch(d, prefix, gcc_version):
                           d.get(prefix+'_OS', True))
     cross_arch = arch_config_sub(d, cross_arch)
     abis = (d.get(prefix+'_ABI', True) or "").split()
-    cross_arch = arch_fixup(cross_arch, gcc_version, abis)
+    if prefix == "MACHINE":
+        vendor_prefix = None
+    else:
+        vendor_prefix = prefix.lower() + "_"
+    cross_arch = arch_fixup(cross_arch, gcc_version, abis, vendor_prefix)
     d[prefix+'_ARCH'] = cross_arch[0]
     if cross_arch[1]:
         d[prefix+'_CPU_FAMILIES'] = " ".join(cross_arch[1])
@@ -535,7 +539,7 @@ def arch_update(d, prefix, gcc_version):
     return
 
 
-def arch_fixup(arch, gcc, abis):
+def arch_fixup(arch, gcc, abis, vendor_prefix=None):
     import re
     gccv=re.search('(\d+)[.](\d+)[.]?',gcc).groups()
     (cpu, vendor, os) = arch_split(arch)
@@ -580,7 +584,6 @@ def arch_fixup(arch, gcc, abis):
         bb.fatal("unknown cpu vendor: %s"%vendor)
         vendor = 'unknown'
 
-
     # Merge DEFAULT and vendor abi_flags, keeping DEFAULT flags first
     abi_flags = []
     if "DEFAULT" in cpuspecs[cpu] and 'abi flags' in cpuspecs[cpu]["DEFAULT"]:
@@ -621,6 +624,9 @@ def arch_fixup(arch, gcc, abis):
 
     if len(abis) > 0:
         bb.fatal("ABI %s not valid for arch %s-%s-%s" %(', '.join(abis), cpu,vendor,os))
+
+    if vendor_prefix:
+        vendor = vendor_prefix + vendor
 
     return ('-'.join((cpu, vendor, os)), families)
 
