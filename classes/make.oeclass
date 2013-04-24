@@ -5,13 +5,14 @@ require conf/make.conf
 export MAKE
 
 oe_runmake() {
-    ${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
+	${MAKE} $PARALLEL_MAKE ${EXTRA_OEMAKE} "$@"
 }
+
+export PARALLEL_MAKE
+PARALLEL_MAKE[nohash] = True
 
 # Pass parallel make options to the compile task only
 # FIXME: verify after implementing onlytask varflag
-export PARALLEL_MAKE
-PARALLEL_MAKE[nohash] = True
 PARALLEL_MAKE[onlytask] = "compile"
 
 do_compile() {
