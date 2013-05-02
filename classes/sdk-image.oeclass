@@ -31,7 +31,7 @@ image_rm_sysroot_pkgmetadir() {
     fi
 }
 
-RDEPENDS += "${RDEPENDS_SDK}"
+CLASS_RDEPENDS += "${RDEPENDS_SDK}"
 RDEPENDS_SDK = " \
     gcc \
     target:libc \
