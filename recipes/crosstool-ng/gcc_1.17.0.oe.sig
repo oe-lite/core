@@ -25,6 +25,7 @@ b6ff5c0262418fbca8ce281f9f927e25181f4237  libelf-0.8.12.tar.gz
 c1d6ac5f182d19dd685c4dfd74eedbfe3992425d  libelf-0.8.13.tar.gz
 cdcec9db35957865eb3ed30a0dec4c3f14b18809  linux-2.6.32.59.tar.bz2
 67f299d887f290b26a3e6da45cff0ba6166e1186  linux-2.6.32.60.tar.bz2
+6b7e8c6fd5fd956278ba9eac342272a63d5a22d6  linux-3.0.48.tar.bz2
 d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
 45f5abc0d3d88b06dcb2256df4080ad39ff511d8  mingwrt-3.18-mingw32-src.tar.gz
 07e48c8e2e8f1b3fa84502c310056c01f4cb3ae3  mpc-0.7.tar.gz
@@ -36,9 +37,11 @@ d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
 7ca93006e38ae6e53a995af836173cf10ee7c18c  mpfr-2.4.2.tar.bz2
 8ae8bc72ac26a0f17ad9f57c520264c056c64770  mpfr-3.0.0.tar.bz2
 fbf402fc196724ae60ef01eb6ca8490b1ea4db69  mpfr-3.0.1.tar.bz2
+9ba6dfe62dad298f0570daf182db31660f7f016c  mpfr-3.1.0.tar.bz2
 50081a7201dc240299396f088abe53c07de98e4c  strace-4.5.18.tar.bz2
 5554c2fd8ffae5c1e2b289b2024aa85a0889c989  strace-4.5.19.tar.bz2
 3f5c8874610d7e3d13fc1c8b2e5fb5513468c45a  strace-4.5.20.tar.bz2
 17ee58a9d5c3f7d4056d0f098a89d6f9732b4fd2  svn://www.eglibc.org/svn/branches/eglibc-2_16;protocol=http;rev=r21913
+f6d77131a2f158d3fbddde969e1359073085fc4c  svn://www.eglibc.org/svn/branches/eglibc-2_16;protocol=http;rev=r22666
 4d8d67d6754409bd10015d67d1ce7a04c0b001ba  uClibc-0.9.33.2.tar.bz2
 851d2df6b213c11a30e96c05665f91d68dfb3ce9  w32api-3.14-mingw32-src.tar.gz
