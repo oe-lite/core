@@ -37,3 +37,5 @@ do_unpack_mvpatches () {
        mkdir -p ${S}/gcc/4.5.3
        mv ${SRCDIR}/gcc-linaro-fix-lp-605255.patch ${S}/gcc/4.5.3
 }
+
+DEFAULT_PREFERENCE = "-1"

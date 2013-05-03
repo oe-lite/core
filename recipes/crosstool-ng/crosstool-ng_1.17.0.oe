@@ -24,3 +24,5 @@ SRC_URI += "file://uclibc-target-cflags-fixup.patch"
 do_configure () {
 	autotools_configure --with-make=`which make`
 }
+
+DEFAULT_PREFERENCE = "-1"
