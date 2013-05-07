@@ -49,6 +49,21 @@ RDEPENDS_SDK = " \
     target:gcc-sysroot-locale \
     target:gcc-sysroot-doc \
 "
+RDEPENDS_SDK:TARGET_LIBC_uclibc = " \
+    gcc \
+    target:libc \
+    target:libdl \
+    target:libpthread \
+    target:librt \
+    target:libgcc \
+    target:libm \
+    target:libutil \
+    target:libcrypt \
+    target:libresolv \
+    target:gcc-sysroot-garbage \
+    target:gcc-sysroot-locale \
+    target:gcc-sysroot-doc \
+"
 
 CLASS_FLAGS += "sdk_cxx"
 DEFAULT_USE_sdk_cxx = "1"
