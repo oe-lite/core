@@ -393,19 +393,23 @@ do_split_sysroot_mangle () {
 			(
 			cd $pkg/${TARGET_ARCH}
 			if [ -d debug-root ] ; then
-				mv debug-root/* ../
-				rmdir debug-root
+				for d in debug-root/* ; do
+					cp -a $d ../
+				done
+				rm -rf debug-root
 			fi
 			if [ -d sysroot ] ; then
-				mv sysroot/* ../
-				rmdir sysroot
+				for d in sysroot/* ; do
+					cp -a $d ../
+				done
+				rm -rf sysroot
 			fi
 			if [ -L include ] ; then
 				rm -f include
 			fi
 			if [ -d include ] ; then
 				mkdir -p ..${target_includedir}
-				cp -r include/* ..${target_includedir}
+				cp -a include/* ..${target_includedir}
 				rm -rf include
 			fi
 			rm -f lib
