@@ -15,6 +15,7 @@ AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
 AUTO_PACKAGE_LIBS_LIBDIR = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib::.so,.so.*,-*.so: \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}:lib::.so,.so.*,-*.so: \
 "
 AUTO_PACKAGE_LIBS_LIBDIR:TARGET_OS_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_sharedlibdir}:mingw:,10:.dll: \
@@ -210,6 +211,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libexecdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libexecdir}/.debug \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv/.debug \
+${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}/.debug \
 "
 
 TARGET_PACKAGES += "${PN}-sysroot-c++-dev"
