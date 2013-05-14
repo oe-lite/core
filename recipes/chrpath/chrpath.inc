@@ -1,0 +1,24 @@
+RECIPE_TYPES = "native cross sdk-cross"
+
+inherit autotools make-vpath
+
+# Avoid circular dependencies
+CHRPATH_DEPENDS:native = ""
+LIBTOOL_DEPENDS:native = ""
+
+# We need to use a copy of chrpath to be able to modify the rpath of chrpath
+# itself
+TMP_BINDIR = "${D}/tmp-bindir"
+DO_CHRPATH_NATIVE_PRE:native = "do_chrpath_native_pre"
+do_chrpath[prefuncs] += "${DO_CHRPATH_NATIVE_PRE}"
+def do_chrpath_native_pre(d):
+    bindir = d.get("D") + d.get("bindir")
+    tmpdir = d.get("TMP_BINDIR")
+    os.makedirs(tmpdir)
+    shutil.copy2(os.path.join(bindir, "chrpath"), tmpdir)
+PATH:<native = "${TMP_BINDIR}:"
+DO_CHRPATH_NATIVE_POST:native = "do_chrpath_native_post"
+do_chrpath[postfuncs] += "${DO_CHRPATH_NATIVE_POST}"
+def do_chrpath_native_post(d):
+    tmpdir = d.get("TMP_BINDIR")
+    shutil.rmtree(tmpdir)

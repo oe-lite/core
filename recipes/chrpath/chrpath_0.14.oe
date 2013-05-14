@@ -1,0 +1,4 @@
+require ${PN}.inc
+
+SRC_URI = "http://alioth.debian.org/frs/download.php/3648/chrpath-0.14.tar.gz"
+SRC_URI += "file://standarddoc.patch"
