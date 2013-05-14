@@ -1,0 +1,6 @@
+The quickstart part here in OE-lite/core RM should cover a generic quickstart,
+for how to build something simple with just OE-lite/core and OE-lite/base.
+
+It should not be board specific (ie. only using MACHINE_CPU, not MACHINE).
+
+It should refer to OE-lite BSP's for board specific quickstart instructions.

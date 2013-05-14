@@ -1,0 +1,165 @@
+// -*- Doc -*-
+
+// This is part of the OE-lite/core Reference Manual
+// Copyright (C) 2013
+//   Esben Haabendal <esben@haabendal.dk>
+
+Quick Start
+===========
+
+Ubuntu Quick Start
+------------------
+
+This page explains how to start working with OE-lite Linux on Ubuntu Linux
+(10.04 and newer). For other Linux distributions see this
+[[GenericDistroQuickStart]].
+
+Fix /bin/sh symlink
+~~~~~~~~~~~~~~~~~~~
+
+OE-lite does not work with /bin/sh symlinked to dash, it must be bash.  If you
+haven't already done this, then the following should be done:
+
+----
+sudo rm /bin/sh && sudo ln -s bash /bin/sh
+----
+
+Alternatively, you can do this interactively using "sudo dpkg-reconfigure
+dash" and answer "no".
+
+Install required software
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+----
+sudo apt-get install -y python-software-properties
+sudo add-apt-repository ppa:git-core/ppa
+sudo add-apt-repository ppa:esben-haabendal/oe-lite
+sudo apt-get update
+sudo apt-get install -y git-core
+sudo apt-get install -y oe-lite
+----
+
+anchor:quickstart-setup[]
+
+Setup OE-lite Linux development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+----
+oe clone git://gitorious.org/oe-lite/oe-lite.git
+cd oe-lite
+----
+
+Configure desired machine target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For building images for the pandaboard, do
+
+----
+echo 'MACHINE="pandaboard"' >> conf/local.conf
+----
+
+Build U-Boot, Linux kernel and example rootfs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+----
+oe bake u-boot-omap linux-omap4-initramfs linux-omap4 base-rootfs
+----
+
+If (when) all goes well, you can find all the image files built in tmp/images/
+
+
+Generic Quick Start
+-------------------
+
+Fix /bin/sh symlink
+~~~~~~~~~~~~~~~~~~~
+
+OE-lite requires /bin/sh symlinked to bash.
+
+Install required software
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NOTE: OE requires at least git version >= 1.7.4, autoconf >= 2.67, pkgconfig
+=> 0.25
+
+The software OE-Lite Linux assumes is already provided by the build system for
+building is listed here:
+http://oe-lite.org/redmine/projects/oe-lite-core/repository/revisions/master/entry/conf/provided/all.conf
+
+The OE-Lite Linux baker tool oebakery has the following dependencies:
+python-magic python-ply python-pycurl python-pysqlite2 python-pkg-resources
+python-dev
+
+Installing dependencies in Fedora 16 (and possibly other RPM based
+distributions):
+
+[source,bash]
+----
+sudo yum install python-magic python-ply python-pycurl \
+python-sqlite2 python-devel fakeroot libstdc++-static glibc-static \
+gettext-devel ncurses-devel libtool texinfo flex bison coreutils \
+sed git-core cvs subversion mercurial quilt gawk texinfo automake \
+autoconf curl texi2html openjade groff make gcc-c++ gcc binutils bc \
+unzip lzma gtk-doc docbook-utils xml2 xmlto help2man glib2-devel
+----
+
+Install dependencies in dpkg based distribution, something like:
+
+[source,bash]
+----
+sudo apt-get install python python-support python-magic python-ply \
+python-pycurl python-pysqlite2 python-pkg-resources python-dev \
+coreutils sed git-core cvs subversion mercurial quilt gawk texinfo \
+automake autoconf autopoint libtool curl texi2html diffstat \
+openjade groff mtd-utils build-essential make gcc g++ binutils \
+bison flex bc ncurses-dev unzip lzma gtk-doc-tools docbook-utils \
+libxml2-utils xmlto help2man libglib2.0-dev lzop
+----
+
+Install dependencies in RHEL 6.2, something like:
+
+[source,bash]
+----
+sudo yum install python-magic python-ply python-pycurl \
+python-devel fakeroot gettext-devel ncurses-devel libtool \
+texinfo flex bison coreutils sed git-core cvs subversion \
+mercurial quilt gawk texinfo automake autoconf curl \
+openjade groff make gcc-c++ gcc binutils bc unzip gtk-doc \
+docbook-utils xmlto glib2-devel intltool glibc-static 
+----
+
+To installing OE-lite Bakery clone the reposotory selecting a branch (fx 2.x, 3.x or master) and create a link to oe.py somewhere in your PATH
+
+[source,bash]
+----
+cd $HOME/src/
+git clone ~~branch master git://gitorious.org/oe-lite/bakery.git
+ln -s $HOME/src/bakery/oebakery/oe.py $HOME/bin/oe
+----
+
+Setup OE-lite Linux development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in xref:quickstart-setup[].
+
+
+RHEL 6
+~~~~~~
+The basic packages in RHEL does not provide the required versions of git, autoconf, and pkgconfig.
+
+Install from 3rd party rpm sources, e.g.:
+
+----
+http://pkgs.repoforge.org/git/git-all-1.7.10-1.el6.rfx.i686.rpm (32 bit)
+http://pkgs.repoforge.org/git/git-all-1.7.10-1.el6.rfx.x86_64.rpm (64 bit)
+
+http://pkgs.org/fedora-16/fedora-i386/pkgconfig-0.25-3.fc15.i686.rpm (32 bit)
+ftp://rpmfind.net/linux/fedora/linux/releases/17/Everything/i386/os/Packages/a/autoconf-2.68-3.fc17.noarch.rpm (32 bit and 64-bit)
+ftp://rpmfind.net/linux/sourceforge/f/fu/fuduntu/yum/2012/STABLE/RPMS/m4-1.4.14-1.fc14.i686.rpm (32bit)
+----
+
+yum does not install glibc-static correctly it can be found at:
+    
+----
+http://mirror.centos.org/centos/6/os/i386/Packages/glibc-static-YOUR_VERSION.el6.i686.rpm
+----
