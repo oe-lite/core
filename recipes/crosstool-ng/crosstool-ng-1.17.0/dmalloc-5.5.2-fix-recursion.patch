@@ -9,7 +9,7 @@
 + 		     const int func_id)
 + {
 +   int		ret;
-+-
++-  
 ++  if(NULL==pnt)
 ++    return FREE_NOERROR;
 ++

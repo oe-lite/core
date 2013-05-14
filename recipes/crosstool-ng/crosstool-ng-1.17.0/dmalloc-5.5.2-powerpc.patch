@@ -11,5 +11,5 @@ diff -urN crosstool-ng-1.17.0~orig/patches/dmalloc/5.5.2/131-powerpc.patch cross
 +-  asm("stw 0,%0" : "=g" (file)); \
 ++  asm("mflr %0" : "=g" (file)); \
 + } while(0)
-+
++ 
 + #endif /* __powerpc__ && __GNUC__ && !__OPTIMIZE__ */
