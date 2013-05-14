@@ -18,6 +18,10 @@ SRC_URI += "file://eglibc-2_16-typedef-caddr.patch"
 SRC_URI += "file://uclibceabi-instead-of-uclibcgnueabi.patch"
 SRC_URI += "file://uclibc-target-cflags-fixup.patch"
 
+#We have to use make_3.81 for now, since 3.82 makes at least
+#glibc install fail, trying to install headers to /
+DEPENDS += "native:make_3.81"
+
 # For some odd reason, ct-NG configure scripts end up setting make path
 # to just "make" and not the full path.  And even more odd, this breaks
 # build by (oddest of all) GMP configure hang in conftest.make execution.
