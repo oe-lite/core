@@ -29,6 +29,7 @@ def fixup_package_type(d):
     for pkg in target_packages:
         d.set("PACKAGE_TYPE_%s"%(pkg), "machine")
 
+PATH =. "${STAGE_PATH}:"
 STAGE_PATH = "\
 ${STAGE_DIR}/cross${stage_bindir}:\
 ${STAGE_DIR}/sdk-cross${stage_bindir}:\
