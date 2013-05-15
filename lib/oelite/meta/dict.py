@@ -23,7 +23,7 @@ class DictMeta(MetaData):
         return
 
 
-    INDEXED_FLAGS = ("python", "task", "autoimport", "precondition")
+    INDEXED_FLAGS = ("python", "task", "autoimport", "precondition", "export")
 
 
     def __init__(self, meta=None):
@@ -268,7 +268,10 @@ class DictMeta(MetaData):
             vars = {}
             if flag in self.dict["__flag_index"]:
                 for var in self.dict["__flag_index"][flag]:
-                    vars[var] = self.dict[var][""]
+                    try:
+                        vars[var] = self.dict[var][""]
+                    except KeyError:
+                        continue
             else:
                 for var in self.dict:
                     try:
