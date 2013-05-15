@@ -69,7 +69,7 @@ class NoopFunction(OEliteFunction):
 class PythonFunction(OEliteFunction):
 
     def __init__(self, meta, var, name=None, tmpdir=None, recursion_path=None,
-                 set_ld_library_path=True):
+                 set_ld_library_path=True, set_os_environ=True):
         # Don't put the empty list directly in the function definition
         # as default arguments, as modifications of this "empty" list
         # will be done in-place so that it will not be truly empty
@@ -95,11 +95,15 @@ class PythonFunction(OEliteFunction):
         self.code = meta.get_pythonfunc_code(var)
         eval(self.code, g, l)
         self.function = l[var]
+        self.set_os_environ = set_os_environ
         super(PythonFunction, self).__init__(meta, var, name, tmpdir,
                                              set_ld_library_path)
         return
 
     def __call__(self):
+        # FIXME: this should be removed together with the LD_LIBRARY_PATH messing, and os.environ simply be cleared after each function is run
+        old_os_environ = os.environ.copy()
+
         if self.ld_library_path:
             old_ld_library_path = None
             try:
@@ -109,14 +113,30 @@ class PythonFunction(OEliteFunction):
             except KeyError:
                 ld_library_path = self.ld_library_path
             os.environ[self.ld_library_path_var] = ld_library_path
+
+        if self.set_os_environ:
+            for var in self.meta.get_vars(flag="export", values=True):
+                if self.meta.get_flag(var, "unexport"):
+                    continue
+                val = self.meta.get(var)
+                if val is None:
+                    val = ""
+                os.environ[var] = val
+
         try:
             retval = self.function(self.meta)
         finally:
+            os.environ.clear()
+            for var, val in os.environ.items():
+                os.environ[var] = val
             if self.ld_library_path:
                 if old_ld_library_path:
                     os.environ[self.ld_library_path_var] = old_ld_library_path
                 else:
-                    del os.environ[self.ld_library_path_var]
+                    try:
+                        del os.environ[self.ld_library_path_var]
+                    except KeyError:
+                        pass
         if isinstance(retval, basestring):
             return retval or True
         if retval is None:
