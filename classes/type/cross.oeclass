@@ -11,6 +11,7 @@ require conf/paths/machine-target.conf
 
 BLACKLIST_PREFIX += "SDK_"
 
+PATH =. "${STAGE_PATH}:"
 STAGE_PATH = "\
 ${STAGE_DIR}/cross${stage_bindir}:\
 ${STAGE_DIR}/native${stage_bindir}\
