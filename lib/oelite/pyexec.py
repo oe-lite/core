@@ -41,7 +41,8 @@ def exechooks(meta, name, hooks=None):
         else:
             name = function
         hook = meta.get_pythonfunc(function, name, tmpdir=tmpdir,
-                                   set_ld_library_path=False)
+                                   set_ld_library_path=False,
+                                   set_os_environ=False)
         retval = hook.run(tmpdir)
         if isinstance(retval, basestring):
             raise oelite.HookFailed(name, function, retval)
