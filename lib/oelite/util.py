@@ -86,7 +86,7 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0, **kwargs):
             if process.returncode == success_returncode:
                 retval = output
             else:
-                print "Error: Command failed: %r: %d"%(cmdstr, returncode)
+                print "Error: Command failed: %r: %d"%(cmdstr, process.returncode)
         else:
             returncode = subprocess.call(cmd, stdin=sys.stdin, **kwargs)
             if returncode == success_returncode:
