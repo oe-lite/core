@@ -33,7 +33,7 @@ META_EMIT_PREFIX += "stage:DEPENDS_${PN} rstage:RDEPENDS_${PN} :PROVIDES_${PN}"
 RECIPE_TYPE = "machine"
 RE = ""
 
-CLASS_DEPENDS = ""
+CLASS_DEPENDS ?= ""
 
 #
 # Import standard Python modules as well as custom OE modules
