@@ -56,7 +56,8 @@ class TeeStream:
         return
 
 
-def shcmd(cmd, dir=None, quiet=False, success_returncode=0, **kwargs):
+def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
+          silent_errorcodes=[], **kwargs):
 
     if isinstance(cmd, basestring):
         cmdstr = cmd
@@ -85,13 +86,14 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0, **kwargs):
             output = process.communicate()[0]
             if process.returncode == success_returncode:
                 retval = output
-            else:
-                print "Error: Command failed: %r: %d"%(cmdstr, process.returncode)
+            elif not process.returncode in silent_errorcodes:
+                print "Error: Command failed: %r: %d"%(
+                    cmdstr, process.returncode)
         else:
             returncode = subprocess.call(cmd, stdin=sys.stdin, **kwargs)
             if returncode == success_returncode:
                 retval = True
-            else:
+            elif not returncode in silent_errorcodes:
                 print "Error: Command failed: %r: %d"%(cmdstr, returncode)
     except OSError, e:
         if e.errno == 2:
