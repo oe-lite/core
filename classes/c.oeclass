@@ -113,45 +113,79 @@ SDK_TARGET_LDFLAGS_HASH_STYLE:TARGET_OS_mingw32 = ""
 
 HOST_LDFLAGS:native		 = "${BUILD_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
+	-L${STAGE_DIR}/native${stage_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/native${stage_libdir} \
-	-L${STAGE_DIR}/native${stage_libdir}"
+"
+
 HOST_LDFLAGS:cross		 = "${BUILD_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
+	-L${STAGE_DIR}/cross${stage_libdir} \
+	-L${STAGE_DIR}/native${stage_libdir} \
+	-Wl,-rpath,${STAGE_DIR}/cross${stage_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/native${stage_libdir} \
-	-L${STAGE_DIR}/native${stage_libdir}"
+"
+
 HOST_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT}"
+	--sysroot=${MACHINE_SYSROOT} \
+"
+
 HOST_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT}"
+	--sysroot=${SDK_SYSROOT} \
+	-Wl,-rpath,${D}${sdk_libdir} \
+	-Wl,-rpath,${D}${sdk_base_libdir} \
+"
+
 HOST_LDFLAGS:sdk-cross		 = "${BUILD_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
+	-L${STAGE_DIR}/sdk-cross${stage_libdir} \
+	-L${STAGE_DIR}/native${stage_libdir} \
+	-Wl,-rpath,${STAGE_DIR}/sdk-cross${stage_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/native${stage_libdir} \
-	-L${STAGE_DIR}/native${stage_libdir}"
+"
+
 HOST_LDFLAGS:canadian-cross	 = "${SDK_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT}"
+	--sysroot=${SDK_SYSROOT} \
+	-Wl,-rpath,${D}${sdk_libdir} \
+	-Wl,-rpath,${D}${sdk_base_libdir} \
+"
 
 TARGET_LDFLAGS:native		 = "${BUILD_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
+	-L${STAGE_DIR}/native${stage_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/native${stage_libdir} \
-	-L${STAGE_DIR}/native${stage_libdir}"
+"
+
 TARGET_LDFLAGS:cross		 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT}"
+	--sysroot=${MACHINE_SYSROOT} \
+"
+
 TARGET_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT}"
+	--sysroot=${MACHINE_SYSROOT} \
+"
+
 TARGET_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT}"
+	--sysroot=${SDK_SYSROOT} \
+	-Wl,-rpath,${D}${sdk_libdir} \
+	-Wl,-rpath,${D}${sdk_base_libdir} \
+"
+
 TARGET_LDFLAGS:sdk-cross	 = "${SDK_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT}"
+	--sysroot=${SDK_SYSROOT} \
+	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_libdir} \
+	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_base_libdir} \
+"
+
 TARGET_LDFLAGS:canadian-cross	 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT}"
+	--sysroot=${MACHINE_SYSROOT} \
+"
 
 # CC
 export CC = "${HOST_CC}"
