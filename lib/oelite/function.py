@@ -10,8 +10,7 @@ import re
 
 class OEliteFunction(object):
 
-    def __init__(self, meta, var, name=None, tmpdir=None,
-                 set_ld_library_path=True):
+    def __init__(self, meta, var, name=None, tmpdir=None):
         self.meta = meta
         self.var = var
         if name:
@@ -25,15 +24,8 @@ class OEliteFunction(object):
             if not self.tmpdir:
                 die("T variable not set, unable to build")
         self.flags = meta.get_flags(var, oelite.meta.FULL_EXPANSION)
-        if self.meta.get("BUILD_OS") == "darwin":
-            self.ld_library_path_var = "DYLD_LIBRARY_PATH"
-        else:
-            self.ld_library_path_var = "LD_LIBRARY_PATH"
-        if set_ld_library_path:
-            self.ld_library_path = self.meta.get("LD_LIBRARY_PATH")
-        else:
-            self.ld_library_path = None
         return
+
     def __str__(self):
         return "%s"%(self.var)
 
@@ -69,7 +61,7 @@ class NoopFunction(OEliteFunction):
 class PythonFunction(OEliteFunction):
 
     def __init__(self, meta, var, name=None, tmpdir=None, recursion_path=None,
-                 set_ld_library_path=True, set_os_environ=True):
+                 set_os_environ=True):
         # Don't put the empty list directly in the function definition
         # as default arguments, as modifications of this "empty" list
         # will be done in-place so that it will not be truly empty
@@ -96,23 +88,10 @@ class PythonFunction(OEliteFunction):
         eval(self.code, g, l)
         self.function = l[var]
         self.set_os_environ = set_os_environ
-        super(PythonFunction, self).__init__(meta, var, name, tmpdir,
-                                             set_ld_library_path)
+        super(PythonFunction, self).__init__(meta, var, name, tmpdir)
         return
 
     def __call__(self):
-        # FIXME: this should be removed together with the LD_LIBRARY_PATH messing, and os.environ simply be cleared after each function is run
-        old_os_environ = os.environ.copy()
-
-        if self.ld_library_path:
-            old_ld_library_path = None
-            try:
-                old_ld_library_path = os.environ[self.ld_library_path_var]
-                ld_library_path = "%s:%s"%(old_ld_library_path,
-                                           self.ld_library_path)
-            except KeyError:
-                ld_library_path = self.ld_library_path
-            os.environ[self.ld_library_path_var] = ld_library_path
 
         if self.set_os_environ:
             for var in self.meta.get_vars(flag="export", values=True):
@@ -121,22 +100,14 @@ class PythonFunction(OEliteFunction):
                 val = self.meta.get(var)
                 if val is None:
                     val = ""
+                if var == "LD_LIBRARY_PATH":
+                    var = (self.meta.get("LD_LIBRARY_PATH_VAR")
+                           or "LD_LIBRARY_PATH")
                 os.environ[var] = val
-
         try:
             retval = self.function(self.meta)
         finally:
             os.environ.clear()
-            for var, val in os.environ.items():
-                os.environ[var] = val
-            if self.ld_library_path:
-                if old_ld_library_path:
-                    os.environ[self.ld_library_path_var] = old_ld_library_path
-                else:
-                    try:
-                        del os.environ[self.ld_library_path_var]
-                    except KeyError:
-                        pass
         if isinstance(retval, basestring):
             return retval or True
         if retval is None:
@@ -146,10 +117,8 @@ class PythonFunction(OEliteFunction):
 
 class ShellFunction(OEliteFunction):
 
-    def __init__(self, meta, var, name=None, tmpdir=None,
-                 set_ld_library_path=True):
-        super(ShellFunction, self).__init__(meta, var, name, tmpdir,
-                                            set_ld_library_path)
+    def __init__(self, meta, var, name=None, tmpdir=None):
+        super(ShellFunction, self).__init__(meta, var, name, tmpdir)
         return
 
     def __call__(self):
@@ -189,21 +158,15 @@ class ShellFunction(OEliteFunction):
                 #print "ignoring var %s type=%s"%(var, type(val))
                 continue
             quotedval = re.sub('"', '\\"', val or "")
+            if var == "LD_LIBRARY_PATH":
+                var = (self.meta.get("LD_LIBRARY_PATH_VAR")
+                       or "LD_LIBRARY_PATH")
             runfile.write('%s="%s"\n'%(var, quotedval))
         for (var, val) in bashfuncs:
             runfile.write("\n%s() {\n%s\n}\n"%(
                     var, (val or "\t:").rstrip()))
 
         runfile.write("set -x\n")
-        ld_library_path = self.meta.get("LD_LIBRARY_PATH")
-        flags = self.meta.get_flags("LD_LIBRARY_PATH")
-        if self.ld_library_path:
-            # Prepend already existing content of LD_LIBRARY_PATH only if its set
-            runfile.write("if [ $" + self.ld_library_path_var + " ]; then \
-				export " + self.ld_library_path_var + "=\"$" + self.ld_library_path_var + ":" + self.ld_library_path + "\" ;\
-			   else \
-				export " + self.ld_library_path_var + "=\"" + self.ld_library_path + "\" ;\
-			   fi\n")
         runfile.write("cd %s\n"%(os.getcwd()))
         runfile.write("%s\n"%(self.name))
         runfile.close()
