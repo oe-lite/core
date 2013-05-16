@@ -1,0 +1,160 @@
+# -*- mode:python; -*-
+
+addtask chrpath after install before split
+
+META_EMIT_PREFIX += "chrpath:CHRPATH"
+
+CHRPATH_DIRS = "${base_bindir} ${bindir} ${base_sbindir} ${sbindir} \
+        ${base_libdir} ${libdir} ${base_sharedlibdir} ${sharedlibdir} \
+        ${libexecdir}"
+
+CHRPATH_REPLACE_DIRS			= "${CHRPATH_DIRS}"
+CHRPATH_STRIP_DIRS			= ""
+CHRPATH_REPLACE_DIRS:machine		= ""
+CHRPATH_STRIP_DIRS:machine		= "${CHRPATH_DIRS}"
+
+CHRPATH_REPLACE_STAGEDIRS:native	= "1"
+CHRPATH_REPLACE_STAGEDIRS:cross		= "1"
+CHRPATH_REPLACE_STAGEDIRS:sdk-cross	= "1"
+
+CHRPATH_BUILD	?= "${BUILD_PREFIX}chrpath"
+CHRPATH_HOST	?= "${HOST_PREFIX}chrpath"
+CHRPATH_TARGET	?= "${TARGET_PREFIX}chrpath"
+
+CLASS_DEPENDS += "${CHRPATH_DEPENDS}"
+CHRPATH_DEPENDS:native = "${CHRPATH_DEPENDS_NATIVE}"
+CHRPATH_DEPENDS:cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST}"
+CHRPATH_DEPENDS:machine = "${CHRPATH_DEPENDS_HOST}"
+CHRPATH_DEPENDS:sdk-cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST}"
+CHRPATH_DEPENDS:sdk = "${CHRPATH_DEPENDS_HOST}"
+CHRPATH_DEPENDS:canadian-cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST} ${CHRPATH_DEPENDS_TARGET}"
+CHRPATH_DEPENDS_NATIVE = "native:chrpath"
+CHRPATH_DEPENDS_HOST = "host-cross:chrpath"
+CHRPATH_DEPENDS_HOST:HOST_LIBC_mingw = ""
+CHRPATH_DEPENDS_TARGET = "target-cross:chrpath"
+CHRPATH_DEPENDS_TARGET:TARGET_LIBC_mingw = ""
+
+do_chrpath[dirs] = "${D}"
+def do_chrpath(d):
+    import stat
+    import magic
+
+    filemagic = magic.open(magic.MAGIC_NONE)
+    filemagic.load()
+
+    chrpath_cmd = {}
+    for elf_type in ("BUILD", "HOST", "TARGET"):
+        chrpath_cmd[elf_type] = (d.get("%s_ELF"%(elf_type)),
+                                 d.get("CHRPATH_%s"%(elf_type)))
+    if chrpath_cmd["TARGET"][0] == chrpath_cmd["HOST"][0]:
+        del chrpath_cmd["TARGET"]
+    if chrpath_cmd["HOST"][0] == chrpath_cmd["BUILD"][0]:
+        del chrpath_cmd["HOST"]
+    for elf_type in chrpath_cmd:
+        if not chrpath_cmd[elf_type][0]:
+            del chrpath_cmd[elf_type]
+        else:
+            chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
+                                     chrpath_cmd[elf_type][1])
+    replace_stagedirs = d.get("CHRPATH_REPLACE_STAGEDIRS")
+    stage_dir = d.get('STAGE_DIR')
+    install_dir = d.get('D')
+
+    def get_chrpath_cmd(path):
+        filetype = filemagic.file(path)
+        if not "dynamically linked" in filetype:
+            return None
+        for elf_type in chrpath_cmd:
+            if chrpath_cmd[elf_type][0].match(filetype):
+                return chrpath_cmd[elf_type][1]
+        return None
+
+    def chrpath_dir(dir, recursive=False, replace=False):
+        if not os.path.exists(dir):
+            return True
+        assert os.path.isdir(dir)
+        for file in os.listdir(dir):
+            path = os.path.join(dir, file)
+            if os.path.islink(path):
+                continue
+            if os.path.isdir(path):
+                if recursive:
+                    chrpath_dir(path, recursive, replace)
+                continue
+            chrpath = get_chrpath_cmd(path)
+            if not chrpath:
+                continue
+            mode = os.stat(path)[stat.ST_MODE]
+            if os.access(path, os.W_OK|os.R_OK):
+                mode = None
+            else:
+                os.chmod(path, mode|stat.S_IRWXU)
+            if replace:
+                cmd = [chrpath, '-l', path]
+                old_rpath = oelite.util.shcmd(cmd, quiet=True,
+                                              silent_errorcodes=[2])
+                if not old_rpath:
+                    continue
+                dirparts = len(os.path.dirname(path).split('/'))
+                origin_root = '$ORIGIN/' + '/'.join(['..'] * dirparts)
+                old_rpath = old_rpath[
+                    old_rpath.index('RPATH=') + len('RPATH='):].strip()
+                rpaths = []
+                for rpath in old_rpath.split(':'):
+                    if rpath.startswith('$ORIGIN'):
+                        rpaths.append(rpath)
+                        continue
+                    if rpath.startswith(stage_dir):
+                        if not replace_stagedirs:
+                            continue
+                        rpath = rpath.replace(stage_dir, origin_root + "/..")
+                    rpath = rpath.replace(install_dir, origin_root)
+                    # FIXME: remove DT_RUNPATH?  probably needs chrpath patch
+                    rpaths.append(rpath)
+                unique_rpaths = []
+                for rpath in rpaths:
+                    if not rpath.startswith("$ORIGIN"):
+                        rpath = origin_root + rpath
+                    if not rpath in unique_rpaths:
+                        unique_rpaths.append(rpath)
+                new_rpath = ':'.join(unique_rpaths)
+                if new_rpath == old_rpath:
+                    continue
+                cmd = [chrpath, '-r', new_rpath, path]
+                rc = oelite.util.shcmd(cmd)
+                if not rc:
+                    print 'ERROR: chrpath replace failed: %s'%(path)
+                    return False
+            else:
+                cmd = [chrpath, "-d", path]
+                rc = oelite.util.shcmd(cmd)
+                if not rc:
+                    print 'ERROR: chrpath delete failed: %s'%(path)
+                    return False
+                if mode:
+                    os.chmod(path, mode)
+        return True
+
+    stripdirs = d.get("CHRPATH_STRIP_DIRS").split()
+    for dir in stripdirs:
+        recursive=False
+        if dir.endswith("//"):
+            recursive=True
+        dir = dir.strip("/")
+        rc = chrpath_dir(dir, recursive, replace=False)
+        if not rc:
+            return rc
+
+    replacedirs = d.get("CHRPATH_REPLACE_DIRS").split()
+    for dir in replacedirs:
+        if dir in stripdirs:
+            continue
+        recursive=False
+        if dir.endswith("//"):
+            recursive=True
+        dir = dir.strip("/")
+        rc = chrpath_dir(dir, recursive, replace=True)
+        if not rc:
+            return rc
+
+    return
