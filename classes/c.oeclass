@@ -130,11 +130,15 @@ HOST_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	--sysroot=${MACHINE_SYSROOT} \
 "
 
+SDK_STATIC_LDFLAGS = ""
+SDK_STATIC_LDFLAGS:USE_sdk_static = "-static"
+
 HOST_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
 	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
+	${SDK_STATIC_LDFLAGS} \
 "
 
 HOST_LDFLAGS:sdk-cross		 = "${BUILD_LDFLAGS} \
@@ -150,6 +154,7 @@ HOST_LDFLAGS:canadian-cross	 = "${SDK_LDFLAGS} \
 	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
+	${SDK_STATIC_LDFLAGS} \
 "
 
 TARGET_LDFLAGS:native		 = "${BUILD_LDFLAGS} \
@@ -173,6 +178,7 @@ TARGET_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
+	${SDK_STATIC_LDFLAGS} \
 "
 
 TARGET_LDFLAGS:sdk-cross	 = "${SDK_LDFLAGS} \
@@ -180,6 +186,7 @@ TARGET_LDFLAGS:sdk-cross	 = "${SDK_LDFLAGS} \
 	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_base_libdir} \
+	${SDK_STATIC_LDFLAGS} \
 "
 
 TARGET_LDFLAGS:canadian-cross	 = "${MACHINE_LDFLAGS} \
