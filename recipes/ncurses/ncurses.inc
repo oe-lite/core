@@ -23,7 +23,7 @@ EXTRA_OECONF += "\
 --with-libtool=${STAGE_DIR}/${HOST_CROSS}${stage_bindir}/${LIBTOOL} \
 --without-profile \
 --without-debug \
---disable-rpath \
+--enable-rpath \
 --enable-echo \
 --enable-const \
 --without-ada \
