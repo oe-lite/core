@@ -56,7 +56,7 @@ class OEliteRunQueue:
             "task		INTEGER, " # references task.id
             "prime		INTEGER, " # boolean
             "parent_task	INTEGER, " # references task.id
-            "deptype		TEXT, "
+            "deptype		TEXT DEFAULT '', "
             "package		INTEGER DEFAULT -1, " # package
             "filename		TEXT, "
             "prebake		INTEGER, "
