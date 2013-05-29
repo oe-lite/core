@@ -44,6 +44,6 @@ do_compile () {
 	if [ ! -e targets/tarballs ] ; then
 		ln -s ${SRCDIR} targets/tarballs
 	fi
-	ct-ng build
+	${CT_NG} build
 }
 
