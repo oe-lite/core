@@ -1,0 +1,47 @@
+Barebox Class
+=============
+
+The barebox class is used for integration of the Barebox bootloader in OE-lite
+BSP projects.
+
+The following USE flags are offered by the barebox class:
+
+* USE_barebox_defconfig
+* USE_barebox_maxsize
+
+These USE flags are typically set in the machine configuration file, fx.
+conf/machine/myboard.conf
+
+----
+MACHINE_USE_barebox_defconfig = "file"
+MACHINE_USE_barebox_maxsize = "261124"
+----
+
+There are 3 different ways to configure a barebox recipe in OE-lite.
+
+1. If the USE_barebox_defconfig flag is not set (the default), the barebox
+   recipe will depend on a barebox-defconfig package.  This can fx. be used to
+   use a standard/upstream barebox recipe but with a board specific custom
+   configuration maintained in a project specific recipe.
+
+2. If the USE_barebox_defconfig flag is set to "file", the barebox recipe
+   should include a defconfig file itself.  This can be used in custom barebox
+   recipes, where the configuration is hosted in OE-lite instead of in the
+   barebox source.
+
+3. Anything else will be assume to be a valid xxxxx_defconfig value to give to
+   make to configure using the barebox source.
+
+The USE_barebox_maxsize flag can be used to specify a maximum allowed size of
+the barebox image file (in bytes).
+
+Integration of Barebox development in a project specific barebox.git
+repository is done by adding a new barebox recipe in the project specific
+OE-lite recipes directory, fx. project-barebox.oe:
+
+----
+DESCRIPTION = "Project specific Barebox bootloader"
+inherit barebox
+SRC_URI = "git://...../barebox.git"
+----
+
