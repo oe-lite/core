@@ -11,4 +11,4 @@ manual.html: $(wildcard *.txt)
 .PHONY: upload
 upload: all
 	rsync -av --delete manual.html images \
-		oe-lite.org:/srv/http/doc/core/
+		oe-lite.org:/srv/http/doc/core/master/
