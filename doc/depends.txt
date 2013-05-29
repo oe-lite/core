@@ -1,0 +1,178 @@
+Dependencies
+============
+
+Dependencies, items and provides.
+
+
+Three types of dependencies
+---------------------------
+
+There are three different type of dependencies in OE-lite, which are defined
+by 3 different variables:
+
+* Build-time dependencies
+* Run-time dependencies
+* Fetch-time dependencies
+
+
+
+Recipe dependencies
+-------------------
+
+A recipe can have fetch-time, build-time as well as run-time dependencies.  It
+is rather uncommon to have both build-time and run-time dependencies in the
+same recipe though.
+
+Each type of recipe dependency is defined by the union of two variables, and
+is used by a corresponding _stage_ task.
+
+The purpose of a _stage_ task is to build up a _stage_ directory, containing
+the corresponding dependencies.
+
+.Dependency variables
+[options="header"]
+[frame="topbot",grid="none"]
+|======================================================================
+| Dependency | Dependency variables      | Stage task | Stage directory
+| Build-time | DEPENDS / CLASS_DEPENDS   | stage      | WORKDIR/stage
+| Run-time   | RDEPENDS / CLASS_RDEPENDS | rstage     | WORKDIR/rstage
+| Fetch-time | FDEPENDS / CLASS_FDEPENDS | fstage     | WORKDIR/fstage
+|======================================================================
+
+
+
+Dependency items
+----------------
+
+In the lack of a better word, each part of a dependency specification is
+called an +item+ in OE-lite. For example:
+
+----
+DEPENDS = "foo libbar"
+----
+
+The build-time dependency is composed of the "foo" +item+ and the "libbar"
+item.
+
+When specifying a dependency +item+, it can be prefixed with a type.  For
+example:
+
+----
+DEPENDS = "native:foo"
+----
+
+which specifies a dependency on +native:foo+, meaning the foo +item+ of
++native+ type.
+
+The available item types, corresponding to the similarly names recipe and
+package types, are
+
+* native
+* cross
+* machine
+* sdk-cros
+* sdk
+* canadian-cross
+
+and a number of alias item types
+
+* build
+* host
+* target
+* host-cross
+* target-cross
+
+The alias item types are mapped to one of the 6 real item types listed first,
+depending on the context that the +item+ is used in.  Using +host:foo+ in a
++native+ context will be mapped to +native:foo+, while it will be mapped to
++machine:foo+ when used in a +machine+ context.
+
+Item types (including alias item types) can also be forbidden in some
+contexts.
+
+See the +TYPEMAP+ dictionary in the +lib/oelite/item.py+ file in OE-lite/core
+for more details on this context sensitive item type mapping.
+
+
+
+Package provides
+----------------
+
+When resolving dependencies, the items are resolved against packages, or
+rather against the _provides_ of packages.  A package _provides_ one or more
+items.  A package always _provides_ the full name of the package.  Additional
+package _provides_ is defined by package specific PROVIDES variables. For
+example:
+
+----
+PROVIDES_${PN} = "hello"
+PROVIDES_${PN}-bar = "world"
+----
+
+
+
+Package dependencies
+--------------------
+
+Packages can also have dependencies, and these are also specified seperately
+for each dependency type.  For example:
+
+----
+DEPENDS_${PN}-libfoo = "libbar"
+----
+
+Which specifies that the +$${PN}-libfoo+ package build-time depends on the
++libbar+ item.
+
+
+Recursive dependency resolving
+------------------------------
+
+When resolving recipe dependencies, the corresponding package dependencies are
+also resolved.
+
+Take a recipe with
+
+----
+DEPENDS = "libfoo"
+----
+
+And the +libfoo+ item is resolved to be provided by the +foobar-libfoo+
+package from the +foobar+ recipe.
+
+The +foobar+ recipe has
+
+----
+DEPENDS_${PN}-libfoo = "libhello"
+----
+
+Which causes the resolver to continue with resolving the +libbar+ item.  The
++libbar+ item might be resolved to the +helloworld-libhello+ package from the
++helloworld+ recipe.
+
+The fully resolved build-time dependency list is then the packages:
+
+* +foobar-libfoo+
+* +helloworld-libhello+
+
+and the recipes:
+
+* +foobar+
+* +helloworld+
+
+
+
+Stage tasks
+-----------
+anchor:depends-stage-tasks[]
+
+A stage task is responsible for building up the stage directory with all the
+required dependencies.
+
+To accomplish this, the stage task depends on the +package+ task of all
+recipes providing packages that is selected when resolving the recipe
+depdendencies.
+
+When run, the stage task unpacks all the packages from the resolved dependency
+list into the stage directory.
+
