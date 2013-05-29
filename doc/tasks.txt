@@ -1,0 +1,178 @@
+Tasks
+=====
+
+OE-lite builds are divided into a number of tasks, which are executed in a
+specific order.  Each tasks belong to a specific recipe, and can have
+dependencies (specifying the order) to other tasks from the same recipe or
+other recipes.
+
+Although recipes can define any custom tasks, most tasks are common with many
+other tasks, or even all other tasks.  Such common tasks are typically defined
+by OE-lite classes.
+
+This section describes the purpose and perhaps even a bit of the inner working
+of some of these common tasks.
+
+When a task is run, the corresponding 'do_' function (shell or Python) is run.
+
+A typical sequence of tasks run for a single recipe is:
+
+. do_fstage
+. do_fetch
+. do_unpack
+. do_patch
+. do_stage
+. do_configure
+. do_compile
+. do_install
+. do_split
+. do_package
+
+A number of directories are involved with the execution of these tasks.  The
+default values for these is set in +conf/oelayout.conf+ in OE-lite/core.
+
+.Task related directories
+[options="header"]
+[frame="topbot",grid="none"]
+|==========================================================================
+| Variable    | Typical values
+| TMPDIR      | /home/me/oe-lite/tmp
+| WORKDIR     | $\{TMPDIR\}/work/machine/arm-926ejs-linux-gnueabi/foobar-1.2
+| SRCDIR      | $\{WORKDIR}/src
+| S           | $\{SRCDIR}/foobar-1.2
+| B           | $\{S}
+| D           | $\{WORKDIR}/install
+| PKGD        | $\{WORKDIR}/packages
+| INGREDIENTS | /home/me/oe-lite/ingredients
+|==========================================================================
+
+
+Stage tasks
+-----------
+
+There are 3 different stage tasks: +stage+, +rstage+, and +fstage+.
+
+See the xref:depends-stage-tasks[Dependencies, items and provides] chapter for
+more information on these tasks.
+
+
+Fetch task
+----------
+
+The fetch task is responsible for fetching all external sources specified in
+the +SRC_URI+ variable to the +INGREDIENTS+ directory.
+
+See +classes/fetch.oeclass+ and +lib/oelite/fetch/+ in OE-lite/core for more
+details.
+
+
+Unpack task
+-----------
+
+The unpack task is responsible for unpacking sources specified in +SRC_URI+ to
+the +SRCDIR+ directory.
+
+Source files that cannot be unpacked, or there are marked with the +unpack=0+
+parameter in +SRC_URI+ are copied to +SRCDIR+.
+
+See +classes/fetch.oeclass+ and +lib/oelite/fetch/+ in OE-lite/core for more
+details.
+
+
+Patch task
+----------
+
+The patch task is responsible for applying patch files specified in +SRC_URI+
+to the unpacked sources in the +SRCDIR+ directory.
+
+All source files ending with '.patch' or '.diff' specified in +SRC_URI+ will
+be applied, unless they are marked with the +apply=0+ parameter in +SRC_URI+.
+
+See +classes/fetch.oeclass+ and +lib/oelite/fetch/+ in OE-lite/core for more
+details.
+
+
+Configure task
+--------------
+
+The configure task is often used for configuring the source code, fx. by
+running a './configure' script with some arguments.
+
+The configure task is defined in +classes/core.oeclass+, but just as a stub.
+The actual implementation must come from another class or from the recipe
+itself.  See +classes/autotools.oeclass+, +classes/kernel.oeclass+,
++classes/u-boot.oeclass+, and +classes/barebox.oeclass+ in OE-lite/core for
+some of the most often used do_configure implementations.
+
+Normally, do_configure is run in the +B+ directory, which by default is the
+same as the +S+ directory.
+
+
+Compile task
+------------
+
+The compile task is often used for compiling the source code (make all), and
+is run in the +B+ directory, which are by default set to +S+.
+
+Image recipes (fx. a recipe building a rootfs filesystem image from a
+collection of packages) use the compile task for creating the image file
+(fx. calling mkfs.jffs2).
+
+The compile task is defined in +classes/core.oeclass+, but just as a stub.
+The actual implemention must come from another class or from the recipe
+itself.  See +classes/make.oeclass+, +classes/kernel.oeclass+ and
++classes/image.oeclass+ in OE-lite/core for some of the most often used
+do_compile implementations.
+
+
+Install task
+------------
+
+The install task is used to install files from the +B+ (build) directory to
+the +D+ directory.
+
+The install task is defined in +classes/core.oeclass+, but just as a stub.
+The actual implemention must come from another class or from the recipe
+itself.  See +classes/make.oeclass+, +classes/kernel.oeclass+ and
++classes/u-boot.oeclass+ in OE-lite/core for some of the often used do_install
+implementations.
+
+
+
+Split task
+----------
+
+The split task is responsible for splitting up all the files from the +D+
+directory into seperate directories for each package in the +PKGD+ directory.
+
+See +classes/package.oeclass+ for details on this.
+
+
+Package task
+------------
+
+The package task is used for packaging each of the 1st level subdirectories of
+the +PKGD+ directory into the +PACKAGE_DEPLOY_DIR+ directory.
+
+See +classes/package.oeclass+ for details on this.
+
+This task is used as as the dependency target when recipes has a build-time,
+run-time or fetch-time dependency on an item that ends up being provided by a
+package from the recipe.  This is defined by the +recdeptask+ varflag of the
+stage task variable.
+
+In classes/fetch.oeclass:
+
+----
+do_fstage[recdeptask]	= "FDEPENDS:do_package"
+----
+
+In classes/image.oeclass:
+----
+do_rstage[recdeptask]	= "RDEPENDS:do_package"
+----
+
+In classes/stage.oeclass:
+----
+do_stage[recdeptask]	= "DEPENDS:do_package"
+----
