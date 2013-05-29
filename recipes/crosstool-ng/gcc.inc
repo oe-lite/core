@@ -44,3 +44,6 @@ require gcc-configure.inc
 require gcc-compile.inc
 require gcc-install.inc
 require gcc-package.inc
+
+CT_NG = "make -rf `PATH=${PATH} which ct-ng`"
+CT_NG[emit] = 'do_configure do_compile'

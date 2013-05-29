@@ -167,7 +167,7 @@ do_configure[cleandirs] = "${B}"
 do_configure[dirs] = "${B}"
 do_configure () {
         cp defconfig .config
-        ct-ng oldconfig
+        ${CT_NG} oldconfig
 }
 
 do_configure[prefuncs] += "do_configure_defconfig"
