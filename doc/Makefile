@@ -5,11 +5,10 @@ all: manual.html
 clean:
 	rm -f *.html
 
-%.html: %.doc
-	a2x -f chunked -d book $< -v
-	a2x -f text -d book $< -v
-	a2x -f xhtml -d book $< -v
+manual.html: $(wildcard *.txt)
+	asciidoc -b html5 manual.txt
 
 .PHONY: upload
-upload: manual.html
-	scp docbook-xsl.css $< oe-lite.org:/srv/http/download/manual/current
+upload: all
+	rsync -av --delete manual.html images \
+		oe-lite.org:/srv/http/doc/core/
