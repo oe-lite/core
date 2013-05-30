@@ -7,13 +7,16 @@ dependencies (specifying the order) to other tasks from the same recipe or
 other recipes.
 
 Although recipes can define any custom tasks, most tasks are common with many
-other tasks, or even all other tasks.  Such common tasks are typically defined
-by OE-lite classes.
+other tasks, or even all other tasks.  Such common tasks are defined by
+OE-lite classes.
 
 This section describes the purpose and perhaps even a bit of the inner working
 of some of these common tasks.
 
 When a task is run, the corresponding 'do_' function (shell or Python) is run.
+For example, execution of the compile task involves running the do_compile
+function, which in some recipes are a shell function, and in other recipes are
+a Python function.
 
 A typical sequence of tasks run for a single recipe is:
 
