@@ -79,10 +79,10 @@ do_unpack_fixup () {
 		ln -s ltrace_${CT_LTRACE_VERSION}.orig.tar.gz \
 			${SRCDIR}/ltrace-${CT_LTRACE_VERSION}.tar.gz
 	fi
-	if [ "${CT_LIBC}" == "glibc" ] ; then
+	if [ "${CT_LIBC}" = "glibc" ] ; then
 		ln -s glibc-ports \
 			${SRCDIR}/glibc-ports-${CT_LIBC_VERSION}
-	elif [ "${CT_LIBC}" == "eglibc" ] ; then
+	elif [ "${CT_LIBC}" = "eglibc" ] ; then
 		mv eglibc-${CT_LIBC_VERSION} eglibc-${CT_LIBC_VERSION}.tmp
 		for d in eglibc-${CT_LIBC_VERSION}.tmp/* ; do
 			addon=`basename $d`
