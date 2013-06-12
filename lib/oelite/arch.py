@@ -171,7 +171,34 @@ cpuspecs = {
             },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
-            'mtune'		: 'cortex-a9',
+            'mtune'	 	: 'cortex-a9',
+            'abi flags'         : [
+                ['float abi', 'hard', {
+                        'hard' : {
+                            'float' : 'hard',
+                            'fpu'   : 'neon',
+                            'vendor' : 'neon',
+                            },
+                        'softfp' : {
+                            'float' : 'softfp',
+                            'fpu'   : 'neon',
+                            'vendor' : 'neonsfp',
+                            },
+                        'soft' : {
+                            'float' : 'soft',
+                            'vendor' : 'sfp',
+                            },
+                        }
+                 ],
+                ['instruction set', 'thumb', {
+                        'arm' : { },
+                        'thumb' : {
+                            'thumb' : '1',
+                            'vendor' : 't',
+                            },
+                        }
+                 ],
+                ]
             },
         'cortexa9neon'		: {
             'mcpu'		: 'cortex-a9',
@@ -415,6 +442,7 @@ cpumap = {
         'imx536'		: ('cortexa8', 'imx', 'imx53'),
         'imx537'		: ('cortexa8', 'imx', 'imx53'),
         'imx538'		: ('cortexa8', 'imx', 'imx53'),
+        'imx6'			: ('cortexa9', 'imx'),
         },
 
     'x86'		: {
