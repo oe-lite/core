@@ -8,6 +8,7 @@ RECIPE_TYPES = "machine"
 inherit kernel-common
 
 C_DEPENDS = "native:cc"
+CHRPATH_DEPENDS_HOST = ""
 
 do_configure() {
     oe_runmake allnoconfig
