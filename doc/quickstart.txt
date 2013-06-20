@@ -100,7 +100,8 @@ python-sqlite2 python-devel fakeroot libstdc++-static glibc-static \
 gettext-devel ncurses-devel libtool texinfo flex bison coreutils \
 sed git-core cvs subversion mercurial quilt gawk texinfo automake \
 autoconf curl texi2html openjade groff make gcc-c++ gcc binutils bc \
-unzip lzma gtk-doc docbook-utils xml2 xmlto help2man glib2-devel
+unzip lzma gtk-doc docbook-utils xml2 xmlto help2man glib2-devel \
+libacl-devel
 ----
 
 Install dependencies in dpkg based distribution, something like:
@@ -113,7 +114,7 @@ coreutils sed git-core cvs subversion mercurial quilt gawk texinfo \
 automake autoconf autopoint libtool curl texi2html diffstat \
 openjade groff mtd-utils build-essential make gcc g++ binutils \
 bison flex bc ncurses-dev unzip lzma gtk-doc-tools docbook-utils \
-libxml2-utils xmlto help2man libglib2.0-dev lzop
+libxml2-utils xmlto help2man libglib2.0-dev lzop libacl1-dev
 ----
 
 Install dependencies in RHEL 6.2, something like:
