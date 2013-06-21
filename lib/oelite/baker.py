@@ -73,6 +73,10 @@ def add_bake_parser_options(parser):
                       action="store", type="str", default=None, metavar="DIR",
                       help="dump task metadata used for calculating task signatures to DIR")
 
+    parser.add_option("--fake-build",
+                      action="store_true", default=False,
+                      help="don't actually run the tasks, but record state as if they were")
+
     return
 
 
@@ -550,7 +554,7 @@ class OEliteBaker:
             meta = task.meta()
             info("Running %d / %d %s"%(count, total, task))
             task.build_started()
-            if task.run():
+            if self.options.fake_build or task.run():
                 task.build_done(self.runq.get_task_buildhash(task))
                 self.runq.mark_done(task)
             else:
