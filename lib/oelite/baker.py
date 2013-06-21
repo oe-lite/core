@@ -361,6 +361,9 @@ class OEliteBaker:
                 e.msg += " in %s"%(task)
                 raise
             task_meta = task.meta()
+            # FIXME: is this really needed?  How should the task metadata be
+            # changed at this point?  isn't it created from recipe meta by the
+            # task.meta() call above?
             if (recipe_extra_arch and
                 task_meta.get("EXTRA_ARCH") != recipe_extra_arch):
                 task_meta.set("EXTRA_ARCH", recipe_extra_arch)
