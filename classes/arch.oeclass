@@ -2,8 +2,6 @@
 
 addhook arch_update to post_recipe_parse first
 
-EXTRA_ARCH ?= ""
-
 def arch_update(d):
     import oelite.arch
     oelite.arch.update(d)
@@ -12,3 +10,20 @@ HOST_EXEEXT ??= ""
 TARGET_EXEEXT ??= ""
 HOST_EXEEXT[expand] = 3
 TARGET_EXEEXT[expand] = 3
+
+EXTRA_ARCH ?= ""
+
+addhook machine_fixup to post_extra_arch first
+
+def machine_fixup(d):
+    machine = d.get('MACHINE')
+    extra_arch = d.get('EXTRA_ARCH')
+    if machine and extra_arch != '.%s'%(machine):
+        machine = None
+    if not machine:
+        try:
+            del d['MACHINE']
+        except KeyError:
+            pass
+    d.set('MACHINE_ID',
+          machine or '%s%s'%(d.get('TARGET_CPU'), d.get('TARGET_VENDOR')))
