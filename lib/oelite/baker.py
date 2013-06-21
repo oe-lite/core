@@ -329,6 +329,7 @@ class OEliteBaker:
                     resolved_recipes.add(recipe)
                     del unresolved_recipes[i]
                     progress = True
+                    oelite.pyexec.exechooks(recipe.meta, "post_extra_arch")
             if not progress:
                 bb.fatal("recipe EXTRA_ARCH resolving deadlocked!")
 
