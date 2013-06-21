@@ -264,6 +264,7 @@ addhook_hooknames = [
     'pre_recipe_parse',
     'mid_recipe_parse',
     'post_recipe_parse',
+    'post_extra_arch',
     ]
 tokens.append('HOOKNAME')
 
