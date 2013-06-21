@@ -166,23 +166,33 @@ class DictMeta(MetaData):
             oval = None
             append = ""
             prepend = ""
+            var_override_used = None
+            overrides_used = set()
             for override in current_overrides:
                 if oval is None:
                     try:
                         oval = var_overrides[override]
+                        var_override_used = override
                     except KeyError:
                         pass
                 try:
                     append += append_overrides[override] or ""
+                    overrides_used.add(override)
                 except KeyError:
                     pass
                 try:
                     prepend = prepend_overrides[override] or "" + prepend
+                    overrides_used.add(override)
                 except KeyError:
                     pass
             if oval is not None:
                 val = oval
+                overrides_used.add(var_override_used)
             val = prepend + (val or "") + append
+            for override in overrides_used:
+                if override.startswith('MACHINE_'):
+                    self.dict['EXTRA_ARCH'] = '.%s'%(self.dict['MACHINE'])
+                    break
 
         if expand == OVERRIDES_EXPANSION:
             return (val, None)
