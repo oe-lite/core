@@ -15,3 +15,8 @@ DEPENDS_${PN} = "util-linux"
 DEPENDS_${PN} = "${PN}-dev"
 DEPENDS_${PN}-dev = ""
 RDEPENDS_${PN} = "util-linux"
+
+SOLIBS = "-*.so"
+SOLIBSDEV = ".so"
+FILES_${PN}-dev = "${libdir}/*.a ${libdir}/*.la \
+	${sharedlibdir}/libfakeroot${SOLIBSDEV}"
