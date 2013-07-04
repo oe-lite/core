@@ -34,7 +34,8 @@ DEFCONFIG = "${USE_kernel_defconfig}"
 DEFCONFIG[expand] = 3
 
 CLASS_FLAGS += "kernel_initramfs"
-CLASS_DEPENDS:>USE_kernel_initramfs = " initramfs"
+DEPENDS_KERNEL_INITRAMFS ?= "initramfs"
+CLASS_DEPENDS:>USE_kernel_initramfs = " ${DEPENDS_KERNEL_INITRAMFS}"
 KERNEL_INITRAMFS ?= "${MACHINE_SYSROOT}${bootdir}/initramfs.cpio"
 USE_KERNEL_INITRAMFS = "${USE_kernel_initramfs}"
 USE_KERNEL_INITRAMFS[expand] = "3"
