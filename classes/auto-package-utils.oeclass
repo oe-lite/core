@@ -1,4 +1,17 @@
-# -*- mode:python; -*-
+## Multiutils split functionality class
+##
+## If having a package that contains multiple utils, then this class may be
+## utilized to ensure correct split of the utilities. Set the variable
+## AUTO_PACKAGE_UTILS to a list of utilities, and a number
+## of extra packages equal to the number of items in the list will be created.
+## E.g. if having a package contains /usr/bin/foo and /usr/bin/bar,
+## the list would be AUTO_PACKAGE_UTILS = "foo bar". This will create 2
+## additional package named ${PN}-foo and ${PN}-bar that provides util/foo and
+## util/bar.
+##
+## @var AUTO_PACKAGE_UTILS Set to a list of libraries
+## @var AUTO_PACKAGE_UTILS_RDEPENDS Set to a common RDEPEND for all libraries in
+##      the list
 
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
@@ -68,3 +81,7 @@ def auto_package_utils (d):
     d.set("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
     d.set("AUTO_PACKAGE_UTILS_DOC_PACKAGES", " ".join(doc_packages))
     d.set("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
+
+# Local Variables:
+# mode: python
+# End:
