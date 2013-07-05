@@ -1,3 +1,10 @@
+## Class for recipes that depends on gettext.
+##
+## Ensures that the correct configure option is passed on when depending on
+## gettext.
+##
+## @usefag nls Enable nls
+
 CLASS_DEPENDS =+ "${DEPENDS_GETTEXT}"
 DEPENDS_GETTEXT = ""
 DEPENDS_GETTEXT:USE_nls = "gettext native:gettext-utils libiconv libintl"
@@ -8,3 +15,7 @@ EXTRA_OECONF_GETTEXT = "--disable-nls"
 EXTRA_OECONF_GETTEXT:USE_nls = "--enable-nls"
 
 EXTRA_OECONF += "${EXTRA_OECONF_GETTEXT}"
+
+# Local Variables:
+# mode: python
+# End:
