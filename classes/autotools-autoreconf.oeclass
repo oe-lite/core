@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Common class for autoclass recipes, with autoreconf.
+##
+## See @class autotools. If using this class instead of autotools, one
+## ensures that the autoreconf command is run before configure.
 
 inherit autotools
 
@@ -87,3 +90,7 @@ do_autoreconf () {
         fi
     fi
 }
+
+# Local Variables:
+# mode: python
+# End:
