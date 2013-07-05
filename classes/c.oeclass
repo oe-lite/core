@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Class for settings of variables for building c on different archs
+##
+## This class sets the variables needed for when compiling c on native,
+## machine, sdk, cross, sdk-cross, canadian-cross (=all). A similar class
+## exists for c++, see @class c++.
 
 C_DEPENDS			= "host-cross:cc"
 C_DEPENDS:>canadian-cross	= " target-cross:cc"
@@ -275,3 +279,7 @@ export BUILD_AR
 BUILD_AR	= "${BUILD_PREFIX}ar"
 HOST_AR		= "${HOST_PREFIX}ar"
 TARGET_AR	= "${TARGET_PREFIX}ar"
+
+# Local Variables:
+# mode: python
+# End:
