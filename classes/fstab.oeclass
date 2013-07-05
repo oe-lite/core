@@ -1,13 +1,13 @@
-#
-# OE-lite class for handling fstab file.
-#
-# Inherit this class in recipes needing to add stuff to /etc/fstab .
-# Recipes install task should install the required content into the
-# /etc/fstab file, and the fixup_fstab will relocate this to
-# /etc/fstab.d/${PN} which will the be merged with the (master)
-# /etc/fstab file together with other additions in the compile task
-# of image builds.
-#
+## OE-lite class for handling fstab file.
+##
+## Inherit this class in recipes needing to add stuff to /etc/fstab .
+## Recipes install task should install the required content into the
+## /etc/fstab file, and the fixup_fstab will relocate this to
+## /etc/fstab.d/${PN} which will the be merged with the (master)
+## /etc/fstab file together with other additions in the compile task
+## of image builds. Set the USE flag fstab is you wish to use fstab.
+##
+## @useflag fstab Enable fstab by setting it.
 
 require conf/fstab.conf
 
@@ -20,3 +20,7 @@ do_install_fstab_fixup () {
         mv ${D}${sysconfdir}/fstab ${D}${fstabfixupdir}/${PN}
     fi
 }
+
+# Local Variables:
+# mode: python
+# End:
