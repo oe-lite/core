@@ -1,4 +1,19 @@
-# -*- mode:python; -*-
+## Class for building barebox.
+##
+## If having a barebox bootloader, simply inherit this class and set the
+## SRC_URI, and ensure that the correct defconfig is used.
+## Barebox defconfig can be provided in 3 different ways:
+## Use defconfig file from DEPENDS (barebox-defconfig)
+##  + USE_barebox_defconfig not set (this is default)
+## Use defconfig from barebox source.
+##  + Set USE_barebox_defconfig to "blahblah_defconfig"
+## Use defconfig file from SRC_URI
+##  + Set USE_barebox_defconfig to "file"
+##
+## @useflag barebox_defconfig Set to the defconfig used.
+## @useflag barebox_maxsize Set to the maximum size allowed. See @class
+##          sizecheck.
+
 DESCRIPTION ?= "Barebox - a bootloader that inherits the best of U-Boot and the Linux kernel"
 HOMEPAGE ?= "http://www.barebox.org/"
 LICENSE ?= "GPL"
@@ -14,17 +29,6 @@ EXTRA_OEMAKE = "ARCH=${KERNEL_ARCH} CROSS_COMPILE=${TARGET_PREFIX}"
 CFLAGS[unexport]   = "1"
 CPPFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
-
-# Barebox defconfig can be provided in 3 different ways:
-#
-# Use defconfig file from DEPENDS (barebox-defconfig)
-#  + USE_barebox_defconfig not set (this is default)
-#
-# Use defconfig from barebox source.
-#  + Set USE_barebox_defconfig to "blahblah_defconfig"
-#
-# Use defconfig file from SRC_URI
-#  + Set USE_barebox_defconfig to "file"
 
 CLASS_FLAGS += "${DEFCONFIG_FLAG}"
 DEFCONFIG[expand] = "3"
@@ -92,3 +96,7 @@ do_deploy () {
 			${BAREBOX_IMAGE_DEPLOY_LINK}
 	fi
 }
+
+# Local Variables:
+# mode: python
+# End:
