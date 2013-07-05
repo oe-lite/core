@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## Class for fetching and unpacking
+##
+## If the src contained within SRC_URI is not already fetched, a fetch is
+## performed. Afterwards, the package signature is checked against the
+## signature file. If the signature fails, fetch fails. If no signature is
+## present, fetch fails, but a signature is generated.
+## When fetch succeeds, unpack is then performed which unpacks the SRC to ${S}.
 
 addtask fstage
 addtask fetch after fstage
@@ -125,3 +131,7 @@ do_fetchall[recdeptask] = "DEPENDS:do_fetchall RDEPENDS:do_fetchall"
 do_fetchall[dirs] = "${WORKDIR}"
 def do_fetchall(d):
     return
+
+# Local Variables:
+# mode: python
+# End:
