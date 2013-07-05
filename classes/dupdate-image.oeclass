@@ -1,4 +1,14 @@
-# -*- mode:python; -*-
+## Used for creating dupdate tarballs containing multiple files.
+##
+## A dupdate file is a tarball containing: A VERSION, a runscript, a number of
+## images, and a checksum of all the files.
+##
+## @useflag dupdate_script Set it to the name of dupdate script.
+## @useflag dupdate_version Set it to the dupdate version (will be placed in
+##          the VERSION file.
+## @var IMAGE_BASENAME Set to a different basename.
+## @var IMAGE_FULLNAME Set to a different fullname.
+
 IMAGE_BASENAME ?= "${MACHINE}-${PN}"
 IMAGE_FULLNAME ?= "${IMAGE_BASENAME}-${PV}-${DATETIME}"
 
@@ -62,3 +72,7 @@ do_deploy_dupdate_image () {
 }
 
 FILES_${PN} += "/${MACHINE}-${PN}_${DISTRO_VERSION}.dupdate"
+
+# Local Variables:
+# mode: python
+# End:
