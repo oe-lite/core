@@ -1,4 +1,4 @@
-# -*- mode:python; -*-
+## Sets MACHINE_ID to its correct value
 
 addhook arch_update to post_recipe_parse first
 
@@ -27,3 +27,7 @@ def machine_fixup(d):
             pass
     d.set('MACHINE_ID',
           machine or '%s%s'%(d.get('TARGET_CPU'), d.get('TARGET_VENDOR')))
+
+# Local Variables:
+# mode: python
+# End:
