@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Common class for autoclass recipes
+##
+## If having a package that is autotools based, the way it is compiled and
+## installed is similar to other autotools packages. If having a new recipe
+## that is autotools based, just inherit autotools, and it should work.
 
 # Autoconf sitefile handling
 inherit c
@@ -58,3 +62,7 @@ do_configure_autotools () {
     libtool_script_fixup
 }
 AUTOTOOLS_DISTCLEAN ?= "1"
+
+# Local Variables:
+# mode: python
+# End:
