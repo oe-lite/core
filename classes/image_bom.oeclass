@@ -1,4 +1,7 @@
-#Creates a bom list of runtime componets with name, description, and licence
+## Creates a bom list of runtime componets with name, description, and licence
+##
+## Loops through all dirs in the image and creates a list of all the package
+## names, licences, and description found.
 
 do_rstage[postfuncs] += "do_rstage_bom"
 def do_rstage_bom(d):
@@ -87,3 +90,7 @@ do_install_bom () {
 
 PACKAGES += "${PN}-bom"
 FILES_${PN}-bom = "/${PN}-bom.txt"
+
+# Local Variables:
+# mode: python
+# End:
