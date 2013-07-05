@@ -1,4 +1,19 @@
-# -*- mode:python; -*-
+## Multilibrary split functionality class
+##
+## If having a package that contains multiple libs, then this class may be
+## utilized to ensure correct split of the libraries. Set the variable
+## AUTO_PACKAGE_LIBS to a list of libraries (remove extensions), and a number
+## of extra packages equal to the number of items in the list will be created.
+## E.g. if having a package contains /usr/lib/libfoo.so and /usr/lib/libbar.so,
+## the list would be AUTO_PACKAGE_LIBS = "foo bar". This will create 2
+## additional packages named ${PN}-foo and ${PN}-bar that provides libfoo and
+## libbar.
+##
+## @var AUTO_PACKAGE_LIBS Set to a list of libraries
+## @var AUTO_PACKAGE_LIBS_RDEPENDS Set to a common RDEPEND for all libraries in
+##      the list
+## @var AUTO_PACKAGE_LIBDIR If having libraries an uncommen place, ensure that
+##      path is in this variable.
 
 PACKAGES =+ "${LIBS_AUTO_PACKAGES}"
 PACKAGES[expand] = 3
@@ -167,3 +182,7 @@ def auto_package_libs (d):
 
     d.set("LIBS_AUTO_RPACKAGES", " ".join(packages))
     d.set("LIBS_AUTO_PACKAGES", " ".join(packages + devpackages))
+
+# Local Variables:
+# mode: python
+# End:
