@@ -1,4 +1,13 @@
-# -*- mode:python; -*-
+## Usefull class when building a cpio image.
+##
+## This class may be used in e.g. an initramfs for creating a cpio initramfs.
+## By setting ramdisk_image_compression, one may determine the compression
+## of the initramfs.
+##
+## @useflag ramdisk_image Use ramdisk. Default is false.
+## @useflag ramdisk_image_name Set the resulting image name.
+## @useflag ramdisk_image_compression Set the compression for the ramdisk image.
+
 IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
 inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab
 
@@ -68,3 +77,7 @@ do_deploy_cpio_image () {
 			${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}$ext
 	done
 }
+
+# Local Variables:
+# mode: python
+# End:
