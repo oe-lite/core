@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Used for creating ext2 images.
+##
+## Creates an ext2 image.
+##
+## @var IMAGE_BASENAME Set to a different basename.
 
 IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
 
@@ -33,3 +37,7 @@ do_deploy_ext2_image () {
 	ln -sf ${IMAGE_FULLNAME}.ext2 \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}.ext2
 }
+
+# Local Variables:
+# mode: python
+# End:
