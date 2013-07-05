@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Rewrites ELF rpath.
+##
+## Strip of ELF rpath from machine recipe output, and rewrite ELF rpath
+## in all other recipe types to be relocatable using $ORIGIN relative paths.
+## TBD.
 
 addtask chrpath after install before split
 
@@ -158,3 +162,7 @@ def do_chrpath(d):
             return rc
 
     return
+
+# Local Variables:
+# mode: python
+# End:
