@@ -1,3 +1,20 @@
+## Places tarballs ontop of existing rootfs.
+##
+## This class is usefull when building a tarball image to be placed in
+## an already existing rootfs. It does not contains the same libraries
+## as in the rootfs, but only the delta to the rootfs.
+##
+## @useflag rootfs_name The name of the rootfs recipe in which this package will
+##          be placed.
+## @useflag basefiles_version Set to a path to a version file if not wanting to
+##          remove it if already present in the rootfs.
+## @useflag basefiles_buildtime Set to a path to a buildtime file if not
+##          wanting to remove it if already present in the rootfs.
+## @useflag basefiles_cross_config Set to a path to a cross-config (from ct-ng)
+##          file if not wanting to remove it if already present in the rootfs.
+## @useflag basefiles_buildtag Set to a path to a buildtag if not wanting to
+##          remove it if already present in the rootfs.
+
 inherit archive-image fakeroot
 
 IMAGE_BASENAME = "${PN}"
@@ -48,3 +65,7 @@ do_removedoubles () {
 		fi
 	done
 }
+
+# Local Variables:
+# mode: python
+# End:
