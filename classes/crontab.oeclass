@@ -1,7 +1,12 @@
-# -*- mode:python; -*-
-#
-# OE-lite class for handling crontab files
-#
+## Move crontab files to recipe specific directory.
+##
+## If a file contains a crontab configuration, it is moved to a recipe specific
+## directory. This is done to ensure that multiple recipes may have crontab
+## files without them conflicting. See @class image_crontab for when it is
+## combined to one crontab config file. Crontab is enabled using the use flag
+## crontab.
+##
+## @useflag crontab Set if you want crontab to be enabled
 
 require conf/crontab.conf
 
@@ -53,3 +58,7 @@ python do_install_crontab () {
                     out_file.write(when +' '+ line)
         os.chmod(out_filename, 0644)
 }
+
+# Local Variables:
+# mode: python
+# End:
