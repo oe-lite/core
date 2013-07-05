@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## Usefull class when building an archive image.
+##
+## Creates a tarball or a zipfile of contents of e.g. a rootfs.
+## Builds a tarball by default, but one may set ARCHIVE_IMAGE_FORMATS to zip
+## if wanting a zipfile.
+##
+## @var ARCHIVE_IMAGE_FORMATS set to zip if wanting a zipfile instead
 
 inherit image
 
@@ -82,3 +88,7 @@ do_deploy_archive_image () {
 			${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}.$ext
 	done
 }
+
+# Local Variables:
+# mode: python
+# End:
