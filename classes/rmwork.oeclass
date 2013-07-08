@@ -1,12 +1,10 @@
-# -*- mode:python; -*-
-#
-# Cleanup workdir after build (enabled by default!)
-#
-# To leave entire workdir after succeussful builds, add the following
-# line to conf/local.conf:
-#   RMWORK = "0"
-# or use --no-rmwork command-line option
-#
+## Class that cleans up after build.
+##
+## Cleanup workdir after build (enabled by default!)
+## To leave entire workdir after succeussful builds, add the following
+## line to conf/local.conf:
+##   RMWORK = "0"
+## or use --no-rmwork command-line option
 
 addtask rmwork after package
 do_rmwork[dirs] = "${WORKDIR}"
@@ -28,3 +26,7 @@ python do_rmwork () {
     stampdir = d.getVar("STAMPDIR", True)
     shutil.rmtree(stampdir)
 }
+
+# Local Variables:
+# mode: python
+# End:
