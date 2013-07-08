@@ -1,3 +1,12 @@
+## OE-lite class for combining mdev files.
+##
+## See @class mdev. If a recipe inherits @class mdev, the mdev files
+## that may be supplied by that recipe is placed in a recipe specific folder.
+## All those mdev files is combined to a single mdev.conf file using this
+## class. Remember to set the USE flag mdev, if you need mdev.
+##
+## @useflag mdev Set if you want mdev.
+
 CLASS_FLAGS += "busybox_mdev"
 
 require conf/mdev.conf
@@ -13,3 +22,7 @@ image_preprocess_mdev () {
 	done
 	rm -rf $cwd/${mdevdir}
 }
+
+# Local Variables:
+# mode: python
+# End:
