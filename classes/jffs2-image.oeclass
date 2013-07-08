@@ -1,4 +1,14 @@
-# -*- mode:python; -*-
+## Class for creating jffs2 images.
+##
+## Creates a jffs2 image. The options for creating the jffs2 image is found in
+## @var JFFS2_IMAGE_OPTIONS.
+##
+## @useflag jffs2_maxsize The maximum size allowed of the jffs2 image. Used by
+##          @class sizecheck.
+##
+## @var IMAGE_BASENAME Basename of the image created.
+## @var JFFS2_IMAGE_OPTIONS The options used when creating the jffs2 image.
+##      Set to lzo compression, and disables zlib and rtime by default.
 
 IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
 
@@ -40,3 +50,7 @@ do_deploy_jffs2_image () {
 	ln -sf ${IMAGE_FULLNAME}.jffs2 \
 		${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}.jffs2
 }
+
+# Local Variables:
+# mode: python
+# End:
