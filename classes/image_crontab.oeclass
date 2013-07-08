@@ -1,3 +1,12 @@
+## Combines all crontab files into one
+##
+## See @class crontab. If a recipe inherits @class crontab, the crontab files
+## that may be supplied by that recipe is placed in a recipe specific folder.
+## All those crontab files is combined to a single crontab file using this
+## class. Remember to set the USE flag crontab, if you need crontab.
+##
+## @useflag crontab Set if you want crontab.
+
 require conf/crontab.conf
 
 IMAGE_PREPROCESS_FUNCS:>USE_crontab = " image_preprocess_crontab"
@@ -11,3 +20,7 @@ image_preprocess_crontab () {
 		rm $f
 	done
 }
+
+# Local Variables:
+# mode: python
+# End:
