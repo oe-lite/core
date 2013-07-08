@@ -1,4 +1,12 @@
-# -*- mode:python; -*-
+## Class simplifying the creation of initramfs images.
+##
+## Creates two images; cpio and tarball, which then may be provided for a
+## kernel.
+##
+## @useflag initramfs_archive_formats Format of the archive image. Set to tar
+##          by default.
+## @useflag initramfs_archive_tar_ext Extention of the tar image. Set to tar by
+##          default.
 
 DESCRIPTION ?= "Kernel initramfs filesystem"
 
@@ -20,3 +28,7 @@ DEFAULT_USE_initramfs_archive_tar_ext = "tar"
 ARCHIVE_IMAGE_FORMATS = "${USE_initramfs_archive_formats}"
 ARCHIVE_IMAGE_DIRNAME = ""
 ARCHIVE_IMAGE_TAR_EXT = "${USE_initramfs_archive_tar_ext}"
+
+# Local Variables:
+# mode: python
+# End:
