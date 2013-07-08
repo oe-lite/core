@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## OE-lite class for recipes providing content for makedevs
+##
+## Inherit this class in recipes needing to add stuff to /etc/devtable.d.
+## Recipes wanting to provide contents, should set the @var MAKEDEVS_FILES
+## to a file containing the content.
+##
+## @var MAKEDEVS_FILES Set to path to the file containing the content.
 
 require conf/makedevs.conf
 
@@ -14,3 +20,7 @@ do_install_makedevs () {
 		i=$((i+1))
 	done
 }
+
+# Local Variables:
+# mode: python
+# End:
