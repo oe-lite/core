@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Class used to fill mirror with src
+##
+## Two tasks exist, mirror and mirrorall. Mirror obtains all src'es from a
+## recipe and puts it on the mirror. Mirrorall does the same, but also for all
+## build and run dependencies.
 
 addtask mirror after fetch
 addtask mirrorall after mirror
@@ -20,3 +24,7 @@ do_mirrorall[recdeptask] = "DEPENDS:do_mirrorall RDEPENDS:do_mirrorall"
 do_mirrorall[dirs] = "${WORKDIR}"
 def do_mirrorall(d):
     return
+
+# Local Variables:
+# mode: python
+# End:
