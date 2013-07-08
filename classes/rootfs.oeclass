@@ -1,3 +1,21 @@
+## Class for building root filesystem
+##
+## Uses this class for when building a rootfs. Inherit it, and by default an
+## archive image will be build. To build extra images, simple also inherit e.g
+## ubifs-image for building an ubifs image.
+##
+## @useflag rootfs_extra_rdepends Set extra rdepends to the rootfs.
+## @useflag rootfs_jffs2_options Add jffs2 image options. Default is set to
+##          '--faketime --squash'.
+## @useflag rootfs_ext2_options Add ext2 image options. Default is set to
+##          '-z -q -f'.
+## @useflag rootfs_ext_size_in_blocks Set the size of ext2 in blocks. Default
+##          is set to 10240.
+## @useflag rootfs_archive_formats Set the archive format. Default is set to
+##          tar.
+## @useflag rootfs_archive_tar_ext Set the tar image extention. Default is set
+##          to tar.
+
 DESCRIPTION ?= "Root filesystem"
 
 inherit image_mdev image_inetd image_crontab image_makedevs image_inittab image_fstab image_passwd
@@ -34,3 +52,7 @@ ARCHIVE_IMAGE_DIRNAME = ""
 ARCHIVE_IMAGE_TAR_EXT = "${USE_rootfs_archive_tar_ext}"
 
 inherit image-qa archive-image
+
+# Local Variables:
+# mode: python
+# End:
