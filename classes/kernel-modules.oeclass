@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Class for creating kernel modules.
+##
+## Uses for recipes compiling kernel modules that ofcause needs a kernel to be
+## build against.
 
 RECIPE_TYPES = "machine"
 COMPATIBLE_MACHINES = ".*"
@@ -41,3 +44,7 @@ do_install () {
 
 PACKAGES += "${PN}-modules"
 FILES_${PN}-modules = "/lib/modules"
+
+# Local Variables:
+# mode: python
+# End:
