@@ -1,3 +1,23 @@
+## Class for checking dynamic dependencies for images.
+##
+## When an image is created, all the dynamic dependencies is checked by this
+## class. Libaries/binaries found in @var IMAGEQA_HOST_READELF_SEARCH_DIRS and
+## @var IMAGEQA_TARGET_READELF_SEARCH_DIRS are checked, and when looking for
+## the needed libaries, @var IMAGEQA_HOST_READELF_LIB_DIRS and @var
+## IMAGEQA_TARGET_READELF_LIB_DIRS are searched through.
+##
+## @var IMAGEQA_HOST_READELF Native binary readelf used for checking host.
+## @var IMAGEQA_HOST_READELF_SEARCH_DIRS A list of dirs. All libraries/binaries
+##      in this list if checked.
+## @var IMAGEQA_HOST_READELF_LIB_DIRS A list of dirs. When checking libraries
+##      or binaries in @var IMAGEQA_HOST_READELF_SEARCH_DIRS, libaries are
+##      looked for in the paths provides by this variable.
+## @var IMAGEQA_TARGET_READELF Target binary readelf used for checking target.
+## @var IMAGEQA_TARGET_READELF_SEARCH_DIRS A list of dirs. Same type as
+##      IMAGEQA_HOST_READELF_SEARCH_DIRS, but for target.
+## @var IMAGEQA_TARGET_READELF_LIB_DIRS Same type as
+##      IMAGEQA_HOST_READELF_LIB_DIRS, but for target.
+
 addtask imageqa after compile before deploy
 
 # FIXME: improve gcc packaging, so that readelf can be obtained
@@ -111,3 +131,7 @@ python do_imageqa () {
     finally:
         filemagic.close()
 }
+
+# Local Variables:
+# mode: python
+# End:
