@@ -1,7 +1,9 @@
-# -*- mode:python; -*-
-#
-# inherit this for (single) library recipes
-#
+## Class for (single) library recipes
+##
+## This class is highly usefull when having a recipe with a single library.
+## An example of this would be jpeg. That would correctly package the library
+## and provide the library 'libjpeg'. If having a recipe having multiple
+## libraries, see @class auto-package-libs.
 
 DEPENDS_${PN}		= "${PN}-dev_${PV}"
 DEPENDS_${PN}-dev	= ""
@@ -60,3 +62,7 @@ def library_depends(d):
                 devdep = "%s:%s"%(item.type, item.name + "-dev")
             devpkg_rdepends.append(dep + "-dev")
     d.set("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
+
+# Local Variables:
+# mode: python
+# End:
