@@ -1,3 +1,12 @@
+## OE-lite class for combining inetd files.
+##
+## See @class inetd. If a recipe inherits @class inetd, the inetd files
+## that may be supplied by that recipe is placed in a recipe specific folder.
+## All those inetd files is combined to a single inetd file using this
+## class. Remember to set the USE flag inetd, if you need inetd.
+##
+## @useflag inetd Set if you want inetd.
+
 CLASS_FLAGS += "inetd"
 
 require conf/inetd.conf
@@ -13,3 +22,7 @@ image_preprocess_inetd () {
 	done
         rm -rf $cwd/${inetddir}
 }
+
+# Local Variables:
+# mode: python
+# End:
