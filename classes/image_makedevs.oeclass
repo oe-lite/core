@@ -1,3 +1,11 @@
+## OE-lite class for creating devices using makedevs.
+##
+## See @class makedevs. Uses the makedevs files found in /etc/devtable.d/ to
+## create devices.
+##
+## @useflag makedevs set if you want makedevs to create makedevs.
+##          Is set by default.
+
 require conf/makedevs.conf
 
 CLASS_DEPENDS:>USE_makedevs = " native:makedevs"
@@ -9,3 +17,7 @@ image_preprocess_makedevs () {
 		| xargs -r0 -n1 makedevs -r . -D
 	rm -rf ./${devtabledir}
 }
+
+# Local Variables:
+# mode: python
+# End:
