@@ -1,9 +1,8 @@
-# -*- mode:python; -*-
-#
-# Set the ARCH environment variable for kernel compilation (including
-# modules). Return value must match one of the architecture directories
-# in the kernel source "arch" directory
-#
+## Set the correct architecture when compiling kernel.
+##
+## Set the ARCH environment variable for kernel compilation (including
+## modules). Return value must match one of the architecture directories
+## in the kernel source "arch" directory
 
 KERNEL_ARCHS = "alpha arm avr32 blackfin cris frv h8300 ia64 m32r \
     m68k m68knommu microblaze mips mn10300 parisc powerpc s390 score sh \
@@ -40,3 +39,7 @@ def map_uboot_arch(d, arch):
     if arch == "powerpc":
         return "ppc"
     return arch
+
+# Local Variables:
+# mode: python
+# End:
