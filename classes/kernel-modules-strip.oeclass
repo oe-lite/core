@@ -1,4 +1,6 @@
-# -*- mode:python; -*-
+## Class for stripping kernel modules.
+##
+## Used by @class kernel and @class kernel-modules.
 
 inherit c
 
@@ -16,3 +18,7 @@ do_install_kernel_modules_strip () {
         fi
     fi
 }
+
+# Local Variables:
+# mode: python
+# End:
