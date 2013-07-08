@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Class for kernel header generation.
+##
+## If having a recipe providing linux headers, the chance that you want to
+## create the toolchain with custom headers is fairly high. The @useflag is
+## toolchain_kernel_version_machine, remember to set that to "custom".
 
 DESCRIPTION ?= "Sanitized Linux kernel headers"
 LICENSE ?= "GPLv2"
@@ -30,3 +34,7 @@ FILES_${PN} = "${includedir}"
 PROVIDES_${PN} = "linux-headers"
 
 REBUILDALL_SKIP = "1"
+
+# Local Variables:
+# mode: python
+# End:
