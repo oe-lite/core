@@ -1,4 +1,15 @@
+## Class for handling largefile support.
+##
+## Disables or enables largefile support through configuring, using the
+## @useflag largefile.
+##
+## @useflag largefile Enable largefile support. Default is not enabled.
+
 CLASS_FLAGS += "largefile"
 EXTRA_OECONF_LARGEFILE = "--disable-largefile"
 EXTRA_OECONF_LARGEFILE:USE_largefile = "--enable-largefile"
 EXTRA_OECONF += "${EXTRA_OECONF_LARGEFILE}"
+
+# Local Variables:
+# mode: python
+# End:
