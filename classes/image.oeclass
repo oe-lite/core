@@ -1,4 +1,13 @@
-# -*- mode:python; -*-
+## Class for creating images.
+##
+## Combined all of functions the @class image_* to a list of functions run
+## before the image is created, and when the image is created.
+##
+## @var IMAGE_BASENAME Basename of the image.
+## @var IMAGE_FULLNAME The fullname of the image.
+## @var IMAGE_PREPROCESS_FUNCS A list of all the function run before the image
+##      is created.
+## @var IMAGE_CREATE_FUNCS The functions run to create the image.
 
 addtask rstage after patch before compile
 addtask deploy after install before build
@@ -71,3 +80,7 @@ def do_rstage(d):
 set_stage[emit] += "do_rstage"
 
 RSTAGE_FIXUP_FUNCS ?= ""
+
+# Local Variables:
+# mode: python
+# End:
