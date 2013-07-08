@@ -1,7 +1,13 @@
-# -*- mode:python; -*-
-#
-# OE-lite class for recipes providing content for inetd.conf file
-#
+## OE-lite class for recipes providing content for inetd.conf file
+##
+## Inherit this class in recipes needing to add stuff to /etc/inetd .
+## Recipes install task should install the required content into the
+## /etc/inetd.conf file, and the fixup_inetd will relocate this to
+## /etc/inetd.conf.d/${PN} which will the be merged with the (master)
+## /etc/inetd.conf file together with other additions in the compile task
+## of image builds. Set the USE flag inetd is you wish to use inetd.
+##
+## @useflag inetd Enable inetd by setting it.
 
 require conf/inetd.conf
 
@@ -26,3 +32,7 @@ do_install_inetd () {
         fi
     done
 }
+
+# Local Variables:
+# mode: python
+# End:
