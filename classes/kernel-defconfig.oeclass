@@ -1,3 +1,20 @@
+## Defconfig handling for recipes.
+##
+## This class is used for recipes just providing the defconfig. The @class
+## kernel then may use this defconfig.
+## Kernel defconfig can be provided in 3 different ways:
+##
+## Use defconfig file from SRC_URI (this is default)
+##  + Set USE_kernel_defconfig to "file"
+##
+## Use defconfig from kernel source
+##  + Set USE_kernel_defconfig to "blahblah_defconfig"
+##
+## Use defconfig file from DEPENDS (kernel-defconfig)
+##  + USE_kernel_defconfig not set
+##
+## So this class supports the last option.
+
 SRC_URI = "file://defconfig"
 
 do_install () {
@@ -7,3 +24,7 @@ do_install () {
 PACKAGES = "${PN}"
 FILES_${PN} = "/kernel_defconfig"
 PROVIDES_${PN} = "kernel-defconfig"
+
+# Local Variables:
+# mode: python
+# End:
