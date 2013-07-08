@@ -1,3 +1,8 @@
+## Class for combining content for /etc/passwd and /etc/group
+##
+## See @class passwd. This class combined the contents for /etc/group and
+## /etc/passwd provided by one or more recipes.
+
 require conf/passwd.conf
 
 IMAGE_PREPROCESS_FUNCS += "image_preprocess_passwd"
@@ -21,3 +26,7 @@ image_preprocess_passwd () {
 		rm -rf $cwd/${groupdir}
 	fi
 }
+
+# Local Variables:
+# mode: python
+# End:
