@@ -1,3 +1,12 @@
+## OE-lite class for combining inittab files.
+##
+## See @class inittab. If a recipe inherits @class inittab, the inittab files
+## that may be supplied by that recipe is placed in a recipe specific folder.
+## All those inittab files is combined to a single inittab file using this
+## class. Remember to set the USE flag inittab, if you need inittab.
+##
+## @useflag inittab Set if you want inittab.
+
 require conf/inittab.conf
 
 IMAGE_PREPROCESS_FUNCS:>USE_inittab = " image_preprocess_inittab"
@@ -11,3 +20,7 @@ image_preprocess_inittab () {
 	done
 	rm -rf .${inittabfixupdir}
 }
+
+# Local Variables:
+# mode: python
+# End:
