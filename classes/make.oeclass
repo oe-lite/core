@@ -1,4 +1,13 @@
-# -*- mode:python; -*-
+## Class for recipes where make && make install is all thats needed.
+##
+## Performs a make in ${S} and afterwards a make install. If wanting to set
+## extra compile and install options use @var EXTRA_OEMAKE, otherwise use
+## @var EXTRA_OEMAKE_COMPILE if exclusively wanting to set extra compile
+## options, or @var EXTRA_OEMAKE_INSTALL if exclusively for install.
+##
+## @var EXTRA_OEMAKE Extra compile and install options.
+## @var EXTRA_OEMAKE_COMPILE Extra compile options.
+## @var EXTRA_OEMAKE_INSTALL Extra install options.
 
 require conf/make.conf
 
@@ -34,3 +43,7 @@ do_install_make () {
 	${MAKE} ${EXTRA_OEMAKE} ${EXTRA_OEMAKE_INSTALL} ${MAKE_DESTDIR} install
 }
 EXTRA_OEMAKE_INSTALL[emit] = "do_install"
+
+# Local Variables:
+# mode: python
+# End:
