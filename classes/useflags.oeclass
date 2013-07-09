@@ -1,17 +1,21 @@
-# -*- mode:python; -*-
+## Class for use flag handling.
+##
+## USE flags are to be defined in recipes and classes, and should be a
+## space-separated list of lower-case options, preferably prefixed with
+## the recipe name (in lower-case).
+## Distro configuration files can then define these as needed, and set
+## them to the desired values, enabling distro customization of recipes
+## without the need to include anything about the distros in the
+## meta-data repository holding the repository.
+## A useflag may be set by:
+## DEFAULT_USE (lowest priority)
+## DISTRO_USE (intended for distro configs)
+## MACHINE_USE (intended for machine configs)
+## LOCAL_USE (intended for local.conf)
+## RECIPE_USE (highest priority)
 
 addhook set_useflags to post_recipe_parse first before blacklist after arch_update
 
-#
-# USE flags are to be defined in recipes and classes, and should be a
-# space-separated list of lower-case options, preferably prefixed with
-# the recipe name (in lower-case).
-#
-# Distro configuration files can then define these as needed, and set
-# them to the desired values, enabling distro customization of recipes
-# without the need to include anything about the distros in the
-# meta-data repository holding the repository.
-#
 def set_useflags(d):
     useflags = ((d.get('RECIPE_FLAGS') or "").split() +
                 (d.get('CLASS_FLAGS') or "").split())
@@ -48,3 +52,7 @@ def set_useflags(d):
     return
 
 BLACKLIST_PREFIX += "LOCAL_USE_ RECIPE_USE_ MACHINE_USE_ DISTRO_USE_ DEFAULT_USE_"
+
+# Local Variables:
+# mode: python
+# End:
