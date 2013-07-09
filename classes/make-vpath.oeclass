@@ -1,7 +1,14 @@
-# -*- mode:python; -*-
+## Class for disabling AUTOTOOLS_DISTCLEAN
+##
+## See class @autotools. Inheriting this class remove the distclean which is
+## otherwise performed by @class autotools.
 
 B = "${WORKDIR}/build"
 do_configure[cleandirs] = "${B}"
 
 # no need for distclean when B is cleandir'ed
 AUTOTOOLS_DISTCLEAN = "0"
+
+# Local Variables:
+# mode: python
+# End:
