@@ -1,4 +1,12 @@
-# -*- mode:python; -*-
+## Class for handling the splitting of files into packages.
+##
+## Splits files into packages, based on the FILES_ variables.
+## All packages a recipe produced may be obtained by:
+## "oe show <recipe_name> PACKAGES"
+## The list of files that should end up on a package may be shown by:
+## "oe show <recipe_name> FILES_<package_name>"
+## Note that if multiple packages are set to contain the same files, the
+## first package in the PACKAGES variable gets the file.
 
 addtask split after install
 addtask package after split before build
@@ -207,3 +215,7 @@ def do_package(d):
         os.symlink(srcfile, symlink)
 
 inherit package-qa
+
+# Local Variables:
+# mode: python
+# End:
