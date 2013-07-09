@@ -1,4 +1,18 @@
-# -*- mode:python; -*-
+## Class for building sdk images.
+##
+## Highly usefull for building sdk-images. Has included fixes for non-static
+## toolchains w.r.t. ensuring that the correct libraries are chosen when using
+## binary tools.
+##
+## @var IMAGE_BASENAME Basename of the image generated.
+## @var ARCHIVE_IMAGE_DIRNAME Directory name of the outputted sdk.
+## @var IMAGE_PREPROCESS_NETFILTER Whether to remove double netfilter headers,
+##      which is a problem on mingw. Disable by default, except on mingw,
+##      where it is enabled.
+## @var SDK_IMAGE_ELF_SOWRAP_DIRS If set, ensures that the correct libraries
+##      is used when executing binary files. This is ofcause only relevant for
+##      non-static toolchains. Moves the binary tools to ., and uses a wrapper
+##      that uses ld-linux to ensure that the correct libraries is chosen.
 
 RECIPE_TYPES ?= "canadian-cross"
 
@@ -147,3 +161,7 @@ ARCHIVE_IMAGE_DIRNAME = ""
 ARCHIVE_IMAGE_TAR_EXT = "${USE_sdk_archive_tar_ext}"
 
 PROVIDES_${PN} = "sdk"
+
+# Local Variables:
+# mode: python
+# End:
