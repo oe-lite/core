@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Common class for building kernels
+##
+## This class is meant is a common class used by @class kernel and @class
+## kernel-headers.
 
 INHIBIT_PACKAGE_STRIP = "1"
 
@@ -15,3 +18,7 @@ CPPFLAGS[unexport] = "1"
 CXXFLAGS[unexport] = "1"
 LDFLAGS[unexport]  = "1"
 MACHINE[unexport]  = "1"
+
+# Local Variables:
+# mode: python
+# End:
