@@ -1,2 +1,11 @@
+## Class ensuring that the fakeroot build from oe-lite is used.
+##
+## By inheriting this class, it is ensures that the native version of fakeroot
+## build, is used instead of fakeroot from the build system.
+
 CLASS_DEPENDS += "native:fakeroot"
 FAKEROOT="fakeroot -l ${BUILD_SYSROOT}${base_libdir}/libfakeroot.so -f ${BUILD_SYSROOT}${base_bindir}/faked"
+
+# Local Variables:
+# mode: python
+# End:
