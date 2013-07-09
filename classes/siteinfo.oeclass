@@ -1,16 +1,15 @@
-# -*- mode:python; -*-
+## Bitbake class handling CONFIG_SITE variable.
+##
+## BitBake class to handle CONFIG_SITE variable for GNU Autoconf
+## configure scripts.  Leverage base_arch.oeclass as much as possible.
+## Recipes that need to query architecture specific knowledge, such as
+## endianness or word size should use functions provided by
+## base_arch.oeclass, as this class is only related to actual
+## CONFIG_SITE handling.
+## Export CONFIG_SITE to the enviroment. Autoconf generated configure
+## scripts will make use of this to determine where to load in
+## variables from.
 
-# BitBake class to handle CONFIG_SITE variable for GNU Autoconf
-# configure scripts.  Leverage base_arch.oeclass as much as possible.
-
-# Recipes that need to query architecture specific knowledge, such as
-# endianness or word size should use functions provided by
-# base_arch.oeclass, as this class is only related to actual
-# CONFIG_SITE handling.
-
-# Export CONFIG_SITE to the enviroment. Autoconf generated configure
-# scripts will make use of this to determine where to load in
-# variables from.
 export CONFIG_SITE = "${HOST_CONFIG_SITE}"
 
 STAGE_SITE_DIR		= "${STAGE_DIR}/siteinfo"
@@ -121,3 +120,7 @@ def do_siteinfo(d):
         os.symlink(host_config_site, target_config_site)
     else:
         generate_siteinfo(d, "TARGET", target_config_site)
+
+# Local Variables:
+# mode: python
+# End:
