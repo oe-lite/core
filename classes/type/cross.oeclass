@@ -1,4 +1,8 @@
-# -*- mode:python; -*-
+## Typeclass for cross recipes
+##
+## cross recipes, are recipes build to function on the build system, and
+## capable of compiling code for machine. This recipe sets up the required
+## variables for building cross recipes.
 
 inherit cross
 
@@ -21,3 +25,7 @@ LD_LIBRARY_PATH = "\
 ${STAGE_DIR}/cross${stage_libdir}:\
 ${STAGE_DIR}/native${stage_libdir}\
 "
+
+# Local Variables:
+# mode: python
+# End:
