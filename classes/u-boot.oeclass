@@ -1,4 +1,28 @@
-# -*- mode:python; -*-
+## Class for building u-boot images.
+##
+## Allows building u-boot bootloader with a variety of options.
+##
+## @useflag uboot_extra_env Set this to extra env in u-boot. Will be appended
+##          to the existing default environment. Is empty by default.
+## @useflag uboot_config Name of the uboot config to use. Default set to
+##          ${MACHINE}_config.
+## @useflag uboot_config_file Filename of the uboot config to use.
+## @useflag uboot_maxsize Enables checking of sizecheck. Default disabled.
+##          Set this to the maximum size allowed of your u-boot image.
+## @useflag uboot_srec Enable compilation of srec. Default disabled.
+##
+## @var UBOOT_IMAGE Name of the image to build. Is u-boot.bin by default.
+## @var UBOOT_IMAGE_BASE Basename of the deployed image. U-boot by default.
+## @var UBOOT_IMAGE_FILENAME Filename of the compiled uboot image.
+## @var UBOOT_IMAGE_DEPLOY_NAME Set the deployed name of the compiled u-boot
+##      bootloader. Is ${PN} by default.
+## @var UBOOT_IMAGE_DEPLOY_EXT Set the extention to the deployed compiled
+##      u-boot bootloader. Is .bin by default.
+## @var UBOOT_IMAGE_DEPLOY_FILE Full filename of the deployed compiled u-boot
+##      bootloader.
+## @var UBOOT_IMAGE_DEPLOY_LINK Full filename of the link deployed, pointing
+##      at @var UBOOT_IMAGE_DEPLOY_FILE.
+
 DESCRIPTION ?= "Das U-Boot -- the Universal Boot Loader"
 HOMEPAGE ?= "http://www.denx.de/wiki/U-Boot"
 LICENSE ?= "GPL"
@@ -153,3 +177,7 @@ do_deploy_srec () {
 		done
 	fi
 }
+
+# Local Variables:
+# mode: python
+# End:
