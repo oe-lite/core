@@ -1,5 +1,17 @@
-# -*- mode:python; -*-
-# OE-lite class for handling runit services
+## OE-lite class for handling runit services
+##
+## This class handles runit services. If having a recipe with a runit service,
+## place that script in ${SRCDIR}, and make sure that the necessary useflags
+## is setup. The necessary use flags are:
+## <chosen name>_runit (declare this to RECIPE_FLAGS, and set to true)
+## <chosen name> (declare this to RECIPE_FLAGS and set to true)
+## the needed variables are:
+## RUNIT_NAME_<chosen name> Set this to the service name.
+## RUNIT_SCRIPT_<chosen name> Set this to the filename of the service.
+##
+## @useflag runit Enable or disable runit. Disabled by default.
+##
+## @var RDEPENDS_RUNIT Set the rdependency of runit. Default set to runit.
 
 CLASS_FLAGS += "runit"
 
@@ -50,3 +62,7 @@ python do_install_runit () {
         shutil.copy(script, dst)
 	os.chmod(dst, stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
 }
+
+# Local Variables:
+# mode: python
+# End:
