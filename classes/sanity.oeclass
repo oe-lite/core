@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## Class for sanity checking
+##
+## Checks:
+## /bin/sh is symlinked to bash
+## Recipe name does exist
+## MACHINE and DISTRO config chosen, exists
+## OVERRIDES exists
 
 addhook sh_sanity to post_common_inherits last
 def sh_sanity(d):
@@ -40,3 +46,7 @@ def sanity(d):
 
     if d.get("PROVIDES") is not None:
         raise Exception("PROVIDES is not supported in OE-lite")
+
+# Local Variables:
+# mode: python
+# End:
