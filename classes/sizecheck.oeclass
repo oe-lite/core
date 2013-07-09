@@ -1,5 +1,7 @@
-# Support checking image sizes, which fx. can be useful when installing to
-# partitions with a fixed length
+## Class that allows sizechecking of images.
+##
+## Support checking image sizes, which fx. can be useful when installing to
+## partitions with a fixed length
 
 SIZECHECK ?= ""
 
@@ -22,3 +24,7 @@ python do_sizecheck () {
     if failed:
         raise Exception("Sizecheck failed")
 }
+
+# Local Variables:
+# mode: python
+# End:
