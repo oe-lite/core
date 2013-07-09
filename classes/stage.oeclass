@@ -1,4 +1,9 @@
-# -*- mode:python; -*-
+## Class handling the staging of build time dependencies.
+##
+## Whenever a recipe is build, build dependencies might be needed. For each
+## recipe, a stage dir is create containing all its build time dependencies.
+## This class stages all the necessary build time dependencies and unpacks
+## them.
 
 inherit binconfig-stage
 inherit libtool-stage
@@ -154,3 +159,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
         staged_packages.append((filename, package.name, dstdir))
 
 STAGE_FIXUP_FUNCS ?= ""
+
+# Local Variables:
+# mode: python
+# End:
