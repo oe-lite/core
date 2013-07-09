@@ -1,5 +1,19 @@
-# -*- mode:python; -*-
-# OE-lite class for handling sysvinit style init scripts and symlinks
+## OE-lite class for handling sysvinit style init scripts and symlinks
+##
+## This class handles sysvinit style init scripts and symlinks. If having
+## a recipe with a sysvinit script, make sure that the script is placed in
+## /etc/init.d/ and make sure that the necessary useflags is setup. The
+## necessary use flags are:
+## <chosen name> (declare this to RECIPE_FLAGS)
+## SYSVINIT_SCRIPT_<chosen name> Set this to the name of your initscript.
+## <chosen name>_sysvinit_start Set this to the start level.
+## <chosen name>_sysvinit_stop (optional) Set this to the stop level.
+##
+## @useflag sysvinit Enable or disable sysvinit. Enabled by default by base
+##          distro conf.
+##
+## @var RDEPENDS_SYSVINIT Set the run time dependencies for sysvinit. Set to
+##      sysvinit by default.
 
 sysvinit_install_script () {
 	install -d ${D}${sysconfdir}/init.d
@@ -65,3 +79,7 @@ python do_install_sysvinit () {
             os.remove(dst)
         os.symlink(src, dst)
 }
+
+# Local Variables:
+# mode: python
+# End:
