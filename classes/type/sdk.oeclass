@@ -1,4 +1,9 @@
-# -*- mode:python; -*-
+## Typeclass for sdk recipes
+##
+## When building a sdk, everything that has to executed on the host when
+## running has to be sdk recipes, except if they are cross-compiling from sdk
+## to target, in which case they are sdk-cross. This recipe sets up the
+## required variables for building sdk recipes.
 
 HOST_TYPE		= "sdk"
 TARGET_TYPE		= "sdk"
@@ -32,3 +37,7 @@ ${STAGE_DIR}/native${stage_libdir}\
 export CROSS	= "${HOST_PREFIX}"
 
 inherit sdk-static
+
+# Local Variables:
+# mode: python
+# End:
