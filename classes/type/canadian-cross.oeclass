@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## Typeclass for canadian-cross recipes
+##
+## Canadian cross recipes, are recipes build to function on a system different
+## from the build system, capable of compiling code for machine. I.e. if
+## building on a 64 bit linux, a canadian-cross compiler could be a 32 bit
+## linux compiler for arm. This recipe sets up the required variables for
+## building canadian-cross recipes.
 
 HOST_TYPE		= "sdk"
 TARGET_TYPE		= "machine"
@@ -45,3 +51,7 @@ ${STAGE_DIR}/native${stage_libdir}\
 export CROSS	= "${HOST_PREFIX}"
 
 inherit sdk-static
+
+# Local Variables:
+# mode: python
+# End:
