@@ -1,4 +1,12 @@
-# -*- mode:python; -*-
+## Typeclass for sdk-cross recipes
+##
+## Sdk-cross recipes create a compiler capable of running on the build system
+## able to generate code capable of running on a sdk system. E.g. if building
+## on a 64 bit linux, and wanting a 32 bit sdk, it is needed to generate a
+## compiler able to compile from 64 bit linux to 32 bit linux which then may
+## be used to generate canadian-cross compiler which has to run on the sdk
+## system using the sdk-cross compiler. This class sets up the needed variables
+## for building sdk-cross recipes.
 
 inherit cross
 
@@ -26,3 +34,7 @@ LD_LIBRARY_PATH = "\
 ${STAGE_DIR}/sdk-cross${stage_libdir}:\
 ${STAGE_DIR}/native${stage_libdir}\
 "
+
+# Local Variables:
+# mode: python
+# End:
