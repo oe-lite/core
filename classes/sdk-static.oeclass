@@ -1,3 +1,14 @@
+## Class containing use flags for static compilation of sdk
+##
+## Set the @useflag sdk_static to true, and your toolchain will be statically
+## compiled.
+##
+## @useflag sdk-static
+
 CLASS_FLAGS += "sdk_static"
 SDK_STATIC = "${USE_sdk_static}"
 SDK_STATIC[expand] = "3"
+
+# Local Variables:
+# mode: python
+# End:
