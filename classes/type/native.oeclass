@@ -1,4 +1,11 @@
-# -*- mode:python; -*-
+## Typeclass for native recipes.
+##
+## Native recipes, are recipes generating code to be run on the build system
+## which does not generate compile code for another system than the build
+## system. Typically utilities needed for compilation of recipes, e.g.
+## mkimage which is build by native:u-boot-tools makes it possible to create
+## uImage's when building kernels. This recipes sets up the needed variables
+## for building native recipes.
 
 HOST_TYPE		= "native"
 TARGET_TYPE		= "native"
@@ -33,3 +40,7 @@ ${STAGE_DIR}/native${stage_bindir}\
 LD_LIBRARY_PATH = "\
 ${STAGE_DIR}/native${stage_libdir}\
 "
+
+# Local Variables:
+# mode: python
+# End:
