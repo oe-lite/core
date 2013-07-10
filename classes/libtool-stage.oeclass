@@ -1,4 +1,17 @@
-# -*- mode:python; -*-
+## Class for fixing up libtool control files upon staging
+##
+## When staging a libtool control file, it might contain absolute paths such
+## as: -L/xxxxxx/. See class @libtool for how they are removed upon install.
+## This class ensures that the correct paths is inserted.
+## As an example, take native:libffi:
+## After compilation, libffi.la contains the following line:
+## dependency_libs=' -L/oelite/tmp/work/native/x86_64-build_unknown-linux-gnu
+## /libffi-3.0.12/stage/native/lib'
+## After installing (and fixing using @class libtool):
+## dependency_libs=' -L/lib'
+## When using that library in stage (here for directfb), contents are now:
+## dependency_libs=' -L/oelite/tmp/work/machine/
+## arm-cortexa9neont-linux-gnueabi/directfb-1.4.15/stage/native/lib'
 
 STAGE_FIXUP_FUNCS += "libtool_stage_fixup"
 
@@ -38,3 +51,7 @@ def libtool_stage_fixup(d):
         with open(filename, "w") as output_file:
             output_file.write(lafile)
         print "processed lafile", filename
+
+# Local Variables:
+# mode: python
+# End:
