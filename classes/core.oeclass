@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Core class for core functionality.
+##
+## This class is always used. It contains the most standard functionality
+## needed for building.
 
 inherit arch
 inherit utils
@@ -328,3 +331,7 @@ def core_varname_expansion(d):
 
 REBUILDALL_SKIP[nohash] = True
 RELAXED[nohash] = True
+
+# Local Variables:
+# mode: python
+# End:
