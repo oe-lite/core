@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Class for cross recipes.
+##
+## The functionality in this class is needed for both typeclass cross and
+## typeclass sdk-cross and is therefor splitted into this recipe.
 
 HOST_TYPE		= "native"
 HOST_CROSS		= "native"
@@ -24,3 +27,7 @@ def fixup_package_type(d):
 
 REBUILDALL_SKIP = "1"
 RELAXED = "1"
+
+# Local Variables:
+# mode: python
+# End:
