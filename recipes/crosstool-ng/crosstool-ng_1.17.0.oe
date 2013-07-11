@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Recipe for building crosstool-ng
+##
+## For details on how crosstool-ng works, and what is is, see
+## http://crosstool-ng.org/.
 
 require ${PN}.inc
 
@@ -31,3 +34,7 @@ do_configure () {
 }
 
 DEFAULT_PREFERENCE = "-1"
+
+# Local Variables:
+# mode: python
+# End:
