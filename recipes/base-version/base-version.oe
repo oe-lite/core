@@ -1,6 +1,24 @@
+## Recipe that Creates version, buildtime, buildtag for a rootfs.
+##
+## This recipe is used for keeping track of a rootfs. It inserts files into
+## the rootfs, that describe the current version of the rootfs and
+## additional build information.
+##
+## @useflag basefiles_manifest_version Append dirty if dirty to
+##          basefiles_version file.
+## @useflag basefiles_version Set to path of a version file. If set, goes in
+##          rootfs.
+## @useflag basefiles_buildtime Set to path of a buildtime file. If set, goes
+##          in rootfs.
+## @useflag basefiles_cross_config Set to path of a config file. If set, goes
+##          in rootfs.
+## @useflag basefiles_buildtag Set to path of a buildtag file. If set, goes
+##          in rootfs.
+
 # -*- mode:python; -*-
-DESCRIPTION = "Distroversion and  build-time file creation."
+DESCRIPTION = "Distroversion and build-time file creation."
 LICENSE = "N/A"
+
 PACKAGES = "${PN}"
 
 do_install () {
@@ -74,3 +92,7 @@ do_install_basefiles_buildtag () {
 			${D}${sysconfdir}/${USE_basefiles_buildtag}
 	fi
 }
+
+# Local Variables:
+# mode: python
+# End:
