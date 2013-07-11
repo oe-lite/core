@@ -1,4 +1,10 @@
-# -*- mode:python; -*-
+## Recipe for building ncurses.
+##
+## The ncurses library routines give the user a terminal-independent method of
+## updating character screens with reasonable optimization.
+## For more information, see:
+## http://linux.die.net/man/3/ncurses
+
 DESCRIPTION = "Ncurses library"
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 
@@ -94,3 +100,7 @@ DEPENDS_${PN}-libpanel	= "libncurses"
 # Package run-time dependencies
 RDEPENDS_${PN}		= "libncurses"
 RDEPENDS_${PN}-tools	= "libncurses ${PN}"
+
+# Local Variables:
+# mode: python
+# End:
