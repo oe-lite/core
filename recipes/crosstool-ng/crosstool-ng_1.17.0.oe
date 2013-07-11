@@ -1,4 +1,7 @@
-# -*- mode:python; -*-
+## Recipe for building crosstool-ng
+##
+## For details on how crosstool-ng works, and what is is, see
+## http://crosstool-ng.org/.
 
 require ${PN}.inc
 
@@ -29,3 +32,7 @@ DEPENDS += "native:make_3.81"
 do_configure () {
 	autotools_configure --with-make=`which make`
 }
+
+# Local Variables:
+# mode: python
+# End:
