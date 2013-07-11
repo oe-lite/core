@@ -1,3 +1,8 @@
+## Recipe for building make
+##
+## GNU make utility to maintain groups of programs. For more information, see:
+## http://linux.die.net/man/1/make.
+
 DESCRIPTION = "GNU Make determines which pieces of a large program\
  need to be recompiled, and issues commands to recompile them"
 LICENSE = "GPLv2"
@@ -14,3 +19,7 @@ inherit autotools
 
 DEPENDS_${PN} = "native:binutils native:gettext"
 RDEPENDS_${PN} = "native:binutils"
+
+# Local Variables:
+# mode: python
+# End:
