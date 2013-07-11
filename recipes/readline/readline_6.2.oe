@@ -1,5 +1,16 @@
+## Recipe for building readline
+##
+## The GNU Readline library provides a set of functions for use by applications
+## that allow users to edit command lines as they are typed in.
+## For more information, see:
+## http://www.gnu.org/software/readline/
+
 LICENSE = "GPL-3.0+"
 
 require readline.inc
 
 SRC_URI:>TARGET_OS_darwin = " file://patch-shobj-conf.patch"
+
+# Local Variables:
+# mode: python
+# End:
