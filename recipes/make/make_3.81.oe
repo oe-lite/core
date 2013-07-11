@@ -1,1 +1,5 @@
 require make.inc
+
+# Local Variables:
+# mode: python
+# End:
