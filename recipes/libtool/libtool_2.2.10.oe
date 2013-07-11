@@ -13,3 +13,7 @@ do_bootstrap () {
 		./bootstrap
 	fi
 }
+
+# Local Variables:
+# mode: python
+# End:
