@@ -22,6 +22,7 @@ class UrlFetcher():
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
         self.proxies = self.get_proxy(d)
+        self.ftpmode = self.get_disable_ftp_epsv(d)
         return
 
     def signature(self):
@@ -53,7 +54,7 @@ class UrlFetcher():
             if not self.uri.allow_url(url):
                 print "Skipping", url
                 continue
-            if grab(url, self.localpath, proxy=self.proxies):
+            if grab(url, self.localpath, proxy=self.proxies, ftpmode=self.ftpmode):
                 grabbed = True
                 break
             if os.path.exists(self.localpath):
@@ -101,13 +102,22 @@ class UrlFetcher():
                 proxies["https"] = httpsproxy
         return proxies
 
+    def get_disable_ftp_epsv(self, d):
+        val = d.get("DISABLE_FTP_EXTENDED_PASSIVE_MODE") or None
+        if val is not None:
+            if val == "0":
+                return False
+            if val == "1":
+                return True
+        return False
+
 
 class SimpleProgress(urlgrabber.progress.BaseMeter):
     def _do_end(self, amount_read, now=None):
         print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
 
 
-def grab(url, filename, timeout=120, retry=5, proxy=None):
+def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
     print "Grabbing", url
     def grab_fail_callback(data):
         # Only print debug here when non fatal retries, debug in other cases
@@ -124,7 +134,7 @@ def grab(url, filename, timeout=120, retry=5, proxy=None):
         downloaded_file = urlgrabber.urlgrab(
             url, filename,timeout=timeout,retry=retry, retrycodes=retrycodes,
             progress_obj=SimpleProgress(), failure_callback=grab_fail_callback,
-            copy_local=True, proxies=proxy)
+            copy_local=True, proxies=proxy, ftp_disable_epsv=ftpmode)
         if not downloaded_file:
             return False
     except urlgrabber.grabber.URLGrabError as e:
