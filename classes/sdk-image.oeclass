@@ -74,8 +74,9 @@ def image_preprocess_elf_sowrap(d):
         dir = dir.strip("/")
         rc = sowrap_dir(dir, recursive)
         if not rc:
+            filemagic.close()
             return rc
-
+    filemagic.close()
     return
 
 image_preprocess_linux_netfilter_headers () {
