@@ -17,6 +17,7 @@ SRC_URI += "file://dmalloc-5.5.2-fix-recursion.patch"
 SRC_URI += "file://eglibc-2_16-typedef-caddr.patch"
 SRC_URI += "file://uclibceabi-instead-of-uclibcgnueabi.patch"
 SRC_URI += "file://uclibc-target-cflags-fixup.patch"
+SRC_URI += "file://libitm-mmx.patch"
 
 #We have to use make_3.81 for now, since 3.82 makes at least
 #glibc install fail, trying to install headers to /
