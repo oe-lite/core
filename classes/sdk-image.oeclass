@@ -31,6 +31,11 @@ def image_preprocess_elf_sowrap(d):
         filetype = filemagic.file(path)
         return bool(host_elf_re.match(filetype))
 
+    def is_static(path):
+        filetype = filemagic.file(path)
+        static_re = re.compile(".*statically.*")
+        return bool(static_re.match(filetype))
+
     def sowrap_dir(dir, recursive=False):
         if not os.path.exists(dir):
             return True
@@ -48,6 +53,8 @@ def image_preprocess_elf_sowrap(d):
             if os.path.exists(dotpath):
                 print "ERROR: file already exists:", os.path.join(dir, path)
                 ok = False
+                continue
+            if is_elf(path) and is_static(path):
                 continue
             os.rename(path, dotpath)
             with open(path, "w") as wrapper:
