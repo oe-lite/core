@@ -264,12 +264,6 @@ cpuspecs = {
         'winchip2'		: {
             'march'		: 'winchip2',
             },
-        'c3'			: {
-            'march'		: 'c3',
-            },
-        'c32'			: {
-            'march'		: 'c3-2',
-            },
         },
 
     'i586'		: {
@@ -292,6 +286,12 @@ cpuspecs = {
             },
         'geode'			: {
             'march'		: 'geode',
+            },
+        'c3'			: {
+            'march'		: 'c3',
+            },
+        'c32'			: {
+            'march'		: 'c3-2',
             },
         },
 
