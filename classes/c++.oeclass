@@ -2,6 +2,8 @@
 
 inherit c
 
+OVERRIDES .= ":cxx"
+
 CXX_DEPENDS			= "host-cross:c++ host:libstdc++"
 CXX_DEPENDS:>canadian-cross	= " target-cross:c++ target:libstdc++"
 CLASS_DEPENDS += "${CXX_DEPENDS}"
