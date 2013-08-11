@@ -1,6 +1,6 @@
 CLASS_DEPENDS =+ "${DEPENDS_GETTEXT}"
 DEPENDS_GETTEXT = ""
-DEPENDS_GETTEXT:USE_nls = "gettext native:gettext libiconv libintl"
+DEPENDS_GETTEXT:USE_nls = "gettext native:gettext-utils libiconv libintl"
 
 CLASS_FLAGS += "nls"
 DEFAULT_USE_nls = "0"
