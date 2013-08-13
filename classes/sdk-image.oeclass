@@ -102,28 +102,28 @@ image_rm_sysroot_pkgmetadir() {
 CLASS_RDEPENDS += "${RDEPENDS_SDK}"
 RDEPENDS_SDK = " \
     gcc \
-    target:libc \
-    target:libdl \
-    target:libpthread \
-    target:librt \
-    target:libgcc \
-    target:libm \
-    target:libutil \
-    target:libcrypt \
-    target:libresolv \
+    target:libc-dev \
+    target:libdl-dev \
+    target:libpthread-dev \
+    target:librt-dev \
+    target:libgcc-dev \
+    target:libm-dev \
+    target:libutil-dev \
+    target:libcrypt-dev \
+    target:libresolv-dev \
     ${RDEPENDS_SDK_LIBC_EXTRA} \
     target:gcc-sysroot-garbage \
     target:gcc-sysroot-locale \
     target:gcc-sysroot-doc \
 "
-RDEPENDS_SDK_LIBC_EXTRA = "target:libnss-files target:libnss-dns"
+RDEPENDS_SDK_LIBC_EXTRA = "target:libnss-files-dev target:libnss-dns-dev"
 RDEPENDS_SDK_LIBC_EXTRA:TARGET_LIBC_uclibc = ""
 
 CLASS_FLAGS += "sdk_cxx"
 DEFAULT_USE_sdk_cxx = "1"
 RDEPENDS_SDK += "${RDEPENDS_SDK_CXX}"
 RDEPENDS_SDK_CXX = ""
-RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++-dev target:libstdc++"
+RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++-dev"
 
 CLASS_FLAGS += "sdk_gdb"
 DEFAULT_USE_sdk_gdb = "1"
