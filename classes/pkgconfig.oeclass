@@ -5,3 +5,7 @@ export PKG_CONFIG_LIBDIR	= "${HOST_SYSROOT}${libdir}/pkgconfig"
 export PKG_CONFIG_PATH		= "${HOST_SYSROOT}${datadir}/pkgconfig"
 export PKG_CONFIG_SYSROOT_DIR	= "${HOST_SYSROOT}"
 export PKG_CONFIG_DISABLE_UNINSTALLED = "yes"
+
+# Local Variables:
+# mode: python
+# End:
