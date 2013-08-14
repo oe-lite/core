@@ -1,4 +1,6 @@
-# -*- mode:python; -*-
+## Class for packages having binconfig files.
+##
+## Rewrites the paths in the binconfig files so that it contains valid dirs.
 
 require conf/meta.conf
 
@@ -59,3 +61,7 @@ def do_split_binconfig_fixup(d):
         metafile_path = os.path.join(pkgmetadir, "binconfig")
         with open(metafile_path, "w") as metafile:
             metafile.write("\n".join(binconfig_files) + "\n")
+
+# Local Variables:
+# mode: python
+# End:
