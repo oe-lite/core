@@ -1,3 +1,10 @@
+## Recipe for building fakeroot.
+##
+## From: http://man.he.net/man1/fakeroot:
+## Fakeroot runs a command in an environment wherein it appears to have root
+## privileges for file manipulation. Automatically added to the list of
+## CLASS_DEPENDS by @class fakeroot.
+
 DESCRIPTION = "Gives a fake root environment"
 HOMEPAGE = "http://fakeroot.alioth.debian.org"
 
@@ -20,3 +27,7 @@ SOLIBS = "-*.so"
 SOLIBSDEV = ".so"
 FILES_${PN}-dev = "${libdir}/*.a ${libdir}/*.la \
 	${sharedlibdir}/libfakeroot${SOLIBSDEV}"
+
+# Local Variables:
+# mode: python
+# End:
