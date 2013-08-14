@@ -16,3 +16,7 @@ OE_CMAKE_CONF:>cxx = " -DCMAKE_CXX_COMPILER=${HOST_CXX}"
 do_configure() {
 	cmake ${OE_CMAKE_CONF} ${EXTRA_OE_CMAKE_CONF}
 }
+
+# Local Variables:
+# mode: python
+# End:
