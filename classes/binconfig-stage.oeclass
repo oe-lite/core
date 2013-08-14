@@ -1,4 +1,6 @@
-# -*- mode:python; -*-
+## Class for packages depending on recipes having binconfig files.
+##
+## Rewrites the paths in the binconfig files so that it contains valid dirs.
 
 require conf/meta.conf
 
@@ -69,3 +71,7 @@ def binconfig_stage_fixup(d):
                 os.path.basename(filename))
             print "symlinking %s to %s"%(dstlink, srcfile)
             os.symlink(srcfile, dstlink)
+
+# Local Variables:
+# mode: python
+# End:
