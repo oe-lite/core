@@ -105,7 +105,9 @@ python do_imageqa () {
 
         return error
 
-    if readelf_check("HOST") or readelf_check("TARGET"):
-        bb.fatal("libraries missing")
-    filemagic.close()
+    try:
+        if readelf_check("HOST") or readelf_check("TARGET"):
+            bb.fatal("libraries missing")
+    finally:
+        filemagic.close()
 }
