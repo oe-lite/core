@@ -75,7 +75,7 @@ python do_imageqa () {
                 except OSError, e:
                     bb.fatal("Execution failed %s: %s" % (cmd, e))
 
-                needed_re = re.compile(r" 0x[0-9a-f]{8} *\(NEEDED\) *Shared library: \[(.*)\]")
+                needed_re = re.compile(r" 0x[0-9a-f]{8,16} *\(NEEDED\) *Shared library: \[(.*)\]")
 
                 needed_libs = []
                 for line in cmd.stdout.readlines():
