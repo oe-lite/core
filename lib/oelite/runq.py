@@ -228,7 +228,9 @@ class OEliteRunQueue:
             deptasks = task.get_deptasks([deptype])
             if deptasks:
                 # get list of packages providing the dependencies
-                depends = self.get_depends(recipe, deptype)
+                depends = self.get_depends(
+                    recipe.type, recipe.get_depends([deptype]), deptype,
+                    needed_by='recipe %s%'%(recipe))
                 # add each deptask for each package
                 add_package_depends(deptasks, deptype, depends)
 
@@ -243,7 +245,9 @@ class OEliteRunQueue:
                     rec_deptype = "DEPENDS"
                 else:
                     rec_deptype = deptype
-                depends = self.get_depends(recipe, deptype, rec_deptype)
+                depends = self.get_depends(
+                    recipe.type, recipe.get_depends([deptype]), deptype,
+                    rec_deptype, needed_by='recipe %s'%(recipe))
                 # add each recdeptask for each package
                 add_package_depends(recdeptasks, deptype, depends)
 
@@ -287,7 +291,7 @@ class OEliteRunQueue:
         return (task_depends, package_depends)
 
 
-    def get_depends(self, recipe, deptype, rec_deptype=None):
+    def get_depends(self, context, items, deptype, rec_deptype=None, needed_by=None):
         # return list/set of packages
 
         def resolve_dependency(item, recursion_path, deptype):
@@ -373,21 +377,21 @@ class OEliteRunQueue:
             return packages
 
         depends = set([])
-        depends.update(recipe.get_depends([deptype]))
+        depends.update(items)
 
         packages = set([])
         for depend in depends:
             try:
                 _packages = resolve_dependency(
-                    oelite.item.OEliteItem(depend, (deptype, recipe.type)),
+                    oelite.item.OEliteItem(depend, (deptype, context)),
                     ([], []), rec_deptype)
             except NoProvider, e:
                 if len(e.args) < 2:
-                    needed_by = str(recipe)
+                    _needed_by = needed_by
                 else:
-                    needed_by = e.args[1]
+                    _needed_by = e.args[1]
                 raise die("No provider for %s (needed by %s)"%(
-                        e.args[0], needed_by))
+                        e.args[0], _needed_by))
             packages.update(_packages)
 
         return packages
@@ -432,8 +436,6 @@ class OEliteRunQueue:
         assert isinstance(item, oelite.item.OEliteItem)
         provider = self._get_provider(item)
         if provider:
-            #print "item=%s provider=%s"%(item, provider)
-            #print "item.version=%s provider.version=%s"%(item.version, provider.version)
             assert item.version is None or item.version == provider.version
             return provider
 
@@ -679,6 +681,17 @@ class OEliteRunQueue:
     def add_runq_tasks(self, tasks):
         def task_id_tuple(v):
             return (v.id,)
+        for task in tasks:
+            if task.name != 'do_package':
+                continue
+            for package in task.recipe.get_packages():
+                for deptype in ('DEPENDS', 'RDEPENDS'):
+                    provides = package.get_recprovides(deptype,
+                                                       self.get_depends)
+                    if provides:
+                        task.recipe.meta.set_flag(
+                            '%s_%s'%(deptype, package.name),
+                            'provides', provides)
         tasks = map(task_id_tuple, tasks)
         self.dbc.executemany(
             "INSERT INTO runq.task (task) VALUES (?)", (tasks))
