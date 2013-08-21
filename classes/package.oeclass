@@ -148,7 +148,7 @@ LICENSE[emit]		= "do_package"
 HOMEPAGE[emit]		= "do_package"
 MAINTAINER[emit]	= "do_package"
 
-python do_package () {
+def do_package(d):
     import bb, os
 
     packages = (d.getVar("PACKAGES", True) or "").split()
@@ -205,4 +205,5 @@ python do_package () {
         if os.path.exists(symlink):
             os.remove(symlink)
         os.symlink(srcfile, symlink)
-}
+
+inherit package-qa
