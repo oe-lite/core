@@ -9,7 +9,7 @@ do_imageqa[dirs] = "${IMAGE_DIR}"
 IMAGEQA_HOST_READELF ?= "${HOST_PREFIX}readelf"
 IMAGEQA_HOST_READELF_SEARCH_DIRS ?= "\
 	${base_sbindir} ${base_bindir} ${sbindir} ${bindir} \
-	${base_libdir} ${libdir} \
+	${base_libdir} ${libdir} ${base_sharedlibdir} ${sharedlibdir} \
 "
 IMAGEQA_HOST_READELF_LIB_DIRS ?= "\
 	${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
