@@ -47,11 +47,17 @@ class OEliteRecipe:
     def get(self, var):
         return self.meta.get(var)
 
+    def set(self, var, val):
+        return self.meta.set(var, val)
+
     def get_flag(self, var, flag):
         return self.meta.get_flag(var, flag)
 
     def get_task_names(self):
         return self.meta.get_vars(flag="task")
+
+    def get_packages(self):
+        return self.cookbook.get_packages(recipe=self)
 
     def get_depends(self, deptypes=[]):
         depends = []
