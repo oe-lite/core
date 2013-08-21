@@ -70,6 +70,7 @@ inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "ncurses form menu panel"
 FILES_${PN}-libncurses-dev = "${libdir}/libtermcap.a ${libdir}/libtermcap${SOLIBSDEV}"
 PROVIDES_${PN}-libncurses = "libtermcap"
+PROVIDES_${PN}-libncurses[qa] = "allow-missing-soname:libtermcap"
 PROVIDES_${PN}-libncurses-dev = "libtermcap-dev"
 
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
@@ -85,6 +86,7 @@ DEPENDS_${PN}-tools += "libncurses"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev_${PV}"
 
 # Library package build and run-time dependencies
+DEPENDS_${PN}-libncurses= "libc"
 DEPENDS_${PN}-libform	= "libncurses"
 DEPENDS_${PN}-libmenu	= "libncurses"
 DEPENDS_${PN}-libpanel	= "libncurses"
