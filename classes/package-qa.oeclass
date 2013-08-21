@@ -1,0 +1,578 @@
+# -*- mode:python; -*-
+
+addtask packageqa after package
+
+# FIXME: improve gcc packaging, so that readelf can be obtained
+# without pulling in entire toolchain
+inherit c
+
+do_packageqa[dirs] = "${PKGD}"
+
+PACKAGES[emit]		+= "do_packageqa"
+META_EMIT_PREFIX += "packageqa:PROVIDES_${PN} packageqa:DEPENDS_${PN} packageqa:RDEPENDS_${PN}"
+
+META_EMIT_PREFIX += "packageqa:PACKAGEQA_"
+PACKAGEQA_BUILD_READELF		?= "${BUILD_PREFIX}readelf"
+PACKAGEQA_HOST_READELF		?= "${HOST_PREFIX}readelf"
+PACKAGEQA_TARGET_READELF	?= "${TARGET_PREFIX}readelf"
+
+PACKAGEQA_HOST_BINDIRS ?= "\
+        ${base_sbindir} ${sbindir} ${base_bindir} ${bindir} \
+"
+PACKAGEQA_HOST_LIBDIRS ?= "\
+        ${base_libdir} ${libdir} ${base_sharedlibdir} ${sharedlibdir} \
+"
+
+PACKAGEQA_TARGET_BINDIRS ?= "\
+        ${target_base_sbindir} ${target_sbindir} \
+        ${target_base_bindir} ${target_bindir} \
+"
+PACKAGEQA_TARGET_LIBDIRS ?= "\
+        ${target_base_libdir} ${target_libdir} \
+        ${target_base_sharedlibdir} ${target_sharedlibdir} \
+"
+
+PACKAGEQA_BUILD_BINDIRS ?= "\
+        ${stage_base_sbindir} ${stage_sbindir} \
+        ${stage_base_bindir} ${stage_bindir} \
+"
+PACKAGEQA_BUILD_LIBDIRS ?= "\
+        ${stage_base_libdir} ${stage_libdir} \
+"
+
+def do_packageqa(d):
+    import os, magic, re
+    from subprocess import Popen, PIPE
+    from glob import glob
+    import oebakery # die, err, warn, info, debug
+
+    def BadElfType(Exception):
+        pass
+
+    os.environ['PATH'] = d.getVar("PATH", True)
+    filemagic = magic.open(magic.MAGIC_NONE)
+    filemagic.load()
+
+    pn = d.get("PN")
+    def pkg_with_pn(pkg):
+        if pkg.startswith(pn):
+            return pkg.replace(pn, "${PN}", 1)
+        return pkg
+
+    readelf_dynamic_re = re.compile(r" 0x[0-9a-f]{8,16} *\(([A-Z]+)\) *(.*)")
+    readelf_strval_re = re.compile(r"[A-Za-z ]+: \[(.*)\]")
+
+    lib_item_re = re.compile(r"(.*?)(-[0-9\.]*)?\.so")
+    lib_item_map = {
+        "libgcc_s" : "libgcc",
+        }
+    def lib_item(lib):
+        m = lib_item_re.match(lib)
+        if not m:
+            return None
+        item = m.group(1)
+        if item in lib_item_map:
+            item = lib_item_map[item]
+        return item
+
+    pkg_depends = {}
+
+    recipe_type = d.get("RECIPE_TYPE")
+    def get_pkg_and_elf_type(pkg):
+        "Return tuple of package type and elf type, fx. (cross, HOST)"
+        pkg_type = d.get("PACKAGE_TYPE_"+pkg)
+        if not pkg_type or pkg_type == recipe_type:
+            return (recipe_type, "HOST")
+        if pkg_type == host_type:
+            return (pkg_type, "HOST")
+        if pkg_type == target_type:
+            return (pkg_type, "TARGET")
+        if pkg_type == "native":
+            return (pkg_type, "BUILD")
+        raise Exception("What is going on here?")
+
+    def get_lib_item_pfx(pkg_type):
+        if pkg_type.endswith("cross"):
+            return "host:"
+        return ""
+
+    def get_elf_re(elf_type):
+        elf_re = d.get("%s_ELF"%(elf_type), True)
+        if not elf_re:
+            return None
+        return re.compile(elf_re)
+
+    def elf_match(path, elf_re):
+        if not elf_re:
+            return False
+        filetype = filemagic.file(path)
+        if elf_re.match(filetype):
+            return True
+        elif filetype.startswith('ELF'):
+            raise BadElfType(path)
+        return False
+        return bool(elf_re.match(filetype))
+
+    readelf_dynamic_library_symbols = ("NEEDED", "SONAME")
+    readelf_dynamic_path_symbols = ("RPATH", "RUNPATH")
+    def readelf_dynamic(file, readelf):
+        cmd = [readelf, "-d", file]
+        try:
+            cmd = Popen(cmd, stdout=PIPE)
+        except OSError, e:
+            oebakery.err("readelf command failed: %s: %s" % (cmd, e))
+            ok = False
+            return None
+        symbols = {}
+        for line in cmd.stdout.readlines():
+            entry = readelf_dynamic_re.match(line)
+            if not entry:
+                continue
+            symbol = entry.group(1)
+            if symbol in readelf_dynamic_library_symbols:
+                if not symbol in symbols:
+                    symbols[symbol] = []
+                libval = readelf_strval_re.match(entry.group(2))
+                if not libval:
+                    oebakery.err("BAD readelf %s line: %s"%(
+                            symbol, entry.group(0)))
+                    ok = False
+                    continue
+                symbols[symbol].append(libval.group(1))
+            elif symbol in readelf_dynamic_path_symbols:
+                assert not symbol in symbols
+                pathval = readelf_strval_re.match(entry.group(2))
+                if not pathval:
+                    oebakery.err("BAD readelf %s line: %s"%(
+                            symbol, entry.group(0)))
+                    ok = False
+                    continue
+                symbols[symbol] = pathval.group(1).split(":")
+            else:
+                assert not symbol in symbols
+                symbols[symbol] = entry.group(2)
+        for symbol in readelf_dynamic_library_symbols:
+            if not symbol in symbols:
+                continue
+            libs = filter(None, map(lib_item, symbols[symbol]))
+            if symbol == "NEEDED" and lib_item_pfx:
+                libs = [lib_item_pfx + i for i in libs]
+            print "%s %s: %s"%(file, symbol, " ".join(libs))
+        if cmd.wait():
+            oebakery.err("readelf %s failed"%(elffile))
+            ok = False
+        return symbols
+
+    def readelf_scan(pkg, dirs, readelf, elf_re, ignore=[], recursive=False):
+        if dirs is None:
+            recursive = True
+        elf_files = {}
+
+        def to_check(file):
+            if file in ignore:
+                return False
+            if not os.path.isfile(file) or os.path.islink(file):
+                return False
+            if not elf_match(file, elf_re):
+                return False
+            #if not "dynamically linked" in filetype:
+            #    return False
+            if file in elf_files:
+                return False
+            return True
+
+        if not dirs:
+            dirs = [""]
+        for dir in set(dirs):
+            if recursive:
+                for root, dirs, files, in os.walk(os.path.join(pkg, dir)):
+                    try:
+                        dirs.remove('.debug')
+                    except ValueError:
+                        continue
+                    for file in files:
+                        path = os.path.join(root, file)
+                        try:
+                            if not to_check(path):
+                                continue
+                        except BadElfType as e:
+                            oebakery.warn("Bad ELF type: %s: %s"%(
+                                    path, e.args[0]))
+                            # FIXME: bail out unless allow-bad-elf is set
+                            continue
+                        symbols = readelf_dynamic(path, readelf)
+                        elf_files[path] = symbols
+            else:
+                for path in glob("%s/%s/*"%(pkg, dir.lstrip("/"))):
+                    if not to_check(path):
+                        continue
+                    symbols = readelf_dynamic(path, readelf)
+                    elf_files[path] = symbols
+        return elf_files
+
+    def get_pkg_qaflags(pkg, var):
+        qaflags = d.get_flag("%s_%s"%(var, pkg), "qa")
+        if not qaflags:
+            return []
+        return qaflags.split()
+
+    def apply_rpath_default(flags, file_type, rpath_type, default):
+        forbid_flag = 'forbid-%s-%s'%(file_type, rpath_type)
+        rel_flag = 'allow-%s-rel-%s'%(file_type, rpath_type)
+        abs_flag = 'allow-%s-abs-%s'%(file_type, rpath_type)
+        allowed_flags = set([forbid_flag, rel_flag, abs_flag])
+        if default == 'forbid':
+            default = forbid_flag
+        if default == 'allow':
+            default = rel_flag
+        assert default in allowed_flags
+        if not allowed_flags.intersection(flags):
+            flags.append(default)
+
+    def rpath_check(flags, file_type, rpath_type, rpath):
+        if not rpath:
+            return True
+        forbid_flag = 'forbid-%s-%s'%(file_type, rpath_type)
+        rel_flag = 'allow-%s-rel-%s'%(file_type, rpath_type)
+        abs_flag = 'allow-%s-rel-%s'%(file_type, rpath_type)
+        if forbid_flag in flags:
+            if rel_flag in flags:
+                oebakery.warn('%s flag overrules %s'%(
+                        forbid_flag, rel_flag))
+            if abs_flag in flags:
+                oebakery.warn('%s flag overrules %s'%(
+                        forbid_flag, abs_flag))
+            return False
+        if rpath.startswith('$ORIGIN'):
+            return rel_flag in flags
+        else:
+            return abs_flag in flags
+
+    def is_lib(s):
+        return (s.startswith("lib")
+                and not s.endswith("-dev")
+                and not s.endswith("-dbg"))
+
+    ok = True
+    for pkg in (d.get("PACKAGES") or "").split():
+        soname = set([])
+        needed = set([])
+
+        pkg_type, elf_type = get_pkg_and_elf_type(pkg)
+        lib_item_pfx = get_lib_item_pfx(pkg_type)
+        readelf = d.get("PACKAGEQA_%s_READELF"%(elf_type))
+        bindirs = d.get("PACKAGEQA_%s_BINDIRS"%(elf_type)).split()
+        libdirs = d.get("PACKAGEQA_%s_LIBDIRS"%(elf_type)).split()
+        elf_re = get_elf_re(elf_type)
+        files_qaflags = get_pkg_qaflags(pkg, "FILES")
+        depends_qaflags = get_pkg_qaflags(pkg, "DEPENDS")
+        rdepends_qaflags = get_pkg_qaflags(pkg, "RDEPENDS")
+        provides_qaflags = get_pkg_qaflags(pkg, "PROVIDES")
+
+        if pkg_type == 'machine':
+            apply_rpath_default(files_qaflags, 'lib', 'rpath', 'forbid')
+            apply_rpath_default(files_qaflags, 'bin', 'rpath', 'forbid')
+            apply_rpath_default(files_qaflags, 'lib', 'runpath', 'forbid')
+            apply_rpath_default(files_qaflags, 'bin', 'runpath', 'forbid')
+        else:
+            apply_rpath_default(files_qaflags, 'lib', 'rpath', 'allow')
+            apply_rpath_default(files_qaflags, 'bin', 'rpath', 'allow')
+            apply_rpath_default(files_qaflags, 'lib', 'runpath', 'allow')
+            apply_rpath_default(files_qaflags, 'bin', 'runpath', 'allow')
+
+        provides = (d.get("PROVIDES_%s"%(pkg)) or "").split()
+        lib_provides = set(filter(is_lib, provides))
+        if provides:
+            print "Package %s PROVIDES:"%(pkg), " ".join(sorted(provides))
+        depends = set((d.get("DEPENDS_%s"%(pkg)) or "").split())
+        if depends:
+            print "Package %s DEPENDS:"%(pkg), " ".join(sorted(depends))
+        # get list of everything that the package depends recursively provides
+        depends_provides = set(d.get_flag("DEPENDS_%s"%(pkg), 'provides')
+                               or [])
+        if depends_provides:
+            print "Package %s DEPENDS provides:"%(pkg), " ".join(sorted(depends_provides))
+        rdepends = set((d.get("RDEPENDS_%s"%(pkg)) or "").split())
+        if rdepends:
+            print "Package %s RDEPENDS:"%(pkg), " ".join(sorted(rdepends))
+        # get list of everything that the package rdepends recursively provides
+        rdepends_provides = set(d.get_flag("RDEPENDS_%s"%(pkg), 'provides')
+                                or [])
+        if rdepends_provides:
+            print "Package %s RDEPENDS provides:"%(pkg), " ".join(sorted(rdepends_provides))
+        assume_provided = (d.get('ASSUME_PROVIDED') or "").split()
+
+        sonamify_re = re.compile("(lib.*)\.so.*")
+        sonamify_re2 = re.compile(r"(.*?)(-[\d\.]*)?$")
+        def sonamify(soname):
+            def _sonamify(s):
+                m = sonamify_re.match(s)
+                if not m:
+                    oebakery.debug("non-matching SONAME: %s"%(s))
+                    return None
+                return sonamify_re2.match(m.group(1)).group(1)
+            if isinstance(soname, basestring):
+                return _sonamify(soname)
+            soname = map(_sonamify, soname)
+            return [n for n in soname if n is not None]
+
+        # first, check libdirs for libraries
+        elf_files = readelf_scan(pkg, libdirs, readelf, elf_re)
+        # this should return dict of files, each file entry is another dict,
+        # with SONAME, NEEDED, RPATH keys, with their value being a list
+        lib_files = {}
+        for path, symbols in elf_files.items():
+            if not "SONAME" in symbols:
+                continue
+            lib_files[path] = symbols
+            soname.update(symbols["SONAME"])
+            if "NEEDED" in symbols:
+                needed.update(symbols["NEEDED"])
+            if "RPATH" in symbols:
+                for rpath in symbols["RPATH"]:
+                    if not rpath_check(files_qaflags, 'lib', 'rpath', rpath):
+                        oebakery.err("RPATH %s in lib %s not allowed"%(
+                                rpath, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-lib-rel-rpath'"
+                            " or 'allow-lib-abs-rpath' in FILES_%s[qa]"%(
+                                pkg_with_pn(pkg)))
+            if "RUNPATH" in symbols:
+                for rpath in symbols["RUNPATH"]:
+                    if not rpath_check(files_qaflags, 'lib', 'runpath', rpath):
+                        oebakery.err("RUNPATH %s in lib %s not allowed"%(
+                                rpath, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-lib-rel-runpath'"
+                            " or 'allow-lib-abs-runpath' in FILES_%s[qa]"%(
+                                pkg_with_pn(pkg)))
+
+        # next, check bindirs for elf files
+        bin_files = readelf_scan(pkg, bindirs, readelf, elf_re,
+                                 ignore=lib_files.keys())
+        for path, symbols in bin_files.items():
+            if "SONAME" in symbols:
+                if "allow-libs-in-bindirs" in files_qaflags:
+                    soname.update(symbols["SONAME"])
+                else:
+                    oebakery.err("%s/%s is a library"%(pkg, path))
+                    ok = False
+                    oebakery.info("If this is ok, add 'allow-libs-in-bindirs'"
+                                  " to FILES_%s[qa]"%(pkg))
+                    for _soname in symbols["SONAME"]:
+                        oebakery.debug("%s/%s soname: %s"%(pkg, path, _soname))
+            if "NEEDED" in symbols:
+                needed.update(symbols["NEEDED"])
+            if "RPATH" in symbols:
+                for rpath in symbols["RPATH"]:
+                    if not rpath_check(files_qaflags, 'bin', 'rpath', rpath):
+                        oebakery.err("RPATH %s in bin %s not allowed"%(
+                                rpath, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-bin-rel-rpath'"
+                            " or 'allow-bin-abs-rpath' in FILES_%s[qa]"%(
+                                pkg_with_pn(pkg)))
+            if "RUNPATH" in symbols:
+                for rpath in symbols["RUNPATH"]:
+                    if not rpath_check(files_qaflags, 'bin', 'runpath', rpath):
+                        oebakery.err("RUNPATH %s in bin %s not allowed"%(
+                                rpath, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-bin-rel-runpath'"
+                            " or 'allow-bin-abs-runpath' in FILES_%s[qa]"%(
+                                pkg_with_pn(pkg)))
+
+        # and finally, check for elf_files in other locations
+        elf_files = readelf_scan(pkg, None, readelf, elf_re,
+                                 ignore=(lib_files.keys() + bin_files.keys()),
+                                 recursive=True)
+        for path, symbols in elf_files.items():
+            print 'bin_files.keys()', bin_files.keys()
+            file_type = ['bin', 'lib'][int('SONAME' in symbols)]
+            if file_type == 'lib':
+                if 'allow-elf-libs-in-other-dirs' in files_qaflags:
+                    soname.update(symbols['SONAME'])
+                else:
+                    oebakery.err("%s: library %s in non library directory"%(
+                            pkg, path))
+                    ok = False
+                    oebakery.info("If this is ok, add"
+                                  " 'allow-elf-libs-in-other-dirs' to"
+                                  " FILES_%s[qa]"%(pkg))
+                    for _soname in symbols['SONAME']:
+                        oebakery.debug("%s/%s soname: %s"%(pkg, path, _soname))
+            else:
+                if not 'allow-elf-bins-in-other-dirs' in files_qaflags:
+                    oebakery.err("%s/%s is an elf binary"%(pkg, path))
+                    ok = False
+                    oebakery.info("If this is ok, add"
+                                  " 'allow-elf-bins-in-other-dirs' to"
+                                  " FILES_%s[qa]"%(pkg))
+            if 'NEEDED' in symbols:
+                needed.update(symbols["NEEDED"])
+            if "RPATH" in symbols:
+                for rpath in symbols["RPATH"]:
+                    if not rpath_check(files_qaflags, file_type,
+                                       'rpath', rpath):
+                        oebakery.err("RPATH %s in %s %s not allowed"%(
+                                rpath, file_type, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-%s-rel-rpath'"
+                            " or 'allow-bin-abs-rpath' in FILES_%s[qa]"%(
+                                file_type, pkg_with_pn(pkg)))
+            if "RUNPATH" in symbols:
+                for rpath in symbols["RUNPATH"]:
+                    if not rpath_check(files_qaflags, file_type,
+                                       'runpath', rpath):
+                        oebakery.err("RUNPATH %s in %s %s not allowed"%(
+                                rpath, file_type, path))
+                        ok = False
+                        oebakery.info(
+                            "If this is ok, set 'allow-%s-rel-runpath'"
+                            " or 'allow-bin-abs-runpath' in FILES_%s[qa]"%(
+                                file_type, pkg_with_pn(pkg)))
+
+        if needed:
+            print "Package %s NEEDED: %s"%(pkg, " ".join(needed))
+
+        # check consistency between library SONAME's and lib* PROVIDES
+        soname_libs = set([])
+        if soname:
+            soname_libs = set(sonamify(soname))
+            missing_lib_provides = soname_libs.difference(lib_provides)
+            allowed_missing = set([])
+            if missing_lib_provides:
+                for lib in missing_lib_provides:
+                    if "allow-missing-provides:%s"%(lib) in provides_qaflags:
+                        allowed_missing.add(lib)
+                missing_lib_provides = missing_lib_provides.difference(
+                    allowed_missing)
+            if missing_lib_provides:
+                oebakery.err("missing library PROVIDES: %s"%(
+                        ' '.join(missing_lib_provides)))
+                ok = False
+            if allowed_missing:
+                oebakery.debug("allowed missing library PROVIDES: %s"%(
+                        allowed_missing))
+        if lib_provides:
+            missing_lib_sonames = lib_provides.difference(soname_libs)
+            if missing_lib_sonames:
+                allowed_missing = set([])
+                for lib in missing_lib_sonames:
+                    if "allow-missing-soname:%s"%(lib) in provides_qaflags:
+                        allowed_missing.add(lib)
+                missing_lib_sonames = missing_lib_sonames.difference(
+                    allowed_missing)
+                if missing_lib_sonames:
+                    oebakery.err("missing library SONAME's: %s"%(
+                            missing_lib_sonames))
+                    ok = False
+                if allowed_missing:
+                    oebakery.debug("allowed missing library SONAME: %s"%(
+                            allowed_missing))
+
+
+        # depends that are missing, ie. in needed but not in depends.
+        missing_depends = set(sonamify(needed)).difference(
+            depends_provides.union(assume_provided))
+        if missing_depends:
+            missing_depends = list(missing_depends)
+            for i in reversed(xrange(len(missing_depends))):
+                dep = missing_depends[i]
+                item = oelite.item.OEliteItem(dep, ('DEPENDS', pkg_type))
+                if str(item) in assume_provided:
+                    del missing_depends[i]
+        if missing_depends:
+            msg = "Package %s missing DEPENDS: %s"%(
+                pkg, " ".join(sorted(missing_depends)))
+            if 'allow-missing-lib-depends' in depends_qaflags:
+                oebakery.info(msg)
+            else:
+                oebakery.err(msg)
+                ok = False
+        if not pkg_type in ('native', 'cross', 'sdk-cross'):
+            missing_rdepends = set(sonamify(needed)).difference(
+                rdepends_provides)
+            if missing_depends:
+                msg = "Package %s missing RDEPENDS: %s"%(
+                    pkg, " ".join(sorted(missing_rdepends)))
+                if 'allow-missing-lib-rdepends' in depends_qaflags:
+                    oebakery.info(msg)
+                else:
+                    oebakery.err(msg)
+                    ok = False
+
+        # FIXME: when checking for missing (library) depends, also warn on
+        # extra library dependencies.
+        # FIXME: verify that the following works correctly...
+        # depends that are to much, ie. in depends but not in needed
+        #extra_depends = filter(is_lib, depends.difference(needed))
+        #if extra_depends:
+        #    oebakery.warn("Package %s has unneeded DEPENDS:"%(pkg),
+        #                  " ".join(sorted(extra_depends)))
+
+
+        # FIXME: make sure to cache result of filemagic and readelf calls)
+
+        # check for empty packages, forbidding files for packages marked with
+        # "empty" in qa flag (on FILES_* variable), and allow no files
+        # for packages marked with "allow-empty" flag, and all other packages
+        # requiring files.
+
+        # check for RPATH in elf files (mark with allow-rpath)
+        #   different types of rpath allow/deny levels to consider:
+        #    + no rpath allowed (default for RUNPATH and machine RPATH)
+        #    + relative ($ORIGIN) rpaths allowed (default for non-machine RPATH)
+        #    + all rpaths allowed
+        #   flag names for this:
+        #    + forbid-*-r*path
+        #    + allow-*-rel-r*path
+        #    + allow-*-abs-r*path
+
+        # check for libraries in non-standard library directories (mark with
+        # nonstd-library-paths)
+
+        # check for executables in non-standard directories (mark with
+        # nonstd-executable-paths)
+
+        # check for .debug dirs in non -dbg packages (mark with
+        # allow-dot-debug)
+
+        # check for non-stripped ELF files (mark with allow-unstripped-elf)
+
+        # check for libtool archive files (.la files) in non-library dirs
+        # check for libtool archive files (.la files) in non-dev packages
+
+
+        #if pkg_needed:
+        #    pkg_depends[pkg] = pkg_needed
+
+
+        #if pkg_needed:
+        #    print "Package %s NEEDED:"%(pkg), " ".join(sorted(pkg_needed))
+        #if pkg_soname:
+        #    print "Package %s SONAME:"%(pkg), " ".join(sorted(pkg_soname))
+
+
+    if pkg_depends:
+        print "These are the library DEPENDS detected:"
+        print "-"*42
+        pn = d.get("PN")
+        for pkg in sorted(pkg_depends.keys()):
+            depends = " ".join(pkg_depends[pkg])
+            print 'DEPENDS_%s += "%s"'%(pkg_with_pn(pkg), depends)
+        print "-"*42
+
+    return ok
+
+addtask packageqaall after packageqa
+do_packageqaall[recdeptask] = "DEPENDS:do_packageqaall RDEPENDS:do_packageqaall"
+do_packageqaall[dirs] = "${WORKDIR}"
+def do_packageqaall(d):
+    return
+
