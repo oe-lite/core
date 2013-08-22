@@ -12,3 +12,5 @@ do_configure() {
 FILES_${PN} += "${bindir}/* ${datadir}"
 FILES_${PN}-doc += "${docdir}/* ${mandir}/* /doc/* /man/*"
 FILES_${PN}-dbg += "${bindir}/.debug/*"
+
+DEPENDS_${PN} += "libgcc libncurses"
