@@ -1,4 +1,178 @@
-# -*- mode:python; -*-
+## Class for adding QA checks on the result of the package task.
+##
+## A number of of QA checks should be implemented in this class, providing
+## assistance to recipe developers for implementing correct recipe packaging.
+## Corret recipe packaging means things like storing the right library files
+## in the right library packages, setting correct build and run-time
+## dependencies for the produced packages, checking for correct placement of
+## various files, checking if ELF files are properly stripped, checking for
+## correct ELF RPATH and RUNPATH values, and so on.
+##
+## While the QA checks are designed to fail the packageqa test as such when a
+## packaging QA error is found, there will ofcourse be situations where the
+## checks are wrong, and specific QA errors should be allowed.  To handle
+## this, a number of "qa" variable flags are defined.
+##
+
+## Package FILES QA flags
+## ----------------------
+##
+## The following flags can be added to the "qa" variable flag on the package
+## specific FILES_* variables, fx.
+##
+##     FILES_${PN}-dev += "allow-bin-abs-rpath"
+##
+## These flags alters QA checks related to the package content (files).
+##
+## allow-elf-bins-in-other-dirs::
+##     Allow non-library ELF binaries outside of specified binary directories.
+##
+## allow-elf-libs-in-other-dirs::
+##     Allow ELF libraries outside of specified library directories.
+##
+## forbid-bin-rpath::
+##     Do not allow ELF RPATH symbols in non-library ELF binaries. This is the
+##     default for machine packages.
+##
+## allow-bin-rel-rpath::
+##     Allow relative RPATH symbols in non-library ELF binaries, ie. paths
+##     starting with '$ORIGIN'.
+##
+## allow-bin-abs-rpath::
+##     Allow absolute RPATH symbols in non-library ELF binaries, ie. paths
+##     starting with '/'.
+##
+## forbid-bin-runpath::
+##     Do not allow ELF RUNPATH symbols in non-library ELF binaries. This is
+##     the default for machine packages.
+##
+## allow-bin-rel-runpath::
+##     Allow relative RUNPATH symbols in non-library ELF binaries, ie. paths
+##     starting with $ORIGIN.
+##
+## allow-bin-abs-runpath::
+##     Allow absolute RUNPATH symbols in non-library ELF binaries, ie. paths
+##     starting with '/'.
+##
+## forbid-lib-rpath::
+##     Do not allow ELF RPATH symbols in ELF libraries. This is the default
+##     for machine packages.
+##
+## allow-lib-rel-rpath::
+##     Allow relative RPATH symbols in ELF libraries, ie. paths starting with
+##     '$ORIGIN'.
+##
+## allow-lib-abs-rpath::
+##     Allow absolute RPATH symbols in ELF libraries, ie. paths starting with
+##     '/'.
+##
+## forbid-lib-runpath::
+##     Do not allow ELF RUNPATH symbols in ELF libraries. This is the default
+##     for machine packages.
+##
+## allow-lib-rel-runpath::
+##     Allow relative RUNPATH symbols in ELF libraries, ie. paths starting
+##     with '$ORIGIN'.
+##
+## allow-lib-abs-runpath::
+##     Allow absolute RUNPATH symbols in ELF libraries, ie. paths starting
+##     with '/'.
+##
+
+## Package DEPENDS QA flags
+## ------------------------
+##
+## The following flags can be added to the "qa" variable flag on the package
+## specific DEPENDS_* variables, fx.
+##
+##     DEPENDS_${PN}-dev += "allow-missing-lib-depends"
+##
+## These flags alters QA checks related to the package build-time
+## dependencies, ie. the build-time dependencies that the package adds to
+## recipes that adds the package to their stage directory.
+##
+## allow-missing-lib-depends::
+##     Allow the package DEPENDS_* variable to have incomplete library
+##     dependency information, ie. to not list one or more library
+##     dependencies which ELF files included in the package has ELF NEEDED
+##     symbols for.
+##
+
+## Package RDEPENDS QA flags
+## -------------------------
+##
+## The following flags can be added to the "qa" variable flag on the package
+## specific RDEPENDS_* variables, fx.
+##
+##     RDEPENDS_${PN}-dev += "allow-missing-lib-rdepends"
+##
+## These flags alters QA checks related to the package run-time
+## dependencies, ie. the run-time dependencies that the package adds to
+## recipes that adds the package to their rstage directory.
+##
+## allow-missing-lib-rdepends::
+##     Allow the package RDEPENDS_* variable to have incomplete library
+##     dependency information, ie. to not list one or more library
+##     dependencies which ELF files included in the package has ELF NEEDED
+##     symbols for.
+##
+
+## Package PROVIDES QA flags
+## -------------------------
+##
+## The following flags can be added to the "qa" variable flag on the package
+## specific PROVIDES_* variables, fx.
+##
+##     PROVIDES_${PN}-dev += "allow-missing-soname:libtermcap"
+##
+## These flags alters QA checks related to the package PROVIDES information.
+##
+## allow-missing-provides::
+##     Allow item other-wise required in PROVIDES to be missing,
+##     fx. "allow-missing-provides:libfoo" to allow "libfoo" to be excluded
+##     from the package PROVIDES_* variable, even though the QA check believes
+##     it should be there.
+##
+## allow-missing-soname::
+##     Allow library item in PROVIDES, even though the QA check does not find
+##     the SONAME in an ELF library in the package.
+##     Fx. "allow-missing-soname:libtermcap" to allow "libtermcap" in
+##     PROVVIDES_* variable, without having an ELF library with an libtermcap
+##     SONAME.
+##
+
+## @var PACKAGEQA_BUILD_READELF name of readelf command for extracing
+## information from build (native) ELF files.  Default is
+## "${BUILD_PREFIX}readelf".
+##
+## @var PACKAGEQA_HOST_READELF name of readelf command for extracting
+## information from host ELF files.  Default is "${HOST_PREFIX}readelf".
+##
+## @var PACKAGEQA_TARGET_READELF name of readelf command for extracting
+## information from target ELF files.  Default is "${TARGET_PREFIX}readelf".
+##
+## @var PACKAGEQA_BUILD_BINDIRS list of directories where build (native) lELF
+## binaries (not libraries) are expected to be installed to.
+##
+## @var PACKAGEQA_BUILD_LIBDIRS list of directories where build (native) ELF
+## libraries are expected to be installed to.
+##
+## @var PACKAGEQA_HOST_BINDIRS list of directories where host ELF binaries
+## (not libraries) are expected to be installed to.
+##
+## @var PACKAGEQA_HOST_LIBDIRS list of directories where host ELF libraries
+## are expected to be installed to.
+##
+## @var PACKAGEQA_TARGET_BINDIRS list of directories where target ELF binaries
+## (not libraries) are expected to be installed to.
+##
+## @var PACKAGEQA_TARGET_LIBDIRS list of directories where target ELF
+## libraries are expected to be installed to.
+##
+## NOTE: The directory paths added in PACKAGEQA_BUILD_BINDIRS,
+## PACKAGEQA_BUILD_LIBDIRS, PACKAGEQA_HOST_BINDIRS, and so on must be final
+## paths like "${bindir}" and not internal paths like "${D}${bindir}".
+##
 
 addtask packageqa after package
 
@@ -576,3 +750,6 @@ do_packageqaall[dirs] = "${WORKDIR}"
 def do_packageqaall(d):
     return
 
+# Local Variables:
+# mode: python
+# End:
