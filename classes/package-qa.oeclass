@@ -408,7 +408,7 @@ def do_packageqa(d):
             return True
         forbid_flag = 'forbid-%s-%s'%(file_type, rpath_type)
         rel_flag = 'allow-%s-rel-%s'%(file_type, rpath_type)
-        abs_flag = 'allow-%s-rel-%s'%(file_type, rpath_type)
+        abs_flag = 'allow-%s-abs-%s'%(file_type, rpath_type)
         if forbid_flag in flags:
             if rel_flag in flags:
                 oebakery.warn('%s flag overrules %s'%(
