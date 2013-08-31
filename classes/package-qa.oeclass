@@ -20,7 +20,7 @@
 ## The following flags can be added to the "qa" variable flag on the package
 ## specific FILES_* variables, fx.
 ##
-##     FILES_${PN}-dev += "allow-bin-abs-rpath"
+##     FILES_${PN}-dev[qa] += "allow-bin-abs-rpath"
 ##
 ## These flags alters QA checks related to the package content (files).
 ##
@@ -85,7 +85,7 @@
 ## The following flags can be added to the "qa" variable flag on the package
 ## specific DEPENDS_* variables, fx.
 ##
-##     DEPENDS_${PN}-dev += "allow-missing-lib-depends"
+##     DEPENDS_${PN}-dev[qa] += "allow-missing-lib-depends"
 ##
 ## These flags alters QA checks related to the package build-time
 ## dependencies, ie. the build-time dependencies that the package adds to
@@ -104,7 +104,7 @@
 ## The following flags can be added to the "qa" variable flag on the package
 ## specific RDEPENDS_* variables, fx.
 ##
-##     RDEPENDS_${PN}-dev += "allow-missing-lib-rdepends"
+##     RDEPENDS_${PN}-dev[qa] += "allow-missing-lib-rdepends"
 ##
 ## These flags alters QA checks related to the package run-time
 ## dependencies, ie. the run-time dependencies that the package adds to
@@ -123,7 +123,7 @@
 ## The following flags can be added to the "qa" variable flag on the package
 ## specific PROVIDES_* variables, fx.
 ##
-##     PROVIDES_${PN}-dev += "allow-missing-soname:libtermcap"
+##     PROVIDES_${PN}-dev[qa] += "allow-missing-soname:libtermcap"
 ##
 ## These flags alters QA checks related to the package PROVIDES information.
 ##
