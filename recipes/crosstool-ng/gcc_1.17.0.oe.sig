@@ -9,11 +9,13 @@ e36684442a6171cc3a5165c8c49c70f67db7288c  PDCurses-3.4.tar.gz
 8bf66f7a71534ba564563a0ba0b2517aead8ac30  gcc-4.6.1.tar.bz2
 ce317ca5c8185b58bc9300182b534608c578637f  gcc-4.6.3.tar.bz2
 a464ba0f26eef24c29bcd1e7489421117fb9ee35  gcc-4.7.2.tar.bz2
+6dcd985f46430d157b2b66ef2a1558279c961da3  gcc-linaro-4.7-2012.10.tar.bz2
 3b2c0d50533bcf834c2da0a700dfc2f4852a07e4  gdb-7.0.1a.tar.bz2
 ba3980daf648d3ca0dfdee012efc5faad840ae86  gdb-7.1a.tar.bz2
 14daf8ccf1307f148f80c8db17f8e43f545c2691  gdb-7.2a.tar.bz2
 d68061206a3485bab32da3fb751c6c3b913c2b9c  gdb-7.3a.tar.bz2
 1b0f8c3778d4b10c8d2be6922ac01a9900e8116c  gdb-7.4.1.tar.bz2
+2c8f8ca6fe548dcedc9dbcfcfe3e135bb2d937d4  gdb-linaro-7.5-2012.09.tar.bz2
 86db07dc1fbb93a5c72d4e0f880874751a19ef71  git://sourceware.org/git/glibc-ports.git;tag=glibc-2.12.2
 3ef6d36eee2dc7c4351f215f689e6a04c161a35e  glibc-2.12.2.tar.bz2
 86dbd8a6b2fbb4c75760a80009227c9a11b801a9  gmp-4.3.0.tar.bz2
