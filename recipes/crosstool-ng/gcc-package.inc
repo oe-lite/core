@@ -140,6 +140,7 @@ FILES_${PN}-sysroot-gdbserver = "\
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_bindir}/gdbserver${TARGET_EXEEXT} \
 "
 RDEPENDS_${PN}-sysroot-gdbserver = "${PN}-sysroot-libdl ${PN}-sysroot-libinproctrace"
+RDEPENDS_${PN}-sysroot-gdbserver:TARGET_OS_mingw32 = ""
 PROVIDES_${PN}-sysroot-gdbserver += "util/gdbserver"
 
 TARGET_PACKAGES += "${PN}-sysroot-gdbserver-doc"
