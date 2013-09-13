@@ -94,7 +94,7 @@ def do_split(d):
     for pkg in package_list:
         dangling_links[pkg] = []
         pkg_files[pkg] = []
-        inst_root = os.path.join(ddir, pkg)
+        inst_root = os.path.join(pkgd, pkg)
         for root, dirs, files in os.walk(inst_root):
             for f in files:
                 path = os.path.join(root, f)
