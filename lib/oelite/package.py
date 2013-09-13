@@ -38,7 +38,7 @@ class OElitePackage:
         depends = (depends or "").split()
         packages = get_depends(
             self.type, depends, deptype, rec_deptype=deptype,
-            needed_by='package %s'%(self))
+            needed_by='package %s'%(self), ignore_missing=True)
         provides = set()
         for package in packages:
             provides.update(package.get_provides())

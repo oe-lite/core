@@ -291,7 +291,8 @@ class OEliteRunQueue:
         return (task_depends, package_depends)
 
 
-    def get_depends(self, context, items, deptype, rec_deptype=None, needed_by=None):
+    def get_depends(self, context, items, deptype, rec_deptype=None,
+                    needed_by=None, ignore_missing=False):
         # return list/set of packages
 
         def resolve_dependency(item, recursion_path, deptype):
@@ -302,6 +303,8 @@ class OEliteRunQueue:
                 try:
                     (recipe, package) = self.get_recipe_provider(item)
                 except NoProvider, e:
+                    if ignore_missing:
+                        return set([])
                     if len(e.args) < 2 and len(recursion_path[0]):
                         raise NoProvider(e.args[0], recursion_path[0][-1])
                     raise
@@ -313,6 +316,8 @@ class OEliteRunQueue:
             try:
                 (recipe, package) = self.get_recipe_provider(item)
             except NoProvider, e:
+                if ignore_missing:
+                    return set([])
                 if len(e.args) < 2 and len(recursion_path[0]):
                     raise NoProvider(e.args[0], recursion_path[0][-1])
                 raise
