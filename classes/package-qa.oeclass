@@ -462,7 +462,7 @@ def do_packageqa(d):
         if depends:
             print "Package %s DEPENDS:"%(pkg), " ".join(sorted(depends))
         # get list of everything that the package depends recursively provides
-        depends_provides = set(d.get_flag("DEPENDS_%s"%(pkg), 'provides')
+        depends_provides = set(d.get_flag("DEPENDS_%s"%(pkg), '__provides')
                                or [])
         if depends_provides:
             print "Package %s DEPENDS provides:"%(pkg), " ".join(sorted(depends_provides))
@@ -470,7 +470,7 @@ def do_packageqa(d):
         if rdepends:
             print "Package %s RDEPENDS:"%(pkg), " ".join(sorted(rdepends))
         # get list of everything that the package rdepends recursively provides
-        rdepends_provides = set(d.get_flag("RDEPENDS_%s"%(pkg), 'provides')
+        rdepends_provides = set(d.get_flag("RDEPENDS_%s"%(pkg), '__provides')
                                 or [])
         if rdepends_provides:
             print "Package %s RDEPENDS provides:"%(pkg), " ".join(sorted(rdepends_provides))

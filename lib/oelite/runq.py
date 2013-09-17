@@ -696,7 +696,7 @@ class OEliteRunQueue:
                     if provides:
                         task.recipe.meta.set_flag(
                             '%s_%s'%(deptype, package.name),
-                            'provides', provides)
+                            '__provides', provides)
         tasks = map(task_id_tuple, tasks)
         self.dbc.executemany(
             "INSERT INTO runq.task (task) VALUES (?)", (tasks))
