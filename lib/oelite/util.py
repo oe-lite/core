@@ -69,7 +69,7 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
 
     if dir:
         pwd = os.getcwd()
-        chdir(dir, quiet=True)
+        os.chdir(dir)
 
     if not quiet:
         if dir:
@@ -102,7 +102,7 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
             print "Error: Command failed: %r"%(cmdstr)
 
     if dir:
-        chdir(pwd, quiet=True)
+        os.chdir(pwd)
 
     return retval
 
