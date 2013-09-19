@@ -1,14 +1,17 @@
 import oelite.fetch
-import fetching.git_cache
+import oelite.git
 import os
 import re
 import warnings
 import string
+import sys
+
+import bb.utils
 
 class GitFetcher():
 
     SUPPORTED_SCHEMES = ("git")
-    COMMIT_ID_RE = re.compile("[0-9a-f]{1,40}")
+    COMMIT_ID_RE = re.compile("([0-9a-f]{1,40})")
 
     def __init__(self, uri, d):
         if not uri.scheme in self.SUPPORTED_SCHEMES:
@@ -21,26 +24,12 @@ class GitFetcher():
         except KeyError:
             protocol = "git"
         self.url = "%s://%s"%(protocol, uri.location)
-        self.mirror_name = "%s_%s"%(protocol, uri.location.translate(string.maketrans("/", "_")))
+        repo_name = protocol + "_" + \
+            self.uri.location.rstrip("/").translate(string.maketrans("/", "_"))
+        self.repo = os.path.join(uri.ingredients, uri.isubdir, 'git', repo_name)
+        self.mirror_name = repo_name
         if self.mirror_name.endswith(".git"):
             self.mirror_name = self.mirror_name[:-4]
-        if self.mirror_name.endswith("/"):
-            self.mirror_name = self.mirror_name.strip("/")
-        try:
-            self.remote = uri.params["origin"]
-        except KeyError:
-            self.remote = "origin"
-        repo_name = uri.location.strip("/").split("/")[-1]
-        try:
-            self.repo = uri.params["repo"]
-        except KeyError:
-            self.repo = repo_name
-        if not self.repo.endswith(".git"):
-            self.repo += ".git"
-        if not "/" in self.repo:
-            self.repo = os.path.join(uri.isubdir, self.repo)
-        if not os.path.isabs(self.repo):
-            self.repo = os.path.join(uri.ingredients, self.repo)
         self.commit = None
         self.tag = None
         self.branch = None
@@ -68,6 +57,7 @@ class GitFetcher():
             warnings.warn("track parameter not implemented yet")
         else:
             self.track = None
+        repo_name = uri.location.strip("/").split("/")[-1]
         if repo_name.endswith(".git"):
             repo_name = repo_name[:-4]
         if "subdir" in uri.params:
@@ -76,10 +66,6 @@ class GitFetcher():
                 self.dest += repo_name
         else:
             self.dest = repo_name
-        try:
-            self.remote = uri.params["remote"]
-        except KeyError:
-            self.remote = None
         self.signatures = d.get("FILE") + ".sig"
         self.fetch_signatures = d["__fetch_signatures"]
         return
@@ -94,55 +80,25 @@ class GitFetcher():
             except KeyError:
                 raise oelite.fetch.NoSignature(self.uri, "signature unknown")
         elif self.branch:
-            warnings.warn("fetching git branch head, causing source signature to not be sufficient for proper signature handling")
+            warnings.warn("fetching git branch head, causing source signature to not be sufficient for proper signature handling (%s)"%(self.uri))
             return ""
         raise Exception("this should not be reached")
 
-    def get_cache(self):
-        try:
-            return self.cache
-        except AttributeError:
-            self.cache = fetching.git_cache.Fetcher(self.url, cache=self.repo,
-                                                    remote_name=self.remote)
-            return self.cache
-
     def fetch(self):
-        cache = self.get_cache()
-        cache.setup_cache()
-
-        fetched = False
-        for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
-            if self.tag and cache.has_tag(self.tag):
-                fetched = True
-                break
-            if self.commit and cache.has_commit(self.commit):
-                fetched = True
-                break
-            if not isinstance(url, basestring):
-                if url[0].endswith("//"):
-                    url = os.path.join(url[0].rstrip("/"), self.mirror_name)
-                    url += ".git"
-                else:
-                    url = os.path.join(url[0], url[1])
-            if not self.uri.allow_url(url):
-                print "Skipping", url
-                continue
-            try:
-                cache.update(url)
-            except Exception, e:
-                print "Warning: fetching %s failed: %s"%(url, e)
-                continue
-            fetched = True
-            break
-
-        if not fetched and not self.branch:
-            print "Error: git fetching failed"
-            return False
-
+        # TODO: add special handling of file:// git repos, which should not
+        # be cloned/mirrored to ingredients
+        if not os.path.exists(self.repo):
+            if not self.fetch_clone():
+                return False
+        repo = oelite.git.GitRepository(self.repo)
+        if not self.has_rev(repo):
+            if not self.fetch_update(repo):
+                return False
         if self.tag:
-            commit = cache.query_tag(self.tag)
+            commit = repo.get_tag(self.tag)
             if not commit:
-                raise oelite.fetch.FetchError(self.uri, "unknown tag: %s"%(self.tag))
+                raise oelite.fetch.FetchError(
+                    self.uri, "unknown tag: %s"%(self.tag))
             if not "_signature" in dir(self):
                 return (self.signature_name, commit)
             if (commit != self._signature):
@@ -152,17 +108,100 @@ class GitFetcher():
             return commit == self._signature
         return True
 
+    def fetch_clone(self):
+        basedir = os.path.dirname(self.repo)
+        repodir = os.path.basename(self.repo)
+        bb.utils.mkdirhier(basedir)
+        options = ['--mirror']
+        if self.uri.params.get('recursive', '0') != '0':
+            options.append('--recursive')
+        fetched = False
+        for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
+            if not isinstance(url, basestring):
+                if url[0].endswith("//"):
+                    url = os.path.join(url[0].rstrip("/"), self.mirror_name)
+                    url += ".git"
+                else:
+                    url = os.path.join(url[0], url[1])
+            if not self.uri.allow_url(url):
+                print "Skipping", url
+                continue
+            cmd = ['git', 'clone'] + options + [ url, repodir ]
+            print "Cloning from", url
+            if oelite.util.shcmd(cmd, dir=basedir) is True:
+                return True
+            print "fetching from %s failed"%(url)
+        print "Error: git clone failed"
+        return False
+
+    def fetch_update(self, repo):
+        fetched = False
+        for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
+            if not isinstance(url, basestring):
+                if url[0].endswith("//"):
+                    url = os.path.join(url[0].rstrip("/"), self.mirror_name)
+                    url += ".git"
+                else:
+                    url = os.path.join(url[0], url[1])
+            if not self.uri.allow_url(url):
+                print "Skipping", url
+                continue
+            print "Updating from %s"%(url)
+            repo.remote_update(url)
+            if self.has_rev(repo):
+                return True
+        print "Error: git update failed"
+        return False
+
+    def has_rev(self, repo):
+        if self.commit:
+            return repo.has_commit(self.commit)
+        elif self.tag:
+            return repo.has_tag(self.tag)
+        elif self.branch:
+            return repo.has_head(self.branch)
+        return False
+
     def unpack(self, d):
-        cache = self.get_cache()
-        rev = self.commit or self.tag or self.branch
-        cache.download(os.path.join(d.get("SRCDIR"), self.dest),
-                       rev=rev, force=True)
+        wc = os.path.join(d.get("SRCDIR"), self.dest)
+        basedir = os.path.dirname(wc)
+        bb.utils.mkdirhier(basedir)
+        if self.branch:
+            branch = self.resolve_head(self.branch)
+            cmd = "git clone --shared -b %s %s %s"%(branch, self.repo, wc)
+            if not oelite.util.shcmd(cmd):
+                print "Error: git clone failed"
+                return False
+            return True
+        cmd = "git clone --shared --no-checkout %s %s"%(self.repo, wc)
+        if not oelite.util.shcmd(cmd):
+            print "Error: git clone failed"
+            return False
+        cmd = "git checkout -q "
+        if self.commit:
+            cmd += self.commit
+        elif self.tag:
+            cmd += "refs/tags/%s"%(self.tag)
+        else:
+            print "Error: WTF! no commit, tag or branch!!"
+            return False
+        if not oelite.util.shcmd(cmd, dir=self.dest):
+            print "Error: git checkout failed"
+            return False
         return True
 
     def mirror(self, mirror=os.getcwd()):
         path = os.path.join(self.uri.isubdir, "git", self.mirror_name) + ".git"
-        print "Updating git mirror", path
-        cache = self.get_cache()
-        repo = cache.update_bare_dest(path)
-        repo.git.update_server_info()
-        return True
+        basedir = os.path.dirname(path)
+        if not os.path.exists(path):
+            print "Creating git mirror", path
+            bb.utils.mkdirhier(basedir)
+            options = ['--mirror']
+            if self.uri.params.get('recursive', '0') != '0':
+                options.append('--recursive')
+            cmd = ['git', 'clone'] + options + [self.repo, path]
+            return oelite.util.shcmd(cmd) is True
+        else:
+            print "Updating git mirror", path
+            cmd = "git remote update"
+            return oelite.util.shcmd(cmd, dir=path) is True
