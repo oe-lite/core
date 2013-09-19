@@ -119,14 +119,14 @@ def do_split(d):
             for p in package_list:
                 for f in pkg_files[p]:
                     if f == l:
+                        print "target found in %s"%(p)
                         found = True
-                        if p == pkg:
-                            print "target found in %s"%(p)
-                            break
-                        bb.error("target found in %s"%(p))
-                        really_dangling = True
-            if found == False:
+                        break
+                if found:
+                    break
+            if not found:
                 bb.error("%s contains dangling symlink to %s" % (pkg, l))
+                really_dangling = True
     if really_dangling:
         bb.fatal("dangling symlinks")
 
