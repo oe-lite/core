@@ -71,8 +71,8 @@ class OEliteUri:
                 try:
                     name, value = param.split("=")
                 except ValueError:
-                    raise oelite.fetch.InvalidURI(
-                        uri, "bad parameter: %s"%param)
+                    name = param
+                    value = "1"
                 self.params[name] = value
         try:
             self.isubdir = self.params["isubdir"]
