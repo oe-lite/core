@@ -1,5 +1,7 @@
 import oebakery
 import logging
+import oelite.util
+import oelite.git
 
 
 description = "Cherry pick tool"
@@ -45,7 +47,6 @@ import sys
 import os
 import copy
 import re
-import git
 
 
 class InvalidGitLogLine:
@@ -80,7 +81,7 @@ class RefLog:
             return
         assert until
         self.__reflog = self.__parse_git_log(
-            repo.git.log("%s..%s"%(since, until)))
+            repo.git("log %s..%s"%(since, until)))
         return
 
     def __copy__(self):
@@ -134,7 +135,7 @@ class RefLog:
             else:
                 notes = None
             reflog.append(commit)
-            self.__commits[commit] = self.repo.commit(commit)
+            self.__commits[commit] = commit
         #reflog.reverse()
         del self.__log, self.__line
         return reflog
@@ -187,59 +188,50 @@ class RefLog:
             indented_line = self.__get_indented_line()
         return lines
 
+def is_head_detached(repo):
+    cmd = "git symbolic-ref HEAD"
+    return oelite.util.shcmd(cmd, dir=repo, quiet=True,
+                             silent_errorcodes=[1, 128]) is None
 
 def run(options, args, config):
     logging.debug("cherry.run %s", options)
 
     if options.repository:
-        try:
-            repo = git.Repo(options.repository)
-        except git.exc.NoSuchPathError:
+        if not os.path.exist(options.repository):
             return "invalid submodule path: %s"%(options.repository)
-        except:
-            logging.debug("failed to open submodule: %s", options.repository,
-                          exc_info=True)
-            return "failed to open submodule: %s"%(options.repository)
+        repo = oelite.git.GitRepository(options.repository)
     else:
-        os.chdir(oebakery.oldpwd)
         try:
-            repo = git.Repo()
-        except:
-            logging.debug("failed to open repository: %s", oebakery.oldpwd,
-                          exc_info=True)
-            return "failed to repository submodule: %s"%(oebakery.oldpwd)
-    logging.debug("repo = %r", repo)
+            repo = oelite.git.GitRepository(oebakery.oldpwd)
+        except oelite.git.NotAGitRepository:
+            return "unable to determine repository path"
+    logging.debug("repository %r", repo.path)
 
     if not options.head:
-        if repo.head.is_detached:
+        head = repo.get_symref('HEAD')
+        if head is None:
             return "cannot determined release branch"
-        options.head = repo.head.reference.name
+        options.head = head
 
     if re.match(r"[0-9\.]+$", options.head) is None:
         return "not a release branch: %r"%(options.head)
 
-    if not options.head in repo.heads:
+    if not options.head in repo.heads():
         return "invalid branch to cherry pick to: %s"%(options.head)
 
-    cherry_base = repo.git.merge_base(options.head, options.upstream)
+    cherry_base = repo.git("merge-base %s %s"%(options.head, options.upstream))
     if not cherry_base:
         return "failed to determine cherry base"
-    try:
-        cherry_base = repo.commit(cherry_base)
-    except:
-        logger.debug("failed to determine cherry base: %s", cherry_base,
-                     exc_info=True)
-        return "failed to determine cherry base: %s"%(cherry_base)
 
-    upstream_log = RefLog(repo, cherry_base.hexsha, options.upstream)
-    head_log = RefLog(repo, cherry_base.hexsha, options.head)
+    upstream_log = RefLog(repo, cherry_base, options.upstream)
+    head_log = RefLog(repo, cherry_base, options.head)
 
     logging.debug("examining %d commits", len(upstream_log))
 
     candidates = copy.copy(upstream_log)
 
     logging.debug("removing already merged commits")
-    cherry = repo.git.cherry(options.head, options.upstream)
+    cherry = repo.git("cherry %s %s"%(options.head, options.upstream))
     cherry_re = re.compile(r"(.) ([0-9a-f]{40})")
     for line in cherry.splitlines():
         m = cherry_re.match(line)
@@ -247,7 +239,7 @@ def run(options, args, config):
             return "bad git cherry line: %s"%(line)
         prefix, sha = m.groups()
         if prefix == "-":
-            logging.debug("removing %s %s", sha, candidates[sha].summary)
+            logging.debug("removing %s %s", sha, candidates[sha])
             del candidates[sha]
 
     logging.debug("commits left: %d", len(candidates))
@@ -255,7 +247,7 @@ def run(options, args, config):
     logging.debug("removing seemingly merged commits")
     cherry_pick_re = re.compile("cherry picked from commit ([0-9a-f]{40})")
     for ref in head_log:
-        for sha in cherry_pick_re.findall(ref.message):
+        for sha in cherry_pick_re.findall(ref):
             if sha in candidates:
                 logging.debug("removing %s %s", sha, candidates[sha].summary)
                 del candidates[sha]
@@ -282,18 +274,18 @@ def run(options, args, config):
             return False
         return True
     for ref in candidates:
-        try:
-            notes = repo.git.notes("show", ref.hexsha)
-            target_version_re = re.compile("Target version: (.*)")
+        notes = repo.git("notes show %s"%(ref))
+        target_version_re = re.compile("Target version: (.*)")
+        if not notes:
+            target_version = None
+        else:
             for line in notes.splitlines():
                 m = target_version_re.match(line)
                 if m:
                     target_version = m.group(1).strip()
                     break
-        except git.cmd.GitCommandError, e:
-            target_version = None
         if options.interactive and not target_version:
-            logging.info("%s %s", ref.hexsha, ref.summary)
+            logging.info("%s", ref)
             while not target_version:
                 target_version = raw_input("Target version: ")
                 if target_version == "master":
@@ -307,19 +299,19 @@ def run(options, args, config):
                               target_version)
                 target_version = None
             if target_version:
-                repo.git.notes("append", "-m",
-                               "Target version: %s"%(target_version),
-                               ref.hexsha)
+                repo.git("notes append -m 'Target version: %s' %s"%(
+                        target_version, ref))
         if target_version:
             if not vercmp(target_version, options.head):
-                logging.debug("removing %s %s [Target version: %s]",
-                              ref.hexsha, ref.summary, target_version)
-                del candidates[ref.hexsha]
+                logging.debug("removing %s [Target version: %s]",
+                              ref, target_version)
+                del candidates[ref]
         pass
 
     logging.info("cherry pick candidates from %s to %s: %d (oldest last)",
                  options.upstream, options.head, len(candidates))
     for ref in reversed(candidates):
-        logging.info("%s %s", ref.hexsha, ref.summary)
+        commit = repo.get_object(ref)
+        logging.info("%s %s", ref, commit.subject)
 
     return 0
