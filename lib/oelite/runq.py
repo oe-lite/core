@@ -230,7 +230,7 @@ class OEliteRunQueue:
                 # get list of packages providing the dependencies
                 depends = self.get_depends(
                     recipe.type, recipe.get_depends([deptype]), deptype,
-                    needed_by='recipe %s%'%(recipe))
+                    needed_by='recipe %s'%(recipe))
                 # add each deptask for each package
                 add_package_depends(deptasks, deptype, depends)
 
