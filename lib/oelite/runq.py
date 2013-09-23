@@ -218,8 +218,8 @@ class OEliteRunQueue:
                     recipe = package.recipe.id
                     task = self.cookbook.get_task(recipe=recipe, name=task_name)
                     if not task:
-                        bb.fatal("cannot add unsupported task %s:%s"%(
-                                recipe, task_name))
+                        die("cannot add unsupported task %s:%s"%(
+                                package.recipe.name, task_name))
                     package_depends[deptype].add((task, package))
 
         # add deptask dependencies
