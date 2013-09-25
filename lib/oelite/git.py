@@ -145,5 +145,6 @@ class GitObject(object):
         self.subject = lines[line]
         line += 1
         if line >= len(lines):
+            self.body = None
             return
         self.body = '\n'.join(lines[line:])
