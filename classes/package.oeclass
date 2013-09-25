@@ -125,10 +125,10 @@ def do_split(d):
                 if found:
                     break
             if not found:
-                bb.error("%s contains dangling symlink to %s" % (pkg, l))
+                bb.warn("%s contains dangling symlink to %s" % (pkg, l))
                 really_dangling = True
     if really_dangling:
-        bb.fatal("dangling symlinks")
+        bb.warn("dangling symlinks")
 
 do_package[dirs] = "${PKGD}"
 
