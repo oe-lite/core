@@ -288,10 +288,16 @@ def run(options, args, config):
                     target_version = m.group(1).strip()
                     break
         if options.interactive and not target_version:
-            logging.info("%s", ref)
+            commit = repo.get_object(ref)
+            print "\ncommit %s\n%s"%(ref, commit.subject)
+
             while not target_version:
-                target_version = raw_input("Target version: ")
-                if target_version == "master":
+                target_version = raw_input("Target version [? to show diff]: ")
+                if target_version == '?':
+                    print "\n%s\n"%(repo.git("show --color %s"%(ref), quiet=True))
+                    target_version = None
+                    continue
+                elif target_version == "master":
                     break
                 if not target_version:
                     target_version = None
@@ -311,10 +317,10 @@ def run(options, args, config):
                 del candidates[ref]
         pass
 
-    logging.info("cherry pick candidates from %s to %s: %d (oldest last)",
-                 options.upstream, options.head, len(candidates))
+    print "cherry pick candidates from %s to %s: %d (oldest last)"%(
+        options.upstream, options.head, len(candidates))
     for ref in reversed(candidates):
         commit = repo.get_object(ref)
-        logging.info("%s %s", ref, commit.subject)
+        print "%s %s"%(ref, commit.subject)
 
     return 0
