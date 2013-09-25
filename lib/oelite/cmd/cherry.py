@@ -247,9 +247,12 @@ def run(options, args, config):
     logging.debug("removing seemingly merged commits")
     cherry_pick_re = re.compile("cherry picked from commit ([0-9a-f]{40})")
     for ref in head_log:
-        for sha in cherry_pick_re.findall(ref):
+        commit = repo.get_object(ref)
+        if not commit.body:
+            continue
+        for sha in cherry_pick_re.findall(commit.body):
             if sha in candidates:
-                logging.debug("removing %s %s", sha, candidates[sha].summary)
+                logging.debug("removing %s %s", sha, candidates[sha])
                 del candidates[sha]
 
     logging.debug("commits left: %d", len(candidates))
