@@ -112,6 +112,7 @@ class OEliteBaker:
         self.import_env()
         self.config.pythonfunc_init()
         self.topdir = self.config.get("TOPDIR", True)
+        self.set_manifest_origin()
         # FIXME: self.config.freeze("TOPDIR")
 
         self.confparser = confparse.ConfParser(self.config)
@@ -204,6 +205,42 @@ class OEliteBaker:
         self.env_signature = hasher.hexdigest()
         os.environ.clear()
         return
+
+
+    def set_manifest_origin(self):
+        if not os.path.exists(os.path.join(self.topdir, '.git')):
+            return
+        url = oelite.util.shcmd("git config --get remote.origin.url",
+                                quiet=True, silent_errorcodes=[1])
+        if not url:
+            return
+        url = os.path.dirname(url.strip())
+        if url.startswith('file:///'):
+            url = url[7:]
+        srcuri = None
+        if url.startswith('/'):
+            srcuri = 'git://%s'%(url)
+            protocol = 'file'
+        elif url.startswith('git://'):
+            srcuri = url
+            protocol = None
+        if srcuri is None:
+            for protocol in ('ssh', 'http', 'https', 'ftp', 'ftps', 'rsync'):
+                if url.startswith('%s://'%(protocol)):
+                    srcuri = 'git://%s'%(url[len(protocol)+3:])
+                    break
+        self.config.set('MANIFEST_ORIGIN_URL', url)
+        self.config.set_flag('MANIFEST_ORIGIN_URL', 'nohash', True)
+        if srcuri is None:
+            logging.warning("unsupported manifest origin: %s"%(url))
+            return
+        self.config.set('MANIFEST_ORIGIN_SRCURI', srcuri)
+        self.config.set_flag('MANIFEST_ORIGIN_SRCURI', 'nohash', True)
+        if protocol:
+            self.config.set('MANIFEST_ORIGIN_PARAMS', ';protocol=%s'%(protocol))
+        else:
+            self.config.set('MANIFEST_ORIGIN_PARAMS', '')
+        self.config.set_flag('MANIFEST_ORIGIN_PARAMS', 'nohash', True)
 
 
     def show(self):
