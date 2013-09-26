@@ -151,7 +151,7 @@ class GitFetcher():
                 continue
             if self.has_rev(repo):
                 return True
-        print "Error: git update failed"
+        print "Error: git update failed (required rev could not be fetched)"
         return False
 
     def has_rev(self, repo):
