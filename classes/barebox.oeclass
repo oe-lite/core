@@ -75,6 +75,9 @@ PACKAGES = "${PN} ${PN}-elf"
 FILES_${PN} = "${bootdir}/${BAREBOX_IMAGE_FILENAME}"
 FILES_${PN}-elf = "${bootdir}/${BAREBOX_IMAGE_BASE}"
 
+PROVIDES_${PN} = "barebox"
+PROVIDES_${PN}-elf = "barebox-elf"
+
 addtask deploy before build after compile
 do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
 REBUILD ?= "1"
