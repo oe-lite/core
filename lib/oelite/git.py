@@ -36,6 +36,8 @@ class GitRepository(object):
         cmd = "git " + cmd
         retval = oelite.util.shcmd(
             cmd, dir=self.path, quiet=quiet, silent_errorcodes=[1, 128])
+        if not quiet:
+            return retval
         if strip and retval:
             retval = retval.strip()
         return retval
