@@ -445,7 +445,9 @@ class MetaData(MutableMapping):
 
         dynvars = []
         for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
-            dynvars.append((varname, self.get(varname, True) or None))
+            varval = self.get(varname, True)
+            if varval:
+                dynvars.append((varname, varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
