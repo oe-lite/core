@@ -444,7 +444,9 @@ class MetaData(MutableMapping):
              flags=False, ignore_flags=None):
 
         dynvars = []
-        for varname in ("WORKDIR", "TOPDIR", "DATETIME"):
+        for varname in ("WORKDIR", "TOPDIR", "DATETIME",
+                        "MANIFEST_ORIGIN_URL", "MANIFEST_ORIGIN_SRCURI",
+                        "MANIFEST_ORIGIN_PARAMS"):
             varval = self.get(varname, True)
             if varval:
                 dynvars.append((varname, varval))
