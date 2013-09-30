@@ -1,1 +1,1 @@
-manifest_cmds = [ "bake", "setup", "show", "cherry" ]
+manifest_cmds = [ "bake", "setup", "show", "cherry", "autodoc" ]
