@@ -19,6 +19,8 @@ CLASS_FLAGS += "dupdate_script dupdate_version"
 DEFAULT_USE_dupdate_script = ""
 DEFAULT_USE_dupdate_version = ""
 
+require conf/dupdate.conf
+
 do_install[postfuncs] += "do_install_dupdate_image"
 do_install_dupdate_image () {
 	install -m 664 ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} ${D}/
@@ -44,8 +46,8 @@ do_rstage_dupdate_version[dirs] = "${RSTAGE_DIR}"
 
 do_rstage_dupdate_script () {
 	script="${USE_dupdate_script}"
-	if [ "$script" != "run_update.sh" ] ; then
-		mv $script run_update.sh
+	if [ "$script" != "${USE_dupdate_exefile}" ] ; then
+		mv $script ${USE_dupdate_exefile}
 	fi
 }
 do_rstage_dupdate_script[dirs] = "${RSTAGE_DIR}"
