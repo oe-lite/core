@@ -263,6 +263,7 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/locale \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_datadir}/i18n \
 "
 
+PROVIDES_${PN}-sysroot-libgcc += "libgcc_s"
 FILES_${PN}-sysroot-libgcc = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}/libgcc_s.so.* \
 "
