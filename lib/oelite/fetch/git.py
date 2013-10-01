@@ -91,7 +91,7 @@ class GitFetcher():
             if not self.fetch_clone():
                 return False
         repo = oelite.git.GitRepository(self.repo)
-        if not self.has_rev(repo):
+        if self.branch or not self.has_rev(repo):
             if not self.fetch_update(repo):
                 return False
         if self.tag:
@@ -147,7 +147,8 @@ class GitFetcher():
                 print "Skipping", url
                 continue
             print "Updating from %s"%(url)
-            repo.remote_update(url)
+            if not repo.remote_update(url):
+                continue
             if self.has_rev(repo):
                 return True
         print "Error: git update failed"
@@ -166,8 +167,9 @@ class GitFetcher():
         wc = os.path.join(d.get("SRCDIR"), self.dest)
         basedir = os.path.dirname(wc)
         bb.utils.mkdirhier(basedir)
+        repo = oelite.git.GitRepository(self.repo)
         if self.branch:
-            branch = self.resolve_head(self.branch)
+            branch = repo.resolve_head(self.branch)
             cmd = "git clone --shared -b %s %s %s"%(branch, self.repo, wc)
             if not oelite.util.shcmd(cmd):
                 print "Error: git clone failed"
