@@ -11,7 +11,7 @@ import bb.utils
 class GitFetcher():
 
     SUPPORTED_SCHEMES = ("git")
-    COMMIT_ID_RE = re.compile("([0-9a-f]{1,40})")
+    SHA1_RE = re.compile("([0-9a-f]{1,40})$")
 
     def __init__(self, uri, d):
         if not uri.scheme in self.SUPPORTED_SCHEMES:
@@ -35,7 +35,7 @@ class GitFetcher():
         self.branch = None
         if "commit" in uri.params:
             self.commit = uri.params["commit"]
-            if not self.COMMIT_ID_RE.match(self.commit):
+            if not self.SHA1_RE.match(self.commit):
                 raise oelite.fetch.InvalidURI(
                     self.uri, "invalid commit id %s"%(repr(self.commit)))
         if "tag" in uri.params:
@@ -106,7 +106,7 @@ class GitFetcher():
                 print "  expected: %s"%self._signature
                 print "  obtained: %s"%commit
             return commit == self._signature
-        return True
+        return self.has_rev(repo)
 
     def fetch_clone(self):
         basedir = os.path.dirname(self.repo)

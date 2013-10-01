@@ -17,7 +17,7 @@ class NotAGitRepository(Exception):
 
 class GitRepository(object):
 
-    COMMIT_ID_RE = re.compile("([0-9a-f]{1,40})")
+    SHA1_RE = re.compile("([0-9a-f]{1,40})$")
 
     def __init__(self, path):
         self.path = oelite.util.shcmd(
@@ -92,7 +92,7 @@ class GitRepository(object):
         commit = self.git("rev-parse --verify %s"%(rev))
         if commit is None:
             return None
-        m = self.COMMIT_ID_RE.match(commit)
+        m = self.SHA1_RE.match(commit)
         if m is None:
             print "Warning: unexpected rev-parse output: %r"%(commit)
             return None
@@ -105,6 +105,8 @@ class GitRepository(object):
         return head
 
     def has_commit(self, commit):
+        if not self.SHA1_RE.match(commit):
+            return False
         t = self.git("cat-file -t %s"%(commit))
         return t == 'commit'
 
