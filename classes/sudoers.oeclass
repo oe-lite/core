@@ -1,0 +1,30 @@
+## OE-lite class for handling entries to the sudoers.d directory
+##
+## Inherit this class to ensure all sudoers.d entries becomes unique.
+## Let SUDOERS_FILES list all SRC files going to sudoers.d
+##
+## Notice: Files in sudoers.d are read in lexical order. If the order is
+##         important accross recipes this class is too simple
+##
+## @var SUDOERS_FILES Lists all files going to sudoers.d
+
+SUDOERS_FILES ?= ""
+
+do_install[postfuncs] += "do_install_sudoers"
+do_install_sudoers () {
+	if [ -z "${SUDOERS_FILES}" ]; then
+		return
+	fi
+
+	sudoers_dir=${D}${sysconfdir}/sudoers.d
+	install -m 0755 -d $sudoers_dir
+	i=1
+	for f in ${SUDOERS_FILES} ; do
+		install -m 0644 $f $sudoers_dir/${PN}_$i
+		i=$((i+1))
+	done
+}
+
+# Local Variables:
+# mode: python
+# End:
