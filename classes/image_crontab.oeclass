@@ -5,8 +5,9 @@ IMAGE_PREPROCESS_FUNCS:>USE_crontab = " image_preprocess_crontab"
 image_preprocess_crontab () {
 	cwd=`pwd`
 	test -d $cwd/${crontabdir} || return 0
-	for f in $cwd/${crontabdir}/root.* ; do
-		cat $f >> $cwd${crontabdir}/root
+	for f in $cwd/${crontabdir}/*.* ; do
+		user=`basename $f | cut -d. -f1`
+		cat $f >> $cwd${crontabdir}/$user
 		rm $f
 	done
 }
