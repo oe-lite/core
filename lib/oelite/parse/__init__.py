@@ -39,14 +39,14 @@ class ParseError(Exception):
         assert isinstance(self.lexer, ply.lex.Lexer)
 
         if "filename" in dir(self.parser):
-            self.filename = self.parser.filename
+            self.filename = oelite.path.relpath(self.parser.filename)
         else:
             self.filename = "<unknown file>",
 
         if isinstance(self.details, ply.yacc.YaccProduction):
             self.errlineno -= 1
             self.symbol = None
-            self.msg += " in %s at line %d"%(
+            self.msg += " in %s line %d"%(
                 self.filename, self.errlineno + 1)
         elif isinstance(self.details, ply.lex.LexToken):
             if self.details.type == "error":
@@ -57,11 +57,11 @@ class ParseError(Exception):
             if self.symbol.endswith("\n"):
                 self.errlineno -= 1
             if self.details.type == "error":
-                self.msg += " in %s at line %d: %s"%(
+                self.msg += " in %s line %d: %s"%(
                     self.filename, self.errlineno + 1,
                     repr(self.symbol))
             else:
-                self.msg += " in %s at line %d: %s %s"%(
+                self.msg += " in %s line %d: %s %s"%(
                     self.filename, self.errlineno + 1,
                     self.details.type, repr(self.symbol))
         else:
