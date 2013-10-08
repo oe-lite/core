@@ -60,6 +60,14 @@ class ExpansionStack:
 pythonfunc_code_cache = {}
 
 
+OE_ENV_WHITELIST = [
+    "PATH",
+    "PWD",
+    "SHELL",
+    "TERM",
+]
+
+
 class MetaData(MutableMapping):
 
 
@@ -78,7 +86,6 @@ class MetaData(MutableMapping):
         self._signature = None
         return
 
-
     def import_dict(self, d):
         for key in d:
             if key == "__file_mtime":
@@ -93,6 +100,24 @@ class MetaData(MutableMapping):
                     self.set(key, value)
         return
 
+    def import_env(self):
+        whitelist = OE_ENV_WHITELIST
+        if "OE_ENV_WHITELIST" in os.environ:
+            whitelist += os.environ["OE_ENV_WHITELIST"].split()
+        if "OE_ENV_WHITELIST" in self:
+            whitelist += self.get("OE_ENV_WHITELIST", True).split()
+        debug("whitelist=%s"%(whitelist))
+        debug("Whitelist filtered shell environment:")
+        hasher = hashlib.md5()
+        for var in whitelist:
+            if var in os.environ:
+                 debug("> %s=%s"%(var, os.environ[var]))
+            if not var in self and var in os.environ:
+                env_val = os.environ[var]
+                self[var] = env_val
+                hasher.update("%s=%r\n"%(var, env_val))
+        self.env_signature = hasher.hexdigest()
+        return
 
     def __repr__(self):
         return '%s()'%(self.__class__.__name__)

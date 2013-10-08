@@ -22,13 +22,6 @@ import datetime
 import hashlib
 import logging
 
-OE_ENV_WHITELIST = [
-    "PATH",
-    "PWD",
-    "SHELL",
-    "TERM",
-]
-
 #INITIAL_OE_IMPORTS = "oe.path oe.utils sys os time"
 INITIAL_OE_IMPORTS = "sys os time"
 
@@ -109,7 +102,8 @@ class OEliteBaker:
 
         self.config = oelite.meta.DictMeta(meta=config)
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
-        self.import_env()
+        self.config.import_env()
+        os.environ.clear()
         self.config.pythonfunc_init()
         self.topdir = self.config.get("TOPDIR", True)
         self.set_manifest_origin()
@@ -182,28 +176,6 @@ class OEliteBaker:
 
 
     def __del__(self):
-        return
-
-
-    def import_env(self):
-        whitelist = OE_ENV_WHITELIST
-        if "OE_ENV_WHITELIST" in os.environ:
-            whitelist += os.environ["OE_ENV_WHITELIST"].split()
-        if "OE_ENV_WHITELIST" in self.config:
-            whitelist += self.config.get("OE_ENV_WHITELIST", True).split()
-        debug("whitelist=%s"%(whitelist))
-        debug("Whitelist filtered shell environment:")
-        hasher = hashlib.md5()
-        for var in whitelist:
-            if self.debug:
-                if var in os.environ:
-                     debug("> %s=%s"%(var, os.environ[var]))
-            if not var in self.config and var in os.environ:
-                env_val = os.environ[var]
-                self.config[var] = env_val
-                hasher.update("%s=%r\n"%(var, env_val))
-        self.env_signature = hasher.hexdigest()
-        os.environ.clear()
         return
 
 
