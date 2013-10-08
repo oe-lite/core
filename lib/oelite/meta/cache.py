@@ -23,7 +23,7 @@ class MetaCache:
             os.unlink(cachefile)
         bb.utils.mkdirhier(os.path.dirname(cachefile))
         self.abi = pickle_abi()
-        self.env_signature = baker.env_signature
+        self.env_signature = baker.config.env_signature
         self.mtimes = set()
         self.meta = {}
         self.expand_cache = {}
@@ -44,7 +44,7 @@ class MetaCache:
         try:
             if pickle_abi() != self.abi:
                 return False
-            if baker.env_signature != self.env_signature:
+            if baker.config.env_signature != self.env_signature:
                 return False
             if not isinstance(self.mtimes, set):
                 return False
