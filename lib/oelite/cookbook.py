@@ -127,14 +127,6 @@ class CookBook(Mapping):
             "UNIQUE (recipe, deptype, type, item) ON CONFLICT REPLACE )")
 
         self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS recipe_rdepend ( "
-            "recipe      INTEGER, "
-            "type        TEXT, "
-            "item        TEXT, "
-            "version     TEXT, "
-            "UNIQUE (recipe, type, item) ON CONFLICT REPLACE )")
-
-        self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS provide ( "
             "package     INTEGER, "
             "item        TEXT, "
