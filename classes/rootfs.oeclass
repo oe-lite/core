@@ -10,23 +10,23 @@ RDEPENDS_ROOTFS ?= "busybox"
 CLASS_RDEPENDS += "${RDEPENDS_ROOTFS}"
 
 #Extra RDEPENDS
-RECIPE_FLAGS += "rootfs_extra_rdepends"
+CLASS_FLAGS += "rootfs_extra_rdepends"
 DEFAULT_USE_rootfs_extra_rdepends = ""
 CLASS_RDEPENDS:>USE_rootfs_extra_rdepends = " ${USE_rootfs_extra_rdepends}"
 
 # Jffs2 recipe flags
-RECIPE_FLAGS += "rootfs_jffs2_options"
+CLASS_FLAGS += "rootfs_jffs2_options"
 DEFAULT_USE_rootfs_jffs2_options = "--faketime --squash"
 JFFS2_IMAGE_OPTIONS = "${USE_rootfs_jffs2_options}"
 
 # ext2 recipe flags
-RECIPE_FLAGS += "rootfs_ext2_options rootfs_ext2_size_in_blocks"
+CLASS_FLAGS += "rootfs_ext2_options rootfs_ext2_size_in_blocks"
 DEFAULT_USE_rootfs_ext2_options = "-z -q -f"
 DEFAULT_USE_rootfs_ext2_size_in_blocks = "10240"
 EXT2_IMAGE_OPTIONS = "${USE_rootfs_ext2_options} -b ${USE_rootfs_ext2_size_in_blocks}"
 
 # archive recipe flags
-RECIPE_FLAGS += "rootfs_archive_formats rootfs_archive_tar_ext"
+CLASS_FLAGS += "rootfs_archive_formats rootfs_archive_tar_ext"
 DEFAULT_USE_rootfs_archive_formats = "tar"
 DEFAULT_USE_rootfs_archive_tar_ext = "tar"
 ARCHIVE_IMAGE_FORMATS = "${USE_rootfs_archive_formats}"
