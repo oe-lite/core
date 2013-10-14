@@ -14,7 +14,7 @@ FILES_${PN} += "${bootdir}/initramfs.cpio"
 
 PROVIDES_${PN} = "initramfs"
 
-RECIPE_FLAGS += "initramfs_archive_formats initramfs_archive_tar_ext"
+CLASS_FLAGS += "initramfs_archive_formats initramfs_archive_tar_ext"
 DEFAULT_USE_initramfs_archive_formats = "tar"
 DEFAULT_USE_initramfs_archive_tar_ext = "tar"
 ARCHIVE_IMAGE_FORMATS = "${USE_initramfs_archive_formats}"
