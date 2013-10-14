@@ -1,3 +1,3 @@
-RECIPE_FLAGS += "sdk_static"
+CLASS_FLAGS += "sdk_static"
 SDK_STATIC = "${USE_sdk_static}"
 SDK_STATIC[expand] = "3"
