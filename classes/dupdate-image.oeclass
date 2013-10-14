@@ -19,6 +19,7 @@ CLASS_FLAGS += "dupdate_script dupdate_version"
 DEFAULT_USE_dupdate_script = ""
 DEFAULT_USE_dupdate_version = ""
 
+CLASS_FLAGS += "dupdate_exefile"
 require conf/dupdate.conf
 
 do_install[postfuncs] += "do_install_dupdate_image"
