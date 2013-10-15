@@ -31,11 +31,13 @@ DEFAULT_USE_toolchain_dmalloc_version		= "5.5.2"
 require gcc.inc
 
 SRC_URI += "file://gcc-linaro-fix-lp-605255.patch;apply=0"
+SRC_URI += "file://gcc-r171000-fix-pr47688.patch;apply=0"
 
 do_unpack[postfuncs] += "do_unpack_mvpatches"
 do_unpack_mvpatches () {
        mkdir -p ${S}/gcc/4.5.3
        mv ${SRCDIR}/gcc-linaro-fix-lp-605255.patch ${S}/gcc/4.5.3
+       mv ${SRCDIR}/gcc-r171000-fix-pr47688.patch ${S}/gcc/4.5.3
 }
 
 DEFAULT_PREFERENCE = "-1"
