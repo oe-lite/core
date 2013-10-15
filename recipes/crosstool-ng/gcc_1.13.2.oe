@@ -38,10 +38,13 @@ require gcc.inc
 
 SRC_URI += "file://glibc-rpc-export-again.patch;apply=0"
 SRC_URI += "file://glibc-2.14.1-cpuid-1.patch;apply=0"
+SRC_URI += "file://gcc-linaro-fix-lp-605255.patch;apply=0"
 
 do_unpack[postfuncs] += "do_unpack_mvpatches"
 do_unpack_mvpatches () {
 	mkdir -p ${S}/glibc/2.14
 	mv ${SRCDIR}/glibc-rpc-export-again.patch ${S}/glibc/2.14
 	mv ${SRCDIR}/glibc-2.14.1-cpuid-1.patch ${S}/glibc/2.14
+	mkdir -p ${S}/gcc/4.5.3
+	mv ${SRCDIR}/gcc-linaro-fix-lp-605255.patch ${S}/gcc/4.5.3
 }
