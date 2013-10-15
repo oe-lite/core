@@ -183,7 +183,7 @@ inherit c
 do_packageqa[dirs] = "${PKGD}"
 
 PACKAGES[emit]		+= "do_packageqa"
-META_EMIT_PREFIX += "packageqa:PROVIDES_${PN} packageqa:DEPENDS_${PN} packageqa:RDEPENDS_${PN}"
+META_EMIT_PREFIX += "packageqa:PROVIDES_${PN} packageqa:DEPENDS_${PN} packageqa:RDEPENDS_${PN} packageqa:FILES_${PN}"
 
 META_EMIT_PREFIX += "packageqa:PACKAGEQA_"
 PACKAGEQA_BUILD_READELF		?= "${BUILD_PREFIX}readelf"
