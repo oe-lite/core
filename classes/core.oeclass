@@ -25,7 +25,7 @@ do_build[func] = "1"
 # All package DEPENDS_* and RDEPENDS_* variables should not be used by
 # any task, and not explicitly included in task signatures (they are
 # implicitly included as per the task dependencies they introduce).
-META_EMIT_PREFIX += "stage:DEPENDS_${PN} rstage:RDEPENDS_${PN} :PROVIDES_${PN}"
+META_EMIT_PREFIX += ":DEPENDS_${PN} :RDEPENDS_${PN} :PROVIDES_${PN}"
 
 # Default recipe type is machine, so other recipe type classes must
 # override this, and any other recipe type defaults as needed
