@@ -460,7 +460,7 @@ class CookBook(Mapping):
 
 
 
-    def list_recipefiles(self):
+    def list_recipefiles(self, sort=True):
         OERECIPES = (self.config["OERECIPES"] or "").split(":")
         if not OERECIPES:
             die("OERECIPES not defined")
@@ -482,6 +482,8 @@ class CookBook(Mapping):
             else:
                 warn("skipping %s: unknown file extension"%(f))
 
+        if sort:
+            oerecipes.sort()
         return oerecipes
 
 
