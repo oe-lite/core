@@ -508,7 +508,7 @@ class CookBook(Mapping):
             except:
                 print "Ignoring bad metadata cache:", cachefile
 
-        if not recipes:
+        if recipes is None:
             recipe_meta = self.parse_recipe(filename)
             if recipe_meta is False:
                 print "ERROR: parsing %s failed"%(filename)

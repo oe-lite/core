@@ -10,7 +10,7 @@ import cPickle
 class MetaCache:
 
     def __init__(self, cachefile, recipes=None, baker=None):
-        if not recipes:
+        if recipes is None:
             try:
                 self.file = open(cachefile)
                 self.abi = cPickle.load(self.file)
