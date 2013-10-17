@@ -22,5 +22,11 @@ def parse_args(options, args):
 
 
 def run(options, args, config):
-    baker = oelite.baker.OEliteBaker(options, args, config)
+    try:
+        baker = oelite.baker.OEliteBaker(options, args, config)
+    except oelite.parse.ParseError as e:
+        print "\nParse error"
+        e.print_details()
+        print
+        return "Parse error"
     return baker.bake()
