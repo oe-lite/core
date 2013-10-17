@@ -537,6 +537,7 @@ class OEParser(object):
             if require:
                 raise oelite.parse.FileNotFound(self, searchfn, p)
             else:
+                self.meta.set_input_mtime(searchfn, oepath)
                 return
 
         self.filename = os.path.realpath(filename)

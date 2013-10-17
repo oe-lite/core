@@ -384,7 +384,11 @@ class DictMeta(MetaData):
     def set_input_mtime(self, fn, path=None, mtime=None):
         if mtime is None:
             if path:
-                mtime = os.path.getmtime(bb.utils.which(path, fn))
+                f = bb.utils.which(path, fn)
+                if f:
+                    mtime = os.path.getmtime(f)
+                else:
+                    mtime = None
             elif os.path.exists(fn):
                 mtime = os.path.getmtime(fn)
             else:

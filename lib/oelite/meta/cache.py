@@ -51,7 +51,10 @@ class MetaCache:
         except AttributeError:
             return False
         for (fn, oepath, old_mtime) in list(self.mtimes):
-            filepath = bb.utils.which(oepath, fn)
+            if oepath is not None:
+                filepath = bb.utils.which(oepath, fn)
+            else:
+                filepath = fn
             if os.path.exists(filepath):
                 cur_mtime = os.path.getmtime(filepath)
             else:
