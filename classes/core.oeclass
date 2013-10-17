@@ -336,6 +336,9 @@ PRIORITY_MIN			= "-9"
 RECIPE_PREFERENCE_PRIORITY	= "2"
 PACKAGE_PREFERENCE_PRIORITY	= "3"
 
+PRIORITY ?= "${DEFAULT_PREFERENCE}"
+DEFAULT_PREFERENCE ?= "0"
+
 addhook core_priority to post_recipe_parse last
 def core_priority(d):
     layer_name = d.get('LAYER_NAME')

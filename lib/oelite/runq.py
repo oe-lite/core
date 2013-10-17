@@ -481,47 +481,16 @@ class OEliteRunQueue:
                     "multiple providers for %s: "%(item) + " ".join(multiple_providers))
             raise Exception("code path should never go here...")
 
-        # first try with preferred provider and version
-        # then try with prerred provider
-        # and last any provider
-
-        preferred_provider = (self.config.get(
-                "PREFERRED_PROVIDER_%s_%s"%(item.type, item.name)) or
-                              self.config.get(
-                "PREFERRED_PROVIDER_%s"%(item.name)) or
-                              None)
-
-        # If all providers are the same recipe with different versions, assume
-        # preferred_provider of that recipe
-        if not preferred_provider:
-            providers = self.cookbook.get_providers(item.type, item.name)
-            if len(providers) > 1:
-                same_provider = True
-                preferred_provider = providers[0].recipe.name
-                for provider in providers[1:]:
-                    if provider.recipe.name != preferred_provider:
-                        preferred_provider = None
-                        break
-
-        if preferred_provider:
-            preferred_version = (item.version
-                                 or self.config.get(
-                    "PREFERRED_VERSION_%s_%s"%(item.type, preferred_provider))
-                                 or self.config.get(
-                    "PREFERRED_VERSION_%s"%(preferred_provider))
-                                 or None)
-        else:
-            preferred_version = item.version
         providers = self.cookbook.get_providers(
-            item.type, item.name, preferred_provider, preferred_version)
-        if len(providers) == 1:
+            item.type, item.name, item.version)
+        if len(providers) == 0:
+            if allow_no_provider:
+                return None
+            raise NoProvider(item)
+        elif len(providers) == 1:
             self._set_provider(item, providers[0])
             return providers[0]
-        elif len(providers) > 1:
-            return choose_provider(providers)
-        if allow_no_provider:
-            return None
-        raise NoProvider(item)
+        return choose_provider(providers)
 
 
     def update_task(self, task):

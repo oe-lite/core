@@ -814,17 +814,13 @@ class CookBook(Mapping):
         return self.dbc.lastrowid
 
 
-    def get_providers(self, type, item, recipe=None, version=None):
-        #print "get_providers type=%s item=%s recipe=%s version=%s"%(
-        #    repr(type), repr(item), repr(recipe), repr(version))
+    def get_providers(self, type, item, version):
         select_from = "SELECT package.id FROM package,provide,recipe"
         select_where = "WHERE" + \
             " provide.package=package.id AND provide.item=:item" + \
             " AND package.recipe=recipe.id"
         if type:
             select_where += " AND package.type=:type"
-        if recipe:
-            select_where += " AND recipe.name=:recipe"
         if version is not None:
             select_where += " AND recipe.version=:version"
         query = select_from + " " + select_where
