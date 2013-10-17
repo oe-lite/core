@@ -562,10 +562,13 @@ class OEParser(object):
                 file_split = os.path.basename(filename[:-3]).split("_")
                 if len(file_split) > 3:
                     raise Exception("Invalid recipe filename: %s"%(filename))
+                self.meta.set("RECIPE_NAME", file_split[0])
                 self.meta.set("PN", file_split[0])
                 if len(file_split) > 1:
+                    self.meta.set("RECIPE_VERSION", file_split[1])
                     self.meta.set("PV", file_split[1])
                 else:
+                    self.meta.set("RECIPE_VERSION", "0")
                     self.meta.set("PV", "0")
 
         # FIXME: write lock file to safeguard against race condition
