@@ -53,9 +53,9 @@ class ParseError(Exception):
                 self.symbol = self.details.value[0]
             else:
                 self.symbol = self.details.value
+                if self.symbol.endswith("\n"):
+                    self.errlineno -= 1
             assert isinstance(self.symbol, basestring)
-            if self.symbol.endswith("\n"):
-                self.errlineno -= 1
             if self.details.type == "error":
                 self.msg += " in %s at line %d: %s"%(
                     self.filename, self.errlineno + 1,
