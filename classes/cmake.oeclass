@@ -13,8 +13,12 @@ OE_CMAKE_CONF = "\
 
 OE_CMAKE_CONF:>cxx = " -DCMAKE_CXX_COMPILER=${HOST_CXX}"
 
+# Out-of-source builds are necessary to be able to reliably re-run cmake
+B = "${WORKDIR}/build"
+do_configure[cleandirs] = "${B}"
+
 do_configure() {
-	cmake ${OE_CMAKE_CONF} ${EXTRA_OE_CMAKE_CONF}
+	cmake ${S} ${OE_CMAKE_CONF} ${EXTRA_OE_CMAKE_CONF}
 }
 
 # Local Variables:
