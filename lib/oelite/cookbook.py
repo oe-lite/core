@@ -8,6 +8,7 @@ from recipe import OEliteRecipe
 from item import OEliteItem
 import oelite.meta
 import oelite.package
+import oelite.path
 import bb.utils
 
 import sys
@@ -27,6 +28,7 @@ class CookBook(Mapping):
         self.baker = baker
         self.config = baker.config
         self.oeparser = baker.oeparser
+        self.init_layer_meta()
         self.db = sqlite.connect(":memory:")
         if not self.db:
             raise Exception("could not create in-memory sqlite db")
@@ -77,6 +79,35 @@ class CookBook(Mapping):
 
         return
 
+    def init_layer_meta(self):
+        self.layer_meta = {}
+        oepath = self.config.get('OEPATH').split(':')
+        layer_conf_files = []
+        for layer in reversed(oepath):
+            layer_conf = os.path.join(layer, 'conf', 'layer.conf')
+            layer_meta = self.config.copy()
+            if os.path.exists(layer_conf):
+                self.oeparser.set_metadata(layer_meta)
+                self.oeparser.reset_lexstate()
+                layer_meta = self.oeparser.parse(layer_conf)
+            layer_conf_files.append(layer_conf)
+            self.layer_meta[oelite.path.relpath(layer)] = layer_meta
+        for layer in oepath:
+            layer_meta = self.layer_meta[oelite.path.relpath(layer)]
+            layer_meta.set('LAYER_NAME', oelite.path.relpath(layer) or '.')
+            for layer_conf in layer_conf_files:
+                layer_meta.set_input_mtime(layer_conf)
+        return
+
+    def new_recipe_meta(self, recipe):
+        recipe_path = oelite.path.relpath(recipe)
+        for layer in self.layer_meta:
+            if not layer:
+                continue
+            if recipe_path.startswith(layer):
+                return self.layer_meta[layer].copy()
+        assert '' in self.layer_meta
+        return self.layer[''].copy()
 
     def __getitem__(self, key): # required by Mapping
         return self.recipes[key]
@@ -539,7 +570,7 @@ class CookBook(Mapping):
 
     def parse_recipe(self, recipe):
         #print "parsing recipe", recipe
-        base_meta = self.config.copy()
+        base_meta = self.new_recipe_meta(recipe)
         oelite.pyexec.exechooks(base_meta, "pre_recipe_parse")
         self.oeparser.set_metadata(base_meta)
         self.oeparser.reset_lexstate()
