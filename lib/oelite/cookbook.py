@@ -838,11 +838,6 @@ class CookBook(Mapping):
         packages = sorted(packages, key=get_priority, reverse=True)
         return packages
 
-    def get_package_providers(self, item):
-        item = self.item_id(item)
-        return flatten_single_column_rows(self.dbc.execute(
-            "SELECT package FROM provide WHERE item=?", (item,)))
-
 
     def get_package_depends(self, package, deptypes):
         assert isinstance(package, oelite.package.OElitePackage)
