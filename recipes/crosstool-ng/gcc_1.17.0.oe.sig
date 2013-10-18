@@ -27,6 +27,7 @@ b6ff5c0262418fbca8ce281f9f927e25181f4237  libelf-0.8.12.tar.gz
 c1d6ac5f182d19dd685c4dfd74eedbfe3992425d  libelf-0.8.13.tar.gz
 cdcec9db35957865eb3ed30a0dec4c3f14b18809  linux-2.6.32.59.tar.bz2
 67f299d887f290b26a3e6da45cff0ba6166e1186  linux-2.6.32.60.tar.bz2
+ac727da91126fd726d6aa6a81de90c002b2a86d0  linux-2.6.37.6.tar.bz2
 6b7e8c6fd5fd956278ba9eac342272a63d5a22d6  linux-3.0.48.tar.bz2
 d1db70ee633d04dec398df75a312343808e3bb72  ltrace_0.5.3.orig.tar.gz
 45f5abc0d3d88b06dcb2256df4080ad39ff511d8  mingwrt-3.18-mingw32-src.tar.gz
