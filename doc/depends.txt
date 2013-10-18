@@ -109,6 +109,9 @@ PROVIDES_${PN} = "hello"
 PROVIDES_${PN}-bar = "world"
 ----
 
+For recipe foo, this would mean that the foo package provides two items: +foo+
+and +hello+, and the foo-bar package provides two items: +foo-bar+ and
++world+.
 
 
 Package dependencies
@@ -143,7 +146,7 @@ package from the +foobar+ recipe.
 The +foobar+ recipe has
 
 ----
-DEPENDS_${PN}-libfoo = "libhello"
+DEPENDS_${PN}-libfoo = "libbar"
 ----
 
 Which causes the resolver to continue with resolving the +libbar+ item.  The
