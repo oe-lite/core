@@ -191,7 +191,7 @@ class DictMeta(MetaData):
             val = prepend + (val or "") + append
             for override in overrides_used:
                 if override.startswith('MACHINE_'):
-                    self.dict['EXTRA_ARCH'] = '.%s'%(self.dict['MACHINE'])
+                    self['EXTRA_ARCH'] = '.%s'%(self['MACHINE'])
                     break
 
         if expand == OVERRIDES_EXPANSION:
