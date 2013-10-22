@@ -1,6 +1,6 @@
 ## Class for version setting based on .git state in topdir
 ##
-## See @recipe base-version. If @useflag manifest_version is set, looks in
+## See @recipe base-version. If USE flag manifest_version is set, looks in
 ## oe-lite top dir and checks the git "state" and inserts that into the version
 ## file in the build rootfs.
 

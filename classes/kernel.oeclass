@@ -2,16 +2,16 @@
 ##
 ## Compiles linux kernels using a lot of different options. It is possible to
 ## build the build the linux kernel with initramfs included and additionally
-## set the compression of the ramdisk image using @useflag kernel_initramfs,
-## and @useflag ramdisk_image_compression. For other options when compiling,
+## set the compression of the ramdisk image using the kernel_initramfs,
+## and ramdisk_image_compression USE flags. For other options when compiling,
 ## see the list below of useflags and variables.
 ##
 ## @useflag kernel_imagetype Imagetype of the kernel. Set to zImage by default.
 ## @useflag kernel_maxsize Maximum size allowed of the kernel. Uses if the
-##          @useflag sizecheck is set by @class sizecheck.
+##          sizecheck USE flag is set by sizecheck class.
 ## @useflag kernel-defconfig Use defconfig from within the kernel. This
-##          @useflag contains the name of the defconfig to use.
-## @useflag kernel_initramfs Enable or disable initramfs. If set, uses @var
+##          USE flag contains the name of the defconfig to use.
+## @useflag kernel_initramfs Enable or disable initramfs. If set, uses
 ##          DEPENDS_KERNEL_INITRAMFS to acquire the initramfs.
 ## @useflag ramdisk_image_compression Compression of the ramdisk image. Set to
 ##          none by default.
@@ -24,20 +24,20 @@
 ##      initramfs.
 ## @var KERNEL_IMAGE Location of the compiled kernel.
 ## @var KERNEL_IMAGE_FILENAME Name of the compiled kernel.
-## @var KERNEL_IMAGE_DEPLOY_NAME Name of the deployed kernel. Used in @var
-##      KERNEL_IMAGE_DEPLOY_FILE and in @var KERNEL_IMAGE_DEPLOY_LINK.
+## @var KERNEL_IMAGE_DEPLOY_NAME Name of the deployed kernel. Used in
+##      KERNEL_IMAGE_DEPLOY_FILE and in KERNEL_IMAGE_DEPLOY_LINK.
 ## @var KERNEL_IMAGE_DEPLOY_EXT Extention of the deployed kernel.
 ## @var KERNEL_IMAGE_DEPLOY_FILE The full filename of the deployed kernel.
-## @var KERNEL_IMAGE_DEPLOY_LINK The link name of the symlink to @var
+## @var KERNEL_IMAGE_DEPLOY_LINK The link name of the symlink to
 ##      KERNEL_IMAGE_DEPLOY_FILE.
 ## @var KERNEL_DEVICETREE Location of the compiled devicetree.
 ## @var KERNEL_DEVICETREE_FILENAME Name of the compiled devicetree
 ## @var KERNEL_DEVICETREE_DEPLOY_NAME name of the deployed devicetree. Used in
-##      @var KERNEL_DEVICETREE_DEPLOY_FILE and in @var
+##      KERNEL_DEVICETREE_DEPLOY_FILE and in
 ##      KERNEL_DEVICETREE_DEPLOY_LINK.
 ## @var KERNEL_DEVICETREE_DEPLOY_EXT Extention of the deployed kernel.
 ## @var KERNEL_DEVICETREE_DEPLOY_FILE The full filename of the deployed kernel.
-## @var KERNEL_DEVICETREE_DEPLOY_LINK The link name of the symlink to @var
+## @var KERNEL_DEVICETREE_DEPLOY_LINK The link name of the symlink to
 ##      KERNEL_DEVICETREE_DEPLOY_FILE.
 
 DESCRIPTION ?= "Linux kernel"

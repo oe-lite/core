@@ -1,6 +1,6 @@
 ## OE-lite class for combining inetd files.
 ##
-## See @class inetd. If a recipe inherits @class inetd, the inetd files
+## See the inetd class. If a recipe inherits inetd, the inetd files
 ## that may be supplied by that recipe is placed in a recipe specific folder.
 ## All those inetd files is combined to a single inetd file using this
 ## class. Remember to set the USE flag inetd, if you need inetd.

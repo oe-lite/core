@@ -1,7 +1,8 @@
 ## Defconfig handling for recipes.
 ##
-## This class is used for recipes just providing the defconfig. The @class
-## kernel then may use this defconfig.
+## This class is used for recipes just providing the defconfig. The kernel
+## class then may use this defconfig.
+##
 ## Kernel defconfig can be provided in 3 different ways:
 ##
 ## Use defconfig file from SRC_URI (this is default)

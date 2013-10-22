@@ -11,8 +11,8 @@
 ##  + Set USE_barebox_defconfig to "file"
 ##
 ## @useflag barebox_defconfig Set to the defconfig used.
-## @useflag barebox_maxsize Set to the maximum size allowed. See @class
-##          sizecheck.
+## @useflag barebox_maxsize Set to the maximum size allowed. See the
+##          sizecheck class.
 
 DESCRIPTION ?= "Barebox - a bootloader that inherits the best of U-Boot and the Linux kernel"
 HOMEPAGE ?= "http://www.barebox.org/"

@@ -1,6 +1,6 @@
 ## Class for creating images.
 ##
-## Combined all of functions the @class image_* to a list of functions run
+## Combined all of functions the image_* classes to a list of functions run
 ## before the image is created, and when the image is created.
 ##
 ## @var IMAGE_BASENAME Basename of the image.

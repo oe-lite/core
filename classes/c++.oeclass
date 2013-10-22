@@ -2,7 +2,7 @@
 ##
 ## This class sets the variables needed for when compiling c++ on native,
 ## machine, sdk, cross, sdk-cross, canadian-cross (=all).
-## A similar class exists for c, see @class c.
+## A similar class exists for c, see the c class.
 
 inherit c
 

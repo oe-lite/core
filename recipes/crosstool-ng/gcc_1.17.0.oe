@@ -13,17 +13,17 @@
 ## @useflag sdk_windows_libc Set libc version for building sdk/sdk-cross to
 ##          windows. Default se tin distro/common.inc to mingw:3.18.
 ## @useflag toolchain_libc Notice! This flag is marked for removal in OE-lite
-##          4.0! Use @useflag machine_libc, @useflag sdk_linux_libc, or
-##          @useflag sdk_windows_libc instead. DEPRECATED!
+##          4.0! Use the machine_libc, sdk_linux_libc, or sdk_windows_libc USE
+##          flags instead. DEPRECATED!
 ## @useflag toolchain_libc_version Notice! This flag is marked for removal in
-##          OE-lite 4.0! Use @useflag machine_lib, @useflag sdk_linux_libc, or
-##          @useflag sdk_windows_libc instead. DEPRECATED!
+##          OE-lite 4.0! Use machine_lib, sdk_linux_libc, or sdk_windows_libc
+##          USE flags instead. DEPRECATED!
 ## @useflag toolchain_libc_eglibc_revision Notice! This flag is marked for
-##          removal in OE-lite 4.0! Use @useflag machine_libc, @useflag
-##          sdk_linux_libc, or @useflag sdk_windows_libc instead. DEPRECATED!
-## @useflag toolchain_mingwrt_version Notice! This flag is marked for removal in
-##          OE-lite 4.0! Use the @useflag sdk_windows_libc instead. This useflag
-##          is only used if sdk_windows_libc is not set. DEPRECATED.
+##          removal in OE-lite 4.0! Use machine_libc, sdk_linux_libc, or
+##          sdk_windows_libc USE flags instead. DEPRECATED!
+## @useflag toolchain_mingwrt_version Notice! This flag is marked for removal
+##          in OE-lite 4.0! Use the sdk_windows_libc USE flag instead. This
+##          useflag is only used if sdk_windows_libc is not set. DEPRECATED.
 ## @useflag toolchain_strace Enable strace. Enabled by default.
 ## @useflag toolchain_ltrace Enable ltrace. Enabled by default.
 ## @useflag toolchain_dmalloc Enable dmalloc. Disabled by default.

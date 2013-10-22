@@ -21,7 +21,7 @@
 ## @var UBOOT_IMAGE_DEPLOY_FILE Full filename of the deployed compiled u-boot
 ##      bootloader.
 ## @var UBOOT_IMAGE_DEPLOY_LINK Full filename of the link deployed, pointing
-##      at @var UBOOT_IMAGE_DEPLOY_FILE.
+##      at UBOOT_IMAGE_DEPLOY_FILE.
 
 DESCRIPTION ?= "Das U-Boot -- the Universal Boot Loader"
 HOMEPAGE ?= "http://www.denx.de/wiki/U-Boot"
