@@ -4,14 +4,17 @@ import string
 import bb.utils
 import oelite.parse
 import oelite.meta
-from oelite.parse.oelex import tokens
 
 class OEParser(object):
 
-    def __init__(self, meta=None, parent=None):
-        self.lexer = oelite.parse.oelexer.clone()
+    def __init__(self, meta=None, parent=None, lexer=None):
+        import oelite
+        if lexer is None:
+            import oelite.parse
+            lexer = oelite.parse.oelexer
+        self.lexer = lexer.clone()
         self.lexer.parser = self
-        self.tokens = tokens
+        self.tokens = lexer.lextokens.keys()
         bb.utils.mkdirhier("tmp/ply")
         picklefile = "tmp/ply/" + self.__class__.__module__ + ".p"
         self.yacc = ply.yacc.yacc(module=self, debug=0, picklefile=picklefile)
