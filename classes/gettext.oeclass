@@ -3,7 +3,7 @@
 ## Ensures that the correct configure option is passed on when depending on
 ## gettext.
 ##
-## @usefag nls Enable nls
+## @useflag nls Enable nls
 
 CLASS_DEPENDS =+ "${DEPENDS_GETTEXT}"
 DEPENDS_GETTEXT = ""
