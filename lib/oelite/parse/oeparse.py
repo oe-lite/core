@@ -524,7 +524,7 @@ class OEParser(object):
         return parser.parse(filename, require, parser, p)
 
 
-    def parse(self, filename, require=True, parser=None, p=None):
+    def parse(self, filename, require=True, parser=None, p=None, debug=False):
         #print "parsing %s"%(filename)
         searchfn = filename
         if not os.path.isabs(filename):
@@ -576,14 +576,14 @@ class OEParser(object):
 
         if not parser:
             parser = self
-        return parser._parse(self.text)
+        return parser._parse(self.text, debug=debug)
 
 
-    def _parse(self, s):
+    def _parse(self, s, debug=False):
         self.lexer.lineno = 0
         # To be able to properly stop parsing of Python functions at end
         # of file, we need a non-empty line
-        self.yacc.parse(s + '\n#EOF', lexer=self.lexer)
+        self.yacc.parse(s + '\n#EOF', lexer=self.lexer, debug=debug)
         return self.meta
 
 
