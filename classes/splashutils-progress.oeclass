@@ -1,11 +1,11 @@
 ## Class giving support for splash screen support with progress information
 ##
 ## Splashutils may shown progress during boot. The progress information is
-## attached on initscripts. All initscripts contains the
-## "splash_utils PLACEHOLDER" line which may be replaced by a given integer.
-## When the initscript is installed, if the @useflag
-## splashutils_progress_information is set, the line will be replaced by
-## "splash_utils <integer>" or removed if the @useflag is not set.
+## attached on initscripts. All initscripts contains the "splash_utils
+## PLACEHOLDER" line which may be replaced by a given integer.  When the
+## initscript is installed, if the splashutils_progress_information USE flag
+## is set, the line will be replaced by "splash_utils <integer>" or removed if
+## the USE flag is not set.
 ##
 ## @useflag splashutils_progress_information Enable splash utils progress
 ##          information. Is disabled as default.

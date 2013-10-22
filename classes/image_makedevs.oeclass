@@ -1,6 +1,6 @@
 ## OE-lite class for creating devices using makedevs.
 ##
-## See @class makedevs. Uses the makedevs files found in /etc/devtable.d/ to
+## See the makedevs class. Uses the makedevs files found in /etc/devtable.d/ to
 ## create devices.
 ##
 ## @useflag makedevs set if you want makedevs to create makedevs.

@@ -1,8 +1,8 @@
 ## Class for handling creation of ubifs images
 ##
-## Handles creation of ubifs images. Set the three useflags: @useflag
-## ubifs_image_leb_size, @useflag ubifs_image_max_leb_cnt, and @useflag
-## ubifs_image_min_io_size to the values according to your device.
+## Handles creation of ubifs images. Set the three USE flags:
+## ubifs_image_leb_size, ubifs_image_max_leb_cnt, and ubifs_image_min_io_size
+## to the values according to your device.
 ##
 ## @useflag ubifs_image_leb_size Set it to the Logical eraseblock size of your
 ##          device.
@@ -14,9 +14,9 @@
 ## @var UBIFS_IMAGE_COMPR_TYPE Set the compression type of the ubifs. Default
 ##      set to lzo.
 ## @var UBIFS_IMAGE_OPTIONS Set the ubifs image options for creation. Default
-##      sets the chosen leb-size, max-leb-cnt and min-io-size which are set
-##      by the three @useflag ubifs_image_leb_size, @useflag
-##      ubifs_image_max_leb_cnt, and @useflag ubifs_image_min_io_size.
+##      sets the chosen leb-size, max-leb-cnt and min-io-size which are set by
+##      the three USE flags ubifs_image_leb_size, ubifs_image_max_leb_cnt, and
+##      ubifs_image_min_io_size.
 
 IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
 

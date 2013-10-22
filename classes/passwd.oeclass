@@ -1,11 +1,11 @@
 ## OE-lite class for recipes providing content for /etc/passwd and /etc/group
 ##
 ## If a recipe has contents for /etc/passwd or /etc/group, just ensure that the
-## content for /etc/passwd is placed in @var PASSWD_FILES, and contents for
-## /etc/group in @var GROUP_FILES. The contents from a recipe is placed in
+## content for /etc/passwd is placed in PASSWD_FILES, and contents for
+## /etc/group in GROUP_FILES. The contents from a recipe is placed in
 ## a recipe specific dir, so that multiple recipes may provides contents for
-## /etc/passwd and /etc/group. The content is later combined in @class
-## image_passwd.
+## /etc/passwd and /etc/group. The content is later combined in the
+## image_passwd class.
 ##
 ## @var PASSWD_FILES Set the ${SRCDIR}/passwd by default.
 ## @var GROUP_FILES Set to ${SRCDIR}/group by default.

@@ -2,15 +2,15 @@
 ##
 ## When installing a libtool control file, it might contain absolute paths such
 ## as: -L/xxxxxx/. When using that libtool file in another recipe, that paths
-## will not work. This class removes the paths, and works together with @class
-## libtool-stage that handles libtool control files upon staging. Additionally
+## will not work. This class removes the paths, and works together with the
+## libtool-stage class that handles libtool control files upon staging. Additionally
 ## this class ensures that the build libtool is used instead of e.g. a host
 ## libtool or a libtool supplied with the package source.
 ## As an example, take native:libffi:
 ## After compilation, libffi.la contains the following line:
 ## dependency_libs=' -L/oelite/tmp/work/native/x86_64-build_unknown-linux-gnu
 ## /libffi-3.0.12/stage/native/lib'
-## After installing (and fixing using @class libtool):
+## After installing (and fixing using the libtool class):
 ## dependency_libs=' -L/lib'
 ## When using that library in stage (here for directfb), contents are now:
 ## dependency_libs=' -L/oelite/tmp/work/machine/

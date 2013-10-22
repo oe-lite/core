@@ -1,10 +1,10 @@
 ## OE-lite class for recipes providing content for mdev.conf file
 ##
-## If a recipe has content for /etc/mdev.conf, ensure @var MDEV_CONF_FILES
+## If a recipe has content for /etc/mdev.conf, ensure MDEV_CONF_FILES
 ## points at one or more files containing mdev configurations. Moves the
 ## mdev configurations to a recipe specific folder, so that multiple mdev
 ## configuration files from one or more recipes may be combined later. The
-## combining of mdev configurations is done in @class image_mdev.
+## combining of mdev configurations is done in the image_mdev class.
 ##
 ## @useflag mdev Enable or disable mdev. Default disabled.
 ##

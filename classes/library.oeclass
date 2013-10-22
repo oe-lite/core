@@ -3,7 +3,7 @@
 ## This class is highly usefull when having a recipe with a single library.
 ## An example of this would be jpeg. That would correctly package the library
 ## and provide the library 'libjpeg'. If having a recipe having multiple
-## libraries, see @class auto-package-libs.
+## libraries, see the auto-package-libs class.
 
 DEPENDS_${PN}		= "${PN}-dev_${PV}"
 DEPENDS_${PN}-dev	= ""

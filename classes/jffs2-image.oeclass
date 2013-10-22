@@ -1,10 +1,10 @@
 ## Class for creating jffs2 images.
 ##
 ## Creates a jffs2 image. The options for creating the jffs2 image is found in
-## @var JFFS2_IMAGE_OPTIONS.
+## JFFS2_IMAGE_OPTIONS.
 ##
 ## @useflag jffs2_maxsize The maximum size allowed of the jffs2 image. Used by
-##          @class sizecheck.
+##          the sizecheck class.
 ##
 ## @var IMAGE_BASENAME Basename of the image created.
 ## @var JFFS2_IMAGE_OPTIONS The options used when creating the jffs2 image.

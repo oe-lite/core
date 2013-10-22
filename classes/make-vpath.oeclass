@@ -1,7 +1,7 @@
 ## Class for disabling AUTOTOOLS_DISTCLEAN
 ##
 ## See class @autotools. Inheriting this class remove the distclean which is
-## otherwise performed by @class autotools.
+## otherwise performed by the autotools class.
 
 B = "${WORKDIR}/build"
 do_configure[cleandirs] = "${B}"

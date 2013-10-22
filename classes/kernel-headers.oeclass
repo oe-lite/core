@@ -1,7 +1,7 @@
 ## Class for kernel header generation.
 ##
 ## If having a recipe providing linux headers, the chance that you want to
-## create the toolchain with custom headers is fairly high. The @useflag is
+## create the toolchain with custom headers is fairly high. The USE flag is
 ## toolchain_kernel_version_machine, remember to set that to "custom".
 
 DESCRIPTION ?= "Sanitized Linux kernel headers"

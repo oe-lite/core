@@ -1,6 +1,6 @@
 ## Class for stripping kernel modules.
 ##
-## Used by @class kernel and @class kernel-modules.
+## Used by the kernel and kernel-modules classes.
 
 inherit c
 

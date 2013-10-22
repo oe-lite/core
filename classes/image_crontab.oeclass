@@ -1,6 +1,6 @@
 ## Combines all crontab files into one
 ##
-## See @class crontab. If a recipe inherits @class crontab, the crontab files
+## See the crontab class. If a recipe inherits crontab, the crontab files
 ## that may be supplied by that recipe is placed in a recipe specific folder.
 ## All those crontab files is combined to a single crontab file using this
 ## class. Remember to set the USE flag crontab, if you need crontab.

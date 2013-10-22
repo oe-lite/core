@@ -1,7 +1,7 @@
 ## Class for handling largefile support.
 ##
 ## Disables or enables largefile support through configuring, using the
-## @useflag largefile.
+## largefile USE flag.
 ##
 ## @useflag largefile Enable largefile support. Default is not enabled.
 

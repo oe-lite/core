@@ -1,7 +1,7 @@
 ## Common class for building kernels
 ##
-## This class is meant is a common class used by @class kernel and @class
-## kernel-headers.
+## This class is meant is a common class used by the kernel class and
+## kernel-headers class.
 
 INHIBIT_PACKAGE_STRIP = "1"
 
