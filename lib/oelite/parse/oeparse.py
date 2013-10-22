@@ -104,7 +104,10 @@ class OEParser(object):
     
     def p_override(self, p):
         '''varoverride : VARNAME OVERRIDE'''
-        p[0] = (self.meta.expand(p[1]), p[2])
+        try:
+            p[0] = (self.meta.expand(p[1]), p[2])
+        except oelite.meta.ExpansionError as e:
+            raise oelite.parse.ParseError(self, str(e), p)
         return
 
     def p_string(self, p):
