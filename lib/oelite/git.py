@@ -128,6 +128,16 @@ class GitRepository(object):
     def get_object(self, rev):
         return GitObject(self, rev)
 
+    def get_dirt(self):
+        untracked = self.git("ls-files --other --exclude-standard")
+        untracked = ' '.join(untracked.split())
+        if untracked:
+            self.git("add %s"%(untracked))
+        diff = self.git("diff HEAD", strip=False)
+        if untracked:
+            self.git("rm --cached %s"%(untracked))
+        return diff
+
 
 class GitObject(object):
 
