@@ -58,12 +58,15 @@ include::useflags.txt[]
 //// adding a use flag to a recipe
 //// setting a use flag (in machine or distro config)
 
+// Manifest Commands
+include::commands.txt[]
+
 // Classes
 include::classes.txt[]
+
+:leveloffset: 1
 
 // Recipes
 include::recipes.txt[]
 
-// Manifest Commands
-include::commands.txt[]
-
+:leveloffset: 1
