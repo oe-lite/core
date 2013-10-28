@@ -28,9 +28,10 @@ class GitFetcher():
         repo_name = protocol + "_" + \
             self.uri.location.rstrip("/").translate(string.maketrans("/", "_"))
         if protocol == "file":
-            self.repo = uri.location
             self.is_local = True
+            self.repo = uri.location
         else:
+            self.is_local = False
             self.repo = os.path.join(
                 uri.ingredients, uri.isubdir, 'git', repo_name)
             self.mirror_name = repo_name
