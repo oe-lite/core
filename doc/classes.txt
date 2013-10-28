@@ -5,7 +5,5 @@ This section describes the OE-lite classes provided by OE-lite/core.
 
 :leveloffset: 2
 
-include::classes/barebox.txt[]
-
 include::auto/classes/INDEX.txt[]
 
