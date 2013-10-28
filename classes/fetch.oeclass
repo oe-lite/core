@@ -39,6 +39,8 @@ def fetch_init(d):
     for src_uri in (d.get("SRC_URI") or "").split():
         try:
             uri = oelite.fetch.OEliteUri(src_uri, d)
+            if getattr(uri, "dont_cache", False):
+                d.set("__dont_cache", True)
             m.update(uri.signature())
             fdepends.update(uri.fdepends)
             if "unpack" in uri.params:
