@@ -1,0 +1,8 @@
+Recipes
+=======
+
+This section describes the recipes provided by OE-lite/core.
+
+:leveloffset: 2
+
+include::auto/recipes/INDEX.txt[]
