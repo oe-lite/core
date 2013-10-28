@@ -5,6 +5,7 @@ import re
 import warnings
 import string
 import sys
+import hashlib
 
 import bb.utils
 
@@ -26,10 +27,15 @@ class GitFetcher():
         self.url = "%s://%s"%(protocol, uri.location)
         repo_name = protocol + "_" + \
             self.uri.location.rstrip("/").translate(string.maketrans("/", "_"))
-        self.repo = os.path.join(uri.ingredients, uri.isubdir, 'git', repo_name)
-        self.mirror_name = repo_name
-        if self.mirror_name.endswith(".git"):
-            self.mirror_name = self.mirror_name[:-4]
+        if protocol == "file":
+            self.repo = uri.location
+            self.is_local = True
+        else:
+            self.repo = os.path.join(
+                uri.ingredients, uri.isubdir, 'git', repo_name)
+            self.mirror_name = repo_name
+            if self.mirror_name.endswith(".git"):
+                self.mirror_name = self.mirror_name[:-4]
         self.commit = None
         self.tag = None
         self.branch = None
@@ -46,12 +52,41 @@ class GitFetcher():
             self.signature_name += ";tag=" + self.tag
         if "branch" in uri.params:
             self.branch = uri.params["branch"]
+        if "dirty" in uri.params:
+            if uri.params["dirty"] == "1":
+                if not self.is_local:
+                    raise oelite.fetch.InvalidURI(
+                        self.uri, "cannot fetch git dirty content from remote")
+                if self.branch != "HEAD":
+                    raise oelite.fetch.InvalidURI(
+                        self.uri, "can only fetch git dirty content from HEAD")
+                self.dirty = True
+            else:
+                self.dirty = False
         i = bool(self.commit) + bool(self.tag) + bool(self.branch)
         if i == 0:
             self.branch = "HEAD"
+            if self.is_local and not hasattr(self, 'dirty'):
+                self.dirty = True
         elif i != 1:
             raise oelite.fetch.InvalidURI(
                 self.uri, "cannot mix commit, tag and branch parameters")
+        if not hasattr(self, 'dirty'):
+            self.dirty = False
+        elif self.dirty:
+            assert self.branch == 'HEAD'
+            uri.dont_cache = True
+            repo = oelite.git.GitRepository(self.repo)
+            dirt = repo.get_dirt()
+            m = hashlib.sha1()
+            m.update(dirt)
+            self.dirty_signature = m.hexdigest()
+            self.dirty_file = os.path.join(
+                uri.ingredients, uri.isubdir, 'git', "%s~dirty"%(repo_name),
+                "%s.diff"%(self.dirty_signature))
+            bb.utils.mkdirhier(os.path.dirname(self.dirty_file))
+            with open(self.dirty_file, 'w') as f:
+                f.write(dirt)
         if "track" in uri.params:
             self.track = uri.params["track"].split(",")
             warnings.warn("track parameter not implemented yet")
@@ -81,19 +116,24 @@ class GitFetcher():
                 raise oelite.fetch.NoSignature(self.uri, "signature unknown")
         elif self.branch:
             warnings.warn("fetching git branch head, causing source signature to not be sufficient for proper signature handling (%s)"%(self.uri))
-            return ""
+            return getattr(self, "dirty_signature", "")
         raise Exception("this should not be reached")
 
     def fetch(self):
-        # TODO: add special handling of file:// git repos, which should not
-        # be cloned/mirrored to ingredients
         if not os.path.exists(self.repo):
+            if self.is_local:
+                print "Error: git repository not found: %s"%(self.repo)
+                return False
             if not self.fetch_clone():
                 return False
         repo = oelite.git.GitRepository(self.repo)
-        if self.branch or not self.has_rev(repo):
-            if not self.fetch_update(repo):
+        if self.is_local:
+            if not self.has_rev(repo):
                 return False
+        else:
+            if self.branch or not self.has_rev(repo):
+                if not self.fetch_update(repo):
+                    return False
         if self.tag:
             commit = repo.get_tag(self.tag)
             if not commit:
@@ -168,14 +208,23 @@ class GitFetcher():
         basedir = os.path.dirname(wc)
         bb.utils.mkdirhier(basedir)
         repo = oelite.git.GitRepository(self.repo)
+        if self.is_local:
+            clone_cmd = "git clone --local"
+        else:
+            clone_cmd = "git clone --shared"
         if self.branch:
             branch = repo.resolve_head(self.branch)
-            cmd = "git clone --shared -b %s %s %s"%(branch, self.repo, wc)
+            cmd = "%s -b %s %s %s"%(clone_cmd, branch, self.repo, wc)
             if not oelite.util.shcmd(cmd):
                 print "Error: git clone failed"
                 return False
+            if self.dirty:
+                cmd = "git apply %s"%(self.dirty_file)
+                if not oelite.util.shcmd(cmd, wc):
+                    print "Error: git apply of dirty diff file failed"
+                    return False
             return True
-        cmd = "git clone --shared --no-checkout %s %s"%(self.repo, wc)
+        cmd = "%s --no-checkout %s %s"%(clone_cmd, self.repo, wc)
         if not oelite.util.shcmd(cmd):
             print "Error: git clone failed"
             return False
