@@ -72,13 +72,17 @@ class GitFetcher():
         elif i != 1:
             raise oelite.fetch.InvalidURI(
                 self.uri, "cannot mix commit, tag and branch parameters")
+        if self.is_local and self.branch:
+            uri.dont_cache = True
         if not hasattr(self, 'dirty'):
             self.dirty = False
         elif self.dirty:
             assert self.branch == 'HEAD'
-            uri.dont_cache = True
             repo = oelite.git.GitRepository(self.repo)
             dirt = repo.get_dirt()
+            if not dirt:
+                self.dirty = False
+        if self.dirty:
             m = hashlib.sha1()
             m.update(dirt)
             self.dirty_signature = m.hexdigest()
@@ -115,9 +119,20 @@ class GitFetcher():
                 return self._signature
             except KeyError:
                 raise oelite.fetch.NoSignature(self.uri, "signature unknown")
+        elif self.branch and self.is_local:
+            repo = oelite.git.GitRepository(self.repo)
+            if self.branch == 'HEAD':
+                signature = repo.current_head()
+            else:
+                signature = repo.get_head(self.branch)
+            if self.dirty:
+                m = hashlib.sha1(signature)
+                m.update(self.dirty_signature)
+                signature = m.hexdigest()
+            return signature
         elif self.branch:
             warnings.warn("fetching git branch head, causing source signature to not be sufficient for proper signature handling (%s)"%(self.uri))
-            return getattr(self, "dirty_signature", "")
+            return ""
         raise Exception("this should not be reached")
 
     def fetch(self):
@@ -200,6 +215,8 @@ class GitFetcher():
             return repo.has_commit(self.commit)
         elif self.tag:
             return repo.has_tag(self.tag)
+        elif self.branch == 'HEAD':
+            return True
         elif self.branch:
             return repo.has_head(self.branch)
         return False
@@ -215,7 +232,12 @@ class GitFetcher():
             clone_cmd = "git clone --shared"
         if self.branch:
             branch = repo.resolve_head(self.branch)
-            cmd = "%s -b %s %s %s"%(clone_cmd, branch, self.repo, wc)
+            if branch:
+                clone_cmd += " -b %s"%(branch)
+            elif not (self.is_local and self.branch == 'HEAD'):
+                print "Error: unable to resolve branch: %s"%(self.branch)
+                return False
+            cmd = "%s %s %s"%(clone_cmd, self.repo, wc)
             if not oelite.util.shcmd(cmd):
                 print "Error: git clone failed"
                 return False
