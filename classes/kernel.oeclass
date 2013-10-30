@@ -9,7 +9,7 @@
 ## @useflag kernel_imagetype Imagetype of the kernel. Set to zImage by default.
 ## @useflag kernel_maxsize Maximum size allowed of the kernel. Uses if the
 ##          sizecheck USE flag is set by sizecheck class.
-## @useflag kernel-defconfig Use defconfig from within the kernel. This
+## @useflag kernel_defconfig Use defconfig from within the kernel. This
 ##          USE flag contains the name of the defconfig to use.
 ## @useflag kernel_initramfs Enable or disable initramfs. If set, uses
 ##          DEPENDS_KERNEL_INITRAMFS to acquire the initramfs.
