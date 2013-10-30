@@ -64,6 +64,9 @@ class GitRepository(object):
             return head
         return None
 
+    def current_head(self):
+        return self.git('rev-parse --verify HEAD')
+
     def heads(self):
         heads = self.git(
             "for-each-ref refs/heads/ --format '%(refname:short)'")
