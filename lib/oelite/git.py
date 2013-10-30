@@ -45,8 +45,10 @@ class GitRepository(object):
     def has_head(self, head):
         return self.resolve_head(head) is not None
 
-    def resolve_head(self, ref):
+    def resolve_head(self, ref, short=False):
         if self.has_ref(ref, 'heads'):
+            if short and ref.startswith('refs/heads/'):
+                return ref[11:]
             return ref
         # dereference symbolic references (such as HEAD)
         head = self.get_symref(ref)
@@ -57,6 +59,8 @@ class GitRepository(object):
             return None
         head = head[11:]
         if self.has_ref(head, 'heads'):
+            if short and ref.startswith('refs/heads/'):
+                return head[11:]
             return head
         return None
 
