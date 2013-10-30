@@ -124,7 +124,7 @@ class CookBook(Mapping):
             if recipe_path.startswith(layer):
                 return self.layer_meta[layer].copy()
         assert '' in self.layer_meta
-        return self.layer[''].copy()
+        return self.layer_meta[''].copy()
 
     def __getitem__(self, key): # required by Mapping
         return self.recipes[key]
