@@ -4,17 +4,17 @@ inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "gcc stdc++ supc++ m"
 AUTO_PACKAGE_LIBS:>TARGET_LIBC_glibc = " \
   dl resolv util crypt pthread thread_db bfd rt nsl \
-  anl BrokenLocale memusage pcprofile SegFault \
+  anl BrokenLocale memusage pcprofile SegFault elf \
   nss_files nss_dns nss_compat nss_nis nss_nisplus nss_hesiod inproctrace"
 AUTO_PACKAGE_LIBS:>TARGET_LIBC_uclibc = " \
-  dl resolv util crypt pthread thread_db bfd rt nsl ubacktrace"
+  dl resolv util crypt pthread thread_db bfd rt nsl ubacktrace elf"
 AUTO_PACKAGE_LIBS:>TARGET_LIBC_mingw = " pdcurses"
 AUTO_PACKAGE_LIBS:>USE_toolchain_dmalloc = " \
   dmalloc dmallocxx dmallocth dmallocthcxx"
 AUTO_PACKAGE_LIBS_PKGPREFIX = "sysroot-lib"
 AUTO_PACKAGE_LIBS_LIBDIR = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_libdir}:lib::.so,.so.*,-*.so: \
-${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib:::.so,.a,_nonshared.a,.la \
+${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}:lib::.so.*:.so,.a,_nonshared.a,.la \
 ${base_prefix}/${TARGET_ARCH}/debug-root${target_libdir}:lib::.so,.so.*,-*.so: \
 "
 AUTO_PACKAGE_LIBS_LIBDIR:TARGET_OS_mingw32 = "\
@@ -40,6 +40,8 @@ PROVIDES_${PN}-g++ = "c++"
 DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
 RDEPENDS_${PN}-gdb = "host:libncurses host:libdl"
 RDEPENDS_${PN}-gdb:HOST_OS_mingw32 = ""
+
+RDEPENDS_${PN}-sysroot-ltrace		= "${PN}-sysroot-libelf"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -464,6 +466,7 @@ LICENSE_${PN}-sysroot-libanl		= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libbrokenlocale	= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libcrypt		= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libdl		= "LGPL-2.1+"
+LICENSE_${PN}-sysroot-libelf		= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libm		= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libmemusage	= "LGPL-2.1+"
 LICENSE_${PN}-sysroot-libnsl		= "LGPL-2.1+"
