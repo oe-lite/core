@@ -1,9 +1,13 @@
 .PHONY: all
-all: manual.html
+all: autodoc manual.html
 
 .PHONY: clean
 clean:
-	rm -f *.html
+	rm -Rf *.html auto/
+
+autodoc: FORCE
+	oe autodoc meta/core
+FORCE:
 
 manual.html: $(wildcard *.txt)
 	asciidoc -b html5 manual.txt
