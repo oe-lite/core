@@ -38,13 +38,13 @@ Commons Attribution-ShareAlike 3.0 Unported] as published by Creative Commons.
 include::quickstart.txt[]
 
 // Overview
-include::overview.txt[]
+//include::overview.txt[]
 
 // Build Configuration
-include::buildcfg.txt[]
+//include::buildcfg.txt[]
 
 // Metadata Language
-include::language.txt[]
+// include::language.txt[]
 //// including guidelines for recipe format/structure
 
 // Tasks
@@ -54,12 +54,12 @@ include::tasks.txt[]
 include::depends.txt[]
 
 // USE Flags
-include::useflags.txt[]
+//include::useflags.txt[]
 //// adding a use flag to a recipe
 //// setting a use flag (in machine or distro config)
 
 // Manifest Commands
-include::commands.txt[]
+//include::commands.txt[]
 
 // Classes
 include::classes.txt[]
