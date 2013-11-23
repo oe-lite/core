@@ -8,6 +8,9 @@ addtask chrpath after install before split
 
 META_EMIT_PREFIX += "chrpath:CHRPATH"
 
+inherit rpath
+do_chrpath[import] = "chrpath_get_cmd"
+
 CHRPATH_DIRS = "${base_bindir} ${bindir} ${base_sbindir} ${sbindir} \
         ${base_libdir} ${libdir} ${base_sharedlibdir} ${sharedlibdir} \
         ${libexecdir}"
@@ -21,23 +24,6 @@ CHRPATH_REPLACE_STAGEDIRS:native	= "1"
 CHRPATH_REPLACE_STAGEDIRS:cross		= "1"
 CHRPATH_REPLACE_STAGEDIRS:sdk-cross	= "1"
 
-CHRPATH_BUILD	?= "${BUILD_PREFIX}chrpath"
-CHRPATH_HOST	?= "${HOST_PREFIX}chrpath"
-CHRPATH_TARGET	?= "${TARGET_PREFIX}chrpath"
-
-CLASS_DEPENDS += "${CHRPATH_DEPENDS}"
-CHRPATH_DEPENDS:native = "${CHRPATH_DEPENDS_NATIVE}"
-CHRPATH_DEPENDS:cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST}"
-CHRPATH_DEPENDS:machine = "${CHRPATH_DEPENDS_HOST}"
-CHRPATH_DEPENDS:sdk-cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST}"
-CHRPATH_DEPENDS:sdk = "${CHRPATH_DEPENDS_HOST}"
-CHRPATH_DEPENDS:canadian-cross = "${CHRPATH_DEPENDS_NATIVE} ${CHRPATH_DEPENDS_HOST} ${CHRPATH_DEPENDS_TARGET}"
-CHRPATH_DEPENDS_NATIVE = "native:chrpath"
-CHRPATH_DEPENDS_HOST = "host-cross:chrpath"
-CHRPATH_DEPENDS_HOST:HOST_LIBC_mingw = ""
-CHRPATH_DEPENDS_TARGET = "target-cross:chrpath"
-CHRPATH_DEPENDS_TARGET:TARGET_LIBC_mingw = ""
-
 do_chrpath[dirs] = "${D}"
 def do_chrpath(d):
     import stat
@@ -46,32 +32,9 @@ def do_chrpath(d):
     filemagic = magic.open(magic.MAGIC_NONE)
     filemagic.load()
 
-    chrpath_cmd = {}
-    for elf_type in ("BUILD", "HOST", "TARGET"):
-        chrpath_cmd[elf_type] = (d.get("%s_ELF"%(elf_type)),
-                                 d.get("CHRPATH_%s"%(elf_type)))
-    if chrpath_cmd["TARGET"][0] == chrpath_cmd["HOST"][0]:
-        del chrpath_cmd["TARGET"]
-    if chrpath_cmd["HOST"][0] == chrpath_cmd["BUILD"][0]:
-        del chrpath_cmd["HOST"]
-    for elf_type in chrpath_cmd:
-        if not chrpath_cmd[elf_type][0]:
-            del chrpath_cmd[elf_type]
-        else:
-            chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
-                                     chrpath_cmd[elf_type][1])
     replace_stagedirs = d.get("CHRPATH_REPLACE_STAGEDIRS")
     stage_dir = d.get('STAGE_DIR')
     install_dir = d.get('D')
-
-    def get_chrpath_cmd(path):
-        filetype = filemagic.file(path)
-        if not "dynamically linked" in filetype:
-            return None
-        for elf_type in chrpath_cmd:
-            if chrpath_cmd[elf_type][0].match(filetype):
-                return chrpath_cmd[elf_type][1]
-        return None
 
     def chrpath_dir(dir, recursive=False, replace=False):
         if not os.path.exists(dir):
@@ -85,7 +48,7 @@ def do_chrpath(d):
                 if recursive:
                     chrpath_dir(path, recursive, replace)
                 continue
-            chrpath = get_chrpath_cmd(path)
+            chrpath = chrpath_get_cmd(d,filemagic.file(path))
             if not chrpath:
                 continue
             mode = os.stat(path)[stat.ST_MODE]
