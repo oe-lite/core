@@ -25,6 +25,10 @@ IMAGE_PREPROCESS_NETFILTER = ""
 IMAGE_PREPROCESS_NETFILTER:HOST_OS_mingw32 = "image_preprocess_linux_netfilter_headers"
 IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_NETFILTER}"
 
+inherit rpath
+image_preprocess_elf_sowrap[import] = "chrpath_get_cmd"
+META_EMIT_PREFIX += "rstage:CHRPATH"
+
 SDK_IMAGE_ELF_SOWRAP_DIRS ?= "${base_bindir} ${bindir}"
 SDK_IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld-linux*.so.2"
 
@@ -50,6 +54,13 @@ def image_preprocess_elf_sowrap(d):
         static_re = re.compile(".*statically.*")
         return bool(static_re.match(filetype))
 
+    def is_with_rpath(path):
+        chrpath = chrpath_get_cmd(d,filemagic.file(path))
+        cmd = [chrpath, '-l', path]
+        rpath = oelite.util.shcmd(cmd, quiet=True,
+                                  silent_errorcodes=[99])
+        return bool(rpath)
+
     def sowrap_dir(dir, recursive=False):
         if not os.path.exists(dir):
             return True
@@ -71,6 +82,8 @@ def image_preprocess_elf_sowrap(d):
             if not is_elf(path):
                 continue
             if is_static(path):
+                continue
+            if not is_with_rpath(path):
                 continue
             os.rename(path, dotpath)
             with open(path, "w") as wrapper:
