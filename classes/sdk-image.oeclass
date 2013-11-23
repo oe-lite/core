@@ -68,7 +68,9 @@ def image_preprocess_elf_sowrap(d):
                 print "ERROR: file already exists:", os.path.join(dir, path)
                 ok = False
                 continue
-            if is_elf(path) and is_static(path):
+            if not is_elf(path):
+                continue
+            if is_static(path):
                 continue
             os.rename(path, dotpath)
             with open(path, "w") as wrapper:
