@@ -781,8 +781,6 @@ class OEliteRunQueue:
             ))
 
         for task in tasks:
-            debug("prebaked %s:%s"%(self.get_recipe(task=task).get_name(),
-                                    self.cookbook.get_task(task=task)))
             self.dbc.execute(
                 "UPDATE runq.depend SET parent_task=NULL WHERE parent_task=?",
                 (task,))
