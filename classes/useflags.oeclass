@@ -53,6 +53,28 @@ def set_useflags(d):
 
 BLACKLIST_PREFIX += "LOCAL_USE_ RECIPE_USE_ MACHINE_USE_ DISTRO_USE_ DEFAULT_USE_"
 
+addhook del_useflags to post_recipe_parse first before set_useflags after arch_update
+
+def del_useflags(d):
+    import oebakery
+    useflags = ((d.get('RECIPE_FLAGS') or "").split() +
+                (d.get('CLASS_FLAGS') or "").split())
+    if not useflags:
+        return
+
+    pkg = d.get("PN")
+    pkg_type = d.get("PACKAGE_TYPE_" + pkg) or d.get("RECIPE_TYPE")
+    if not pkg_type in ("native", "sdk", "sdk-cross"):
+        return
+
+    for useflag in useflags:
+        machine_val = d.get('MACHINE_USE_'+useflag)
+        if machine_val is not None:
+            oebakery.info('Deleting MACHINE_USE_%s variable from %s:%s_%s'
+                          %(useflag,pkg_type,pkg,d.get("PV")))
+            d.del_var('MACHINE_USE_'+useflag)
+
+
 # Local Variables:
 # mode: python
 # End:
