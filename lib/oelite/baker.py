@@ -633,6 +633,7 @@ class OEliteBaker:
         for base_dir in prebake_path:
             path = os.path.join(
                 base_dir,
+                package.type,
                 package.arch + (package.recipe.meta.get("EXTRA_ARCH") or ""),
                 filename)
             debug("checking for prebake: %s"%(path))
