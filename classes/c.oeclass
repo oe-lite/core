@@ -133,6 +133,8 @@ HOST_LDFLAGS:cross		 = "${BUILD_LDFLAGS} \
 
 HOST_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
+	-Wl,-rpath,${D}${machine_libdir} \
+	-Wl,-rpath,${D}${machine_base_libdir} \
 	--sysroot=${MACHINE_SYSROOT} \
 "
 
