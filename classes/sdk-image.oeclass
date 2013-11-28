@@ -9,10 +9,6 @@
 ## @var IMAGE_PREPROCESS_NETFILTER Whether to remove double netfilter headers,
 ##      which is a problem on mingw. Disable by default, except on mingw,
 ##      where it is enabled.
-## @var SDK_IMAGE_ELF_SOWRAP_DIRS If set, ensures that the correct libraries
-##      is used when executing binary files. This is ofcause only relevant for
-##      non-static toolchains. Moves the binary tools to ., and uses a wrapper
-##      that uses ld-linux to ensure that the correct libraries is chosen.
 
 RECIPE_TYPES ?= "canadian-cross"
 
@@ -29,84 +25,8 @@ inherit rpath
 image_preprocess_elf_sowrap[import] = "chrpath_get_cmd"
 META_EMIT_PREFIX += "rstage:CHRPATH"
 
-SDK_IMAGE_ELF_SOWRAP_DIRS ?= "${base_bindir} ${bindir}"
-SDK_IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld-linux*.so.2"
-
-RSTAGE_FIXUP_FUNCS += "${IMAGE_PREPROCESS_ELF_SOWRAP}"
-IMAGE_PREPROCESS_ELF_SOWRAP = ""
-IMAGE_PREPROCESS_ELF_SOWRAP:HOST_BINFMT_elf = " image_preprocess_elf_sowrap"
+inherit elfwrapper
 IMAGE_PREPROCESS_ELF_SOWRAP:USE_sdk_static = ""
-def image_preprocess_elf_sowrap(d):
-    import stat
-    import magic
-
-    filemagic = magic.open(magic.MAGIC_NONE)
-    filemagic.load()
-    host_elf_re = re.compile(d.get("HOST_ELF"))
-    ld_so = d.get("SDK_IMAGE_ELF_SOWRAP_LD_SO")
-
-    def is_elf(path):
-        filetype = filemagic.file(path)
-        return bool(host_elf_re.match(filetype))
-
-    def is_static(path):
-        filetype = filemagic.file(path)
-        static_re = re.compile(".*statically.*")
-        return bool(static_re.match(filetype))
-
-    def is_with_rpath(path):
-        chrpath = chrpath_get_cmd(d,filemagic.file(path))
-        cmd = [chrpath, '-l', path]
-        rpath = oelite.util.shcmd(cmd, quiet=True,
-                                  silent_errorcodes=[99])
-        return bool(rpath)
-
-    def sowrap_dir(dir, recursive=False):
-        if not os.path.exists(dir):
-            return True
-        assert os.path.isdir(dir)
-        ok = True
-        for file in os.listdir(dir):
-            path = os.path.join(dir, file)
-            if os.path.islink(path):
-                continue
-            if os.path.isdir(path):
-                if recursive:
-                    sowrap_dir(path, recursive)
-                continue
-            dotpath = "%s/.%s"%(os.path.dirname(path), os.path.basename(path))
-            if os.path.exists(dotpath):
-                print "ERROR: file already exists:", os.path.join(dir, path)
-                ok = False
-                continue
-            if not is_elf(path):
-                continue
-            if is_static(path):
-                continue
-            if not is_with_rpath(path):
-                continue
-            os.rename(path, dotpath)
-            with open(path, "w") as wrapper:
-                dirparts = len(os.path.dirname(path).split('/'))
-                relative_root = "/".join([".."] * dirparts)
-                wrapper.write("#!/bin/sh\n")
-                wrapper.write("$(dirname $0)/%s%s $(dirname $0)/%s $*\n"%(
-                        relative_root, ld_so, os.path.basename(dotpath)))
-            os.chmod(path, stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
-        return True
-
-    bindirs = set(d.get("SDK_IMAGE_ELF_SOWRAP_DIRS").split())
-    for dir in bindirs:
-        recursive=False
-        if dir.endswith("//"):
-            recursive=True
-        dir = dir.strip("/")
-        rc = sowrap_dir(dir, recursive)
-        if not rc:
-            filemagic.close()
-            return rc
-    filemagic.close()
-    return
 
 image_preprocess_linux_netfilter_headers () {
 	oenote image_preprocess_linux_netfilter_headers
