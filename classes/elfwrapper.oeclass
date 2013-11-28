@@ -33,6 +33,13 @@ def image_preprocess_elf_sowrap(d):
         static_re = re.compile(".*statically.*")
         return bool(static_re.match(filetype))
 
+    def is_with_rpath(path):
+        chrpath = chrpath_get_cmd(d,filemagic.file(path))
+        cmd = [chrpath, '-l', path]
+        rpath = oelite.util.shcmd(cmd, quiet=True,
+                                  silent_errorcodes=[99])
+        return bool(rpath)
+
     def sowrap_dir(dir, recursive=False):
         if not os.path.exists(dir):
             return True
@@ -51,7 +58,11 @@ def image_preprocess_elf_sowrap(d):
                 print "ERROR: file already exists:", os.path.join(dir, path)
                 ok = False
                 continue
-            if is_elf(path) and is_static(path):
+            if not is_elf(path):
+                continue
+            if is_static(path):
+                continue
+            if not is_with_rpath(path):
                 continue
             os.rename(path, dotpath)
             with open(path, "w") as wrapper:
