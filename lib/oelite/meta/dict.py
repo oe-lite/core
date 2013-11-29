@@ -177,7 +177,7 @@ class DictMeta(MetaData):
                 except KeyError:
                     pass
                 try:
-                    prepend = prepend_overrides[override] or "" + prepend
+                    prepend = (prepend_overrides[override] or "") + prepend
                 except KeyError:
                     pass
             if oval is not None:
