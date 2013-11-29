@@ -240,8 +240,8 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/pkgconfig/*.pc \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv \
 ${base_prefix}/${TARGET_ARCH}/sysroot/mingw \
 "
-DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
-RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
+DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc ${PN}-sysroot-libelf"
+RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev ${PN}-sysroot-libelf-dev"
 
 FILES_${PN}-sysroot-dev:>TARGET_OS_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_bindir}/*.dll \
