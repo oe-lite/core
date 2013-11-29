@@ -375,6 +375,8 @@ cpuspecs = {
 cpumap = {
 
     'powerpc'		: {
+        'mpc5121e'		: 'e300c4',
+        'mpc5125'		: 'e300c4',
         'mpc8313'		: 'e300c3',
         'mpc8313e'		: 'e300c3',
         'mpc8360'		: 'e300c1',
