@@ -181,7 +181,7 @@ class DictMeta(MetaData):
                 except KeyError:
                     pass
                 try:
-                    prepend = prepend_overrides[override] or "" + prepend
+                    prepend = (prepend_overrides[override] or "") + prepend
                     overrides_used.add(override)
                 except KeyError:
                     pass
