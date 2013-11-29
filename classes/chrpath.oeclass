@@ -6,7 +6,7 @@
 
 addtask chrpath after install before split
 
-META_EMIT_PREFIX += "chrpath:CHRPATH"
+META_EMIT_PREFIX += "chrpath:CHRPATH chrpath:MACHINE_CHRPATH"
 
 inherit rpath
 do_chrpath[import] = "chrpath_get_cmd"
@@ -17,8 +17,19 @@ CHRPATH_DIRS = "${base_bindir} ${bindir} ${base_sbindir} ${sbindir} \
 
 CHRPATH_REPLACE_DIRS			= "${CHRPATH_DIRS}"
 CHRPATH_STRIP_DIRS			= ""
-CHRPATH_REPLACE_DIRS:machine		= ""
-CHRPATH_STRIP_DIRS:machine		= "${CHRPATH_DIRS}"
+
+## @useflag chrpath_machine_strip When this flag is set, rpaths will be
+##          stripped from elf files of machine recipes.  When this flag is not
+##          set, rpath in elf files of machine recipes will be replaced with
+##          $ORIGIN relative paths.
+CLASS_FLAGS += "chrpath_machine_strip"
+DEFAULT_USE_chrpath_machine_strip = "1"
+MACHINE_CHRPATH_REPLACE_DIRS:USE_chrpath_machine_strip	= ""
+MACHINE_CHRPATH_STRIP_DIRS:USE_chrpath_machine_strip	= "${CHRPATH_DIRS}"
+MACHINE_CHRPATH_REPLACE_DIRS		= "${CHRPATH_DIRS}"
+MACHINE_CHRPATH_STRIP_DIRS		= ""
+CHRPATH_REPLACE_DIRS:machine		= "${MACHINE_CHRPATH_REPLACE_DIRS}"
+CHRPATH_STRIP_DIRS:machine		= "${MACHINE_CHRPATH_STRIP_DIRS}"
 
 CHRPATH_REPLACE_STAGEDIRS:native	= "1"
 CHRPATH_REPLACE_STAGEDIRS:cross		= "1"
