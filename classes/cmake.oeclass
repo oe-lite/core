@@ -11,6 +11,24 @@ OE_CMAKE_CONF = "\
  -DCMAKE_INSTALL_PREFIX=$target_prefix\
 "
 
+OE_CMAKE_CONF:>native = "\
+ -DCMAKE_INSTALL_RPATH=${STAGE_DIR}/native${stage_libdir}"
+OE_CMAKE_CONF:>cross = "\
+ -DCMAKE_INSTALL_RPATH=${STAGE_DIR}/cross${stage_libdir}\
+ -DCMAKE_INSTALL_RPATH=${STAGE_DIR}/native${stage_libdir}"
+OE_CMAKE_CONF:>machine = "\
+ -DCMAKE_INSTALL_RPATH=${D}${machine_libdir}\
+ -DCMAKE_INSTALL_RPATH=${D}${machine_base_libdir}"
+OE_CMAKE_CONF:>sdk = "\
+ -DCMAKE_INSTALL_RPATH=${D}${sdk_libdir}\
+ -DCMAKE_INSTALL_RPATH=${D}${sdk_base_libdir}"
+OE_CMAKE_CONF:>sdk-cross = "\
+ -DCMAKE_INSTALL_RPATH=${STAGE_DIR}/sdk-cross${stage_libdir}\
+ -DCMAKE_INSTALL_RPATH=${STAGE_DIR}/native${stage_libdir}"
+OE_CMAKE_CONF:>canadian-cross = "\
+ -DCMAKE_INSTALL_RPATH=${D}${sdk_libdir}\
+ -DCMAKE_INSTALL_RPATH=${D}${sdk_base_libdir}"
+
 OE_CMAKE_CONF:>cxx = " -DCMAKE_CXX_COMPILER=${HOST_CXX}"
 
 EXTRA_OE_CMAKE_CONF ?= ""
