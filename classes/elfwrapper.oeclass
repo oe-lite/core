@@ -12,6 +12,10 @@
 IMAGE_ELF_SOWRAP_DIRS ?= "${base_bindir} ${bindir}"
 IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld-linux*.so.*"
 
+inherit rpath
+image_preprocess_elf_sowrap[import] = "chrpath_get_cmd"
+META_EMIT_PREFIX += "rstage:CHRPATH rstage:MACHINE_CHRPATH"
+
 RSTAGE_FIXUP_FUNCS += "${IMAGE_PREPROCESS_ELF_SOWRAP}"
 IMAGE_PREPROCESS_ELF_SOWRAP = ""
 IMAGE_PREPROCESS_ELF_SOWRAP:HOST_BINFMT_elf = " image_preprocess_elf_sowrap"
@@ -86,3 +90,7 @@ def image_preprocess_elf_sowrap(d):
             return rc
     filemagic.close()
     return
+
+# Local Variables:
+# mode: python
+# End:

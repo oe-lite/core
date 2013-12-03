@@ -21,10 +21,6 @@ IMAGE_PREPROCESS_NETFILTER = ""
 IMAGE_PREPROCESS_NETFILTER:HOST_OS_mingw32 = "image_preprocess_linux_netfilter_headers"
 IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_NETFILTER}"
 
-inherit rpath
-image_preprocess_elf_sowrap[import] = "chrpath_get_cmd"
-META_EMIT_PREFIX += "rstage:CHRPATH"
-
 inherit elfwrapper
 # image_preprocess_elf_sowrap is called in do_rstage, and needs chrpath from
 # CLASS_DEPENDS, so rstage needs to have stage setup.
