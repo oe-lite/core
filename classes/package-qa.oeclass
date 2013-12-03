@@ -251,6 +251,9 @@ def do_packageqa(d):
 
     pkg_depends = {}
 
+    machine_strip = d.get("USE_chrpath_machine_strip") or "0"
+    machine_strip = True if machine_strip != "0" else False
+
     recipe_type = d.get("RECIPE_TYPE")
     host_type = d.get("HOST_TYPE")
     target_type = d.get("TARGET_TYPE")
@@ -445,7 +448,7 @@ def do_packageqa(d):
         rdepends_qaflags = get_pkg_qaflags(pkg, "RDEPENDS")
         provides_qaflags = get_pkg_qaflags(pkg, "PROVIDES")
 
-        if pkg_type == 'machine':
+        if pkg_type == 'machine' and machine_strip:
             apply_rpath_default(files_qaflags, 'lib', 'rpath', 'forbid')
             apply_rpath_default(files_qaflags, 'bin', 'rpath', 'forbid')
             apply_rpath_default(files_qaflags, 'lib', 'runpath', 'forbid')
