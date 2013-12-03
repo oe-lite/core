@@ -10,7 +10,7 @@
 ##      that uses ld-linux to ensure that the correct libraries is chosen.
 
 IMAGE_ELF_SOWRAP_DIRS ?= "${base_bindir} ${bindir}"
-IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld-linux*.so.*"
+IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld*.so.*"
 
 inherit rpath
 image_preprocess_elf_sowrap[import] = "chrpath_get_cmd"
