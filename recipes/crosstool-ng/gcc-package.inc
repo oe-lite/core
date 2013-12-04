@@ -41,7 +41,7 @@ DEPENDS_${PN}-g++ = "target:${PN}-sysroot-c++-dev"
 RDEPENDS_${PN}-gdb = "host:libncurses host:libdl"
 RDEPENDS_${PN}-gdb:HOST_OS_mingw32 = ""
 
-RDEPENDS_${PN}-sysroot-ltrace		= "${PN}-sysroot-libelf"
+RDEPENDS_${PN}-sysroot-ltrace:>TARGET_BINFMT_elf = " ${PN}-sysroot-libelf"
 
 DEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
 RDEPENDS_${PN}-sysroot-libnss-dns	= "${PN}-sysroot-libresolv"
@@ -240,8 +240,11 @@ ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/pkgconfig/*.pc \
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_libdir}/gconv \
 ${base_prefix}/${TARGET_ARCH}/sysroot/mingw \
 "
-DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc ${PN}-sysroot-libelf"
-RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev ${PN}-sysroot-libelf-dev"
+DEPENDS_${PN}-sysroot-dev  = "${PN}-sysroot-libc ${PN}-sysroot-libgcc"
+DEPENDS_${PN}-sysroot-dev:>TARGET_BINFMT_elf = " ${PN}-sysroot-libelf"
+
+RDEPENDS_${PN}-sysroot-dev = "${PN}-sysroot-libc-dev ${PN}-sysroot-libgcc-dev"
+RDEPENDS_${PN}-sysroot-dev:>TARGET_BINFMT_elf = " ${PN}-sysroot-libelf-dev"
 
 FILES_${PN}-sysroot-dev:>TARGET_OS_mingw32 = "\
 ${base_prefix}/${TARGET_ARCH}/sysroot${target_base_bindir}/*.dll \
