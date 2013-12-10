@@ -45,6 +45,7 @@ do_autoreconf () {
         install -d ${STAGE_DIR}/${HOST_CROSS}${stage_datadir}/aclocal
         acpaths="$acpaths -I${STAGE_DIR}/${HOST_CROSS}${stage_datadir}/aclocal"
         oenote acpaths=$acpaths
+        export ACLOCAL="aclocal $acpaths"
 
         # autoreconf is too shy to overwrite aclocal.m4 if it doesn't look
         # like it was auto-generated.  Work around this by blowing it away
