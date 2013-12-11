@@ -1,8 +1,7 @@
 import oebakery
 import oelite
 import oelite.parse.docparse
-
-import bb.utils
+import oelite.util
 
 import logging
 import os
@@ -39,7 +38,7 @@ def run(options, args, config):
         logging.debug("autodoc parsing %s", relpath)
         parser = oelite.parse.docparse.DocParser(meta=meta)
         doc = parser.docparse(relpath, name)
-        bb.utils.mkdirhier(os.path.dirname(output_file))
+        oelite.util.makedirs(os.path.dirname(output_file))
         with open(output_file, 'w') as output:
             output.write(doc.get_asciidoc())
         index_file.write("\ninclude::%s.txt[]\n"%(filename[include_strip:]))
@@ -48,7 +47,7 @@ def run(options, args, config):
             logging.error("No such layer: %s", layer)
             continue
         output_dir = os.path.join(layer, 'doc', 'auto')
-        bb.utils.mkdirhier(os.path.join(output_dir, 'recipes'))
+        oelite.util.makedirs(os.path.join(output_dir, 'recipes'))
         index_file = open(os.path.join(output_dir, 'recipes/INDEX.txt'), 'w')
         for f in sorted(glob.glob(os.path.join(layer, 'recipes/*/*.oe'))):
             name = os.path.basename(f[:-3])
@@ -63,7 +62,7 @@ def run(options, args, config):
                 recipe_meta['PV'] = "0"
             output_file = f[len(layer)+1:] + '.txt'
             parse(f, name, recipe_meta, index_file)
-        bb.utils.mkdirhier(os.path.join(output_dir, 'classes'))
+        oelite.util.makedirs(os.path.join(output_dir, 'classes'))
         index_file = open(os.path.join(output_dir, 'classes/INDEX.txt'), 'w')
         for f in sorted(glob.glob(os.path.join(layer, 'classes/*.oeclass')) +
                         glob.glob(os.path.join(layer, 'classes/*/*.oeclass'))):

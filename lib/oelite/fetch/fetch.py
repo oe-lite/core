@@ -4,8 +4,6 @@ import hashlib
 import shutil
 import string
 
-import bb.utils
-
 import oelite.fetch
 import oelite.util
 import local
@@ -277,7 +275,7 @@ class OEliteUri:
         cwd = None
         if "subdir" in self.params:
             srcpath = os.path.join(srcpath, self.params["subdir"])
-            bb.utils.mkdirhier(srcpath)
+            oelite.util.makedirs(srcpath)
             cwd = os.getcwd()
             os.chdir(srcpath)
         try:

@@ -1,5 +1,5 @@
 import oebakery
-from oelite import util
+import oelite.util
 import logging
 import os
 import subprocess
