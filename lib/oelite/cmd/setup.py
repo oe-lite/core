@@ -1,10 +1,10 @@
 import oebakery
 import oelite.util
+import oelite.path
 import logging
 import os
 import subprocess
 import oelite
-import bb
 import glob
 import sys
 import re
@@ -105,13 +105,13 @@ def get_setup_file(config, distro, release):
     if release is not None:
         release_parts = release.split('.')
         for i in reversed(range(len(release_parts))):
-            setup_file = bb.utils.which(oepath, os.path.join(
+            setup_file = oelite.path.which(oepath, os.path.join(
                     'setup', '%s_%s'%(distro, '.'.join(release_parts[:i+1]))))
             if setup_file:
                 return retval(setup_file)
     # For rolling release distros, and in case a version specific setup file
     # was not found, look for version neutral setup file.
-    setup_file = bb.utils.which(oepath, os.path.join('setup', distro))
+    setup_file = oelite.path.which(oepath, os.path.join('setup', distro))
     return retval(setup_file)
 
 def get_host_distro():

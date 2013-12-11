@@ -1,9 +1,9 @@
 import ply.yacc
 import os
 import string
-import bb.utils
 import oelite.parse
 import oelite.meta
+import oelite.path
 import oelite.util
 
 class OEParser(object):
@@ -533,7 +533,7 @@ class OEParser(object):
             if self.parent:
                 dirname = os.path.dirname(self.parent.filename)
                 oepath = "%s:%s"%(dirname, oepath)
-            filename = bb.utils.which(oepath, filename)
+            filename = oelite.path.which(oepath, filename)
         else:
             if not os.path.exists(filename):
                 print "file not found: %s"%(filename)
