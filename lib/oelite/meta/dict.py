@@ -1,4 +1,5 @@
 from oelite.meta import *
+import oelite.path
 
 import sys
 import copy
@@ -7,7 +8,6 @@ import cPickle
 import operator
 import types
 import os
-import bb.utils
 
 
 def unpickle(file):
@@ -397,7 +397,7 @@ class DictMeta(MetaData):
     def set_input_mtime(self, fn, path=None, mtime=None):
         if mtime is None:
             if path:
-                f = bb.utils.which(path, fn)
+                f = oelite.path.which(path, fn)
                 if f:
                     mtime = os.path.getmtime(f)
                 else:

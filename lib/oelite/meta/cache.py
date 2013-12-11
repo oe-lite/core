@@ -1,8 +1,8 @@
 #from oelite.meta import *
 import oelite.meta
 import oelite.recipe
-import bb.utils
 import oelite.util
+import oelite.path
 
 import os
 import cPickle
@@ -52,7 +52,7 @@ class MetaCache:
             return False
         for (fn, oepath, old_mtime) in list(self.mtimes):
             if oepath is not None:
-                filepath = bb.utils.which(oepath, fn)
+                filepath = oelite.path.which(oepath, fn)
             else:
                 filepath = fn
             if os.path.exists(filepath):
