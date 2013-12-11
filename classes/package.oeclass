@@ -45,7 +45,7 @@ def do_split(d):
 
     for pkg in package_list:
         root = os.path.join(pkgd, pkg)
-        bb.utils.mkdirhier(root)
+        oelite.util.makedirs(root)
 
         files = (d.get("FILES_" + pkg) or "").split()
         for file in files:
@@ -72,12 +72,12 @@ def do_split(d):
                 continue
             seen.append(file)
             if os.path.isdir(file) and not os.path.islink(file):
-                bb.utils.mkdirhier(os.path.join(root,file))
+                oelite.util.makedirs(os.path.join(root,file))
                 os.chmod(os.path.join(root,file), os.stat(file).st_mode)
                 continue
             fpath = os.path.join(root,file)
             dpath = os.path.dirname(fpath)
-            bb.utils.mkdirhier(dpath)
+            oelite.util.makedirs(dpath)
             ret = bb.utils.copyfile(file, fpath)
             if ret is False or ret == 0:
                 raise bb.build.FuncFailed("File population failed")
@@ -198,9 +198,9 @@ def do_package(d):
         outdir = os.path.join(deploy_dir, pkg_type, pkg_arch)
         pv = d.getVar("PV", True)
         buildhash = d.getVar("TASK_BUILDHASH", False)
-        bb.utils.mkdirhier(outdir)
+        oelite.util.makedirs(outdir)
         os.chdir(os.path.join(pkgd, package))
-        bb.utils.mkdirhier(pkgmetadir)
+        oelite.util.makedirs(pkgmetadir)
         pkgmetaval = pkgmetavals[package]
         for var in pkgmetavars:
             val, lvl = pkgmetaval[var]
