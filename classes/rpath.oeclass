@@ -20,6 +20,11 @@ CHRPATH_DEPENDS_TARGET:TARGET_LIBC_mingw = ""
 
 def chrpath_get_cmd(d,filetype):
 
+    import subprocess
+    def cmd_exists(cmd):
+        return subprocess.call("type " + cmd, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
+
     chrpath_cmd = {}
     for elf_type in ("BUILD", "HOST", "TARGET"):
         chrpath_cmd[elf_type] = (d.get("%s_ELF"%(elf_type)),
@@ -31,9 +36,13 @@ def chrpath_get_cmd(d,filetype):
     for elf_type in chrpath_cmd:
         if not chrpath_cmd[elf_type][0]:
             del chrpath_cmd[elf_type]
-        else:
-            chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
-                                     chrpath_cmd[elf_type][1])
+            continue
+        chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
+                                 chrpath_cmd[elf_type][1])
+        if not cmd_exists(chrpath_cmd[elf_type][1] + '-foobar'):
+            print "CHRPATH_%s not found: %s"%(elf_type,
+                                              chrpath_cmd[elf_type][1])
+            return False
 
     if not "dynamically linked" in filetype:
         return None
