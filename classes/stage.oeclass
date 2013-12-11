@@ -71,7 +71,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
             die("could not find stage file: %s"%(filename))
         dstdir = get_dstdir(cwd, package)
         print "unpacking %s to %s"%(filename, unpackdir)
-        bb.utils.mkdirhier(unpackdir)
+        oelite.util.makedirs(unpackdir)
         os.chdir(unpackdir)
         with TarFile(filename, debug=0, errorlevel=1) as tf:
             tf.extractall()
@@ -84,7 +84,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir):
                 return False
         del d["STAGE_FIXUP_PKG_TYPE"]
 
-        bb.utils.mkdirhier(dstdir)
+        oelite.util.makedirs(dstdir)
 
         pkgmetadir = d.get("pkgmetadir").lstrip("/")
         dst_pkgmetadir = os.path.join(dstdir, pkgmetadir, package.name)
