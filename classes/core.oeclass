@@ -202,7 +202,7 @@ def runstrip(file, d):
     elif "shared" in filetype or "executable" in filetype:
         extraflags = "--remove-section=.comment --remove-section=.note"
 
-    bb.utils.mkdirhier(os.path.join(os.path.dirname(file), ".debug"))
+    oelite.util.makedirs(os.path.join(os.path.dirname(file), ".debug"))
     debugfile=os.path.join(os.path.dirname(file), ".debug", os.path.basename(file))
 
     stripcmd = "'%s' %s '%s'"                       % (strip, extraflags, file)
