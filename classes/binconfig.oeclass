@@ -57,7 +57,7 @@ def do_split_binconfig_fixup(d):
         if not binconfig_files:
             continue
         print "binconfig files in package", pkg
-        bb.utils.mkdirhier(pkgmetadir)
+        oelite.util.makedirs(pkgmetadir)
         metafile_path = os.path.join(pkgmetadir, "binconfig")
         with open(metafile_path, "w") as metafile:
             metafile.write("\n".join(binconfig_files) + "\n")
