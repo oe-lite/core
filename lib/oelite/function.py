@@ -1,5 +1,4 @@
 import oelite.meta
-import bb.utils
 import oebakery
 
 import sys

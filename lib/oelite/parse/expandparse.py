@@ -1,6 +1,5 @@
 import ply.yacc
 import re
-import bb.utils
 import oelite.pyexec
 from oelite.parse import ExpandError
 from oelite.parse.expandlex import tokens

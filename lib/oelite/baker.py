@@ -12,8 +12,6 @@ import oelite.item
 from oelite.parse import *
 from oelite.cookbook import CookBook
 
-import bb.utils
-
 import sys
 import os
 import glob
