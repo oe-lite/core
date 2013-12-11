@@ -14,7 +14,8 @@ do_chrpath[prefuncs] += "${DO_CHRPATH_NATIVE_PRE}"
 def do_chrpath_native_pre(d):
     bindir = d.get("D") + d.get("bindir")
     tmpdir = d.get("TMP_BINDIR")
-    os.makedirs(tmpdir)
+    if not os.path.exists(tmpdir):
+        os.makedirs(tmpdir)
     shutil.copy2(os.path.join(bindir, "chrpath"), tmpdir)
 PATH:<native = "${TMP_BINDIR}:"
 DO_CHRPATH_NATIVE_POST:native = "do_chrpath_native_post"
