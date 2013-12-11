@@ -5,7 +5,6 @@ import sys
 import logging
 
 import oelite.util
-import bb.utils
 
 
 class NotAGitRepository(Exception):
