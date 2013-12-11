@@ -373,15 +373,8 @@ def prune_suffix(var, suffixes, d):
     return var
 
 def mkdirhier(directory):
-    """Create a directory like 'mkdir -p', but does not complain if
-    directory already exists like os.makedirs
-    """
-
-    try:
-        os.makedirs(directory)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise e
+    import oelite.util
+    oelite.util.makedirs(directory)
 
 def movefile(src, dest, newmtime = None, sstat = None):
     """Moves a file from src to dest, preserving all permissions and
