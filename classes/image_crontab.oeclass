@@ -15,9 +15,11 @@ image_preprocess_crontab () {
 	cwd=`pwd`
 	test -d $cwd/${crontabdir} || return 0
 	for f in $cwd/${crontabdir}/*.* ; do
-		user=`basename $f | cut -d. -f1`
-		cat $f >> $cwd${crontabdir}/$user
-		rm $f
+		if [ "$f" != "$cwd/${crontabdir}/*.*" ] ; then
+			user=`basename $f | cut -d. -f1`
+			cat $f >> $cwd${crontabdir}/$user
+			rm $f
+		fi
 	done
 }
 
