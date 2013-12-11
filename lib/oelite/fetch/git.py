@@ -1,13 +1,12 @@
 import oelite.fetch
 import oelite.git
+import oelite.util
 import os
 import re
 import warnings
 import string
 import sys
 import hashlib
-
-import bb.utils
 
 class GitFetcher():
 
@@ -89,7 +88,7 @@ class GitFetcher():
             self.dirty_file = os.path.join(
                 uri.ingredients, uri.isubdir, 'git', "%s~dirty"%(repo_name),
                 "%s.diff"%(self.dirty_signature))
-            bb.utils.mkdirhier(os.path.dirname(self.dirty_file))
+            oelite.util.makedirs(os.path.dirname(self.dirty_file))
             with open(self.dirty_file, 'w') as f:
                 f.write(dirt)
         if "track" in uri.params:
@@ -167,7 +166,7 @@ class GitFetcher():
     def fetch_clone(self):
         basedir = os.path.dirname(self.repo)
         repodir = os.path.basename(self.repo)
-        bb.utils.mkdirhier(basedir)
+        oelite.util.makedirs(basedir)
         options = ['--mirror']
         if self.uri.params.get('recursive', '0') != '0':
             options.append('--recursive')
@@ -224,7 +223,7 @@ class GitFetcher():
     def unpack(self, d):
         wc = os.path.join(d.get("SRCDIR"), self.dest)
         basedir = os.path.dirname(wc)
-        bb.utils.mkdirhier(basedir)
+        oelite.util.makedirs(basedir)
         repo = oelite.git.GitRepository(self.repo)
         if self.is_local:
             clone_cmd = "git clone --local"
@@ -269,7 +268,7 @@ class GitFetcher():
         basedir = os.path.dirname(path)
         if not os.path.exists(path):
             print "Creating git mirror", path
-            bb.utils.mkdirhier(basedir)
+            oelite.util.makedirs(basedir)
             options = ['--mirror']
             if self.uri.params.get('recursive', '0') != '0':
                 options.append('--recursive')

@@ -4,6 +4,7 @@ import string
 import bb.utils
 import oelite.parse
 import oelite.meta
+import oelite.util
 
 class OEParser(object):
 
@@ -15,7 +16,7 @@ class OEParser(object):
         self.lexer = lexer.clone()
         self.lexer.parser = self
         self.tokens = lexer.lextokens.keys()
-        bb.utils.mkdirhier("tmp/ply")
+        oelite.util.makedirs("tmp/ply")
         picklefile = "tmp/ply/" + self.__class__.__module__ + ".p"
         self.yacc = ply.yacc.yacc(module=self, debug=0, picklefile=picklefile)
         if meta is not None:

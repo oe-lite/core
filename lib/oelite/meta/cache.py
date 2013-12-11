@@ -1,8 +1,8 @@
 #from oelite.meta import *
 import oelite.meta
 import oelite.recipe
-
 import bb.utils
+import oelite.util
 
 import os
 import cPickle
@@ -21,7 +21,7 @@ class MetaCache:
 
         if os.path.exists(cachefile):
             os.unlink(cachefile)
-        bb.utils.mkdirhier(os.path.dirname(cachefile))
+        oelite.util.makedirs(os.path.dirname(cachefile))
         self.abi = pickle_abi()
         self.env_signature = baker.config.env_signature()
         self.mtimes = set()
