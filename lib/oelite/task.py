@@ -5,12 +5,17 @@ import oelite.recipe
 from oelite.dbutil import *
 import oelite.function
 import oelite.util
+import oelite.process
+import oelite.log
 
 import sys
 import os
 import warnings
 import shutil
 import re
+import cPickle
+
+log = oelite.log.get_logger()
 
 def task_name(name):
     if name.startswith("do_"):
@@ -18,9 +23,7 @@ def task_name(name):
     return "do_" + name
 
 
-class OEliteTask:
-
-    TASKFUNC_RE = re.compile(r"^do_([a-z]+).*?")
+class OEliteTask(object):
 
     def __init__(self, id, recipe, name, nostamp, cookbook):
         self.id = id
@@ -29,12 +32,28 @@ class OEliteTask:
         self.nostamp = nostamp
         self.cookbook = cookbook
         self.debug = self.cookbook.debug
-        self._meta = None
         return
 
     def __str__(self):
         return "%s:%s"%(self.recipe, self.name)
 
+    def save(self, file, token):
+        cPickle.dump(self.signature, file, 2)
+        self.meta.pickle(file)
+
+    def load_summary(self, file):
+        self.signature = cPickle.load(file)
+        return
+
+    def load_meta(self, file=None):
+        if file is None:
+            # self.meta_cache can be gotten from MetaCache.task_cache
+            # but do we have a MetaCache object here?
+            cache = self.recipe.get_cache()
+            file = open(cache.task_cache(self), 'r')
+            file.seek(self.meta_cache_offset)
+        self.meta = oelite.meta.dict.unpickle(file)
+        return
 
     def get_parents(self):
         parents = flatten_single_column_rows(self.cookbook.dbc.execute(
@@ -117,13 +136,10 @@ class OEliteTask:
         if os.path.exists(hashpath):
             os.remove(hashpath)
 
-
     def prepare(self, runq):
-        meta = self.meta()
-
         buildhash = self.cookbook.baker.runq.get_task_buildhash(self)
         debug("buildhash=%s"%(repr(buildhash)))
-        meta.set("TASK_BUILDHASH", buildhash)
+        self.meta.set("TASK_BUILDHASH", buildhash)
 
         def prepare_stage(deptype):
             stage = {}
@@ -138,128 +154,49 @@ class OEliteTask:
                     stage[filename] = package
             return stage
 
-        meta["__stage"] = prepare_stage("DEPENDS")
-        meta["__rstage"] = prepare_stage("RDEPENDS")
-        meta["__fstage"] = prepare_stage("FDEPENDS")
-        meta.set_flag("__stage", "nohash", True)
-        meta.set_flag("__rstage", "nohash", True)
-        meta.set_flag("__fstage", "nohash", True)
+        self.meta["__stage"] = prepare_stage("DEPENDS")
+        self.meta["__rstage"] = prepare_stage("RDEPENDS")
+        self.meta["__fstage"] = prepare_stage("FDEPENDS")
+        self.meta.set_flag("__stage", "nohash", True)
+        self.meta.set_flag("__rstage", "nohash", True)
+        self.meta.set_flag("__fstage", "nohash", True)
 
         return
 
 
-    def meta(self):
-        if self._meta is not None:
-            return self._meta
-        meta = self.recipe.meta.copy()
-        # Filter meta-data, enforcing restrictions on which tasks to
-        # emit vars to and not including other task functions.
-        emit_prefixes = (meta.get("META_EMIT_PREFIX") or "").split()
-        def colon_split(s):
-            import string
-            return string.split(s, ":", 1)
-        emit_prefixes = map(colon_split, emit_prefixes)
-        for var in meta.keys():
-            emit_flag = meta.get_flag(var, "emit")
-            emit = (emit_flag or "").split()
-            taskfunc_match = self.TASKFUNC_RE.match(var)
-            if taskfunc_match:
-                if taskfunc_match.group(0) not in emit:
-                    emit.append(taskfunc_match.group(0))
-            for emit_task, emit_prefix in emit_prefixes:
-                if not var.startswith(emit_prefix):
-                    continue
-                if emit_task == "":
-                    if emit_flag is None:
-                        emit_flag = ""
-                    continue
-                if not emit_task.startswith("do_"):
-                    emit_task = "do_" + emit_task
-                if not emit_task in emit:
-                    emit.append(emit_task)
-            if (emit or emit_flag == "") and not self.name in emit:
-                del meta[var]
-                continue
-            omit = meta.get_flag(var, "omit")
-            if omit is not None and self.name in omit.split():
-                del meta[var]
-                continue
-
-        self._meta = meta
-        return meta
 
 
     def run(self):
-        meta = self.meta()
+        meta = self.meta
         function = meta.get_function(self.name)
 
         self.do_cleandirs()
         cwd = self.do_dirs() or meta.get("B")
 
-        # Setup stdin, stdout and stderr redirection
-        stdin = open("/dev/null", "r")
-        logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
-        logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
-        oelite.util.makedirs(os.path.dirname(logfn))
-        try:
-            if self.debug:
-                logfile = os.popen("tee %s"%logfn, "w")
-            else:
-                logfile = open(logfn, "w")
-        except OSError:
-            print "Opening log file failed: %s"%(logfn)
-            raise
-
-        if os.path.exists(logsymlink) or os.path.islink(logsymlink):
-            os.remove(logsymlink)
-        os.symlink(logfn, logsymlink)
-
-        real_stdin = os.dup(sys.stdin.fileno())
-        real_stdout = os.dup(sys.stdout.fileno())
-        real_stderr = os.dup(sys.stderr.fileno())
-        os.dup2(stdin.fileno(), sys.stdin.fileno())
-        os.dup2(logfile.fileno(), sys.stdout.fileno())
-        os.dup2(logfile.fileno(), sys.stderr.fileno())
-
-        try:
-            for prefunc in self.get_prefuncs():
-                print "running prefunc", prefunc
-                self.do_cleandirs(prefunc)
-                wd = self.do_dirs(prefunc)
-                if not prefunc.run(wd or cwd):
-                    return False
-            try:
-                if not function.run(cwd):
-                    return False
-            except oebakery.FatalError:
+        for prefunc in self.get_prefuncs():
+            print "running prefunc", prefunc
+            self.do_cleandirs(prefunc)
+            wd = self.do_dirs(prefunc)
+            if not prefunc.run(wd or cwd):
                 return False
-            for postfunc in self.get_postfuncs():
-                print "running postfunc", postfunc
-                self.do_cleandirs(postfunc)
-                wd = self.do_dirs(postfunc)
-                if not postfunc.run(wd or cwd):
-                    return False
-            return True
-
-        finally:
-            # Cleanup stdin, stdout and stderr redirection
-            os.dup2(real_stdin, sys.stdin.fileno())
-            os.dup2(real_stdout, sys.stdout.fileno())
-            os.dup2(real_stderr, sys.stderr.fileno())
-            stdin.close()
-            logfile.close()
-            os.close(real_stdin)
-            os.close(real_stdout)
-            os.close(real_stderr)
-            if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
-                os.remove(logsymlink)
-                os.remove(logfn) # prune empty logfiles
+        try:
+            if not function.run(cwd):
+                return False
+        except oebakery.FatalError:
+            return False
+        for postfunc in self.get_postfuncs():
+            print "running postfunc", postfunc
+            self.do_cleandirs(postfunc)
+            wd = self.do_dirs(postfunc)
+            if not postfunc.run(wd or cwd):
+                return False
+        return True
 
 
     def do_cleandirs(self, name=None):
         if not name:
             name = self.name
-        cleandirs = (self.meta().get_flag(name, "cleandirs",
+        cleandirs = (self.meta.get_flag(name, "cleandirs",
                                           oelite.meta.FULL_EXPANSION))
         if cleandirs:
             for cleandir in cleandirs.split():
@@ -279,7 +216,7 @@ class OEliteTask:
         if not name:
             name = self.name
         # Create directories and find directory to execute in
-        dirs = (self.meta().get_flag(name, "dirs",
+        dirs = (self.meta.get_flag(name, "dirs",
                                      oelite.meta.FULL_EXPANSION))
         if dirs:
             dirs = dirs.split()
@@ -289,14 +226,110 @@ class OEliteTask:
 
     def get_postfuncs(self):
         postfuncs = []
-        for name in (self.meta().get_flag(self.name, "postfuncs", 1)
+        for name in (self.meta.get_flag(self.name, "postfuncs", 1)
                      or "").split():
-            postfuncs.append(self.meta().get_function(name))
+            postfuncs.append(self.meta.get_function(name))
         return postfuncs
 
     def get_prefuncs(self):
         prefuncs = []
-        for name in (self.meta().get_flag(self.name, "prefuncs", 1)
+        for name in (self.meta.get_flag(self.name, "prefuncs", 1)
                      or "").split():
-            prefuncs.append(self.meta().get_function(name))
+            prefuncs.append(self.meta.get_function(name))
         return prefuncs
+
+
+# refactor of Task.meta method
+
+class MetaProcessor(oelite.process.PythonProcess):
+
+    TASKFUNC_RE = re.compile(r"^do_([a-z]+).*?")
+
+    def __init__(self, task, process=False):
+        if process:
+            self.meta = task.recipe.meta
+        else:
+            self.meta = task.recipe.meta.copy()
+        self.cache = task.recipe.get_cache()
+        self.task = task
+        tmpfile = os.path.join(
+            task.recipe.cookbook.config.get('PARSERDIR'),
+            oelite.path.relpath(task.recipe.filename)
+            + '.%s.%s'%(task.recipe.type, task.name))
+        stdout = tmpfile + '.log'
+        ipc = tmpfile + '.ipc'
+        super(MetaProcessor, self).__init__(
+            stdout=stdout, ipc=ipc, target=self._prepare)
+        return
+
+    def _prepare(self):
+        retval = self.prepare()
+        if not hasattr(self, 'feedback'):
+            return retval
+        if retval:
+            self.feedback.error("Task metadata processing failed: %s"%(retval))
+            assert isinstance(retval, int)
+            sys.exit(retval)
+        else:
+            self.feedback.progress(100)
+            sys.exit(0)
+
+    def prepare(self):
+        log.debug("Preparing %s", self.task)
+        # Filter meta-data, enforcing restrictions on which tasks to
+        # emit vars to and not including other task functions.
+        emit_prefixes = (self.meta.get("META_EMIT_PREFIX") or "").split()
+        def colon_split(s):
+            import string
+            return string.split(s, ":", 1)
+        emit_prefixes = map(colon_split, emit_prefixes)
+        for var in self.meta.keys():
+            emit_flag = self.meta.get_flag(var, "emit")
+            emit = (emit_flag or "").split()
+            taskfunc_match = self.TASKFUNC_RE.match(var)
+            if taskfunc_match:
+                if taskfunc_match.group(0) not in emit:
+                    emit.append(taskfunc_match.group(0))
+            for emit_task, emit_prefix in emit_prefixes:
+                if not var.startswith(emit_prefix):
+                    continue
+                if emit_task == "":
+                    if emit_flag is None:
+                        emit_flag = ""
+                    continue
+                if not emit_task.startswith("do_"):
+                    emit_task = "do_" + emit_task
+                if not emit_task in emit:
+                    emit.append(emit_task)
+            if (emit or emit_flag == "") and not self.task.name in emit:
+                del self.meta[var]
+                continue
+            omit = self.meta.get_flag(var, "omit")
+            if omit is not None and self.task.name in omit.split():
+                del self.meta[var]
+                continue
+
+        # FIXME: add options.dump_signature_metadata support back here
+        #if self.options.dump_signature_metadata:
+        #    self.normpath(task.recipe.filename)
+        #    dump = os.path.join(self.options.dump_signature_metadata,
+        #                        self.normpath(task.recipe.filename),
+        #                        str(task))
+        #else:
+        #    dump = None
+
+        try:
+            signature = self.meta.signature() # (dump=dump)
+        except oelite.meta.ExpansionError as e:
+            e.msg += " in %s"%(self.task)
+            e.print_details()
+            #raise
+            return 1
+
+        self.task.meta = self.meta
+        self.task.signature = signature
+
+        # FIXME: save to cache
+        self.cache.save_task(self.task)
+
+        return

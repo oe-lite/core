@@ -328,6 +328,26 @@ def core_varname_expansion(d):
                 d.set_flag(expanded_varname, flag, flags[flag])
             del d[varname]
 
+addhook post_parse_pn_and_such to post_recipe_parse last
+def post_parse_pn_and_such(d):
+    # FIXME: refactor to post_recipe_parse hook
+    name = d.get("PN")
+    if not name:
+        raise InvalidRecipe("no PN in %s:%s"%(filename, type))
+
+    # FIXME: refactor to post_recipe_parse hook
+    version = d.get("PV") or "0"
+    if "PR" in d:
+        version += "-" + d.get("PR")
+
+    # FIXME: refactor to post_recipe_parse hook
+    preference = d.get("DEFAULT_PREFERENCE") or "0"
+    try:
+        preference = int(preference)
+    except ValueError, e:
+        raise InvalidRecipe("invalid DEFAULT_PREFERENCE=%s in %s:%s"%(
+                preference, filename, recipe_type))
+
 REBUILDALL_SKIP[nohash] = True
 RELAXED[nohash] = True
 

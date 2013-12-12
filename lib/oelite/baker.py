@@ -11,6 +11,7 @@ import oelite.task
 import oelite.item
 from oelite.parse import *
 from oelite.cookbook import CookBook
+import oelite.process
 
 import sys
 import os
@@ -19,6 +20,8 @@ import shutil
 import datetime
 import hashlib
 import logging
+import select
+
 
 #INITIAL_OE_IMPORTS = "oe.path oe.utils sys os time"
 INITIAL_OE_IMPORTS = "sys os time"
@@ -88,7 +91,15 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
+        self.init_logging()
+        self.init_config(config) # FIXME: only call for commands that need it, moving it to the command method
+        oelite.arch.init(self.config) # FIXME: refactor to a post_conf_parse hook
+        self.init_common_inherits() # FIXME: only call for commands that need it, moving it to the command method
+        self.cookbook = CookBook(self) # FIXME: only call for commands that need it, moving it to the command method
+        self.init_things_todo(args) # FIXME: only call for commands that need it, moving it to the command method
+        return
 
+    def init_logging(self):
         # Bakery 3 compatibility, configure the logging module
         if (not hasattr(oebakery, "__version__") or
             oebakery.__version__.split(".")[0] < 4):
@@ -97,27 +108,27 @@ class OEliteBaker:
                 logging.getLogger().setLevel(logging.DEBUG)
             else:
                 logging.getLogger().setLevel(logging.INFO)
+        return
 
+    def init_config(self, config):
         self.config = oelite.meta.DictMeta(meta=config)
         self.config["OE_IMPORTS"] = INITIAL_OE_IMPORTS
         self.config.import_env()
         os.environ.clear()
-        self.config.pythonfunc_init()
+        self.config.pythonfunc_init() # FIXME: this should be transparent to baker...
         self.topdir = self.config.get("TOPDIR", True)
         self.set_manifest_origin()
         # FIXME: self.config.freeze("TOPDIR")
-
-        self.confparser = confparse.ConfParser(self.config)
-        self.confparser.parse("conf/oe-lite.conf")
-
+        confparser = confparse.ConfParser(self.config)
+        confparser.parse("conf/oe-lite.conf")
         oelite.pyexec.exechooks(self.config, "post_conf_parse")
+        return
 
-        # FIXME: refactor oelite.arch.init to a post_conf_parse hook
-        oelite.arch.init(self.config)
-
+    def init_common_inherits(self):
         # Handle any INHERITs and inherit the base class
-        inherits  = ["core"] + (self.config.get("INHERIT", 1) or "").split()
+        inherits = ["core"] + (self.config.get("INHERIT", 1) or "").split()
         # and inherit rmwork when needed
+        # FIXME: this will go away when proper rmwork is implemented...
         try:
             rmwork = self.options.rmwork
             if rmwork is None:
@@ -134,19 +145,15 @@ class OEliteBaker:
         for inherit in inherits:
             self.oeparser.reset_lexstate()
             self.oeparser.parse("classes/%s.oeclass"%(inherit), require=True)
-
         oelite.pyexec.exechooks(self.config, "post_common_inherits")
 
-        self.cookbook = CookBook(self)
-
-        # things (ritem, item, recipe, or package) to do
+    def init_things_todo(self, args):
         if args:
             self.things_todo = args
         elif "OE_DEFAULT_THING" in self.config:
             self.things_todo = self.config.get("OE_DEFAULT_THING", 1).split()
         else:
             self.things_todo = [ "world" ]
-
         recipe_types = ("machine", "native", "sdk",
                         "cross", "sdk-cross", "canadian-cross")
         def thing_todo(thing):
@@ -169,9 +176,7 @@ class OEliteBaker:
                 dont_do_thing(world)
                 for recipe in self.cookbook.get_recipes(type=recipe_type):
                     self.recipes_todo.add(recipe)
-
         return
-
 
     def __del__(self):
         return
@@ -220,6 +225,8 @@ class OEliteBaker:
         if len(self.recipes_todo) > 0:
             die("you cannot show world")
 
+        self.setup_tmpdir()
+
         thing = oelite.item.OEliteItem(self.things_todo[0])
         recipe = self.cookbook.get_recipe(
             type=thing.type, name=thing.name, version=thing.version,
@@ -232,12 +239,17 @@ class OEliteBaker:
                 task = self.options.task
             else:
                 task = "do_" + self.options.task
-            self.runq = OEliteRunQueue(self.config, self.cookbook)
+            self.options.rebuild = False
+            self.init_runq()
             self.runq._add_recipe(recipe, task)
+            self.gen_recipe_graph()
+            self.prepare_task_metadata()
             task = self.cookbook.get_task(recipe=recipe, name=task)
+            task.load_meta()
             task.prepare(self.runq)
-            meta = task.meta()
+            meta = task.meta
         else:
+            recipe.load_meta()
             meta = recipe.meta
 
         #meta.dump(pretty=False, nohash=False, flags=True,
@@ -276,13 +288,30 @@ class OEliteBaker:
             else:
                 self.options.relax = None
 
+        self.init_runq()
+        self.build_deptree()
+        self.gen_recipe_graph()
+        #self.propagate_extra_arch()
+        self.prepare_task_metadata()
+        self.calc_task_hashes()
+        self.set_task_build_flags()
+        self.check_prebakes()
+        self.propagate_task_build()
+        self.set_package_filenames()
+        self.prune_runq()
+        self.really_bake()
+
+
+    def init_runq(self):
         # init build quue
         self.runq = OEliteRunQueue(self.config, self.cookbook,
-                                   self.options.rebuild, self.options.relax)
+                                   getattr(self.options, 'rebuild', False),
+                                   getattr(self.options, 'relax', False))
 
+    def build_deptree(self):
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
-        debug("Building dependency tree")
+        info("Building dependency tree")
         start = datetime.datetime.now()
         for task in self.tasks_todo:
             task = oelite.task.task_name(task)
@@ -304,6 +333,7 @@ class OEliteBaker:
         if self.debug:
             timing_info("Building dependency tree", start)
 
+    def gen_recipe_graph(self):
         # Generate recipe dependency graph
         recipes = set([])
         for task in self.runq.get_tasks():
@@ -315,6 +345,7 @@ class OEliteBaker:
         for recipe in recipes:
             unresolved_recipes.append((recipe, list(recipe.recipe_deps)))
 
+    #def propagate_extra_arch(self):
         # Traverse recipe dependency graph, propagating EXTRA_ARCH on
         # recipe level.
         resolved_recipes = set([])
@@ -340,6 +371,62 @@ class OEliteBaker:
             if not progress:
                 bb.fatal("recipe EXTRA_ARCH resolving deadlocked!")
 
+    def prepare_task_metadata(self):
+        # Prepare task metadata for all tasks, loading from cache where
+        # possible
+        to_prepare = []
+        to_load = []
+        for task in self.runq.get_tasks():
+            cache = task.recipe.get_cache()
+            if cache.has_task(task):
+                to_load.append(task)
+            else:
+                to_prepare.append(task)
+        total = len(to_load)
+        count = 0
+        for task in to_load:
+            oelite.util.progress_info(
+               "Loading task summary information", total, count)
+            cache = task.recipe.get_cache()
+            cache.load_task(task, meta=False)
+            count += 1
+        oelite.util.progress_info(
+            "Loading task summary information", total, count)
+        to_load = set()
+        for task in to_prepare:
+            to_load.add(task.recipe)
+        total = len(to_load)
+        count = 0
+        for recipe in to_load:
+            oelite.util.progress_info(
+               "Loading recipe metadata", total, count)
+            recipe.load_meta()
+            count += 1
+        oelite.util.progress_info(
+            "Loading recipe metadata", total, count)
+        def factory(task, **kwargs):
+            return oelite.task.MetaProcessor(task, **kwargs)
+        pool = oelite.process.Pool(factory, "Preparing task metadata")
+        failed = pool.run(to_prepare, parallel=self.cookbook.parallel)
+        if failed:
+            for task, exitcode, logfile in failed:
+                print '\nError:', task
+                with open(logfile, 'r') as logfile:
+                    print logfile.read().strip()
+            print '\nErrors in %d tasks'%(len(failed))
+            sys.exit(1)
+        total = len(to_prepare)
+        count = 0
+        for task in to_prepare:
+            oelite.util.progress_info(
+               "Loading task summary information", total, count)
+            cache = task.recipe.get_cache()
+            cache.load_task(task)
+            count += 1
+        oelite.util.progress_info(
+            "Loading task summary information", total, count)
+
+    def calc_task_hashes(self):
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
         # examing each task, computing it's hash, and checking if the
@@ -362,37 +449,13 @@ class OEliteBaker:
             dephashes = {}
             for depend in self.runq.task_dependencies(task, flatten=True):
                 dephashes[depend] = self.runq.get_task_metahash(depend)
-            try:
-                recipe_extra_arch = recipe.meta.get("EXTRA_ARCH")
-            except oelite.meta.ExpansionError as e:
-                e.msg += " in %s"%(task)
-                raise
-            task_meta = task.meta()
-            # FIXME: is this really needed?  How should the task metadata be
-            # changed at this point?  isn't it created from recipe meta by the
-            # task.meta() call above?
-            if (recipe_extra_arch and
-                task_meta.get("EXTRA_ARCH") != recipe_extra_arch):
-                task_meta.set("EXTRA_ARCH", recipe_extra_arch)
-            try:
-                if self.options.dump_signature_metadata:
-                    self.normpath(task.recipe.filename)
-                    dump = os.path.join(self.options.dump_signature_metadata,
-                                        self.normpath(task.recipe.filename),
-                                        str(task))
-                else:
-                    dump = None
-                datahash = task_meta.signature(dump=dump)
-            except oelite.meta.ExpansionError as e:
-                e.msg += " in %s"%(task)
-                raise
 
             hasher = hashlib.md5()
             hasher.update(str(sorted(dephashes.values())))
             dephash = hasher.hexdigest()
 
             hasher = hashlib.md5()
-            hasher.update(datahash)
+            hasher.update(task.signature)
             hasher.update(dephash)
             metahash = hasher.hexdigest()
 
@@ -429,11 +492,14 @@ class OEliteBaker:
             self.runq.print_metahashable_tasks()
             print "count=%s total=%s"%(count, total)
             die("Circular dependencies I presume.  Add more debug info!")
+        self.total_tasks = total
 
+    def set_task_build_flags(self):
         self.runq.set_task_build_on_nostamp_tasks()
         self.runq.set_task_build_on_retired_tasks()
         self.runq.set_task_build_on_hashdiff()
 
+    def check_prebakes(self):
         # check for availability of prebaked packages, and set package
         # filename for all packages.
         depend_packages = self.runq.get_depend_packages()
@@ -468,13 +534,15 @@ class OEliteBaker:
         # dependencies, we will find one or more recipes that has to
         # be rebuilt, fx. because of a --rebuild flag.
 
+    def propagate_task_build(self):
         self.runq.propagate_runq_task_build()
 
         build_count = self.runq.set_buildhash_for_build_tasks()
         nobuild_count = self.runq.set_buildhash_for_nobuild_tasks()
-        if (build_count + nobuild_count) != total:
+        if (build_count + nobuild_count) != self.total_tasks:
             die("build_count + nobuild_count != total")
 
+    def set_package_filenames(self):
         deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR", True)
         packages = self.runq.get_packages_to_build()
         for package in packages:
@@ -488,6 +556,7 @@ class OEliteBaker:
             debug("will use from build: %s"%(filename))
             self.runq.set_package_filename(package.id, filename)
 
+    def prune_runq(self):
         self.runq.mark_primary_runq_depends()
         self.runq.prune_runq_depends_nobuild()
         self.runq.prune_runq_depends_with_nobody_depending_on_it()
@@ -496,6 +565,7 @@ class OEliteBaker:
         remaining = self.runq.number_of_tasks_to_build()
         debug("%d tasks remains"%remaining)
 
+    def really_bake(self):
         recipes = self.runq.get_recipes_with_tasks_to_build()
         if not recipes:
             info("Nothing to do")
@@ -559,13 +629,39 @@ class OEliteBaker:
         failed_task_list = ""
         while task:
             count += 1
+            task.load_meta()
             debug("")
             debug("Preparing %s"%(task))
             task.prepare(self.runq)
-            meta = task.meta()
+            meta = task.meta
             info("Running %d / %d %s"%(count, total, task))
             task.build_started()
-            if self.options.fake_build or task.run():
+            tmpdir = task.meta.get('T')
+            logfn = "%s/%s.%s.log"%(tmpdir, task.name, str(os.getpid()))
+            process = oelite.process.TaskProcess(task, logfile=logfn)
+            if not self.options.fake_build:
+                logsymlink = "%s/%s.log"%(tmpdir, task.name)
+                if os.path.exists(logsymlink) or os.path.islink(logsymlink):
+                    os.remove(logsymlink)
+                oelite.util.makedirs(os.path.dirname(logsymlink))
+                os.symlink(logfn, logsymlink)
+                (stdout, feedback) = process.start()
+                while process.is_alive():
+                    (rlist, wlist, xlist) = select.select(
+                        [stdout], [], [], 0.250)
+                    for f in rlist:
+                        s = f.read()
+                        if s == '':
+                            continue
+                        if self.options.debug:
+                            print s,
+
+                if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
+                    os.remove(logsymlink)
+                    os.remove(logfn) # prune empty logfiles
+
+                assert process.exitcode is not None
+            if self.options.fake_build or process.exitcode == 0:
                 task.build_done(self.runq.get_task_buildhash(task))
                 self.runq.mark_done(task)
             else:

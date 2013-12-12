@@ -110,8 +110,8 @@ class MetaData(MutableMapping):
         debug("Whitelist filtered shell environment:")
         hasher = hashlib.md5()
         for var in whitelist:
-            if var in os.environ:
-                 debug("> %s=%s"%(var, os.environ[var]))
+            #if var in os.environ:
+            #    debug("> %s=%s"%(var, os.environ[var]))
             if not var in self and var in os.environ:
                 env_val = os.environ[var]
                 self[var] = env_val
@@ -547,3 +547,9 @@ class MetaData(MutableMapping):
 
         self._signature = str(hasher)
         return self._signature
+
+    def is_cacheable(self):
+        dont_cache = self.get("__dont_cache")
+        if dont_cache and dont_cache != "0":
+            return False
+        return True

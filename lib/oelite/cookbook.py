@@ -8,6 +8,8 @@ from recipe import OEliteRecipe
 from item import OEliteItem
 import oelite.meta
 import oelite.package
+import oelite.log
+import oelite.process
 import bb.utils
 
 import sys
@@ -18,14 +20,35 @@ import re
 from types import *
 from pysqlite2 import dbapi2 as sqlite
 from collections import Mapping
+import random
+import time
+import multiprocessing
+
+log = oelite.log.get_logger()
 
 
 class CookBook(Mapping):
 
+    #
+    # The sqlite db should not need to be created before parsing recipe files,
+    # as the parsing should only result in a pickled metadata file.  It might
+    # still make sense to create it in __init__ though.
+    #
 
     def __init__(self, baker):
-        self.baker = baker
+        self.baker = baker # FIXME: get rid of this stored reference to baker
         self.config = baker.config
+        self.parallel = baker.config.get('PARALLEL_PARSE')
+        if self.parallel is None:
+            self.parallel = multiprocessing.cpu_count()
+        else:
+            try:
+                self.parallel = int(self.parallel)
+            except ValueError:
+                log.warning("invalid PARALLEL_PARSE value: %s", self.parallel)
+                self.parallel = 0
+            if self.parallel < 0:
+                self.parallel = 0
         self.oeparser = baker.oeparser
         self.db = sqlite.connect(":memory:")
         if not self.db:
@@ -35,45 +58,60 @@ class CookBook(Mapping):
         self.recipes = {}
         self.packages = {}
         self.tasks = {}
-        self.cachedir = self.config.get("CACHEDIR") or ""
-        self.debug = self.baker.debug
+        self.session_signature = '%032x'%(random.getrandbits(128))
+        self.debug = baker.debug
         fail = False
-        recipefiles = self.list_recipefiles()
-        total = len(recipefiles)
+        recipe_files = self.list_recipefiles()
+        total = len(recipe_files)
         count = 0
-        for recipefile in recipefiles:
-            count += 1
-            if self.debug:
-                debug("Adding %s to cookbook [%s/%s]"%(
-                        self.shortfilename(recipefile), count, total))
-            else:
-                oelite.util.progress_info("Adding recipes to cookbook",
-                                          total, count)
-            try:
-                if not self.add_recipefile(recipefile):
-                    fail = True
-            except KeyboardInterrupt:
-                if os.isatty(sys.stdout.fileno()) and not self.debug:
-                    print
-                die("Aborted while building cookbook")
-            except oelite.parse.ParseError, e:
-                if os.isatty(sys.stdout.fileno()) and not self.debug:
-                    print
-                e.print_details()
-                err("Parse error in %s"%(self.shortfilename(recipefile)))
-                fail = True
-            except Exception, e:
-                import traceback
-                if os.isatty(sys.stdout.fileno()) and not self.debug:
-                    print
-                traceback.print_exc()
-                err("Uncaught Python exception in %s"%(
-                        self.shortfilename(recipefile)))
-                fail = True
-        if fail:
-            die("Errors while adding recipes to cookbook")
+        to_parse = []
+        log.debug("Checking for which recipes to parse")
+        for recipe_file in recipe_files:
+            cache = oelite.meta.cache.MetaCache(self.config, recipe_file)
+            if not cache.is_current([self.config.env_signature()]):
+                cache.clean()
+                to_parse.append(recipe_file)
+        timer = time.time()
+        def factory(recipe, **kwargs):
+            return oelite.recipe.RecipeParser(self, recipe, **kwargs)
+        pool = oelite.process.Pool(factory, "Parsing recipe metadata")
+        failed = pool.run(to_parse, parallel=self.parallel)
+        if self.debug:
+            log.debug("Parsing recipe metadata time %.3fs", time.time() - timer)
 
-        #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
+        if failed:
+            for recipe, exitcode, logfile in failed:
+                print '\nError:', oelite.path.relpath(recipe)
+                with open(logfile, 'r') as logfile:
+                    print logfile.read().strip()
+            print '\nParse errors in %d recipes'%(len(failed))
+            sys.exit(1)
+
+        total = len(recipe_files)
+        count = 0
+        for recipe_file in recipe_files:
+            oelite.util.progress_info(
+               "Loading recipe summary information", total, count)
+            count += 1
+            log.debug("Loading %s", recipe_file)
+            cache = oelite.meta.cache.MetaCache(self.config, recipe_file)
+            if not cache.is_current([self.config.env_signature(),
+                                     self.session_signature]):
+                log.error("Stale metadata cache after parsing: %s",
+                          cache.path)
+                raise Exception()
+            try:
+                recipes = cache.load_recipes(self, meta=False)
+            except Exception as e:
+                log.error("Loading recipe cache failed: %s", cache.path)
+                raise
+            # the add_recipe method needs to be executed now ofcourse, but
+            # using only the necessary information loaded from cache file.
+            for recipe_type, recipe in recipes.items():
+                oelite.pyexec.exechooks(recipe.meta, "pre_cookbook")
+                self.add_recipe(recipe)
+        oelite.util.progress_info(
+            "Loading recipe summary information", total, count)
 
         return
 
@@ -467,7 +505,7 @@ class CookBook(Mapping):
         files = []
         for f in OERECIPES:
             if os.path.isdir(f):
-                dirfiles = find_recipoefiles(f)
+                dirfiles = find_recipefiles(f) # FIXME: not implemented!!
                 files.append(dirfiles)
             elif os.path.isfile(f):
                 files.append(f)
@@ -485,168 +523,6 @@ class CookBook(Mapping):
         if sort:
             oerecipes.sort()
         return oerecipes
-
-
-    def shortfilename(self, filename):
-        if filename.startswith(self.baker.topdir):
-            return filename[len(self.baker.topdir):].lstrip("/")
-        return filename
-
-
-    def cachefilename(self, recipefile):
-        recipefile = self.shortfilename(recipefile)
-        return os.path.join(self.cachedir, recipefile + ".p")
-
-
-    def add_recipefile(self, filename):
-        cachefile = self.cachefilename(filename)
-
-        recipes = None
-        if os.path.exists(cachefile):
-            try:
-                meta_cache = oelite.meta.MetaCache(cachefile)
-                if meta_cache.is_current(self.baker):
-                    recipes = meta_cache.load(filename, self)
-            except:
-                print "Ignoring bad metadata cache:", cachefile
-
-        if recipes is None:
-            recipe_meta = self.parse_recipe(filename)
-            if recipe_meta is False:
-                print "ERROR: parsing %s failed"%(filename)
-                return False
-            recipes = {}
-            is_cacheable = True
-            for recipe_type in recipe_meta:
-                recipe = OEliteRecipe(filename, recipe_type,
-                                      recipe_meta[recipe_type], self)
-                recipe.post_parse()
-                recipes[recipe_type] = recipe
-                is_cacheable = is_cacheable and recipe.is_cacheable()
-            if is_cacheable:
-                meta_cache = oelite.meta.MetaCache(cachefile, recipes,
-                                                   self.baker)
-            elif os.path.exists(cachefile):
-                os.remove(cachefile)
-
-        for recipe_type in recipes:
-            oelite.pyexec.exechooks(recipes[recipe_type].meta,
-                                    "pre_cookbook")
-            self.add_recipe(recipes[recipe_type])
-
-        return True
-
-
-    def parse_recipe(self, recipe):
-        #print "parsing recipe", recipe
-        base_meta = self.config.copy()
-        oelite.pyexec.exechooks(base_meta, "pre_recipe_parse")
-        self.oeparser.set_metadata(base_meta)
-        self.oeparser.reset_lexstate()
-        base_meta = self.oeparser.parse(os.path.abspath(recipe))
-        oelite.pyexec.exechooks(base_meta, "mid_recipe_parse")
-        recipe_types = (base_meta.get("RECIPE_TYPES") or "").split()
-        if not recipe_types:
-            recipe_types = ["machine"]
-        meta = {}
-        for recipe_type in recipe_types:
-            meta[recipe_type] = base_meta.copy()
-        for recipe_type in recipe_types:
-            meta[recipe_type]["RECIPE_TYPE"] = recipe_type
-            self.oeparser.set_metadata(meta[recipe_type])
-            self.oeparser.parse("classes/type/%s.oeclass"%(recipe_type))
-            def arch_is_compatible(meta, arch_type):
-                compatible_archs = meta.get("COMPATIBLE_%s_ARCHS"%arch_type)
-                if compatible_archs is None:
-                    return True
-                arch = meta.get(arch_type + "_ARCH")
-                for compatible_arch in compatible_archs.split():
-                    if re.match(compatible_arch, arch):
-                        return True
-                debug("skipping %s_ARCH incompatible recipe %s:%s"%(
-                    arch_type, recipe_type, meta.get("PN")))
-                return False
-            def cpu_families_is_compatible(meta, arch_type):
-                compatible_cpu_fams = meta.get("COMPATIBLE_%s_CPU_FAMILIES"%arch_type)
-                if compatible_cpu_fams is None:
-                    return True
-                cpu_fams = meta.get(arch_type + "_CPU_FAMILIES")
-                if not cpu_fams:
-                    return False
-                for compatible_cpu_fam in compatible_cpu_fams.split():
-                    for cpu_fam in cpu_fams.split():
-                        if re.match(compatible_cpu_fam, cpu_fam):
-                            return True
-                debug("skipping %s_CPU_FAMILIES incompatible recipe %s:%s"%(
-                    arch_type, recipe_type, meta.get("PN")))
-                return False
-            def machine_is_compatible(meta):
-                compatible_machines = meta.get("COMPATIBLE_MACHINES")
-                if compatible_machines is None:
-                    return True
-                machine = meta.get("MACHINE")
-                if machine is None:
-                    debug("skipping MACHINE incompatible recipe %s:%s"%(
-                        recipe_type, meta.get("PN")))
-                    return False
-                for compatible_machine in compatible_machines.split():
-                    if re.match(compatible_machine, machine):
-                        return True
-                debug("skipping MACHINE incompatible recipe %s:%s"%(
-                    recipe_type, meta.get("PN")))
-                return False
-            def recipe_is_compatible(meta):
-                incompatible_recipes = meta.get("INCOMPATIBLE_RECIPES")
-                if incompatible_recipes is None:
-                    return True
-                pn = meta.get("PN")
-                pv = meta.get("PV")
-                for incompatible_recipe in incompatible_recipes.split():
-                    if "_" in incompatible_recipe:
-                        incompatible_recipe = incompatible_recipe.rsplit("_", 1)
-                    else:
-                        incompatible_recipe = (incompatible_recipe, None)
-                    if not re.match("%s$"%(incompatible_recipe[0]), pn):
-                        continue
-                    if incompatible_recipe[1] is None:
-                        return False
-                    if re.match("%s$"%(incompatible_recipe[1]), pv):
-                        debug("skipping incompatible recipe %s:%s_%s"%(
-                            recipe_type, pn, pv))
-                        return False
-                return True
-            def compatible_use_flags(meta):
-                flags = meta.get("COMPATIBLE_IF_FLAGS")
-                if not flags:
-                    return True
-                for name in flags.split():
-                    val = meta.get("USE_"+name)
-                    if not val:
-                        debug("skipping %s:%s_%s (required %s USE flag not set)"%(
-                                recipe_type, meta.get("PN"), meta.get("PV"),
-                                name))
-                        return False
-                return True
-            if ((not recipe_is_compatible(meta[recipe_type])) or
-                (not machine_is_compatible(meta[recipe_type])) or
-                (not arch_is_compatible(meta[recipe_type], "BUILD")) or
-                (not arch_is_compatible(meta[recipe_type], "HOST")) or
-                (not arch_is_compatible(meta[recipe_type], "TARGET"))):
-                del meta[recipe_type]
-                continue
-            try:
-                oelite.pyexec.exechooks(meta[recipe_type], "post_recipe_parse")
-            except oelite.HookFailed, e:
-                print "ERROR: %s:%s %s hook: %s"%(
-                    recipe_type, base_meta.get("PN"), e.function, e.retval)
-                return False
-            if ((not compatible_use_flags(meta[recipe_type])) or
-                (not cpu_families_is_compatible(meta[recipe_type], "BUILD")) or
-                (not cpu_families_is_compatible(meta[recipe_type], "HOST")) or
-                (not cpu_families_is_compatible(meta[recipe_type], "TARGET"))):
-                del meta[recipe_type]
-                continue
-        return meta
 
 
     def add_recipe(self, recipe):
