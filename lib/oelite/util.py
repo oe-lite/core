@@ -151,3 +151,14 @@ def makedirs(path, mode=0777):
         return
     os.makedirs(path, mode)
     return
+
+
+def touch(path, makedirs=False, truncate=False):
+    if truncate:
+        mode = 'w'
+    else:
+        mode = 'a'
+    if makedirs:
+        globals()['makedirs'](os.path.dirname(path))
+    with open(path, mode):
+        os.utime(path, None)
