@@ -5,6 +5,8 @@ inherit autotools make-vpath
 # Avoid circular dependencies
 CHRPATH_DEPENDS:native = ""
 CHRPATH_DEPENDS_TARGET = ""
+CHRPATH_TYPES = "HOST"
+CHRPATH_TYPES:native = ""
 LIBTOOL_DEPENDS = "" # not actually using libtool anyway...
 
 # We need to use a copy of chrpath to be able to modify the rpath of chrpath
