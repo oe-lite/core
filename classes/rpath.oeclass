@@ -11,6 +11,7 @@ CHRPATH_DEPENDS_HOST = "host-cross:chrpath"
 CHRPATH_DEPENDS_HOST:HOST_LIBC_mingw = ""
 CHRPATH_DEPENDS_TARGET = "target-cross:chrpath"
 CHRPATH_DEPENDS_TARGET:TARGET_LIBC_mingw = ""
+CHRPATH_TYPES = "HOST TARGET"
 
 def chrpath_get_cmd(d,filetype):
 
@@ -20,21 +21,23 @@ def chrpath_get_cmd(d,filetype):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
 
     chrpath_cmd = {}
-    for elf_type in ("HOST", "TARGET"):
+    for elf_type in d.get("CHRPATH_TYPES").split():
         chrpath_cmd[elf_type] = (d.get("%s_ELF"%(elf_type)),
                                  d.get("CHRPATH_%s"%(elf_type)))
-    if chrpath_cmd["TARGET"][0] == chrpath_cmd["HOST"][0]:
-        del chrpath_cmd["TARGET"]
+    try:
+        if chrpath_cmd["TARGET"][0] == chrpath_cmd["HOST"][0]:
+            del chrpath_cmd["TARGET"]
+    except KeyError:
+        pass
     for elf_type in chrpath_cmd:
         if not chrpath_cmd[elf_type][0]:
             del chrpath_cmd[elf_type]
             continue
         chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
                                  chrpath_cmd[elf_type][1])
-        if not cmd_exists(chrpath_cmd[elf_type][1] + '-foobar'):
-            print "CHRPATH_%s not found: %s"%(elf_type,
-                                              chrpath_cmd[elf_type][1])
-            return False
+        if not cmd_exists(chrpath_cmd[elf_type][1]):
+            raise Exception("CHRPATH_%s not found: %s"%(
+                        elf_type, chrpath_cmd[elf_type][1]))
 
     if not "dynamically linked" in filetype:
         return None
