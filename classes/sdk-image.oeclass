@@ -35,6 +35,10 @@ SDK_IMAGE_ELF_SOWRAP_LD_SO ?= "/lib/ld-linux*.so.2"
 RSTAGE_FIXUP_FUNCS += "${IMAGE_PREPROCESS_ELF_SOWRAP}"
 IMAGE_PREPROCESS_ELF_SOWRAP = ""
 IMAGE_PREPROCESS_ELF_SOWRAP:HOST_BINFMT_elf = " image_preprocess_elf_sowrap"
+
+# image_preprocess_elf_sowrap is called in do_rstage, and needs chrpath from
+# CLASS_DEPENDS, so rstage needs to have stage setup.
+addtask rstage after stage
 IMAGE_PREPROCESS_ELF_SOWRAP:USE_sdk_static = ""
 def image_preprocess_elf_sowrap(d):
     import stat
