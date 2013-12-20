@@ -5,6 +5,9 @@ CHRPATH_BUILD	?= "${BUILD_PREFIX}chrpath"
 CHRPATH_HOST	?= "${HOST_PREFIX}chrpath"
 CHRPATH_TARGET	?= "${TARGET_PREFIX}chrpath"
 
+CHRPATH_HOST:HOST_LIBC_mingw = ""
+CHRPATH_TARGET:TARGET_LIBC_mingw = ""
+
 CLASS_DEPENDS += "${CHRPATH_DEPENDS}"
 CHRPATH_DEPENDS = "${CHRPATH_DEPENDS_HOST} ${CHRPATH_DEPENDS_TARGET}"
 CHRPATH_DEPENDS_HOST = "host-cross:chrpath"
@@ -29,8 +32,8 @@ def chrpath_get_cmd(d,filetype):
             del chrpath_cmd["TARGET"]
     except KeyError:
         pass
-    for elf_type in chrpath_cmd:
-        if not chrpath_cmd[elf_type][0]:
+    for elf_type in chrpath_cmd.keys():
+        if not chrpath_cmd[elf_type][0] or not chrpath_cmd[elf_type][1]:
             del chrpath_cmd[elf_type]
             continue
         chrpath_cmd[elf_type] = (re.compile(chrpath_cmd[elf_type][0]),
