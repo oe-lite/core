@@ -146,7 +146,7 @@ do_compile_kernel () {
 	fi
 }
 
-do_compile[postfuncs] = "${KERNEL_COMPILE_POSTFUNCS}"
+do_compile[postfuncs] += "${KERNEL_COMPILE_POSTFUNCS}"
 KERNEL_COMPILE_POSTFUNCS = ""
 do_compile () {
 	do_compile_kernel
