@@ -483,6 +483,7 @@ def do_packageqa(d):
         sonamify_re2 = re.compile(r"(.*?)(-[\d\.]*)?$")
         def sonamify(soname):
             def _sonamify(s):
+                s = s.replace("_","-")
                 m = sonamify_re.match(s)
                 if not m:
                     oebakery.debug("non-matching SONAME: %s"%(s))
@@ -655,14 +656,19 @@ def do_packageqa(d):
 
 
         # depends that are missing, ie. in needed but not in depends.
-        missing_depends = set(sonamify(needed)).difference(
-            depends_provides.union(assume_provided))
+        dep_all = set([])
+        for lib in depends_provides.union(assume_provided):
+            dep_all.add(lib.replace("_","-"))
+        missing_depends = set(sonamify(needed)).difference(dep_all)
         if missing_depends:
             missing_depends = list(missing_depends)
+            assume_tmp = set([])
+            for lib in assume_provided:
+                assume_tmp.add(lib.replace("_","-"))
             for i in reversed(xrange(len(missing_depends))):
                 dep = missing_depends[i]
                 item = oelite.item.OEliteItem(dep, ('DEPENDS', pkg_type))
-                if str(item) in assume_provided:
+                if str(item) in assume_tmp:
                     del missing_depends[i]
         if missing_depends:
             msg = "Package %s missing DEPENDS: %s"%(
@@ -673,8 +679,11 @@ def do_packageqa(d):
                 oebakery.err(msg)
                 ok = False
         if not pkg_type in ('native', 'cross', 'sdk-cross'):
+            rdep_all = set([])
+            for lib in rdepends_provides:
+                rdep_all.add(lib.replace("_","-"))
             missing_rdepends = set(sonamify(needed)).difference(
-                rdepends_provides)
+                rdep_all)
             if missing_rdepends:
                 msg = "Package %s missing RDEPENDS: %s"%(
                     pkg, " ".join(sorted(missing_rdepends)))
