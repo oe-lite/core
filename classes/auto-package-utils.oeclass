@@ -27,6 +27,7 @@ def auto_package_utils (d):
     pn = d.get("PN")
     utils = (d.get("AUTO_PACKAGE_UTILS") or "").split()
     auto_rdepends = d.get("AUTO_PACKAGE_UTILS_RDEPENDS")
+    auto_depends = d.get("AUTO_PACKAGE_UTILS_DEPENDS")
     exeext = d.get("HOST_EXEEXT") or ""
     packages = []
     doc_packages = []
@@ -73,6 +74,13 @@ def auto_package_utils (d):
                 d.set("RDEPENDS_" + pkg, rdepends + " " + auto_rdepends)
             else:
                 d.set("RDEPENDS_" + pkg, auto_rdepends)
+
+        if auto_depends:
+            depends = d.get("DEPENDS_" + pkg)
+            if depends:
+                d.set("DEPENDS_" + pkg, depends + " " + auto_depends)
+            else:
+                d.set("DEPENDS_" + pkg, auto_depends)
 
         pkg_provides = (d.get("PROVIDES_" + pkg) or "").split()
         pkg_provides.append(utilname)
