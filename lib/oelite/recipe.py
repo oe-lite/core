@@ -311,7 +311,7 @@ class RecipeParser(oelite.process.PythonProcess):
                         self.meta[recipe_type], "HOST")) or
                 (not cpu_families_is_compatible(
                         self.meta[recipe_type], "TARGET"))):
-                del meta[recipe_type]
+                del self.meta[recipe_type]
                 continue
         def is_cacheable(meta):
             for m in meta.values():
