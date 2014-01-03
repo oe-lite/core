@@ -2,7 +2,6 @@ import tarfile
 import os
 import sys
 import subprocess
-import datetime
 
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
@@ -122,45 +121,16 @@ class TarFile(tarfile.TarFile):
         except AttributeError:
             self.close()
 
-def timing_info(start):
-    delta = datetime.datetime.now() - start
-    hours = delta.seconds // 3600
-    minutes = delta.seconds // 60 % 60
-    seconds = delta.seconds % 60
-    milliseconds = delta.microseconds // 1000
-    if hours:
-        return "%dh%02dm%02ds"%(hours, minutes, seconds)
-    elif minutes:
-        return "%dm%02ds"%(minutes, seconds)
-    else:
-        return "%d.%03ds"%(seconds, milliseconds)
 
-_progress_info_start = None
-def progress_info(msg, total, current, errors=None):
-    global _progress_info_start
-    if total == 0:
-        return
-    if _progress_info_start is None and current == 0:
-        _progress_info_start = datetime.datetime.now()
+def progress_info(msg, total, current):
     if os.isatty(sys.stdout.fileno()):
         fieldlen = len(str(total))
-        if errors:
-            errors = ", %d error%s"%(errors, 's' if errors > 1 else '')
-        else:
-            errors = ''
-        if total == 0:
-            percent = 100
-        else:
-            percent = current*100//total
-        template = "\r%s: %%%dd / %%%dd [%3d%%%%%%s]"%(
-            msg, fieldlen, fieldlen, percent)
-        sys.stdout.write(template%(current, total, errors))
+        template = "\r%s: %%%dd / %%%dd [%2d %%%%]"%(msg, fieldlen, fieldlen,
+                                                 current*100//total)
+        #sys.stdout.write("\r%s: %04d/%04d [%2d %%]"%(
+        sys.stdout.write(template%(current, total))
         if current == total:
-            if _progress_info_start:
-                sys.stdout.write(" (%s)\n"%(timing_info(_progress_info_start)))
-                _progress_info_start = None
-            else:
-                sys.stdout.write('\n')
+            sys.stdout.write("\n")
         sys.stdout.flush()
     else:
         if current == 0:

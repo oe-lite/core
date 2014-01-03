@@ -40,10 +40,6 @@ class DictMeta(MetaData):
             self.expand_cache = meta.expand_cache.copy()
             #self.expand_cache = copy.deepcopy(meta.expand_cache)
             meta = None
-        elif isinstance(meta, dict):
-            self.dict = meta
-            self.expand_cache = {}
-            meta = None
         else:
             self.dict = {}
             self.expand_cache = {}
@@ -87,6 +83,7 @@ class DictMeta(MetaData):
     def trim_expand_cache(self, var):
         for (cached_var, (cached_val, deps)) in self.expand_cache.items():
             if cached_var == var or var in deps:
+                # FIXME: is it safe to delete from the dict we are iterating ?
                 del self.expand_cache[cached_var]
         return
 
@@ -98,12 +95,11 @@ class DictMeta(MetaData):
             self.dict[var][flag] = val
         except KeyError:
             self.dict[var] = {flag: val}
-        if hasattr(self.dict, '__flag_index'):
-            if flag in self.dict["__flag_index"]:
-                if val:
-                    self.dict["__flag_index"][flag].add(var)
-                else:
-                    self.dict["__flag_index"][flag].discard(var)
+        if flag in self.dict["__flag_index"]:
+            if val:
+                self.dict["__flag_index"][flag].add(var)
+            else:
+                self.dict["__flag_index"][flag].discard(var)
         if flag == "":
             self.trim_expand_cache(var)
         return
@@ -254,9 +250,9 @@ class DictMeta(MetaData):
         return None
 
     def del_var(self, var):
-        if hasattr(self.dict, '__flag_index'):
-            for flag in self.dict['__flag_index']:
-                self.dict['__flag_index'][flag].discard(var)
+        #print "del_var %s"%(var)
+        for flag in self.dict["__flag_index"]:
+            self.dict["__flag_index"][flag].discard(var)
         del self.dict[var]
         try:
             del self.expand_cache[var]
@@ -275,16 +271,13 @@ class DictMeta(MetaData):
 
     def get_vars(self, flag="", values=False):
         #print "get_vars flag=%s values=%s"%(flag, values)
-        if (flag and
-            hasattr(self.dict, '__flag_index') and
-            not flag in self.dict['__flag_index']):
+        if flag and not flag in self.dict["__flag_index"]:
             print "get_vars flag=%s not indexed"%(flag)
-            print "__flag_index=%s"%(self.dict['__flag_index'])
+            print "__flag_index=%s"%(self.dict["__flag_index"])
         if values:
             vars = {}
-            if (hasattr(self.dict, '__flag_index') and
-                flag in self.dict['__flag_index']):
-                for var in self.dict['__flag_index'][flag]:
+            if flag in self.dict["__flag_index"]:
+                for var in self.dict["__flag_index"][flag]:
                     try:
                         vars[var] = self.dict[var][""]
                     except KeyError:
@@ -298,9 +291,8 @@ class DictMeta(MetaData):
                     except KeyError:
                         continue
         else:
-            if (hasattr(self.dict, '__flag_index') and
-                flag in self.dict['__flag_index']):
-                vars = self.dict['__flag_index'][flag].copy()
+            if flag in self.dict["__flag_index"]:
+                vars = self.dict["__flag_index"][flag].copy()
             else:
                 vars = []
                 for var in self.dict:
@@ -422,3 +414,8 @@ class DictMeta(MetaData):
 
     def get_input_mtimes(self):
         return self.get("__mtimes", expand=False) or []
+
+
+    def finalize(self):
+        #warnings.warn("FIXME: implement DictMeta.finalize()")
+        return
