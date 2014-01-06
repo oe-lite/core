@@ -141,6 +141,10 @@ def auto_package_libs (d):
                                     lib.replace("_", "-").lower()))
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
 
+        qaflags = (d.get_flag("PROVIDES_" + pkg,"qa") or "").split()
+        qaflags.append("is-library")
+        d.set_flag("PROVIDES_" + pkg, "qa", " ".join(qaflags))
+
         devpkg_provides = (d.get("PROVIDES_" + devpkg) or "").split()
         devpkg_provides.append("%s%s-dev"%(provideprefix,
                                            lib.replace("_", "-").lower()))
