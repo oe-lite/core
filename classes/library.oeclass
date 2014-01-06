@@ -20,6 +20,10 @@ def library_depends(d):
     devpkg = pkg + "-dev"
     pkg_depends = (d.get("DEPENDS_" + pkg) or "").split()
 
+    qaflags = (d.get_flag("PROVIDES_" + pkg,"qa") or "").split()
+    qaflags.append("is-library")
+    d.set_flag("PROVIDES_" + pkg, "qa", " ".join(qaflags))
+
     if not pkg.startswith("lib"):
         library_name = d.get("LIBRARY_NAME")
         if not library_name:
