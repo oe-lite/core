@@ -140,6 +140,10 @@
 ##     PROVVIDES_* variable, without having an ELF library with an libtermcap
 ##     SONAME.
 ##
+## is-library::
+##     Specifies that the package provides a library, and thus require
+##     SONAME check
+##
 
 ## @var PACKAGEQA_BUILD_READELF name of readelf command for extracing
 ## information from build (native) ELF files.  Default is
@@ -426,9 +430,7 @@ def do_packageqa(d):
             return abs_flag in flags
 
     def is_lib(s):
-        return (s.startswith("lib")
-                and not s.endswith("-dev")
-                and not s.endswith("-dbg"))
+        return (s.startswith("lib"))
 
     ok = True
     for pkg in (d.get("PACKAGES") or "").split():
@@ -458,7 +460,10 @@ def do_packageqa(d):
             apply_rpath_default(files_qaflags, 'bin', 'runpath', 'allow')
 
         provides = (d.get("PROVIDES_%s"%(pkg)) or "").split()
-        lib_provides = set(filter(is_lib, provides))
+        provides.append(pkg)
+        lib_provides = set()
+        if "is-library" in provides_qaflags:
+            lib_provides = set(filter(is_lib, provides))
         if provides:
             print "Package %s PROVIDES:"%(pkg), " ".join(sorted(provides))
         depends = set((d.get("DEPENDS_%s"%(pkg)) or "").split())
