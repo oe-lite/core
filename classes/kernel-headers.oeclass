@@ -12,21 +12,23 @@ RECIPE_TYPES = "machine"
 inherit kernel-common
 
 C_DEPENDS = "native:cc"
-CHRPATH_DEPENDS_HOST = ""
+CHRPATH_DEPENDS = ""
 
 do_configure() {
-    oe_runmake allnoconfig
+	:
 }
 
 do_compile () {
-    :
+	make mrproper
+	make ARCH=${KERNEL_ARCH} headers_check
 }
 
-INSTALL_HDR_PATH ?= "${D}${includedir}/.."
+INSTALL_HDR_PATH ?= "${D}${includedir}"
 
 do_install() {
-    mkdir -p ${D}${includedir}
-    oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" headers_install
+	mkdir -p ${INSTALL_HDR_PATH}
+	make ARCH=${KERNEL_ARCH} headers_install \
+		INSTALL_HDR_PATH="${INSTALL_HDR_PATH}/.."
 }
 
 PACKAGES = "${PN}"
