@@ -16,6 +16,8 @@
 ##      the list
 ## @var AUTO_PACKAGE_LIBDIR If having libraries an uncommen place, ensure that
 ##      path is in this variable.
+## @var AUTO_PACKAGE_LIBS_TYPE Set to a package type (fx. ${TARGET_TYPE}), to
+##      have it applied as PACKAGE_TYPE_* for all packages produced.
 
 PACKAGES =+ "${LIBS_AUTO_PACKAGES}"
 PACKAGES[expand] = 3
@@ -54,6 +56,7 @@ def auto_package_libs (d):
     devpackages = []
     dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
     dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS") or ""
+    pkg_type = d.get("AUTO_PACKAGE_LIBS_TYPE")
 
     def get_extra_files(pkg):
         #return (d.get("FILES_" + pkg) or "").split()
@@ -187,6 +190,10 @@ def auto_package_libs (d):
         devpkg_rdepends.append("%s_${PV}"%(pkg))
         devpkg_rdepends += dev_rdepends.split()
         d.set("RDEPENDS_" + devpkg, " ".join(devpkg_rdepends))
+
+        if pkg_type:
+            d.set("PACKAGE_TYPE_%s"%(pkg), pkg_type)
+            d.set("PACKAGE_TYPE_%s"%(devpkg), pkg_type)
 
     d.set("LIBS_AUTO_RPACKAGES", " ".join(packages))
     d.set("LIBS_AUTO_PACKAGES", " ".join(packages + devpackages))
