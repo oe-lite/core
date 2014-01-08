@@ -1,0 +1,6 @@
+require ${PN}.inc
+
+SRC_REV := "${@d.get('PV').split('-',1)[1]}"
+PV := "${@d.get('PV').split('-',1)[0]}"
+
+SRC_URI += "file://multilib-paths.patch;striplevel=2"
