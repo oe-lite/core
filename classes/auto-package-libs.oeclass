@@ -54,6 +54,7 @@ def auto_package_libs (d):
     provideprefix = d.get("AUTO_PACKAGE_LIBS_PROVIDEPREFIX") or ""
     packages = []
     devpackages = []
+    dbgpackages = []
     dev_depends = d.get("AUTO_PACKAGE_LIBS_DEV_DEPENDS") or ""
     dev_rdepends = d.get("AUTO_PACKAGE_LIBS_DEV_RDEPENDS") or ""
     pkg_type = d.get("AUTO_PACKAGE_LIBS_TYPE")
@@ -95,10 +96,13 @@ def auto_package_libs (d):
         else:
             pkg = "%s-%s%s"%(pn, pkgprefix, lib.replace("_", "-").lower())
         devpkg = pkg + "-dev"
+        dbgpkg = pkg + "-dbg"
         devpackages += [ devpkg ]
+        dbgpackages += [ dbgpkg ]
         packages += [ pkg ]
 
         files = []
+        dbgfiles = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(pkg))
         for libdir in libdirs:
             (libdir, libprefix, libsuffixes, libexts, devlibexts) = \
@@ -111,8 +115,11 @@ def auto_package_libs (d):
                 libname = "%s%s%s"%(libprefix, lib, libsuffix)
                 for libext in libexts:
                     files.append("%s/%s%s"%(libdir, libname, libext))
+                    dbgfiles.append("%s/.debug/%s%s"%(libdir, libname, libext))
         files += get_extra_files(pkg)
         d.set("FILES_" + pkg, " ".join(files))
+        dbgfiles += get_extra_files(dbgpkg)
+        d.set("FILES_" + dbgpkg, " ".join(dbgfiles))
 
         files = []
         pkg_libsuffix = d.get("LIBSUFFIX_%s"%(devpkg))
@@ -194,9 +201,10 @@ def auto_package_libs (d):
         if pkg_type:
             d.set("PACKAGE_TYPE_%s"%(pkg), pkg_type)
             d.set("PACKAGE_TYPE_%s"%(devpkg), pkg_type)
+            d.set("PACKAGE_TYPE_%s"%(dbgpkg), pkg_type)
 
     d.set("LIBS_AUTO_RPACKAGES", " ".join(packages))
-    d.set("LIBS_AUTO_PACKAGES", " ".join(packages + devpackages))
+    d.set("LIBS_AUTO_PACKAGES", " ".join(packages + devpackages + dbgpackages))
 
 # Local Variables:
 # mode: python
