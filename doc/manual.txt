@@ -70,3 +70,5 @@ include::classes.txt[]
 include::recipes.txt[]
 
 :leveloffset: 1
+
+include::libraries.txt[]
