@@ -1,0 +1,105 @@
+Libraries
+=========
+
+Information related to libraries build in OE-lite.
+
+General Info
+------------
+
+Nothing OE-lite specific in here.
+
+If a library is as follows:
+libfoo.so.2.55.2
+It consists of the following elements:
+
+* Library name if libfoo
+* Library version is 2.
+* Library minor version is 55.
+* Library release version is 2.
+
+The minor version and release version is not mandatory.
+
+Packaging in OE-lite
+--------------------
+
+When building a library, two classes may be used:
+
+* library.oeclass - Use if recipe provides a single library.
+* auto-package-libs.oeclass - use if recipe provides multiple recipes.
+
+If the recipe is providing a single library, libbar, and the recipe is named foobar_0.1.oe, the recipe may be extended to create the correct packaging by:
+inherit library
+LIBRARY_NAME = "libbar"
+
+If the recipe is providing multiple libraries, libfoo, libbar, and the recipe is named foobar_0.1.oe, the recipe may be extended to create the correct packaging by:
+inherit auto-package-utils
+AUTO_PACKAGE_LIBS = "foo bar"
+
+If having a recipe building a single library, the name of the package containing the library will be PN.
+If having a recipe building multiple libraries, the name of the packages will be PN-lib<libname>.
+
+Packages containing a library, provides: lib<library name> and lib<library name>-<library version>. See examples below.
+
+Library Provide Examples in OE-lite
+-------------------------------------
+The following is a list of library, and how the provides will be setup in OE-lite.
+
+libfoo.so.1
+
+* library name: foo
+* Version number: 1
+* minor version number: N/A
+* release number: N/A
+
+Will provide:
+
+* libfoo,
+* libfoo-1
+
+libboost_unit_test_framework.so.1.55.0:
+
+* library name: boost_unit_test_framework
+* Version number: 1
+* minor version number: 55
+* release number: 0
+
+Will provide:
+
+* libboost-unit-test-framework,
+* libboost-unit-test-framework-1
+
+libgthread-2.0.so.0.3902.0:
+
+* library name: gthread-2.0
+* version number: 0
+* minor version number: 3902
+* release number: 0
+
+Will provide:
+
+* libgthread-2.0,
+* libgthread-2.0-0
+
+libpng12.so.0.50.0:
+
+* library: libpng12
+* version number: 0
+* minor version number: 50
+* release number: 0
+
+Will provide:
+
+* libpng12
+* libpng12-0
+
+libxml2.so.2.9.1:
+
+* library: libxml2
+* version number:2
+* minor version number: 9
+* release number: 1
+
+Will provide:
+
+* libxml2
+* libxml2-2
