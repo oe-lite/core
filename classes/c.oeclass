@@ -4,9 +4,13 @@
 ## machine, sdk, cross, sdk-cross, canadian-cross (=all). A similar class
 ## exists for c++, see the c++ class.
 
-C_DEPENDS			= "host-cross:cc"
-C_DEPENDS:>canadian-cross	= " target-cross:cc"
 CLASS_DEPENDS += "${C_DEPENDS}"
+C_DEPENDS			= "${C_DEPENDS_HOST}"
+C_DEPENDS:>cross		= " ${C_DEPENDS_TARGET}"
+C_DEPENDS:>sdk-cross		= " ${C_DEPENDS_TARGET}"
+C_DEPENDS:>canadian-cross	= " ${C_DEPENDS_TARGET}"
+C_DEPENDS_HOST			= "host-cross:cc"
+C_DEPENDS_TARGET		= "target-cross:cc"
 
 # CPPFLAGS
 export CPPFLAGS = "${HOST_CPPFLAGS}"
