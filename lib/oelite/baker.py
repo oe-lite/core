@@ -326,7 +326,7 @@ class OEliteBaker:
                     del unresolved_recipes[i]
                     progress = True
             if not progress:
-                bb.fatal("recipe EXTRA_ARCH resolving deadlocked!")
+                die("recipe EXTRA_ARCH resolving deadlocked!")
 
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
