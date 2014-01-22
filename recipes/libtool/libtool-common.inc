@@ -10,9 +10,14 @@ RECIPE_TYPES = "machine native cross sdk-cross"
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz"
 
-inherit autotools
+inherit autotools make-vpath c++
 
-C_DEPENDS = "target-cross:cc"
+C_DEPENDS_HOST:cross = ""
+C_DEPENDS_HOST:sdk-cross = ""
+CXX_DEPENDS_HOST:cross = ""
+CXX_DEPENDS_HOST:sdk-cross = ""
+CHRPATH_DEPENDS_HOST:cross = ""
+CHRPATH_DEPENDS_HOST:sdk-cross = ""
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 LIBTOOL_DEPENDS:native = ""
