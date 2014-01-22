@@ -12,6 +12,8 @@
 ## @var AUTO_PACKAGE_UTILS Set to a list of libraries
 ## @var AUTO_PACKAGE_UTILS_RDEPENDS Set to a common RDEPEND for all libraries in
 ##      the list
+## @var AUTO_PACKAGE_UTILS_DEPENDS Set to a common DEPEND for all libraries in
+##      the list
 
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
