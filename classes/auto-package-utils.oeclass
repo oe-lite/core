@@ -16,10 +16,15 @@
 ##      the list
 ## @var AUTO_PACKAGE_UTILS_BASENAME Base package name for produced packages.
 ##      Defaults to PN.
+## @var AUTO_PACKAGE_UTILS_PREFIX Prefix used when looking up files to
+##      package.  Defaults is empty string.
 
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""
+AUTO_PACKAGE_UTILS_PREFIX ?= ""
+AUTO_PACKAGE_UTILS_PREFIX:cross ?= "${TARGET_PREFIX}"
+AUTO_PACKAGE_UTILS_PREFIX:sdk-cross ?= "${TARGET_PREFIX}"
 
 META_EMIT_PREFIX += "package:AUTO_PACKAGE_UTILS split:AUTO_PACKAGE_UTILS"
 
@@ -32,6 +37,7 @@ def auto_package_utils (d):
 
     basename = d.get("AUTO_PACKAGE_UTILS_BASENAME")
     utils = (d.get("AUTO_PACKAGE_UTILS") or "").split()
+    prefix = d.get("AUTO_PACKAGE_UTILS_PREFIX")
     auto_rdepends = d.get("AUTO_PACKAGE_UTILS_RDEPENDS")
     auto_depends = d.get("AUTO_PACKAGE_UTILS_DEPENDS")
     exeext = d.get("HOST_EXEEXT") or ""
@@ -62,6 +68,7 @@ def auto_package_utils (d):
         doc_packages += [ docpkg ]
         provides += [ utilname ]
 
+        util = prefix + util
         d.set("FILES_" + pkg,
               "${base_sbindir}/%s%s "%(util, exeext) +
               "${base_bindir}/%s%s "%(util, exeext) +
