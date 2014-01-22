@@ -8,9 +8,13 @@ inherit c
 
 OVERRIDES .= ":cxx"
 
-CXX_DEPENDS			= "host-cross:c++ host:libstdc++"
-CXX_DEPENDS:>canadian-cross	= " target-cross:c++ target:libstdc++"
 CLASS_DEPENDS += "${CXX_DEPENDS}"
+CXX_DEPENDS			= "${CXX_DEPENDS_HOST}"
+CXX_DEPENDS:>cross		= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS:>sdk-cross		= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS:>canadian-cross	= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS_HOST		= "host-cross:c++ host:libstdc++"
+CXX_DEPENDS_TARGET		= "target-cross:c++ target:libstdc++"
 
 export CXX
 export CXXFLAGS
