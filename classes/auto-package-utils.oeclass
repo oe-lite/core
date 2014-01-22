@@ -14,6 +14,8 @@
 ##      the list
 ## @var AUTO_PACKAGE_UTILS_DEPENDS Set to a common DEPEND for all libraries in
 ##      the list
+## @var AUTO_PACKAGE_UTILS_BASENAME Base package name for produced packages.
+##      Defaults to PN.
 
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
@@ -23,10 +25,12 @@ META_EMIT_PREFIX += "package:AUTO_PACKAGE_UTILS split:AUTO_PACKAGE_UTILS"
 
 addhook auto_package_utils to post_recipe_parse before base_detect_machine_override fixup_package_type before blacklist
 
+AUTO_PACKAGE_UTILS_BASENAME ?= "${PN}"
+
 def auto_package_utils (d):
     import warnings
 
-    pn = d.get("PN")
+    basename = d.get("AUTO_PACKAGE_UTILS_BASENAME")
     utils = (d.get("AUTO_PACKAGE_UTILS") or "").split()
     auto_rdepends = d.get("AUTO_PACKAGE_UTILS_RDEPENDS")
     auto_depends = d.get("AUTO_PACKAGE_UTILS_DEPENDS")
@@ -51,7 +55,7 @@ def auto_package_utils (d):
             utilname = utilname.replace("_", "-").replace(".", "-").lower()
         else:
             utilname = util.replace("_", "-").replace(".", "-").lower()
-        pkg = "%s-%s"%(pn, utilname)
+        pkg = "%s-%s"%(basename, utilname)
         utilname = "util/" + utilname
         docpkg = pkg + "-doc"
         packages += [ pkg ]
