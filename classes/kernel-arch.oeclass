@@ -20,7 +20,7 @@ def map_kernel_arch(d, arch):
     arch = re.split('-', arch)[0]
     valid_archs = valid_archs.split()
 
-    if   re.match('(i.86|athlon)$', arch):  return 'i386'
+    if   re.match('(i.86|athlon)$', arch):  return 'x86'
     elif re.match('powerpc64', arch):       return 'powerpc'
     elif re.match('arm26$', arch):          return 'arm26'
     elif re.match('armeb$', arch):          return 'arm'
