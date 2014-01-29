@@ -10,6 +10,8 @@
 ## libbar.
 ##
 ## @var AUTO_PACKAGE_LIBS Set to a list of libraries
+## @var AUTO_PACKAGE_LIBS_DEPENDS Set to a common DEPEND for all libraries in
+##      the list
 ## @var AUTO_PACKAGE_LIBS_RDEPENDS Set to a common RDEPEND for all libraries in
 ##      the list
 ## @var AUTO_PACKAGE_LIBDIR If having libraries an uncommen place, ensure that
@@ -28,6 +30,7 @@ AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
+AUTO_PACKAGE_LIBS_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_RDEPENDS ?= ""
 AUTO_PACKAGE_LIBS_FILES ?= "${SOLIBS}"
 AUTO_PACKAGE_LIBS_DEV_FILES ?= "${SOLIBSDEV},.la,.a"
@@ -164,6 +167,7 @@ def auto_package_libs (d):
         d.set("RDEPENDS_" + pkg, " ".join(pkg_rdepends))
 
         pkg_depends.append("%s_${PV}"%(devpkg))
+        pkg_depends.extend((d.get("AUTO_PACKAGE_LIBS_DEPENDS") or "").split())
         d.set("DEPENDS_" + pkg, " ".join(pkg_depends))
 
         devpkg_depends = (d.get("DEPENDS_" + devpkg) or "").split()
