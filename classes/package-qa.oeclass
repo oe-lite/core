@@ -131,7 +131,8 @@
 ##     Allow item other-wise required in PROVIDES to be missing,
 ##     fx. "allow-missing-provides:libfoo" to allow "libfoo" to be excluded
 ##     from the package PROVIDES_* variable, even though the QA check believes
-##     it should be there.
+##     it should be there. Specify "allow-missing-provides" to allow all
+##     library provides to be excluded.
 ##
 ## allow-missing-soname::
 ##     Allow library item in PROVIDES, even though the QA check does not find
@@ -631,7 +632,8 @@ def do_packageqa(d):
             allowed_missing = set([])
             if missing_lib_provides:
                 for lib in missing_lib_provides:
-                    if "allow-missing-provides:%s"%(lib) in provides_qaflags:
+                    if ("allow-missing-provides:%s"%(lib) in provides_qaflags or
+                        "allow-missing-provides" in provides_qaflags):
                         allowed_missing.add(lib)
                 missing_lib_provides = missing_lib_provides.difference(
                     allowed_missing)
