@@ -489,7 +489,7 @@ def do_packageqa(d):
         sonamify_re2 = re.compile(r"(.*?)(-[\d\.]*)?$")
         def sonamify(soname):
             def _sonamify(s):
-                s = s.replace("_","-")
+                s = s.lower().replace("_","-")
                 m = sonamify_re.match(s)
                 if not m:
                     oebakery.debug("non-matching SONAME: %s"%(s))
