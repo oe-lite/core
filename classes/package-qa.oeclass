@@ -694,7 +694,7 @@ def do_packageqa(d):
             if missing_rdepends:
                 msg = "Package %s missing RDEPENDS: %s"%(
                     pkg, " ".join(sorted(missing_rdepends)))
-                if 'allow-missing-lib-rdepends' in depends_qaflags:
+                if 'allow-missing-lib-rdepends' in rdepends_qaflags:
                     oebakery.info(msg)
                 else:
                     oebakery.err(msg)
