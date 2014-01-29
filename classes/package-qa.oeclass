@@ -575,7 +575,6 @@ def do_packageqa(d):
                                  ignore=(lib_files.keys() + bin_files.keys()),
                                  recursive=True)
         for path, symbols in elf_files.items():
-            print 'bin_files.keys()', bin_files.keys()
             file_type = ['bin', 'lib'][int('SONAME' in symbols)]
             if file_type == 'lib':
                 if 'allow-elf-libs-in-other-dirs' in files_qaflags:
