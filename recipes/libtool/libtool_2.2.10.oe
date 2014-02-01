@@ -14,6 +14,8 @@ do_bootstrap () {
 	fi
 }
 
+SRC_URI:>TARGET_LIBC_mingw = " file://default-bindir.patch"
+
 # Local Variables:
 # mode: python
 # End:

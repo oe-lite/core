@@ -1,0 +1,24 @@
+diff -urN libtool-2.2.10~orig/libltdl/config/ltmain.m4sh libtool-2.2.10/libltdl/config/ltmain.m4sh
+--- libtool-2.2.10~orig/libltdl/config/ltmain.m4sh	2010-06-09 15:06:43.000000000 +0200
++++ libtool-2.2.10/libltdl/config/ltmain.m4sh	2014-01-31 18:35:15.542467485 +0100
+@@ -3790,7 +3790,7 @@
+     new_inherited_linker_flags=
+ 
+     avoid_version=no
+-    bindir=
++    bindir=$libtool_bindir
+     dlfiles=
+     dlprefiles=
+     dlself=no
+diff -urN libtool-2.2.10~orig/libltdl/config/ltmain.sh libtool-2.2.10/libltdl/config/ltmain.sh
+--- libtool-2.2.10~orig/libltdl/config/ltmain.sh	2010-06-09 15:08:53.000000000 +0200
++++ libtool-2.2.10/libltdl/config/ltmain.sh	2014-01-31 18:36:05.278466455 +0100
+@@ -4386,7 +4386,7 @@
+     new_inherited_linker_flags=
+ 
+     avoid_version=no
+-    bindir=
++    bindir=$libtool_bindir
+     dlfiles=
+     dlprefiles=
+     dlself=no
