@@ -26,6 +26,8 @@ TARGET_LIBTOOL	= "${TARGET_PREFIX}libtool"
 LIBTOOL		= "${HOST_LIBTOOL}"
 #export LIBTOOL
 
+export libtool_bindir = "${sharedlibdir}"
+
 LIBTOOL_NATIVE_SCRIPTS				= ""
 LIBTOOL_HOST_SCRIPTS				= ""
 LIBTOOL_TARGET_SCRIPTS				= "libtool"
