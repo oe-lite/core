@@ -183,7 +183,7 @@ inherit c
 do_packageqa[dirs] = "${PKGD}"
 
 PACKAGES[emit]		+= "do_packageqa"
-META_EMIT_PREFIX += "packageqa:PROVIDES_${PN} packageqa:DEPENDS_${PN} packageqa:RDEPENDS_${PN} packageqa:FILES_${PN}"
+META_EMIT_PREFIX += "packageqa:PROVIDES_${PN} packageqa:DEPENDS_${PN} packageqa:RDEPENDS_${PN} packageqa:FILES_${PN} packageqa:PACKAGE_TYPE_${PN}"
 
 META_EMIT_PREFIX += "packageqa:PACKAGEQA_"
 PACKAGEQA_BUILD_READELF		?= "${BUILD_PREFIX}readelf"
@@ -252,6 +252,8 @@ def do_packageqa(d):
     pkg_depends = {}
 
     recipe_type = d.get("RECIPE_TYPE")
+    host_type = d.get("HOST_TYPE")
+    target_type = d.get("TARGET_TYPE")
     def get_pkg_and_elf_type(pkg):
         "Return tuple of package type and elf type, fx. (cross, HOST)"
         pkg_type = d.get("PACKAGE_TYPE_"+pkg)
