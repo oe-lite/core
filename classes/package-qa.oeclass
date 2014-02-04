@@ -138,8 +138,9 @@
 ##     Allow library item in PROVIDES, even though the QA check does not find
 ##     the SONAME in an ELF library in the package.
 ##     Fx. "allow-missing-soname:libtermcap" to allow "libtermcap" in
-##     PROVVIDES_* variable, without having an ELF library with an libtermcap
-##     SONAME.
+##     PROVIDES_* variable, without having an ELF library with an libtermcap
+##     SONAME. Specify "allow-missing-soname" to allow all library provides
+##     without checking for corresponding ELF library.
 ##
 ## is-library::
 ##     Specifies that the package provides a library, and thus require
@@ -650,7 +651,8 @@ def do_packageqa(d):
             if missing_lib_sonames:
                 allowed_missing = set([])
                 for lib in missing_lib_sonames:
-                    if "allow-missing-soname:%s"%(lib) in provides_qaflags:
+                    if ("allow-missing-soname:%s"%(lib) in provides_qaflags or
+                        "allow-missing-soname" in provides_qaflags):
                         allowed_missing.add(lib)
                 missing_lib_sonames = missing_lib_sonames.difference(
                     allowed_missing)
