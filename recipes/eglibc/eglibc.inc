@@ -92,8 +92,8 @@ AUTO_PACKAGE_LIBS_LIBDIR += "${libdir}:lib:::.a,_nonshared.a,_pic.a,_pic.map"
 AUTO_PACKAGE_LIBS:>HOST_CPU_powerpc = " nldbl"
 AUTO_PACKAGE_LIBS_DEV_FILES .= ",_nonshared.a,_pic.a,_pic.map"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
-AUTO_PACKAGE_LIBS_DEPENDS = "${PN}-ld libc"
-AUTO_PACKAGE_LIBS_RDEPENDS = "${PN}-ld libc"
+AUTO_PACKAGE_LIBS_DEPENDS = "ld-so libc"
+AUTO_PACKAGE_LIBS_RDEPENDS = "ld-so libc"
 FILES_${PN}-libthread-db += "${base_sharedlibdir}/libthread_db-*.so"
 
 DEPENDS_${PN}-librt = "libpthread"
@@ -117,8 +117,8 @@ RDEPENDS_${PN}-libmemusage = "libdl"
 
 addhook fixup_libc_pkgdepends to post_recipe_parse after auto_package_libs
 def fixup_libc_pkgdepends(d):
-    d.set('DEPENDS_eglibc-libc', '${PN}-libc-dev_${PV} ${PN}-ld')
-    d.set('RDEPENDS_eglibc-libc', '${PN}-ld')
+    d.set('DEPENDS_eglibc-libc', '${PN}-libc-dev_${PV} ld-so')
+    d.set('RDEPENDS_eglibc-libc', 'ld-so')
     d.set('RDEPENDS_eglibc-libc-dev', '${PN}-libc_${PV}')
 
 PACKAGES =+ "${PN}-libmcheck-dev"
@@ -139,7 +139,8 @@ PROVIDES_${PN}-libmcheck-dev = "libbsd-compat"
 #        pkg = 'lib' + lib
 
 PACKAGES += "${PN}-ld"
-PROVIDES_${PN}-ld = "ld"
+PROVIDES_${PN}-ld = "ld-so"
+PROVIDES_${PN}-ld[qa] = "is-library"
 FILES_${PN}-ld = "${base_sharedlibdir}/ld-${PV}.so ${base_sharedlibdir}/ld*.so.*"
 
 inherit auto-package-utils
