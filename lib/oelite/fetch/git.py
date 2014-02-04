@@ -46,7 +46,8 @@ class GitFetcher():
                     self.uri, "invalid commit id %s"%(repr(self.commit)))
         if "tag" in uri.params:
             self.tag = uri.params["tag"]
-            self.signature_name = "git://" + uri.location
+            self.signature_name = "git://" + uri.location.replace(
+                d.get('TOPDIR'), '${TOPDIR}', 1)
             if protocol != "git":
                 self.signature_name += ";protocol=" + protocol
             self.signature_name += ";tag=" + self.tag
