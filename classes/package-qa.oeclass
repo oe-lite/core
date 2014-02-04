@@ -436,6 +436,24 @@ def do_packageqa(d):
     def is_lib(s):
         return (s.startswith("lib"))
 
+    standard_depends_form_map = (
+        (d.get('HOST_TYPE'), None),
+        (d.get('TARGET_TYPE'), 'target'),
+        ('host', None),
+        ('native', 'build'),
+        )
+    def standard_depends_form(item):
+        if not ':' in item:
+            return item
+        prefix, name = item.split(':', 1)
+        for x,y in standard_depends_form_map:
+            if prefix == x:
+                if y is None:
+                    return name
+                else:
+                    return y + ':' + name
+        return item
+
     ok = True
     for pkg in (d.get("PACKAGES") or "").split():
         soname = set([])
@@ -664,10 +682,10 @@ def do_packageqa(d):
                     oebakery.debug("allowed missing library SONAME: %s"%(
                             allowed_missing))
 
-
         # depends that are missing, ie. in needed but not in depends.
         dep_all = set([])
-        for lib in depends_provides.union(assume_provided):
+        for lib in map(standard_depends_form,
+                       depends_provides.union(assume_provided)):
             dep_all.add(lib.replace("_","-"))
         missing_depends = set(sonamify(needed)).difference(dep_all)
         if missing_depends:
