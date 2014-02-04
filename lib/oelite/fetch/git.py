@@ -227,7 +227,7 @@ class GitFetcher():
         oelite.util.makedirs(basedir)
         repo = oelite.git.GitRepository(self.repo)
         if self.is_local:
-            clone_cmd = "git clone --local"
+            clone_cmd = "git clone"
         else:
             clone_cmd = "git clone --shared"
         if self.branch:
