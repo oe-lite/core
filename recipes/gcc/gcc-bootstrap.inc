@@ -45,7 +45,10 @@ do_split_sysroot_symlink() {
 
 PACKAGES = "${PN}"
 FILES_${PN} = "/"
-DEPENDS_${PN} = "binutils"
+DEPENDS_${PN} = "binutils ${DEPENDS_HOSTLIB}"
+
+FILES_${PN}[qa] += "allow-libs-in-bindirs"
+PROVIDES_${PN}[qa] += "allow-missing-provides:liblto-plugin"
 
 # Local Variables:
 # mode: python

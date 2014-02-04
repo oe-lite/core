@@ -12,6 +12,10 @@ DEPENDS += "target-cross:binutils target:linux-headers"
 DEPENDS += "host:mpc host:mpfr host:gmp host:isl host:cloog"
 DEPENDS += "host:libz"
 
+DEPENDS_HOSTLIB = "host:libmpc host:libmpfr host:libgmp \
+	host:libisl host:libcloog-isl \
+	host:libc host:libdl host:libm host:libz host:ld-so"
+
 CC[export]	= ""
 CPP[export]	= ""
 CXX[export]	= ""
@@ -158,6 +162,12 @@ do_install() {
 		done
 	fi
 }
+
+EXTRA_HOST_ELF_DIRS = "${libexecdir}/gcc/${TARGET_ARCH}/${PV} \
+	${libexecdir}/gcc/${TARGET_ARCH}/${PV}/install-tools \
+	${libexecdir}/gcc/${TARGET_ARCH}/${PV}/plugin"
+CHRPATH_DIRS += "${EXTRA_HOST_ELF_DIRS}"
+PACKAGEQA_HOST_BINDIRS += "${EXTRA_HOST_ELF_DIRS}"
 
 # Local Variables:
 # mode: python

@@ -12,7 +12,7 @@ RECIPE_TYPES = "cross sdk-cross canadian-cross"
 C_DEPENDS_TARGET = "target-cross:gcc-bootstrap"
 CXX_DEPENDS_TARGET = ""
 
-DEPENDS += "target:libc target:ld target:libm target:libdl target:libpthread"
+DEPENDS += "target:libc target:ld-so target:libm target:libdl target:libpthread"
 
 do_configure() {
 	do_configure_gcc \
@@ -33,6 +33,9 @@ do_install_targets:canadian-cross = "install-gcc"
 
 PROVIDES_${PN} = "cc"
 PROVIDES_${PN}-g++ = "c++"
+
+FILES_${PN}[qa] += "allow-libs-in-bindirs"
+PROVIDES_${PN}[qa] += "allow-missing-provides:liblto-plugin"
 
 inherit auto-package-utils
 AUTO_PACKAGE_UTILS = "cpp g++ gcov"
@@ -57,8 +60,28 @@ AUTO_PACKAGE_LIBS_TYPE = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc-dev = "${TARGET_TYPE}"
 FILES_${PN}-libstdc++-dev = "/${TARGET_ARCH}/sysroot${target_datadir}/gcc-${PV}/python/libstdcxx"
+PROVIDES_${PN}-libgcc = "libgcc-s"
+PROVIDES_${PN}-libgcc[qa] = "allow-missing-soname:libgcc"
+#DEPENDS_${PN}-libgcc = "libc"
+RDEPENDS_${PN}-libgcc = "libc"
+RDEPENDS_${PN}-libatomic = "libc libpthread"
+RDEPENDS_${PN}-libgomp = "libc libpthread"
+DEPENDS_${PN}-libitm = "libgcc"
+RDEPENDS_${PN}-libitm = "libc libgcc libpthread"
+RDEPENDS_${PN}-libmudflap = "libc libdl"
+RDEPENDS_${PN}-libmudflapth = "ld-so libc libdl"
+RDEPENDS_${PN}-libssp = "libc"
+DEPENDS_${PN}-libstdc++ = "libgcc"
+RDEPENDS_${PN}-libstdc++ = "ld-so libc libgcc libm"
 
-DEPENDS_${PN} += "binutils target:ld target:libgcc target:libc"
+# FIXME: remove the empty packages instead
+PROVIDES_${PN}-libgcov[qa] = "allow-missing-soname"
+PROVIDES_${PN}-libasan[qa] = "allow-missing-soname"
+PROVIDES_${PN}-libtsan[qa] = "allow-missing-soname"
+PROVIDES_${PN}-libsupc++[qa] = "allow-missing-soname"
+PROVIDES_${PN}-libquadmath[qa] = "allow-missing-soname"
+
+DEPENDS_${PN} += "binutils target:ld-so target:libgcc target:libc ${DEPENDS_HOSTLIB}"
 
 META_EMIT_PREFIX += "split:PACKAGE_TYPE_${PN}"
 
