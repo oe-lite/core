@@ -2,3 +2,4 @@
 LICENSE = "GPL-3.0"
 
 require binutils.inc
+SRC_URI += "file://makeinfo.patch"
