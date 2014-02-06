@@ -213,6 +213,9 @@ def run(options, args, config):
             return "cannot determined release branch"
         options.head = head
 
+    if options.head.startswith('refs/heads/'):
+        options.head = options.head[len('refs/heads/'):]
+
     if re.match(r"[0-9\.]+$", options.head) is None:
         return "not a release branch: %r"%(options.head)
 
