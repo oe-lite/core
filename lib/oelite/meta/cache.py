@@ -1,4 +1,6 @@
 #from oelite.meta import *
+from oebakery import die, err, warn, info, debug
+
 import oelite.meta
 import oelite.recipe
 import oelite.util
@@ -12,6 +14,7 @@ class MetaCache:
     def __init__(self, cachefile, recipes=None, baker=None):
         if recipes is None:
             try:
+                self.cachefile = cachefile
                 self.file = open(cachefile)
                 self.abi = cPickle.load(self.file)
                 self.env_signature = cPickle.load(self.file)
@@ -49,6 +52,9 @@ class MetaCache:
             if not isinstance(self.mtimes, set):
                 return False
         except AttributeError:
+            return False
+        if not self.mtimes:
+            warn("Cachefile (%s) with no file(s) reference(s) loaded, broken cache generation?"%(self.cachefile))
             return False
         for (fn, oepath, old_mtime) in list(self.mtimes):
             if oepath is not None:
