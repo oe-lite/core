@@ -74,7 +74,7 @@ CLASS_FLAGS += "sdk_gdb"
 DEFAULT_USE_sdk_gdb = "1"
 RDEPENDS_SDK += "${RDEPENDS_SDK_GDB}"
 RDEPENDS_SDK_GDB = ""
-RDEPENDS_SDK_GDB:USE_sdk_gdb = "gcc-gdb"
+RDEPENDS_SDK_GDB:USE_sdk_gdb = "gdb"
 
 CLASS_FLAGS += "sdk_uboot_mkimage"
 DEFAULT_USE_sdk_uboot_mkimage = "1"
