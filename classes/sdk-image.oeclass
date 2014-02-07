@@ -60,9 +60,6 @@ RDEPENDS_SDK = " \
     target:libcrypt-dev \
     target:libresolv-dev \
     ${RDEPENDS_SDK_LIBC_EXTRA} \
-    target:gcc-sysroot-garbage \
-    target:gcc-sysroot-locale \
-    target:gcc-sysroot-doc \
 "
 RDEPENDS_SDK_LIBC_EXTRA = "target:libnss-files-dev target:libnss-dns-dev"
 RDEPENDS_SDK_LIBC_EXTRA:TARGET_LIBC_uclibc = ""
