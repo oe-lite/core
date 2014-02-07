@@ -142,6 +142,10 @@ PACKAGES += "${PN}-ld"
 PROVIDES_${PN}-ld = "ld-so"
 PROVIDES_${PN}-ld[qa] = "is-library"
 FILES_${PN}-ld = "${base_sharedlibdir}/ld-${PV}.so ${base_sharedlibdir}/ld*.so.*"
+#Create a dummy package to satisfy ld-so-dev depends to work around
+#that auto-package-libs copies all RDEPENDS_{PN}+"-dev" in as RDEPENDS
+#for libs. ld-so is not a normal lib in that sence.
+PACKAGES =+ "ld-so-dev"
 
 inherit auto-package-utils
 AUTO_PACKAGE_UTILS = "catchsegv gencat getconf getent iconv ldd locale \
