@@ -1,5 +1,7 @@
 RECIPE_TYPES = "native cross sdk-cross"
 
+COMPATIBLE_TARGET_ARCHS = ".*linux .*darwin"
+
 inherit autotools make-vpath
 
 # Avoid circular dependencies
