@@ -38,32 +38,16 @@ SDK_CXXFLAGS		?= "${SDK_CFLAGS} -fpermissive"
 CXXFLAGS			 = "${HOST_CXXFLAGS}"
 HOST_CXXFLAGS:native		 = "${BUILD_CXXFLAGS}"
 HOST_CXXFLAGS:cross		 = "${BUILD_CXXFLAGS}"
-HOST_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-HOST_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
+HOST_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS}"
+HOST_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS}"
 HOST_CXXFLAGS:sdk-cross		 = "${BUILD_CXXFLAGS}"
-HOST_CXXFLAGS:canadian-cross	 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
+HOST_CXXFLAGS:canadian-cross	 = "${SDK_CXXFLAGS}"
 TARGET_CXXFLAGS:native		 = "${BUILD_CXXFLAGS}"
-TARGET_CXXFLAGS:cross		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:sdk-cross	 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:canadian-cross	 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
+TARGET_CXXFLAGS:cross		 = "${MACHINE_CXXFLAGS}"
+TARGET_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS}"
+TARGET_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS}"
+TARGET_CXXFLAGS:sdk-cross	 = "${SDK_CXXFLAGS}"
+TARGET_CXXFLAGS:canadian-cross	 = "${MACHINE_CXXFLAGS}"
 
 # Local Variables:
 # mode: python
