@@ -16,14 +16,65 @@ DEPENDS_HOSTLIB = "host:libmpc host:libmpfr host:libgmp \
 	host:libisl host:libcloog-isl \
 	host:libc host:libdl host:libm host:libz host:ld-so"
 
-CC[export]	= ""
-CPP[export]	= ""
-CXX[export]	= ""
-CXXCPP[export]	= ""
-F77[export]	= ""
-CXX[export]	= ""
+CC[export]		= ""
+CFLAGS[export]		= ""
+CPP[export]		= ""
+CPPFLAGS[export]	= ""
+CXX[export]		= ""
+CXXFLAGS[export]	= ""
+LD[export]		= ""
+LDFLAGS[export]		= ""
+AR[export]		= ""
+AS[export]		= ""
+NM[export]		= ""
+RANLIB[export]		= ""
+STRIP[export]		= ""
+OBJCOPY[export]		= ""
+OBJDUMP[export]		= ""
 
-CPPFLAGS[export]        = ""
+CXXCPP[export]		= ""
+F77[export]		= ""
+CCLD[export]		= ""
+
+BUILD_CC[export]	= ""
+BUILD_CFLAGS[export]	= ""
+BUILD_CPP[export]	= ""
+BUILD_CPPFLAGS[export]	= ""
+BUILD_CXX[export]	= ""
+BUILD_CXXFLAGS[export]	= ""
+BUILD_LD[export]	= ""
+BUILD_LDFLAGS[export]	= ""
+BUILD_AR[export]	= ""
+BUILD_AS[export]	= ""
+BUILD_NM[export]	= ""
+BUILD_RANLIB[export]	= ""
+BUILD_STRIP[export]	= ""
+BUILD_OBJCOPY[export]	= ""
+BUILD_OBJDUMP[export]	= ""
+
+BUILD_CXXCPP[export]	= ""
+BUILD_F77[export]	= ""
+BUILD_CCLD[export]	= ""
+
+TARGET_CC[export]	= ""
+TARGET_CFLAGS[export]	= ""
+TARGET_CPP[export]	= ""
+TARGET_CPPFLAGS[export]	= ""
+TARGET_CXX[export]	= ""
+TARGET_CXXFLAGS[export]	= ""
+TARGET_LD[export]	= ""
+TARGET_LDFLAGS[export]	= ""
+TARGET_AR[export]	= ""
+TARGET_AS[export]	= ""
+TARGET_NM[export]	= ""
+TARGET_RANLIB[export]	= ""
+TARGET_STRIP[export]	= ""
+TARGET_OBJCOPY[export]	= ""
+TARGET_OBJDUMP[export]	= ""
+
+TARGET_CXXCPP[export]	= ""
+TARGET_F77[export]	= ""
+TARGET_CCLD[export]	= ""
 
 BLACKLIST_VAR += "LD_LIBRARY_PATH"
 
@@ -95,8 +146,34 @@ def set_configure_arch(d):
     d.set('do_configure_args',
           ' '.join(filter(None, [d.get('do_configure_args')] + args)))
 
+do_configure_gcc_env = 'CC="${CC}" CFLAGS="${CFLAGS}" \
+	CPP="${CPP}" CPPFLAGS="${CPPFLAGS}" \
+	CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" \
+	LD="${LD}" LDFLAGS="${LDFLAGS}" \
+	AR="${AR}" AS="${AS}" NM="${NM}" RANLIB="${RANLIB}" STRIP="${STRIP}" \
+        OBJCOPY="${OBJCOPY}" OBJDUMP="${OBJDUMP}" \
+	CC_FOR_BUILD="${BUILD_CC}" CFLAGS_FOR_BUILD="${BUILD_CFLAGS}" \
+	CPP_FOR_BUILD="${BUILD_CPP}" CPPFLAGS_FOR_BUILD="${BUILD_CPPFLAGS}" \
+	CXX_FOR_BUILD="${BUILD_CXX}" CXXFLAGS_FOR_BUILD="${BUILD_CXXFLAGS}" \
+	LD_FOR_BUILD="${BUILD_LD}" LDFLAGS_FOR_BUILD="${BUILD_LDFLAGS}" \
+	AR_FOR_BUILD="${BUILD_AR}" AS_FOR_BUILD="${BUILD_AS}" \
+	NM_FOR_BUILD="${BUILD_NM}" RANLIB_FOR_BUILD="${BUILD_RANLIB}" \
+	STRIP_FOR_BUILD="${BUILD_STRIP}" OBJDUMP_FOR_BUILD="${BUILD_OBJDUMP}"'
+
+do_configure_gcc_env:>canadian-cross = '\
+	CC_FOR_TARGET="${TARGET_CC}" CFLAGS_FOR_TARGET="${TARGET_CFLAGS}" \
+	CPP_FOR_TARGET="${TARGET_CPP}" \
+        CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}" \
+	CXX_FOR_TARGET="${TARGET_CXX}" \
+        CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}" \
+	LD_FOR_TARGET="${TARGET_LD}" LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}" \
+	AR_FOR_TARGET="${TARGET_AR}" AS_FOR_TARGET="${TARGET_AS}" \
+	NM_FOR_TARGET="${TARGET_NM}" RANLIB_FOR_TARGET="${TARGET_RANLIB}" \
+	STRIP_FOR_TARGET="${TARGET_STRIP}" \
+        OBJDUMP_FOR_TARGET="${TARGET_OBJDUMP}"'
+
 do_configure_gcc() {
-	CPPFLAGS="${CPPFLAGS}" \
+	${do_configure_gcc_env} \
 	${S}/configure \
 	--build=${BUILD_ARCH} \
 	--host=${HOST_ARCH} \
@@ -117,8 +194,6 @@ do_configure_gcc() {
 	--with-sysroot=${D_SYSROOT} \
 	--with-build-sysroot=${B_SYSROOT} \
 	--with-local-prefix=${target_prefix}/local \
-	--with-as=`which ${TARGET_AS}` \
-	--with-ld=`which ${TARGET_LD}` \
 	--with-native-system-header-dir=${target_includedir} \
 	--enable-checking=release \
 	--disable-nls \
