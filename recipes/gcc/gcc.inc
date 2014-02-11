@@ -4,6 +4,8 @@ DESCRIPTION = "The GNU Compiler Collection includes front ends for C, C++, \
 	these languages (libstdc++, libgcj,...)."
 HOMEPAGE = "http://gcc.gnu.org/"
 
+FILESPATHPKG = "${P}:${PN}"
+
 require gcc-common.inc
 
 RECIPE_TYPES = "cross sdk-cross canadian-cross"

@@ -4,7 +4,7 @@ require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/gcc/gcc-${PV}/gcc-${PV}.tar.bz2"
 S = "${SRCDIR}/gcc-${PV}"
 
-FILESPATHPKG = "${P}:${PN}:gcc-${@'.'.join(d.get('PV').split('.')[:2])}"
+FILESPATHPKG .= ":gcc-${@'.'.join(d.get('PV').split('.')[:2])}"
 
 inherit make make-vpath c c++
 

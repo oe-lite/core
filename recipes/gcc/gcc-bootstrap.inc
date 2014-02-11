@@ -1,5 +1,7 @@
 SUMMARY = "Initial GCC for toolchain bootstrapping"
 
+FILESPATHPKG = "${P}:${PN}:gcc-${PV}"
+
 require gcc-common.inc
 
 RECIPE_TYPES = "cross sdk-cross"
