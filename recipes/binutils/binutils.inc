@@ -68,6 +68,7 @@ inherit auto-package-utils
 AUTO_PACKAGE_UTILS = "\
     addr2line as c++filt gprof ld nm objcopy objdump ranlib readelf elfedit \
     size strip ar strings embedspu"
+AUTO_PACKAGE_UTILS:>TARGET_LIBC_mingw = " dlltool"
 
 do_install[postfuncs] += "do_install_libiberty"
 do_install_libiberty() {
@@ -100,6 +101,7 @@ FILES_${PN}-objcopy += "${prefix}/${TARGET_ARCH}/bin/objcopy"
 FILES_${PN}-objdump += "${prefix}/${TARGET_ARCH}/bin/objdump"
 FILES_${PN}-ranlib += "${prefix}/${TARGET_ARCH}/bin/ranlib"
 FILES_${PN}-strip += "${prefix}/${TARGET_ARCH}/bin/strip"
+FILES_${PN}-dlltool += "${prefix}/${TARGET_ARCH}/bin/dlltool"
 
 PACKAGES += "${PN}-ldscripts"
 FILES_${PN}-ldscripts = "${prefix}/${TARGET_ARCH}/lib/ldscripts"
