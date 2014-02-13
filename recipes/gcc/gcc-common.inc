@@ -8,7 +8,7 @@ FILESPATHPKG .= ":gcc-${@'.'.join(d.get('PV').split('.')[:2])}"
 
 inherit make make-vpath c c++
 
-DEPENDS += "target-cross:binutils target:linux-headers"
+DEPENDS += "target-cross:binutils target:gcc-bootstrap-libc-headers"
 DEPENDS += "host:mpc host:mpfr host:gmp host:isl host:cloog"
 DEPENDS += "host:libz"
 
