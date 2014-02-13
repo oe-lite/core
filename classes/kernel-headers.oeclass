@@ -9,6 +9,8 @@ LICENSE ?= "GPLv2"
 
 RECIPE_TYPES = "machine"
 
+COMPATIBLE_HOST_ARCHS = ".*linux.*"
+
 inherit kernel-common
 
 C_DEPENDS = "native:cc"
