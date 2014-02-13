@@ -13,3 +13,4 @@ inherit autotools c++ make-vpath library
 
 EXTRA_OECONF = "--with-gmp=${HOST_SYSROOT} --with-mpfr=${HOST_SYSROOT}"
 EXTRA_OECONF:>native = " --disable-static"
+EXTRA_OECONF:>HOST_LIBC_mingw = " --enable-static --disable-shared"
