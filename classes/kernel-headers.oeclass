@@ -35,7 +35,7 @@ do_install() {
 
 PACKAGES = "${PN}"
 FILES_${PN} = "${includedir}"
-PROVIDES_${PN} = "linux-headers"
+PROVIDES_${PN} = "linux-headers gcc-bootstrap-libc-headers"
 
 REBUILDALL_SKIP = "1"
 
