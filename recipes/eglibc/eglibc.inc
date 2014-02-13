@@ -8,6 +8,8 @@ HOMEPAGE = "http://www.eglibc.org/"
 
 RECIPE_TYPES = "machine sdk"
 
+COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.* .*linux-uclibc.*"
+
 SRC_BRANCH = "eglibc-${@d.get('PV').replace('.','_')}"
 SRC_URI = "svn://www.eglibc.org/svn/branches/${SRC_BRANCH};protocol=http;rev=${SRC_REV}"
 S = "${SRCDIR}/${SRC_BRANCH}/libc"
