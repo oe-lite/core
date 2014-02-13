@@ -14,7 +14,9 @@ RECIPE_TYPES = "cross sdk-cross canadian-cross"
 C_DEPENDS_TARGET = "target-cross:gcc-bootstrap"
 CXX_DEPENDS_TARGET = ""
 
-DEPENDS += "target:libc target:ld-so target:libm target:libdl target:libpthread"
+DEPENDS += "${DEPENDS_LIBC}"
+DEPENDS_LIBC = "target:libc target:libm target:libpthread"
+DEPENDS_LIBC:>TARGET_BINFMT_elf = " target:ld-so target:libdl"
 
 do_configure() {
 	do_configure_gcc \
@@ -83,7 +85,8 @@ PROVIDES_${PN}-libtsan[qa] = "allow-missing-soname"
 PROVIDES_${PN}-libsupc++[qa] = "allow-missing-soname"
 PROVIDES_${PN}-libquadmath[qa] = "allow-missing-soname"
 
-DEPENDS_${PN} += "binutils target:ld-so target:libgcc target:libc ${DEPENDS_HOSTLIB}"
+DEPENDS_${PN} += "binutils target:libgcc target:libc ${DEPENDS_HOSTLIB}"
+DEPENDS_${PN}:>TARGET_BINFMT_elf = " target:ld-so"
 
 META_EMIT_PREFIX += "split:PACKAGE_TYPE_${PN}"
 

@@ -14,7 +14,8 @@ DEPENDS += "host:libz"
 
 DEPENDS_HOSTLIB = "host:libmpc host:libmpfr host:libgmp \
 	host:libisl host:libcloog-isl \
-	host:libc host:libdl host:libm host:libz host:ld-so"
+	host:libc host:libm host:libz"
+DEPENDS_HOSTLIB:>HOST_BINFMT_elf = " host:libdl host:ld-so"
 
 CC[export]		= ""
 CFLAGS[export]		= ""
