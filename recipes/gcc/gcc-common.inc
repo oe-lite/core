@@ -32,6 +32,9 @@ RANLIB[export]		= ""
 STRIP[export]		= ""
 OBJCOPY[export]		= ""
 OBJDUMP[export]		= ""
+DLLTOOL[export]		= ""
+WINDRES[export]		= ""
+WINDMC[export]		= ""
 
 CXXCPP[export]		= ""
 F77[export]		= ""
@@ -72,6 +75,9 @@ TARGET_RANLIB[export]	= ""
 TARGET_STRIP[export]	= ""
 TARGET_OBJCOPY[export]	= ""
 TARGET_OBJDUMP[export]	= ""
+TARGET_DLLTOOL[export]	= ""
+TARGET_WINDRES[export]	= ""
+TARGET_WINDMC[export]	= ""
 
 TARGET_CXXCPP[export]	= ""
 TARGET_F77[export]	= ""
@@ -161,6 +167,10 @@ do_configure_gcc_env = 'CC="${CC}" CFLAGS="${CFLAGS}" \
 	NM_FOR_BUILD="${BUILD_NM}" RANLIB_FOR_BUILD="${BUILD_RANLIB}" \
 	STRIP_FOR_BUILD="${BUILD_STRIP}" OBJDUMP_FOR_BUILD="${BUILD_OBJDUMP}"'
 
+do_configure_gcc_env:>HOST_LIBC_mingw = '\
+	DLLTOOL="${HOST_PREFIX}dlltool" \
+	WINDRES="${HOST_PREFIX}windres" WINDMC="${HOST_PREFIX}windmc"'
+
 do_configure_gcc_env:>canadian-cross = '\
 	CC_FOR_TARGET="${TARGET_CC}" CFLAGS_FOR_TARGET="${TARGET_CFLAGS}" \
 	CPP_FOR_TARGET="${TARGET_CPP}" \
@@ -172,6 +182,11 @@ do_configure_gcc_env:>canadian-cross = '\
 	NM_FOR_TARGET="${TARGET_NM}" RANLIB_FOR_TARGET="${TARGET_RANLIB}" \
 	STRIP_FOR_TARGET="${TARGET_STRIP}" \
         OBJDUMP_FOR_TARGET="${TARGET_OBJDUMP}"'
+
+do_configure_gcc_env:>TARGET_LIBC_mingw = '\
+	DLLTOOL_FOR_TARGET="${TARGET_PREFIX}dlltool" \
+	WINDRES_FOR_TARGET="${TARGET_PREFIX}windres" \
+	WINDMC_FOR_TARGET="${TARGET_PREFIX}windmc"'
 
 do_configure_gcc() {
 	${do_configure_gcc_env} \

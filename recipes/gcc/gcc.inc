@@ -52,14 +52,16 @@ PACKAGE_TYPE_${PN}-g++-dev = "${TARGET_TYPE}"
 
 DEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
 DEPENDS_${PN} += "${PN}-cpp"
+DEPENDS_${PN}:>TARGET_LIBC_mingw = " target:libpthread"
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "gcc gcov asan tsan atomic gomp itm mudflap mudflapth ssp \
 	stdc++ supc++ quadmath"
 AUTO_PACKAGE_LIBS:canadian-cross = ""
-AUTO_PACKAGE_LIBS_LIBDIR = "/${TARGET_ARCH}/sysroot${target_libdir}:lib:,_s,_eh,_nonshared,_pic"
-#AUTO_PACKAGE_LIBS_DEV_FILES .= ",_eh.a,_nonshared.a,_nonshared.la,_pic.a,_pic.map,.spec,_preinit.o"
+AUTO_PACKAGE_LIBS_LIBDIR = "/${TARGET_ARCH}/sysroot${target_libdir}:lib:,_s,_s_sjlj,_eh,_nonshared,_pic"
+AUTO_PACKAGE_LIBS_LIBDIR:>TARGET_LIBC_mingw = ":-*.dll"
 AUTO_PACKAGE_LIBS_DEV_FILES .= ",.map,.spec,_preinit.o"
+AUTO_PACKAGE_LIBS_DEV_FILES:>TARGET_LIBC_mingw = ",.dll.a"
 AUTO_PACKAGE_LIBS_TYPE = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc-dev = "${TARGET_TYPE}"
