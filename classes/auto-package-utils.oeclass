@@ -69,13 +69,19 @@ def auto_package_utils (d):
         provides += [ utilname ]
 
         util = prefix + util
-        d.set("FILES_" + pkg,
-              "${base_sbindir}/%s%s "%(util, exeext) +
-              "${base_bindir}/%s%s "%(util, exeext) +
-              "${sbindir}/%s%s "%(util, exeext) +
-              "${bindir}/%s%s "%(util, exeext) +
-              "${libexecdir}/%s%s "%(util, exeext) +
-              " ".join(get_extra_files(pkg)))
+        files = ("${base_sbindir}/%s "%(util) +
+                 "${base_bindir}/%s "%(util) +
+                 "${sbindir}/%s "%(util) +
+                 "${bindir}/%s "%(util) +
+                 "${libexecdir}/%s "%(util))
+        if exeext:
+            files += (" ${base_sbindir}/%s%s "%(util, exeext) +
+                      "${base_bindir}/%s%s "%(util, exeext) +
+                      "${sbindir}/%s%s "%(util, exeext) +
+                      "${bindir}/%s%s "%(util, exeext) +
+                      "${libexecdir}/%s%s "%(util, exeext))
+        files += " " + " ".join(get_extra_files(pkg))
+        d.set("FILES_" + pkg, files)
 
         d.set("FILES_" + docpkg,
               "${mandir}/man?/%s.* "%(util) +
