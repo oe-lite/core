@@ -41,6 +41,10 @@ PROVIDES_${PN}-g++ = "c++"
 FILES_${PN}[qa] += "allow-libs-in-bindirs"
 PROVIDES_${PN}[qa] += "allow-missing-provides:liblto-plugin"
 
+# Get rid of gcc-dev package
+PACKAGES = "${PN}-dbg ${PN}-doc ${PN}-locale ${PN}"
+FILES_${PN} += "${libdir}/*.a"
+
 inherit auto-package-utils
 AUTO_PACKAGE_UTILS = "cpp g++ gcov"
 FILES_${PN}-g++ = "${bindir}/${TARGET_PREFIX}c++"
