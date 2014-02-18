@@ -32,6 +32,8 @@ class LocalFetcher():
             return self._signature
         except AttributeError:
             pass
+        if os.path.isdir(self.localpath):
+            raise oelite.fetch.NoSignature(self.uri, "can't compute directory signature")
         m = hashlib.sha1()
         m.update(open(self.localpath, "r").read())
         self._signature = m.digest()
