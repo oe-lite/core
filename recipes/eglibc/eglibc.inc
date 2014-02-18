@@ -84,6 +84,13 @@ do_install_bindir_fixup() {
         fi
 }
 
+#ld-linux do NOT support RPATH. See get-dynamic-info.h within the eglibc src
+do_chrpath[postfuncs] += "do_chrpath_fix_ld"
+do_chrpath_fix_ld[expand] = 3
+do_chrpath_fix_ld () {
+	${HOST_PREFIX}chrpath -d ${D}${base_libdir}/ld-${PV}.so
+}
+
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "c m rt dl pthread thread_db util crypt anl nsl resolv \
 	cidn nss_compat nss_db nss_dns nss_files nss_hesiod nss_nis \
