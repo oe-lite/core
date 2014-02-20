@@ -55,6 +55,7 @@ FILES_${PN}-g++-dev = "/${TARGET_ARCH}/sysroot${target_includedir}/c++"
 PACKAGE_TYPE_${PN}-g++-dev = "${TARGET_TYPE}"
 
 DEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
+RDEPENDS_${PN}-g++ += "target:${PN}-g++-dev"
 DEPENDS_${PN} += "${PN}-cpp"
 DEPENDS_${PN}:>TARGET_LIBC_mingw = " target:libpthread"
 
