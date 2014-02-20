@@ -163,6 +163,7 @@ CHRPATH_DIRS += "${libdir}/gconv"
 FILES_${PN}-dev += "${libdir}/*.o ${libdir}/*/*.o"
 
 DEPENDS_${PN}-dev = "linux-headers"
+RDEPENDS_${PN}-dev = "linux-headers"
 
 # Local Variables:
 # mode: python
