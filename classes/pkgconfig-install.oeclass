@@ -1,0 +1,37 @@
+## Class for packages having pkgconfig files that needs fixup
+##
+## Rewrites the paths in the pkgconfig files so that it contains valid dirs.
+
+require conf/meta.conf
+
+PKGCONFIG_FILES ?= "${libdir}/pkgconfig/*"
+PKGCONFIG_FIXUP_STRIP_DIRS ?= "${HOST_SYSROOT} ${TARGET_SYSROOT} ${D} ${B} ${S}"
+
+do_install[postfuncs] += "do_install_pkgconfig_fixup"
+do_install_pkgconfig_fixup[dirs] = "${D}"
+
+def do_install_pkgconfig_fixup(d):
+    installdir = d.get("D")
+    old_cwd = os.getcwd()
+    os.chdir(installdir)
+    pkgconfig_files = []
+    for pattern in d.get("PKGCONFIG_FILES").split():
+        pkgconfig_files += glob.glob(pattern.lstrip("/"))
+    strip_dirs = set()
+    for strip_dir in d.get("PKGCONFIG_FIXUP_STRIP_DIRS").split():
+        strip_dirs.add(strip_dir)
+        strip_dirs.add(os.path.realpath(strip_dir))
+    for filename in pkgconfig_files:
+        print "pkgconfig fixup of /%s"%(filename)
+        with open(filename, "r") as input_file:
+            pkgconfig_file = input_file.read()
+        for strip_dir in strip_dirs:
+            pkgconfig_file = re.sub(r"-L%s"%(strip_dir),
+                                    r"-L", pkgconfig_file)
+        with open(filename, "w") as output_file:
+            output_file.write(pkgconfig_file)
+    os.chdir(old_cwd)
+
+# Local Variables:
+# mode: python
+# End:
