@@ -70,6 +70,10 @@ do_install() {
         fi
 }
 
+
+#Remove la file link to very specific builddir
+LIBTOOL_FIXUP_STRIP_DIRS  += " -L${B}/lib"
+
 PACKAGES =+ "${PN}-tools ${PN}-terminfo"
 
 inherit auto-package-libs
