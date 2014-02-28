@@ -13,3 +13,7 @@ inherit autotools c++ make-vpath library
 
 EXTRA_OECONF = "--with-gmp=${HOST_SYSROOT}"
 EXTRA_OECONF:>native = " --disable-static"
+
+# Fix for bug seen in Ubuntu 12.04 64-bit gcc package:
+# https://bugs.launchpad.net/ubuntu/+source/gcc-4.6/+bug/968766
+BUILD_CFLAGS_OPT:native = "-O2"
