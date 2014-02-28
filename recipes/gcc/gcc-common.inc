@@ -254,6 +254,12 @@ do_install() {
 	fi
 }
 
+do_install[postfuncs] += "do_install_fix_mkheaders"
+do_install_fix_mkheaders () {
+	rm ${D}${libdir}/gcc/${TARGET_ARCH}/${PV}/install-tools/mkheaders.conf
+	rm ${D}${libexecdir}/gcc/${TARGET_ARCH}/${PV}/install-tools/mkheaders
+}
+
 EXTRA_HOST_ELF_DIRS = "${libexecdir}/gcc/${TARGET_ARCH}/${PV} \
 	${libexecdir}/gcc/${TARGET_ARCH}/${PV}/install-tools \
 	${libexecdir}/gcc/${TARGET_ARCH}/${PV}/plugin"
