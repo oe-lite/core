@@ -125,8 +125,11 @@ def do_split_sysroot_fixup(d):
         os.rename(pkg + '.sysroot', pkg)
     pkg = d.get('PN')
     os.mkdir(os.path.join(pkg, target_arch))
-    os.symlink('../../' + d.get('TARGET_TYPE'),
-               os.path.join(pkg, target_arch, 'sysroot'))
+    if d.get('HOST_TYPE') == 'native':
+        os.symlink('../../' + d.get('TARGET_TYPE'),
+                   os.path.join(pkg, target_arch, 'sysroot'))
+    else:
+        os.mkdir(os.path.join(pkg, target_arch, 'sysroot'))
     os.symlink('sysroot' + d.get('target_includedir'),
                os.path.join(pkg, target_arch, 'include'))
     os.symlink('sysroot' + d.get('target_libdir'),
