@@ -37,6 +37,10 @@ DEPENDS += "native:mpc native:mpfr native:gmp native:isl native:cloog"
 EXTRA_OECONF += "--with-sysroot=/${TARGET_ARCH}/sysroot \
 	--with-build-sysroot=${TARGET_SYSROOT}"
 
+# configure checks for host g++
+inherit c++
+CXX_DEPENDS_TARGET = ""
+
 do_configure[postfuncs] += "do_configure_check"
 do_configure_check() {
 	make configure-host
