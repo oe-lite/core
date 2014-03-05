@@ -16,12 +16,6 @@ S = "${SRCDIR}/${SRC_BRANCH}/libc"
 
 inherit autotools make-vpath
 
-#do_unpack_fixup() {
-#	#mv eglibc-${CT_LIBC_VERSION} eglibc-${CT_LIBC_VERSION}.tmp
-#	mv ${SRC_BRANCH}/libc eglibc-${PV}
-#	mv ${SRC_BRANCH}/* eglibc-${PV}
-#}
-
 C_DEPENDS = "host-cross:gcc-bootstrap"
 
 DEPENDS += "linux-headers"
