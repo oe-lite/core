@@ -83,7 +83,7 @@ RDEPENDS_${PN}-libmudflap:>TARGET_BINFMT_elf = " libdl"
 RDEPENDS_${PN}-libmudflapth = "libc"
 RDEPENDS_${PN}-libmudflapth:>TARGET_BINFMT_elf = " ld-so libdl"
 RDEPENDS_${PN}-libssp = "libc"
-DEPENDS_${PN}-libstdc++ = "libgcc"
+DEPENDS_${PN}-libstdc++ = "libc libgcc libm"
 RDEPENDS_${PN}-libstdc++ = "libc libgcc libm"
 RDEPENDS_${PN}-libstdc++:>TARGET_BINFMT_elf = " ld-so"
 
