@@ -26,7 +26,7 @@ CHRPATH_TYPES = "HOST"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 
-EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib --with-float=${TARGET_ARCH}"
+EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib"
 EXTRA_OECONF:>HOST_CPU_arm = " --disable-werror"
 
 AR = "ar"
