@@ -34,10 +34,8 @@ AS = "as"
 
 DEPENDS += "native:mpc native:mpfr native:gmp native:isl native:cloog"
 
-EXTRA_OECONF_SYSROOT    = " --with-sysroot=${HOST_SYSROOT}"
-EXTRA_OECONF:>native    = " ${EXTRA_OECONF_SYSROOT}"
-EXTRA_OECONF:>cross     = " ${EXTRA_OECONF_SYSROOT}"
-EXTRA_OECONF:>sdk-cross = " ${EXTRA_OECONF_SYSROOT}"
+EXTRA_OECONF += "--with-sysroot=/${TARGET_ARCH}/sysroot \
+	--with-build-sysroot=${TARGET_SYSROOT}"
 
 do_configure[postfuncs] += "do_configure_check"
 do_configure_check() {
