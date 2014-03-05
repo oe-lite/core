@@ -10,7 +10,7 @@ object information), and other tools and related libraries."
 HOMEPAGE = "http://www.gnu.org/software/binutils/"
 BUGTRACKER = "http://sourceware.org/bugzilla/"
 
-RECIPE_TYPES = "cross sdk-cross machine"
+RECIPE_TYPES = "cross sdk-cross machine canadian-cross"
 
 inherit autotools make-vpath gettext
 
