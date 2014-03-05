@@ -55,35 +55,6 @@ EXTRA_OECONF += "\
 	--cache-file=config.cache \
 "
 
-do_install[postfuncs] += "do_install_bindir_fixup"
-do_install_bindir_fixup() {
-	cd ${D}
-	mkdir -p .${bindir}/.debug
-	if [ "${bindir}" != "/usr/bin" ]; then
-		mv usr/bin/* .${bindir}/
-		mv usr/bin/.debug/* .${bindir}/.debug/
-		rmdir usr/bin/.debug usr/bin
-        fi
-	mkdir -p .${sbindir}/.debug
-	if [ "${sbindir}" != "/usr/sbin" ]; then
-		mv usr/sbin/* .${sbindir}/
-		mv usr/sbin/.debug/* .${sbindir}/.debug/
-		rmdir usr/sbin/.debug usr/sbin
-        fi
-	mkdir -p .${base_bindir}/.debug
-	if [ "${base_bindir}" != "/bin" ]; then
-		mv bin/* .${base_bindir}
-		mv bin/.debug/* .${base_bindir}/.debug/
-		rmdir bin/.debug bin
-        fi
-	mkdir -p .${base_sbindir}/.debug
-	if [ "${base_sbindir}" != "/sbin" ]; then
-		mv sbin/* .${base_sbindir}
-		mv sbin/.debug/* .${base_sbindir}/.debug/
-		rmdir sbin/.debug sbin
-        fi
-}
-
 #ld-linux do NOT support RPATH. See get-dynamic-info.h within the eglibc src
 do_chrpath[postfuncs] += "do_chrpath_fix_ld"
 do_chrpath_fix_ld[expand] = 3
