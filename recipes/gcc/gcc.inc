@@ -55,7 +55,7 @@ FILES_${PN}-g++-dev = "/${TARGET_ARCH}/sysroot${target_includedir}/c++"
 PACKAGE_TYPE_${PN}-g++-dev = "${TARGET_TYPE}"
 
 DEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
-RDEPENDS_${PN}-g++ += "target:${PN}-g++-dev"
+RDEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
 DEPENDS_${PN} += "${PN}-cpp"
 DEPENDS_${PN}:>TARGET_LIBC_mingw = " target:libpthread"
 
@@ -96,6 +96,7 @@ PROVIDES_${PN}-libsupc++[qa] = "allow-missing-soname"
 PROVIDES_${PN}-libquadmath[qa] = "allow-missing-soname"
 
 DEPENDS_${PN} += "binutils target:libgcc target:libc ${DEPENDS_HOSTLIB}"
+RDEPENDS_${PN} += "binutils target:libgcc target:libc-dev ${DEPENDS_HOSTLIB}"
 DEPENDS_${PN}:>TARGET_BINFMT_elf = " target:ld-so"
 
 META_EMIT_PREFIX += "split:PACKAGE_TYPE_${PN}"
