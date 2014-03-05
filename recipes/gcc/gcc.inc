@@ -130,10 +130,6 @@ def do_split_sysroot_fixup(d):
                    os.path.join(pkg, target_arch, 'sysroot'))
     else:
         os.mkdir(os.path.join(pkg, target_arch, 'sysroot'))
-    os.symlink('sysroot' + d.get('target_includedir'),
-               os.path.join(pkg, target_arch, 'include'))
-    os.symlink('sysroot' + d.get('target_libdir'),
-               os.path.join(pkg, target_arch, 'lib'))
 
 # Local Variables:
 # mode: python
