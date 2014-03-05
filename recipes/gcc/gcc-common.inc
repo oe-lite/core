@@ -89,7 +89,7 @@ GCC_PROGS = "gcc cpp"
 BINUTIL_PROGS = "ar as ld nm ranlib strip objdump"
 
 B_SYSROOT = "${B}/sysroot"
-D_SYSROOT = "${D}${prefix}/${TARGET_ARCH}/sysroot"
+D_SYSROOT = "${D}${base_prefix}/${TARGET_ARCH}/sysroot"
 
 do_configure[prefuncs] += "do_configure_sysroot"
 do_configure_sysroot() {
