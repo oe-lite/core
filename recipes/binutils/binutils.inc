@@ -95,15 +95,17 @@ def do_install_hardlinkfixup(d):
 
 FILES_${PN}-dbg += "${prefix}/${TARGET_ARCH}/bin/.debug"
 
-FILES_${PN}-ar += "${prefix}/${TARGET_ARCH}/bin/ar"
-FILES_${PN}-as += "${prefix}/${TARGET_ARCH}/bin/as"
-FILES_${PN}-ld += "${bindir}/${AUTO_PACKAGE_UTILS_PREFIX}ld.bfd ${prefix}/${TARGET_ARCH}/bin/ld ${prefix}/${TARGET_ARCH}/bin/ld.bfd"
-FILES_${PN}-nm += "${prefix}/${TARGET_ARCH}/bin/nm"
-FILES_${PN}-objcopy += "${prefix}/${TARGET_ARCH}/bin/objcopy"
-FILES_${PN}-objdump += "${prefix}/${TARGET_ARCH}/bin/objdump"
-FILES_${PN}-ranlib += "${prefix}/${TARGET_ARCH}/bin/ranlib"
-FILES_${PN}-strip += "${prefix}/${TARGET_ARCH}/bin/strip"
-FILES_${PN}-dlltool += "${prefix}/${TARGET_ARCH}/bin/dlltool"
+FILES_${PN}-ar += "${prefix}/${TARGET_ARCH}/bin/ar${HOST_EXEEXT}"
+FILES_${PN}-as += "${prefix}/${TARGET_ARCH}/bin/as${HOST_EXEEXT}"
+FILES_${PN}-ld += "${bindir}/${AUTO_PACKAGE_UTILS_PREFIX}ld.bfd \
+	${prefix}/${TARGET_ARCH}/bin/ld${HOST_EXEEXT} \
+	${prefix}/${TARGET_ARCH}/bin/ld.bfd"
+FILES_${PN}-nm += "${prefix}/${TARGET_ARCH}/bin/nm${HOST_EXEEXT}"
+FILES_${PN}-objcopy += "${prefix}/${TARGET_ARCH}/bin/objcopy${HOST_EXEEXT}"
+FILES_${PN}-objdump += "${prefix}/${TARGET_ARCH}/bin/objdump${HOST_EXEEXT}"
+FILES_${PN}-ranlib += "${prefix}/${TARGET_ARCH}/bin/ranlib${HOST_EXEEXT}"
+FILES_${PN}-strip += "${prefix}/${TARGET_ARCH}/bin/strip${HOST_EXEEXT}"
+FILES_${PN}-dlltool += "${prefix}/${TARGET_ARCH}/bin/dlltool${HOST_EXEEXT}"
 
 PACKAGES += "${PN}-ldscripts"
 FILES_${PN}-ldscripts = "${prefix}/${TARGET_ARCH}/lib/ldscripts"
