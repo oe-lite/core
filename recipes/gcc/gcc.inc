@@ -31,6 +31,10 @@ do_configure() {
 	--with-gxx-include-dir=${D_SYSROOT}${target_includedir}/c++
 }
 
+inherit libtool
+LIBTOOL_DEPENDS = ""
+LIBTOOL_FIXUP_SEARCH_DIRS_CROSS += "${D}${libexecdir}/gcc/${TARGET_ARCH}/${PV}"
+LIBTOOL_FIXUP_STRIP_DIRS += "${HOST_SYSROOT} ${STAGE_DIR}/${TARGET_CROSS}"
 do_compile_targets:canadian-cross = "all-gcc"
 
 do_install_targets:canadian-cross = "install-gcc"
