@@ -8,9 +8,10 @@
 ## @var LIBRARY_NAME Set the name of the library. If not setting LIBRARY NAME,
 ##      the name will be set to the package name if the package starts with
 ##      lib, or lib + package name otherwise.
-## @var LIBRARY_VERSION Set the version of the library (foobar.so.2 has
-##      library version 2). May also be set for a specific package within a
-##      recipe using LIBRARY_VERSION_pkgname.
+## @var LIBRARY_VERSION Set the version of the library (libfoobar.so.2 has
+##      library version 2).  When set, library version specific provides (like
+##      libfoobar-2) are added to PROVIDES in addition to the version less
+##      provide.
 
 DEPENDS_${PN}		= "${PN}-dev_${PV}"
 DEPENDS_${PN}-dev	= ""
@@ -33,29 +34,35 @@ def library_depends(d):
 
     library_name = d.get("LIBRARY_NAME")
     library_version = d.get("LIBRARY_VERSION")
-    provides = (d.get("PROVIDES_" + pkg) or "").split()
 
-    if not pkg.startswith("lib"):
+    if pkg.startswith("lib"):
+        if library_name and library_name != pkg:
+            qaflags = (d.get_flag("PROVIDES_" + pkg, "qa") or "").split()
+            qaflags.append("allow-missing-soname:" + pkg)
+            d.set_flag("PROVIDES_" + pkg, "qa", " ".join(qaflags))
+        else:
+            library_name = pkg
+    else:
         if not library_name:
             library_name = "lib" + pkg
 
-    if library_name:
-        qaflags = (d.get_flag("PROVIDES_" + pkg,"qa") or "").split()
-        qaflags.append("allow-missing-soname:" + pkg)
-        d.set_flag("PROVIDES_" + pkg, "qa", " ".join(qaflags))
-        if not library_name in provides:
-            provides.append(library_name)
-        if library_version:
-            provides.append(library_name + "-" + library_version)
-        d.set("PROVIDES_" + pkg, " ".join(provides))
-        provides = (d.get("PROVIDES_" + devpkg) or "").split()
-        if not library_name + "-dev" in provides:
-            provides.append(library_name + "-dev")
-            d.set("PROVIDES_" + devpkg, " ".join(provides))
-    else:
-        if library_version:
-            provides.append(pkg + "-" + library_version)
-            d.set("PROVIDES_" + pkg, " ".join(provides))
+    def append_provides(provide):
+        if not provide in provides:
+            provides.append(provide)
+
+    provides = (d.get("PROVIDES_" + pkg) or "").split()
+    if library_name != pkg:
+        append_provides(library_name)
+    if library_version:
+        append_provides("%s-%s"%(library_name, library_version))
+    d.set("PROVIDES_" + pkg, " ".join(provides))
+
+    provides = (d.get("PROVIDES_" + devpkg) or "").split()
+    if library_name != pkg:
+        append_provides("%s-dev"%(library_name))
+    if library_version:
+        append_provides("%s-%s-dev"%(library_name, library_version))
+    d.set("PROVIDES_" + devpkg, " ".join(provides))
 
     if not pkg_type in ("machine", "sdk", "canadian-cross"):
         return
