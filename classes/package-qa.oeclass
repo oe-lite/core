@@ -242,7 +242,7 @@ def do_packageqa(d):
     readelf_dynamic_re = re.compile(r" 0x[0-9a-f]{8,16} *\(([A-Z]+)\) *(.*)")
     readelf_strval_re = re.compile(r"[A-Za-z ]+: \[(.*)\]")
 
-    lib_item_re = re.compile(r"(.*?)(-[0-9\.]*)?\.so")
+    lib_item_re = re.compile(r"(.*?)(\.)?\.so")
     lib_item_map = {
         "libgcc_s" : "libgcc",
         }
@@ -506,19 +506,33 @@ def do_packageqa(d):
             print "Package %s RDEPENDS provides:"%(pkg), " ".join(sorted(rdepends_provides))
         assume_provided = (d.get('ASSUME_PROVIDED') or "").split()
 
-        sonamify_re = re.compile("(lib.*)\.so.*")
-        sonamify_re2 = re.compile(r"(.*?)(-[\d\.]*)?$")
-        def sonamify(soname):
-            def _sonamify(s):
+        get_libname_re = re.compile("(lib.*)\.so.*")
+        get_libname_re2 = re.compile(r"(.*?)(\.)?$")
+        def get_libname(soname):
+            def _get_libname(s):
                 s = s.lower().replace("_","-")
-                m = sonamify_re.match(s)
+                m = get_libname_re.match(s)
                 if not m:
                     oebakery.debug("non-matching SONAME: %s"%(s))
                     return None
-                return sonamify_re2.match(m.group(1)).group(1)
+                return get_libname_re2.match(m.group(1)).group(1)
             if isinstance(soname, basestring):
-                return _sonamify(soname)
-            soname = map(_sonamify, soname)
+                return _get_libname(soname)
+            soname = map(_get_libname, soname)
+            return [n for n in soname if n is not None]
+
+        get_libname_version_re = re.compile("(lib.*)\.so.([0-9]*).*")
+        def get_libname_version(soname):
+            def _get_libname_version(s):
+                s = s.replace("_","-")
+                m = get_libname_version_re.match(s)
+                if not m:
+                    oebakery.debug("non-matching SONAME: %s"%(s))
+                    return None
+                return (m.group(1) + '-' + m.group(2))
+            if isinstance(soname, basestring):
+                return _get_libname_version(soname)
+            soname = map(_get_libname_version, soname)
             return [n for n in soname if n is not None]
 
         # first, check libdirs for libraries
@@ -647,7 +661,8 @@ def do_packageqa(d):
         # check consistency between library SONAME's and lib* PROVIDES
         soname_libs = set([])
         if soname:
-            soname_libs = set(sonamify(soname))
+            soname_libs = set(get_libname(soname))
+            soname_libs.update(get_libname_version(soname))
             missing_lib_provides = soname_libs.difference(lib_provides)
             allowed_missing = set([])
             if missing_lib_provides:
@@ -687,7 +702,7 @@ def do_packageqa(d):
         for lib in map(standard_depends_form,
                        depends_provides.union(assume_provided)):
             dep_all.add(lib.replace("_","-"))
-        missing_depends = set(sonamify(needed)).difference(dep_all)
+        missing_depends = set(get_libname(needed)).difference(dep_all)
         if missing_depends:
             missing_depends = list(missing_depends)
             assume_tmp = set([])
@@ -710,7 +725,7 @@ def do_packageqa(d):
             rdep_all = set([])
             for lib in rdepends_provides:
                 rdep_all.add(lib.replace("_","-"))
-            missing_rdepends = set(sonamify(needed)).difference(
+            missing_rdepends = set(get_libname(needed)).difference(
                 rdep_all)
             if missing_rdepends:
                 msg = "Package %s missing RDEPENDS: %s"%(
