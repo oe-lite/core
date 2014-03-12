@@ -164,6 +164,8 @@ def auto_package_libs (d):
 
         qaflags = (d.get_flag("PROVIDES_" + pkg,"qa") or "").split()
         qaflags.append("is-library")
+        if pkg.startswith('lib'):
+            qaflags.append('allow-missing-soname:%s'%(pkg))
         d.set_flag("PROVIDES_" + pkg, "qa", " ".join(qaflags))
 
         devpkg_provides = (d.get("PROVIDES_" + devpkg) or "").split()
