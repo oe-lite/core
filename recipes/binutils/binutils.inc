@@ -97,9 +97,9 @@ FILES_${PN}-dbg += "${prefix}/${TARGET_ARCH}/bin/.debug"
 
 FILES_${PN}-ar += "${prefix}/${TARGET_ARCH}/bin/ar${HOST_EXEEXT}"
 FILES_${PN}-as += "${prefix}/${TARGET_ARCH}/bin/as${HOST_EXEEXT}"
-FILES_${PN}-ld += "${bindir}/${AUTO_PACKAGE_UTILS_PREFIX}ld.bfd \
+FILES_${PN}-ld += "${bindir}/${AUTO_PACKAGE_UTILS_PREFIX}ld.bfd${HOST_EXEEXT} \
 	${prefix}/${TARGET_ARCH}/bin/ld${HOST_EXEEXT} \
-	${prefix}/${TARGET_ARCH}/bin/ld.bfd"
+	${prefix}/${TARGET_ARCH}/bin/ld.bfd${HOST_EXEEXT}"
 FILES_${PN}-nm += "${prefix}/${TARGET_ARCH}/bin/nm${HOST_EXEEXT}"
 FILES_${PN}-objcopy += "${prefix}/${TARGET_ARCH}/bin/objcopy${HOST_EXEEXT}"
 FILES_${PN}-objdump += "${prefix}/${TARGET_ARCH}/bin/objdump${HOST_EXEEXT}"
