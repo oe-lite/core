@@ -21,7 +21,7 @@ DEPENDS = "native:flex native:bison"
 
 C_DEPENDS_TARGET = ""
 
-CHRPATH_DEPENDS = "host-cross:chrpath"
+CHRPATH_DEPENDS_TARGET = ""
 CHRPATH_TYPES = "HOST"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
