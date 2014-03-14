@@ -74,6 +74,10 @@ AUTO_PACKAGE_LIBS_DEV_FILES:>TARGET_LIBC_mingw = ",.dll.a"
 AUTO_PACKAGE_LIBS_TYPE = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc = "${TARGET_TYPE}"
 PACKAGE_TYPE_${PN}-libgcc-dev = "${TARGET_TYPE}"
+# Let GCC crt* files have priority over those coming from libc
+# (ie. mingw-w64-crt)
+FILE_PRIORITY_${PN}-libgcc-dev = "1"
+FILES_${PN}-libgcc-dev += "/${TARGET_ARCH}/sysroot${target_libdir}/crt*.o"
 FILES_${PN}-libstdc++-dev = "/${TARGET_ARCH}/sysroot${target_datadir}/gcc-${PV}/python/libstdcxx /${TARGET_ARCH}/sysroot${target_libdir}/libstdc++*.py"
 PROVIDES_${PN}-libgcc = "libgcc-s"
 PROVIDES_${PN}-libgcc[qa] = "allow-missing-soname:libgcc"
@@ -104,6 +108,14 @@ RDEPENDS_${PN} += "binutils target:libgcc target:libc-dev ${DEPENDS_HOSTLIB}"
 DEPENDS_${PN}:>TARGET_BINFMT_elf = " target:ld-so"
 
 META_EMIT_PREFIX += "split:PACKAGE_TYPE_${PN}"
+
+do_install[postfuncs] += "do_install_fixup_crt_files"
+do_install_fixup_crt_files() {
+	for f in ${D}${libdir}/gcc/${TARGET_ARCH}/${PV}/crt*.o ; do
+		[ -f $f ] || continue
+		mv $f ${D_SYSROOT}${target_libdir}/
+	done
+}
 
 do_split[postfuncs] += 'do_split_sysroot_fixup'
 def do_split_sysroot_fixup(d):
