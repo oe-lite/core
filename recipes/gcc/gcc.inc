@@ -51,10 +51,10 @@ FILES_${PN} += "${libdir}/*.a"
 
 inherit auto-package-utils
 AUTO_PACKAGE_UTILS = "cpp g++ gcov"
-FILES_${PN}-g++ = "${bindir}/${TARGET_PREFIX}c++"
+FILES_${PN}-g++ = "${bindir}/${TARGET_PREFIX}c++${HOST_EXEEXT}"
 
 PACKAGES += "${PN}-g++-dev"
-FILES_${PN}-g++-dev = "/${TARGET_ARCH}/sysroot${target_includedir}/c++"
+FILES_${PN}-g++-dev = "/${TARGET_ARCH}/sysroot${target_includedir}/c++${HOST_EXEEXT}"
 
 PACKAGE_TYPE_${PN}-g++-dev = "${TARGET_TYPE}"
 
