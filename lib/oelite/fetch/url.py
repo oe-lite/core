@@ -4,6 +4,7 @@ import os
 import urlgrabber
 import urlgrabber.progress
 import hashlib
+from oebakery import die, err, warn, info, debug
 
 class UrlFetcher():
 
@@ -137,7 +138,7 @@ def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
         if not downloaded_file:
             return False
     except urlgrabber.grabber.URLGrabError as e:
-        print 'URLGrabError %i: %s' % (e.errno, e.strerror)
+        warn('URLGrabError %i: %s' % (e.errno, e.strerror))
         if os.path.exists(filename):
             os.unlink(filename)
         return False
