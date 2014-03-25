@@ -1,0 +1,54 @@
+diff -urN old/make-3.81/Makefile.am new/make-3.81/Makefile.am
+--- old/make-3.81/Makefile.am	2006-04-01 02:36:40.000000000 -0400
++++ new/make-3.81/Makefile.am	2009-11-07 19:23:03.012300000 -0500
+@@ -172,10 +172,17 @@
+ 	    case `cd $(srcdir); pwd` in `pwd`) : ;; \
+ 	      *) test -d tests || mkdir tests; \
+ 		 rm -f srctests; \
+-		 if ln -s "$(srcdir)/tests" srctests; then \
++		 if /bin/false && ln -s "$(srcdir)/tests" srctests; then \
+ 		   for f in run_make_tests run_make_tests.pl test_driver.pl scripts; do \
+ 		     rm -f tests/$$f; ln -s ../srctests/$$f tests; \
+-		   done; fi ;; \
++		   done; \
++	         else \
++	           mkdir srctests ;\
++	           lndir $(srcdir)/tests/ srctests ;\
++	           for f in run_make_tests run_make_tests.pl test_driver.pl scripts; do \
++	             rm -f tests/$$f; (cd tests && ln -s ../srctests/$$f .); \
++	           done; \
++	         fi ;; \
+ 	    esac; \
+ 	    echo "cd tests && $(PERL) ./run_make_tests.pl -make ../make$(EXEEXT) $(MAKETESTFLAGS)"; \
+ 	    cd tests && $(PERL) ./run_make_tests.pl -make ../make$(EXEEXT) $(MAKETESTFLAGS); \
+diff -urN old/make-3.81/configure.in new/make-3.81/configure.in
+--- old/make-3.81/configure.in	2009-11-07 19:22:43.044300000 -0500
++++ new/make-3.81/configure.in	2009-11-07 19:37:43.011500000 -0500
+@@ -40,9 +40,8 @@
+ 
+ # Specialized system macros
+ AC_CANONICAL_HOST
+-AC_AIX
++AC_USE_SYSTEM_EXTENSIONS
+ AC_ISC_POSIX
+-AC_MINIX
+ 
+ # Needed for ansi2knr
+ AM_C_PROTOTYPES
+@@ -360,9 +359,14 @@
+ #endif
+  ], [AC_MSG_RESULT(yes)
+ make_cv_sys_gnu_glob=yes], [AC_MSG_RESULT([no; using local copy])
+-AC_SUBST(GLOBINC) GLOBINC='-I$(srcdir)/glob'
+-AC_SUBST(GLOBLIB) GLOBLIB=glob/libglob.a
+ make_cv_sys_gnu_glob=no])])
++if test "$make_cv_sys_gnu_glob" = no; then
++  GLOBINC='-I$(srcdir)/glob'
++  GLOBLIB=glob/libglob.a
++fi
++AC_SUBST(GLOBINC)
++AC_SUBST(GLOBLIB)
++
+ # Tell automake about this, so it can build the right .c files.
+ AM_CONDITIONAL(USE_LOCAL_GLOB, test "$make_cv_sys_gnu_glob" = no)
+ 
