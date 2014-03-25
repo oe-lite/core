@@ -6,6 +6,10 @@ require conf/meta.conf
 
 STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 
+BINCONFIG_STAGE_DIRNAMES = "prefix exec_prefix bindir sbindir libdir \
+	includedir libexecdir datadir sysconfdir sharedstatedir \
+	localstatedir infodir mandir"
+
 def binconfig_stage_fixup(d):
     pkgmetadir = d.get("pkgmetadir").lstrip("/")
     metafile_path = os.path.join(pkgmetadir, "binconfig").lstrip("/")
@@ -23,10 +27,7 @@ def binconfig_stage_fixup(d):
         dirname_prefix = "sdk_"
     else:
         dirname_prefix = "machine_"
-    dirnames = ("prefix", "exec_prefix", "bindir", "sbindir",
-                "libdir", "includedir", "libexecdir",
-                "datadir", "sysconfdir", "sharedstatedir", "localstatedir",
-                "infodir", "mandir")
+    dirnames = d.get("BINCONFIG_STAGE_DIRNAMES").split()
     dirpaths = {}
     for dirname in dirnames:
         dirpaths[dirname] = d.get(dirname_prefix + dirname)
@@ -36,10 +37,16 @@ def binconfig_stage_fixup(d):
         with open(filename, "r") as input_file:
             binconfig_file = input_file.read()
         for dirname in dirnames:
-            binconfig_file = re.sub(
-                re.compile("^(%s=).*"%(dirname), re.MULTILINE),
-                r"\g<1>%s%s"%(sysroot, dirpaths[dirname]),
-                binconfig_file)
+            if dirpaths[dirname] is None:
+                binconfig_file = re.sub(
+                    re.compile('^(%s=)"?([^"]*)"?'%(dirname), re.MULTILINE),
+                    r"\g<1>%s\g<2>"%(sysroot),
+                    binconfig_file)
+            else:
+                binconfig_file = re.sub(
+                    re.compile("^(%s=).*"%(dirname), re.MULTILINE),
+                    r"\g<1>%s%s"%(sysroot, dirpaths[dirname]),
+                    binconfig_file)
         for flagvar in ("CPPFLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
             binconfig_file = re.sub(
                  re.compile("^(%s=[\"'])"%(flagvar), re.MULTILINE),
