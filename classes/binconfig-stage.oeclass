@@ -10,6 +10,12 @@ BINCONFIG_STAGE_DIRNAMES = "prefix exec_prefix bindir sbindir libdir \
 	includedir libexecdir datarootdir datadir sysconfdir sharedstatedir \
 	localstatedir infodir mandir"
 
+# FIXME: add a method for packages providing binconfig files to specify which
+# dirnames to fixup, so that fx. this installbuilddir could be provided by apr
+# recipe, so that it does not impact metadata, and thus signature of all
+# recipes.
+BINCONFIG_STAGE_DIRNAMES += "installbuilddir"
+
 def binconfig_stage_fixup(d):
     pkgmetadir = d.get("pkgmetadir").lstrip("/")
     metafile_path = os.path.join(pkgmetadir, "binconfig").lstrip("/")
