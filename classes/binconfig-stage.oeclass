@@ -7,7 +7,7 @@ require conf/meta.conf
 STAGE_FIXUP_FUNCS += "binconfig_stage_fixup"
 
 BINCONFIG_STAGE_DIRNAMES = "prefix exec_prefix bindir sbindir libdir \
-	includedir libexecdir datadir sysconfdir sharedstatedir \
+	includedir libexecdir datarootdir datadir sysconfdir sharedstatedir \
 	localstatedir infodir mandir"
 
 def binconfig_stage_fixup(d):
