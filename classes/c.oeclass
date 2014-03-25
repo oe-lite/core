@@ -22,24 +22,16 @@ SDK_CPPFLAGS		?= ""
 
 HOST_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
 HOST_CPPFLAGS:cross		 = "${BUILD_CPPFLAGS}"
-HOST_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} \
-	--sysroot=${MACHINE_SYSROOT}"
-HOST_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS} \
-	--sysroot=${SDK_SYSROOT}"
+HOST_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS}"
+HOST_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS}"
 HOST_CPPFLAGS:sdk-cross		 = "${BUILD_CPPFLAGS}"
-HOST_CPPFLAGS:canadian-cross	 = "${SDK_CPPFLAGS} \
-	--sysroot=${SDK_SYSROOT}"
+HOST_CPPFLAGS:canadian-cross	 = "${SDK_CPPFLAGS}"
 TARGET_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
-TARGET_CPPFLAGS:cross		 = "${MACHINE_CPPFLAGS} \
-	--sysroot=${MACHINE_SYSROOT}"
-TARGET_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} \
-	--sysroot=${MACHINE_SYSROOT}"
-TARGET_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS} \
-	--sysroot=${SDK_SYSROOT}"
-TARGET_CPPFLAGS:sdk-cross	 = "${SDK_CPPFLAGS} \
-	--sysroot=${SDK_SYSROOT}"
-TARGET_CPPFLAGS:canadian-cross	 = "${MACHINE_CPPFLAGS} \
-	--sysroot=${MACHINE_SYSROOT}"
+TARGET_CPPFLAGS:cross		 = "${MACHINE_CPPFLAGS}"
+TARGET_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS}"
+TARGET_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS}"
+TARGET_CPPFLAGS:sdk-cross	 = "${SDK_CPPFLAGS}"
+TARGET_CPPFLAGS:canadian-cross	 = "${MACHINE_CPPFLAGS}"
 
 # CFLAGS
 export CFLAGS = "${HOST_CFLAGS}"
@@ -139,7 +131,6 @@ HOST_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
 	-Wl,-rpath,${D}${machine_libdir} \
 	-Wl,-rpath,${D}${machine_base_libdir} \
-	--sysroot=${MACHINE_SYSROOT} \
 "
 
 SDK_STATIC_LDFLAGS = ""
@@ -147,7 +138,6 @@ SDK_STATIC_LDFLAGS:USE_sdk_static = "-static"
 
 HOST_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
 	${SDK_STATIC_LDFLAGS} \
@@ -163,7 +153,6 @@ HOST_LDFLAGS:sdk-cross		 = "${BUILD_LDFLAGS} \
 
 HOST_LDFLAGS:canadian-cross	 = "${SDK_LDFLAGS} \
 	${HOST_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
 	${SDK_STATIC_LDFLAGS} \
@@ -177,17 +166,14 @@ TARGET_LDFLAGS:native		 = "${BUILD_LDFLAGS} \
 
 TARGET_LDFLAGS:cross		 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT} \
 "
 
 TARGET_LDFLAGS:machine		 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT} \
 "
 
 TARGET_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${D}${sdk_libdir} \
 	-Wl,-rpath,${D}${sdk_base_libdir} \
 	${SDK_STATIC_LDFLAGS} \
@@ -195,7 +181,6 @@ TARGET_LDFLAGS:sdk		 = "${SDK_LDFLAGS} \
 
 TARGET_LDFLAGS:sdk-cross	 = "${SDK_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${SDK_SYSROOT} \
 	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_libdir} \
 	-Wl,-rpath,${STAGE_DIR}/sdk${sdk_base_libdir} \
 	${SDK_STATIC_LDFLAGS} \
@@ -203,7 +188,6 @@ TARGET_LDFLAGS:sdk-cross	 = "${SDK_LDFLAGS} \
 
 TARGET_LDFLAGS:canadian-cross	 = "${MACHINE_LDFLAGS} \
 	${TARGET_LDFLAGS_HASH_STYLE} \
-	--sysroot=${MACHINE_SYSROOT} \
 "
 
 # CC
