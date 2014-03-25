@@ -8,7 +8,7 @@ DESCRIPTION = "GNU Make determines which pieces of a large program\
 LICENSE = "GPLv2"
 HOMEPAGE = "http://www.gnu.org/software/make/"
 
-RECIPE_TYPES = "native"
+RECIPE_TYPES = "native sdk"
 
 DEPENDS = ""
 
