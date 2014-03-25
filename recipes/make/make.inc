@@ -17,9 +17,6 @@ SRC_URI = "${GNU_MIRROR}/make/make-${PV}.tar.bz2"
 
 inherit autotools
 
-DEPENDS_${PN} = "native:binutils native:gettext"
-RDEPENDS_${PN} = "native:binutils"
-
 # Local Variables:
 # mode: python
 # End:
