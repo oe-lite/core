@@ -79,9 +79,17 @@ PROVIDES_${PN}-libncurses = "libtermcap"
 PROVIDES_${PN}-libncurses[qa] = "allow-missing-soname:libtermcap"
 PROVIDES_${PN}-libncurses-dev = "libtermcap-dev"
 
+inherit auto-package-utils
+AUTO_PACKAGE_UTILS = "captoinfo clear infocmp infotocap ncurses5-config reset tabs tic toe tput tset"
+RDEPENDS_${PN}-captoinfo += "${PN}-tic"
+RDEPENDS_${PN}-infotocap += "${PN}-tic"
+RDEPENDS_${PN}-reset += "${PN}-tset"
+AUTO_PACKAGE_UTILS_DEPENDS += "libncurses"
+AUTO_PACKAGE_UTILS_RDEPENDS += "libncurses"
+
 # Keep only tput/tset in primary package (clear/reset are already in busybox)
-FILES_${PN} = "${bindir}/tput ${bindir}/tset ${datadir}/tabset ${sysconfdir}/terminfo"
-FILES_${PN}-tools = "${bindir}/tic ${bindir}/toe ${bindir}/infotocap ${bindir}/captoinfo ${bindir}/infocmp ${bindir}/clear ${bindir}/reset ${bindir}/tack ${bindir}/tabs"
+FILES_${PN} = "${datadir}/tabset ${sysconfdir}/terminfo"
+RDEPENDS_${PN}-tools += "${AUTO_PACKAGE_UTILS_PROVIDES}"
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
 FILES_${PN}-dev += "${bindir}/ncurses5-config"
 
