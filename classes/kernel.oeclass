@@ -290,6 +290,7 @@ do_install () {
 PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-firmware"
 
 FILES_${PN} = "${bootdir}/${KERNEL_IMAGE_FILENAME}"
+FILES_${PN}:USE_kernel_uimage = "${bootdir}/uImage"
 FILES_${PN}-dtb = "${bootdir}/${KERNEL_DEVICETREE_FILENAME}"
 FILES_${PN}-vmlinux = "${bootdir}/vmlinux"
 FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
