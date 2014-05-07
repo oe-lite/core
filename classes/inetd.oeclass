@@ -26,9 +26,9 @@ do_install_inetd () {
         if [ -f $f ] ; then
             # only create inetddir when needed, and let it fail silently when
             # called more than once
-            mkdir -p ./${inetddir}
+            mkdir -p  ${D}/${inetddir}
             let i=$i+1
-            cp $f ./${inetddir}/${PN}.$i
+            cp $f ${D}/${inetddir}/${PN}.$i
         fi
     done
 }
