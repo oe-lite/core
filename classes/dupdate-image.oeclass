@@ -1,4 +1,4 @@
-## Used for creating dupdate tarballs containing multiple files.
+## Used for creating dupdate tarballs/zip containing multiple files.
 ##
 ## A dupdate file is a tarball containing: A VERSION, a runscript, a number of
 ## images, and a checksum of all the files.
@@ -6,6 +6,7 @@
 ## @useflag dupdate_script Set it to the name of dupdate script.
 ## @useflag dupdate_version Set it to the dupdate version (will be placed in
 ##          the VERSION file.
+## @useflag dupdate_archiveformat  Set it to the dupdate archive format to use, tar or zip
 ## @var IMAGE_BASENAME Set to a different basename.
 ## @var IMAGE_FULLNAME Set to a different fullname.
 
@@ -18,16 +19,31 @@ DUPDATE_IMAGE_EXT = '.dupdate'
 
 IMAGE_CREATE_FUNCS += "dupdate_image"
 
-dupdate_image() {
-	(
-	sha256sum * > sha256sum.txt
-	tar chf ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} .
-	)
+dupdate_image_tar(){
+    tar chf ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} .
 }
 
-CLASS_FLAGS += "dupdate_script dupdate_version"
+dupdate_image_zip(){
+    zip ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} *
+}
+
+dupdate_image(){
+    sha256sum * > sha256sum.txt
+
+    case "${USE_dupdate_archiveformat}" in
+    "tar") dupdate_image_tar
+           ;;
+    "zip") dupdate_image_zip
+           ;;
+    *) echo "ERROR: Unsupported archive format (${USE_dupdate_archiveformat})"
+       exit 1
+    esac
+}
+
+CLASS_FLAGS += "dupdate_script dupdate_version dupdate_archiveformat"
 DEFAULT_USE_dupdate_script = ""
 DEFAULT_USE_dupdate_version = ""
+DEFAULT_USE_dupdate_archiveformat = "tar"
 
 CLASS_FLAGS += "dupdate_exefile"
 require conf/dupdate.conf
