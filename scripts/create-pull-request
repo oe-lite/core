@@ -178,7 +178,16 @@ mkdir $ODIR
 
 # Generate the patches and cover letter
 git format-patch -M40 --subject-prefix="$PREFIX" -n -o $ODIR --thread=shallow --cover-letter $RELATIVE_TO..$COMMIT_ID > /dev/null
+if [ $? -ne 0 ]; then
+	echo "ERROR: git format-patch reported an error"
+	exit 1
+fi
 
+# Check if for some reason the ODIR is empty (could be the case if there are no diffs)
+if [ "$(ls -A $ODIR)" ==  ""  ]; then
+    echo "ERROR: Empty patch was generated - please check diffs between \"$RELATIVE_TO\" and \"$COMMIT_ID\""
+    exit 1
+fi
 
 # Customize the cover letter
 CL="$ODIR/0000-cover-letter.patch"
