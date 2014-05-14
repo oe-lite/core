@@ -40,6 +40,8 @@ include::quickstart.txt[]
 // Overview
 //include::overview.txt[]
 
+include::prebake.txt[]
+
 // Build Configuration
 //include::buildcfg.txt[]
 

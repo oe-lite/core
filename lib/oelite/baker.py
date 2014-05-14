@@ -12,6 +12,10 @@ import oelite.item
 from oelite.parse import *
 from oelite.cookbook import CookBook
 
+import oelite.fetch
+
+import bb.utils
+
 import sys
 import os
 import glob
@@ -437,6 +441,9 @@ class OEliteBaker:
         # check for availability of prebaked packages, and set package
         # filename for all packages.
         depend_packages = self.runq.get_depend_packages()
+        url_prefix = self.config.get("PREBAKE_URL")
+        if url_prefix is not None:
+            info("Trying to use prebakes from url: %s"%(url_prefix))
         for package in depend_packages:
             # FIXME: skip this package if it is to be rebuild
             prebake = self.find_prebaked_package(package)
@@ -608,6 +615,7 @@ class OEliteBaker:
     def find_prebaked_package(self, package):
         """return full-path filename string or None"""
         package_deploy_dir = self.config.get("PACKAGE_DEPLOY_DIR")
+        prebake_url_cache_dir = self.config.get("PREBAKE_CACHE_DIR")
         if not package_deploy_dir:
             die("PACKAGE_DEPLOY_DIR not defined")
         if self.options.prebake:
@@ -615,6 +623,7 @@ class OEliteBaker:
             if prebake_path:
                 prebake_path = prebake_path.split(":")
             prebake_path.insert(0, package_deploy_dir)
+            prebake_path.insert(0, prebake_url_cache_dir)
         else:
             prebake_path = [package_deploy_dir]
         debug("package=%s"%(repr(package)))
@@ -628,6 +637,7 @@ class OEliteBaker:
             raise NoSuchPackage()
         filename = "%s_%s_%s.tar"%(package.name, recipe.version, metahash)
         debug("prebake_path=%s"%(prebake_path))
+        #test local paths first
         for base_dir in prebake_path:
             path = os.path.join(
                 base_dir,
@@ -638,6 +648,23 @@ class OEliteBaker:
             if os.path.exists(path):
                 debug("found prebake: %s"%(path))
                 return path
+        #then test URLs from PREBAKE_URL
+        url_prefix = self.config.get("PREBAKE_URL")
+        if url_prefix is not None:
+            package_path =os.path.join(
+                    package.type,
+                    package.arch + (package.recipe.meta.get("EXTRA_ARCH") or ""),
+                    filename)
+            downloaded_file =os.path.join(
+                    prebake_url_cache_dir,
+                    package_path)
+            url = os.path.join(url_prefix, package_path)
+            if oelite.fetch.url.grab(url, downloaded_file, timeout=1, retry=1):
+                if os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 0:
+                    debug("using prebake from web: %s"%(url))
+                    return downloaded_file
+                else:
+                    os.unlink(downloaded_file)
         return None
 
 

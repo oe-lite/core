@@ -1,0 +1,29 @@
+Using prebaked packages
+=======================
+
+This section describes how to use packages build on another machine
+available via http.
+
+
+First you need to setup a http server that serves the prebaked packages
+from another machine. The baked prebakes will be in `${TMPDIR}/packages`
+so setup the  server to make files available online as you prefer.
+
+Secondly, you need to set PREBAKE_URL to point to your prebaked packages url
+prefix e.g: PREBAKE_CACHE_DIR can be set to pin point where the fetched
+prebaked packages are located
+
+----
+#cat conf/site.conf
+PREBAKE_URL="http://myserver.com/packages/"
+PREBAKE_CACHE_DIR="<path-to-temp-storage>"
+----
+
+Note, that the directory structure under "packages" should match the
+structure under `${TMPDIR}/packages`.
+
+Presently, 32-bit machines should bake prebaked packages that should be
+used on 32-bit machines as well (and likewise for 64-bit).
+
+The feature has been tested on Ubuntu 12.04 so please report a bug if you find
+problems using this feature.
