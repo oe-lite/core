@@ -431,8 +431,10 @@ class OEliteBaker:
         if count != total:
             print ""
             self.runq.print_metahashable_tasks()
-            print "count=%s total=%s"%(count, total)
-            die("Circular dependencies I presume.  Add more debug info!")
+            err("Circular task dependencies detected. Remaining tasks:")
+            for task in self.runq.get_unhashed_tasks():
+                print "  %s"%(task)
+            die("Unable to handle circular task dependencies")
 
         self.runq.set_task_build_on_nostamp_tasks()
         self.runq.set_task_build_on_retired_tasks()

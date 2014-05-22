@@ -355,7 +355,11 @@ class OEliteRunQueue:
                         depends.append(depend_package)
                     else:
                         depends.append("%s (%s)"%(depend_package, depend_item))
-                raise RecursiveDepends(depends)
+                #raise RecursiveDepends(depends) Simply break the circular
+                # dependency here. It is not possible to determine if it is a
+                # problem or not here, as this has to be done at task level
+                # instead.
+                return set([])
 
             # Recipe/task based circular dependencies are detected
             # later on when the entire runq has been constructed
@@ -872,6 +876,13 @@ class OEliteRunQueue:
                 " LIMIT 1"
                 ")"))
 
+    def get_unhashed_tasks(self):
+        tasks = []
+        for row in self.dbc.execute(
+            "SELECT task FROM runq.task "
+            "WHERE metahash IS NULL"):
+            tasks.append(self.cookbook.get_task(id=row[0]))
+        return tasks
 
     def get_package_metahash(self, package):
         assert isinstance(package, int)
