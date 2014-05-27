@@ -96,6 +96,8 @@ do_configure_kernel () {
 		die "No default configuration available"
 	fi
 	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
+		echo 'CONFIG_BLK_DEV_INITRD=y' \
+			>> ${S}/.config
 		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
 			>> ${S}/.config
 		yes '' | oe_runmake oldconfig
