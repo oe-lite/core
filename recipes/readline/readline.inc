@@ -10,6 +10,7 @@ inherit autotools make-vpath
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "readline history"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
+AUTO_PACKAGE_LIBS_DEV_RDEPENDS = "${PN}-dev"
 
 SOLIBS:HOST_OS_mingw32 = "${@d.get('PV').split('.')[0]}.dll"
 
