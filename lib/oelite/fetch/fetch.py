@@ -291,10 +291,10 @@ class OEliteUri:
                 cmd = cmd%(self.fetcher.localpath, self.srcpath(d))
             else:
                 cmd = cmd%(self.fetcher.localpath)
+            return oelite.util.shcmd(cmd)
         finally:
             if cwd:
                 os.chdir(cwd)
-        return oelite.util.shcmd(cmd)
 
     def srcpath(self, d):
         srcdir = d.get("SRCDIR")
