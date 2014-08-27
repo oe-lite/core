@@ -186,7 +186,7 @@ DEFAULT_USE_kernel_uimage = "0"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_uimage = " do_compile_kernel_uimage"
-UIMAGE_ENTRYPOINT_SYMBOL ?= "_start"
+UIMAGE_ENTRYPOINT_SYMBOL ?= "_start _text"
 export USE_kernel_uimage_loadaddress
 export USE_kernel_uimage_entrypoint
 do_compile_kernel_uimage() {
