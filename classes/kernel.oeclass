@@ -174,8 +174,13 @@ do_compile_kernel_uimage() {
     if [ -n "$USE_kernel_uimage_entrypoint" ] ; then
         ENTRYPOINT="$USE_kernel_uimage_entrypoint"
     else
-        ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
-            awk '$3=="${UIMAGE_ENTRYPOINT_SYMBOL}" {print $1}'`
+	for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
+	    ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
+		awk '$3=="'"$symbol"'" {print $1}'`
+	    if [ -n "$ENTRYPOINT" ] ; then
+		break
+	    fi
+	done
     fi
     if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
         LOADADDRESS="$USE_kernel_uimage_loadaddress"
