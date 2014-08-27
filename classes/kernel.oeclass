@@ -137,7 +137,26 @@ do_compile_kernel () {
 	else
 		oe_runmake include/linux/version.h
 	fi
-	oe_runmake ${USE_kernel_imagetype}
+	LOADADDR_ARG=""
+	if [ "${USE_kernel_imagetype}" = "uImage" ] ; then
+		if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
+			LOADADDR="$USE_kernel_uimage_loadaddress"
+		elif [ -n "$USE_kernel_uimage_entrypoint" ] ; then
+			LOADADDR=="$USE_kernel_uimage_entrypoint"
+		else
+			oe_runmake vmlinux
+			for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
+				LOADADDR=`${HOST_PREFIX}nm ${S}/vmlinux | \
+				awk '$3=="'"$symbol"'" {print $1}'`
+				if [ -n "$LOADADDR" ] ; then
+					break
+				fi
+			done
+		fi
+		LOADADDR_ARG="LOADADDR=$LOADADDR"
+	fi
+
+	oe_runmake ${USE_kernel_imagetype} $LOADADDR_ARG
 
 	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
 		oe_runmake modules
