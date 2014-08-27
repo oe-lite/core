@@ -474,6 +474,7 @@ cpumap = {
         'imx537'		: ('cortexa8', 'imx', 'imx53'),
         'imx538'		: ('cortexa8', 'imx', 'imx53'),
         'imx6'			: ('cortexa9', 'imx'),
+        'ls1021a'		: ('cortexa7', ('ls102x', 'ls1', 'layerscape')),
         },
 
     'x86'		: {
