@@ -156,7 +156,7 @@ do_compile_kernel () {
 		LOADADDR_ARG="LOADADDR=$LOADADDR"
 	fi
 
-	oe_runmake ${USE_kernel_imagetype} $LOADADDR_ARG
+	oe_runmake ${USE_kernel_imagetype} ${EXTRA_OEMAKE_COMPILE} $LOADADDR_ARG
 
 	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
 		oe_runmake modules
