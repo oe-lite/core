@@ -198,21 +198,21 @@ class OEliteTask:
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
-        logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
-        logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
-        oelite.util.makedirs(os.path.dirname(logfn))
+        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
+        self.logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
+        oelite.util.makedirs(os.path.dirname(self.logfn))
         try:
             if self.debug:
-                logfile = os.popen("tee %s"%logfn, "w")
+                logfile = os.popen("tee %s"%self.logfn, "w")
             else:
-                logfile = open(logfn, "w")
+                logfile = open(self.logfn, "w")
         except OSError:
-            print "Opening log file failed: %s"%(logfn)
+            print "Opening log file failed: %s"%(self.logfn)
             raise
 
-        if os.path.exists(logsymlink) or os.path.islink(logsymlink):
-            os.remove(logsymlink)
-        os.symlink(logfn, logsymlink)
+        if os.path.exists(self.logsymlink) or os.path.islink(self.logsymlink):
+            os.remove(self.logsymlink)
+        os.symlink(self.logfn, self.logsymlink)
 
         real_stdin = os.dup(sys.stdin.fileno())
         real_stdout = os.dup(sys.stdout.fileno())
@@ -251,9 +251,9 @@ class OEliteTask:
             os.close(real_stdin)
             os.close(real_stdout)
             os.close(real_stderr)
-            if os.path.exists(logfn) and os.path.getsize(logfn) == 0:
-                os.remove(logsymlink)
-                os.remove(logfn) # prune empty logfiles
+            if os.path.exists(self.logfn) and os.path.getsize(self.logfn) == 0:
+                os.remove(self.logsymlink)
+                os.remove(self.logfn) # prune empty logfiles
 
 
     def do_cleandirs(self, name=None):
