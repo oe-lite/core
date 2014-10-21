@@ -117,6 +117,8 @@ ARCH_HAS_WITH_CPU:TARGET_CPU_arm = "1"
 ARCH_HAS_WITH_TUNE:TARGET_CPU_arm = "1"
 ARCH_HAS_WITH_ABI:TARGET_CPU_arm = "1"
 ARCH_HAS_WITH_FPU:TARGET_CPU_arm = "1"
+ARCH_HAS_WITH_FLOAT:TARGET_CPU_arm = "1"
+ARCH_HAS_WITH_MODE:TARGET_CPU_arm = "1"
 
 ARCH_HAS_WITH_ARCH:TARGET_CPU_x86 = "1"
 ARCH_HAS_WITH_TUNE:TARGET_CPU_x86 = "1"
@@ -142,14 +144,14 @@ def set_configure_arch(d):
         if not arg_value:
             continue
         args.append('--with-%s=%s'%(arg_name, arg_value))
-    for arg_name in ('abi', 'fpu', 'float'):
+    for arg_name in ('abi', 'fpu', 'float', 'mode'):
         if not d.get('ARCH_HAS_WITH_' + arg_name.upper()):
             continue
         arg_value = d.get('TARGET_' + arg_name.upper())
         if not arg_value:
             continue
         args.append('--with-%s=%s'%(arg_name, arg_value))
-    arg_value = d.get('TARGET_' + arg_name.upper())
+
     d.set('do_configure_args',
           ' '.join(filter(None, [d.get('do_configure_args')] + args)))
 

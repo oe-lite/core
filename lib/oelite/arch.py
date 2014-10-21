@@ -164,7 +164,7 @@ cpuspecs = {
             },
         'cortexa8'		: {
             'mcpu'		: 'cortex-a8',
-            'mtune'	 	: 'cortex-a8',
+            'mtune'             : 'cortex-a8',
             'abi flags'         : [
                 ['float abi', 'hard', {
                         'hard' : {
@@ -184,25 +184,27 @@ cpuspecs = {
                         }
                  ],
                 ['instruction set', 'thumb', {
-                        'arm' : { },
+                        'arm' : {
+                            'mode' : 'arm',
+                            },
                         'thumb' : {
-                            'thumb' : '1',
+                            'mode' : 'thumb',
                             'vendor' : 't',
                             },
                         }
                  ],
                 ]
             },
-        'cortexa8neon'		: {
+        'cortexa8neont'		: {
             'mcpu'		: 'cortex-a8',
             'mtune'		: 'cortex-a8',
             'fpu'		: 'neon',
             'float'		: 'hard',
-            'thumb'		: '1',
+            'mode'		: 'thumb',
             },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
-            'mtune'	 	: 'cortex-a9',
+            'mtune'             : 'cortex-a9',
             'abi flags'         : [
                 ['float abi', 'hard', {
                         'hard' : {
@@ -222,21 +224,23 @@ cpuspecs = {
                         }
                  ],
                 ['instruction set', 'thumb', {
-                        'arm' : { },
+                        'arm' : {
+                            'mode' : 'arm',
+                            },
                         'thumb' : {
-                            'thumb' : '1',
+                            'mode' : 'thumb',
                             'vendor' : 't',
                             },
                         }
                  ],
                 ]
             },
-        'cortexa9neon'		: {
+        'cortexa9neont'		: {
             'mcpu'		: 'cortex-a9',
             'mtune'		: 'cortex-a9',
             'float'		: 'hard',
             'fpu'		: 'neon',
-            'thumb'		: '1',
+            'mode'		: 'thumb',
             },
         },
 
