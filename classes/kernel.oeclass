@@ -283,6 +283,12 @@ PROVIDES_${PN}-perf += "util/perf"
 FILES_${PN}-perf-doc = "${mandir}/man1/perf*"
 FILES_${PN}-perf-scripts = "${prefix}/libexec/perf-core"
 
+CLASS_FLAGS += "kernel_trace"
+PACKAGES:>USE_kernel_trace += " ${PN}-trace"
+FILES_${PN}-trace = "${libdir}/traceevent/*"
+DEPENDS_${PN}-trace += "libc"
+RDEPENDS_${PN}_trace += "libc"
+
 do_install_kernel () {
     install -d ${D}${bootdir}
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
