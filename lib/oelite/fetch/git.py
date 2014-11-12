@@ -53,6 +53,11 @@ class GitFetcher():
             self.signature_name += ";tag=" + self.tag
         if "branch" in uri.params:
             self.branch = uri.params["branch"]
+        i = bool(self.commit) + bool(self.tag) + bool(self.branch)
+        if i == 0:
+            self.branch = "HEAD"
+            if self.is_local and not hasattr(self, 'dirty'):
+                self.dirty = True            
         if "dirty" in uri.params:
             if uri.params["dirty"] == "1":
                 if not self.is_local:
@@ -63,12 +68,7 @@ class GitFetcher():
                         self.uri, "can only fetch git dirty content from HEAD")
                 self.dirty = True
             else:
-                self.dirty = False
-        i = bool(self.commit) + bool(self.tag) + bool(self.branch)
-        if i == 0:
-            self.branch = "HEAD"
-            if self.is_local and not hasattr(self, 'dirty'):
-                self.dirty = True
+                self.dirty = False       
         elif i != 1:
             raise oelite.fetch.InvalidURI(
                 self.uri, "cannot mix commit, tag and branch parameters")
