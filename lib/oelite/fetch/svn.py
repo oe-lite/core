@@ -173,6 +173,7 @@ class SvnFetcher():
                 return False, None, None, None
             password = getpass.getpass()
             return True, username, password, True
+        client = pysvn.Client()
         client.callback_get_login = get_login
         client.checkout(self.url, self.wc, recurse=True,
                         revision=self.get_revision(), ignore_externals=False)
