@@ -25,7 +25,7 @@ FETCHERS = {
 uri_pattern = re.compile("(?P<scheme>[^:]*)://(?P<location>[^;]+)(;(?P<params>.*))?")
 
 unpack_ext = (
-    ("tar_gz",	(".tar.gz", ".tgz", ".tar.Z")), 
+    ("tar_gz",	(".tar.gz", ".tgz", ".tar.Z")),
     ("tar_bz2",	(".tar.bz2", ".tbz", ".tbz2")),
     ("tar_xz",	(".tar.xz", ".txz")),
     ("tar_lz",	(".tar.lz", ".tlz")),

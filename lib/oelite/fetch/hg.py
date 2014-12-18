@@ -16,4 +16,3 @@ class HgFetcher():
     def fetch(self):
         raise Exception("hg fetcher not implemented")
         return False
-
