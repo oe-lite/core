@@ -24,20 +24,20 @@ def do_install_binconfig_fixup(d):
         print "binconfig fixup of /%s"%(filename)
         with open(filename, "r") as input_file:
             binconfig_file = input_file.read()
-        for strip_dirs in strip_dirs:
-            binconfig_file = re.sub(r"--sysroot=%s(/\S+)"%(strip_dirs),
+        for strip_dir in strip_dirs:
+            binconfig_file = re.sub(r"--sysroot=%s(/\S+)"%(strip_dir),
                                     r"--sysroot=\g<1>", binconfig_file)
-            binconfig_file = re.sub(r"--sysroot=%s\s*"%(strip_dirs),
+            binconfig_file = re.sub(r"--sysroot=%s\s*"%(strip_dir),
                                     r"", binconfig_file)
-            binconfig_file = re.sub(r"-isystem %s"%(strip_dirs),
+            binconfig_file = re.sub(r"-isystem %s"%(strip_dir),
                                     r"-isystem ", binconfig_file)
-            binconfig_file = re.sub(r"-I%s"%(strip_dirs),
+            binconfig_file = re.sub(r"-I%s"%(strip_dir),
                                     r"-I", binconfig_file)
-            binconfig_file = re.sub(r"-iquote%s"%(strip_dirs),
+            binconfig_file = re.sub(r"-iquote%s"%(strip_dir),
                                     r"-iquote", binconfig_file)
-            binconfig_file = re.sub(r"-L%s"%(strip_dirs),
+            binconfig_file = re.sub(r"-L%s"%(strip_dir),
                                     r"-L", binconfig_file)
-            binconfig_file = re.sub(r"=%s"%(strip_dirs),
+            binconfig_file = re.sub(r"=%s"%(strip_dir),
                                     r"=", binconfig_file)
         with open(filename, "w") as output_file:
             output_file.write(binconfig_file)

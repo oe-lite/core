@@ -1,0 +1,11 @@
+--- winpthreads/build-aux/ltmain.sh~orig	2014-02-12 18:07:38.877018631 +0100
++++ winpthreads/build-aux/ltmain.sh	2014-02-12 18:07:58.585018223 +0100
+@@ -6516,7 +6516,7 @@
+     new_inherited_linker_flags=
+ 
+     avoid_version=no
+-    bindir=
++    bindir=$sharedlibdir
+     dlfiles=
+     dlprefiles=
+     dlself=no

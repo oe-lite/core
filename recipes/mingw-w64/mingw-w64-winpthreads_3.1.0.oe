@@ -1,0 +1,4 @@
+require ${PN}.inc
+
+SRC_URI += "file://libtool-bindir.patch"
+export sharedlibdir

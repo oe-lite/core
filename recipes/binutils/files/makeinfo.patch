@@ -1,0 +1,40 @@
+--- binutils-2.23.2/ld/ld.texinfo.orig	2014-02-04 14:37:25.662248681 +0100
++++ binutils-2.23.2/ld/ld.texinfo	2014-02-04 14:37:34.470248554 +0100
+@@ -7863,7 +7863,7 @@
+ @printindex cp
+ 
+ @tex
+-% I think something like @colophon should be in texinfo.  In the
++% I think something like @@colophon should be in texinfo.  In the
+ % meantime:
+ \long\def\colophon{\hbox to0pt{}\vfill
+ \centerline{The body of this manual is set in}
+@@ -7874,7 +7874,7 @@
+ \centerline{{\sl\fontname\tensl\/}}
+ \centerline{are used for emphasis.}\vfill}
+ \page\colophon
+-% Blame: doc@cygnus.com, 28mar91.
++% Blame: doc@@cygnus.com, 28mar91.
+ @end tex
+ 
+ @bye
+--- binutils-2.23.2/bfd/doc/bfd.texinfo.orig	2014-02-04 14:37:46.630248378 +0100
++++ binutils-2.23.2/bfd/doc/bfd.texinfo	2014-02-04 14:37:58.026248212 +0100
+@@ -322,7 +322,7 @@
+ @printindex cp
+ 
+ @tex
+-% I think something like @colophon should be in texinfo.  In the
++% I think something like @@colophon should be in texinfo.  In the
+ % meantime:
+ \long\def\colophon{\hbox to0pt{}\vfill
+ \centerline{The body of this manual is set in}
+@@ -333,7 +333,7 @@
+ \centerline{{\sl\fontname\tensl\/}}
+ \centerline{are used for emphasis.}\vfill}
+ \page\colophon
+-% Blame: doc@cygnus.com, 28mar91.
++% Blame: doc@@cygnus.com, 28mar91.
+ @end tex
+ 
+ @bye

@@ -1,0 +1,482 @@
+diff -urN pristine/make-3.81/configure.in cygwin/make-3.81-2/configure.in
+--- pristine/make-3.81/configure.in	2006-04-01 02:36:40.000000000 -0400
++++ cygwin/make-3.81-2/configure.in	2006-07-09 14:46:44.000000000 -0400
+@@ -119,7 +119,7 @@
+ if test "$make_cv_file_timestamp_hi_res" = yes; then
+   # Solaris 2.5.1 needs -lposix4 to get the clock_gettime function.
+   # Solaris 7 prefers the library name -lrt to the obsolescent name -lposix4.
+-  AC_SEARCH_LIBS(clock_gettime, [rt posix4])
++  AC_SEARCH_LIBS(clock_gettime, [posix4])
+   if test "$ac_cv_search_clock_gettime" != no; then
+     AC_DEFINE(HAVE_CLOCK_GETTIME, 1,
+ 	      [Define if you have the clock_gettime function.])
+diff -urN pristine/make-3.81/file.c cygwin/make-3.81-2/file.c
+--- pristine/make-3.81/file.c	2006-03-17 10:24:20.000000000 -0400
++++ cygwin/make-3.81-2/file.c	2006-07-09 14:46:44.000000000 -0400
+@@ -490,7 +490,7 @@
+ 
+               o = subst_expand (buffer, d->name, "%", "$*", 1, 2, 0);
+ 
+-              free (d->name);
++              hash_strfree (d->name);
+               d->name = savestring (buffer, o - buffer);
+               d->staticpattern = 0; /* Clear staticpattern so that we don't
+                                        re-expand %s below. */
+@@ -549,7 +549,7 @@
+                         dp->name[0] = '\0';
+                       else
+                         {
+-                          free (dp->name);
++                          hash_strfree (dp->name);
+                           dp->name = savestring (buffer, o - buffer);
+                         }
+                     }
+@@ -580,7 +580,7 @@
+           if (d1->file == 0)
+             d1->file = enter_file (d1->name);
+           else
+-            free (d1->name);
++            hash_strfree (d1->name);
+           d1->name = 0;
+           d1->staticpattern = 0;
+           d1->need_2nd_expansion = 0;
+diff -urN pristine/make-3.81/implicit.c cygwin/make-3.81-2/implicit.c
+--- pristine/make-3.81/implicit.c	2006-04-01 02:36:40.000000000 -0400
++++ cygwin/make-3.81-2/implicit.c	2006-07-09 14:46:44.000000000 -0400
+@@ -864,7 +864,7 @@
+ 	      dep->file = enter_file (dep->name);
+               /* enter_file uses dep->name _if_ we created a new file.  */
+               if (dep->name != dep->file->name)
+-                free (dep->name);
++                hash_strfree (dep->name);
+ 	      dep->name = 0;
+ 	      dep->file->tried_implicit |= dep->changed;
+ 	    }
+diff -urN pristine/make-3.81/job.c cygwin/make-3.81-2/job.c
+--- pristine/make-3.81/job.c	2006-03-19 23:03:04.000000000 -0400
++++ cygwin/make-3.81-2/job.c	2006-07-09 14:46:44.000000000 -0400
+@@ -859,7 +859,7 @@
+ 
+       EINTRLOOP (r, write (job_fds[1], &token, 1));
+       if (r != 1)
+-	pfatal_with_name (_("write jobserver"));
++	pfatal_with_name_err (_("write jobserver"), errno);
+ 
+       DB (DB_JOBS, (_("Released token for child 0x%08lx (%s).\n"),
+                     (unsigned long int) child, child->file->name));
+@@ -1699,6 +1699,7 @@
+ 
+         /* Set interruptible system calls, and read() for a job token.  */
+ 	set_child_handler_action_flags (1, waiting_jobs != NULL);
++	errno = 0;
+ 	got_token = read (job_rfd, &token, 1);
+ 	saved_errno = errno;
+ 	set_child_handler_action_flags (0, waiting_jobs != NULL);
+@@ -1713,10 +1714,14 @@
+ 
+         /* If the error _wasn't_ expected (EINTR or EBADF), punt.  Otherwise,
+            go back and reap_children(), and try again.  */
+-	errno = saved_errno;
+-        if (errno != EINTR && errno != EBADF)
+-          pfatal_with_name (_("read jobs pipe"));
+-        if (errno == EBADF)
++        if (saved_errno != EINTR && saved_errno != EBADF)
++	  {
++	    if (got_token == 0)
++	      fatal (NILF, _("read jobs pipe EOF"));
++	    else
++	      pfatal_with_name_err (_("read jobs pipe"), saved_errno);
++	  }
++        if (saved_errno == EBADF)
+           DB (DB_JOBS, ("Read returned EBADF.\n"));
+       }
+ #endif
+@@ -1831,7 +1836,7 @@
+ 	    error (NILF,
+                    _("cannot enforce load limits on this operating system"));
+ 	  else
+-	    perror_with_name (_("cannot enforce load limit: "), "getloadavg");
++	    perror_with_name_err (_("cannot enforce load limit: "), "getloadavg", errno);
+ 	}
+       lossage = errno;
+       load = 0;
+diff -urN pristine/make-3.81/main.c cygwin/make-3.81-2/main.c
+--- pristine/make-3.81/main.c	2006-03-19 22:36:37.000000000 -0400
++++ cygwin/make-3.81-2/main.c	2006-07-09 16:24:39.000000000 -0400
+@@ -281,6 +281,9 @@
+ 
+ struct variable shell_var;
+ 
++static int invalid_win32;
++static int noop_unix;
++
+ 
+ /* The usage output.  We write it this way to make life easier for the
+    translators, especially those trying to translate to right-to-left
+@@ -416,6 +419,10 @@
+     { 'W', string, (char *) &new_files, 0, 0, 0, 0, 0, "what-if" },
+     { CHAR_MAX+4, flag, (char *) &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
+       "warn-undefined-variables" },
++#ifdef __CYGWIN__
++    { CHAR_MAX+5, flag, (char *) &noop_unix, 1, 1, 0, 0, 0, "unix" },
++    { CHAR_MAX+6, flag, (char *) &invalid_win32, 1, 1, 0, 0, 0, "win32"} ,
++#endif
+     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+   };
+ 
+@@ -540,6 +547,7 @@
+   init_hash_files ();
+   hash_init_directories ();
+   hash_init_function_table ();
++  init_hash_strings ();
+ }
+ 
+ static struct file *
+@@ -1502,13 +1510,13 @@
+ 	    strcat (template, DEFAULT_TMPFILE);
+ 	    outfile = open_tmpfile (&stdin_nm, template);
+ 	    if (outfile == 0)
+-	      pfatal_with_name (_("fopen (temporary file)"));
++	      pfatal_with_name_err (_("fopen (temporary file)"), errno);
+ 	    while (!feof (stdin) && ! ferror (stdin))
+ 	      {
+ 		char buf[2048];
+ 		unsigned int n = fread (buf, 1, sizeof (buf), stdin);
+ 		if (n > 0 && fwrite (buf, 1, n, outfile) != n)
+-		  pfatal_with_name (_("fwrite (temporary file)"));
++		  pfatal_with_name_err (_("fwrite (temporary file)"), errno);
+ 	      }
+ 	    (void) fclose (outfile);
+ 
+@@ -1623,6 +1631,20 @@
+   }
+ #endif /* __MSDOS__ || __EMX__ */
+ 
++#ifdef __CYGWIN__
++  {
++  char *make_mode_env;
++  if (invalid_win32)
++    fatal (NILF, "make: --win32 is no longer supported");
++
++  /* Read the environment variable MAKE_MODE */
++  /* If it's not "UNIX", set unixy_shell to 0. */
++  make_mode_env = getenv ("MAKE_MODE");
++  if (make_mode_env && strcasecmp (make_mode_env, "UNIX") != 0)
++    fatal (NILF, "make: MAKE_MODE=%s is no longer supported", make_mode_env);
++  }
++#endif
++
+   /* Decode switches again, in case the variables were set by the makefile.  */
+   decode_env_switches (STRING_SIZE_TUPLE ("MAKEFLAGS"));
+ #if 0
+@@ -1681,7 +1703,7 @@
+     else if ((job_rfd = dup (job_fds[0])) < 0)
+       {
+         if (errno != EBADF)
+-          pfatal_with_name (_("dup jobserver"));
++          pfatal_with_name_err (_("dup jobserver"), errno);
+ 
+         error (NILF,
+                _("warning: jobserver unavailable: using -j1.  Add `+' to parent make rule."));
+@@ -1699,6 +1721,20 @@
+       }
+   }
+ 
++#ifdef PIPE_BUF
++  if (job_slots > PIPE_BUF)
++#elif defined _POSIX_PIPE_BUF
++  if (job_slots > _POSIX_PIPE_BUF)
++#else
++  if (job_slots > 512)
++#endif
++    {
++      error (NILF,
++	     _("More parallel jobs (-jN) than this platform can handle requested."));
++      error (NILF, _("Resetting to single job (-j1) mode."));
++      job_slots = 1;
++    }
++
+   /* If we have >1 slot but no jobserver-fds, then we're a top-level make.
+      Set up the pipe and install the fds option for our children.  */
+ 
+@@ -1707,7 +1743,7 @@
+       char c = '+';
+ 
+       if (pipe (job_fds) < 0 || (job_rfd = dup (job_fds[0])) < 0)
+-	pfatal_with_name (_("creating jobs pipe"));
++	pfatal_with_name_err (_("creating jobs pipe"), errno);
+ 
+       /* Every make assumes that it always has one job it can run.  For the
+          submakes it's the token they were given by their parent.  For the
+@@ -1722,7 +1758,7 @@
+ 
+           EINTRLOOP (r, write (job_fds[1], &c, 1));
+           if (r != 1)
+-            pfatal_with_name (_("init jobserver pipe"));
++            pfatal_with_name_err (_("init jobserver pipe"), errno);
+         }
+ 
+       /* Fill in the jobserver_fds struct for our children.  */
+@@ -2137,7 +2173,7 @@
+   /* If there is a temp file from reading a makefile from stdin, get rid of
+      it now.  */
+   if (stdin_nm && unlink (stdin_nm) < 0 && errno != ENOENT)
+-    perror_with_name (_("unlink (temporary file): "), stdin_nm);
++    perror_with_name_err (_("unlink (temporary file): "), stdin_nm, errno);
+ 
+   {
+     int status;
+diff -urN pristine/make-3.81/make.h cygwin/make-3.81-2/make.h
+--- pristine/make-3.81/make.h	2006-02-15 18:54:43.000000000 -0500
++++ cygwin/make-3.81-2/make.h	2006-07-09 14:46:44.000000000 -0400
+@@ -414,6 +414,8 @@
+ extern void log_working_directory PARAMS ((int));
+ extern void pfatal_with_name PARAMS ((const char *)) __attribute__ ((noreturn));
+ extern void perror_with_name PARAMS ((const char *, const char *));
++extern void pfatal_with_name_err PARAMS ((const char *, int errnum)) __attribute__ ((noreturn));
++extern void perror_with_name_err PARAMS ((const char *, const char *, int errnum));
+ extern char *savestring PARAMS ((const char *, unsigned int));
+ extern char *concat PARAMS ((const char *, const char *, const char *));
+ extern char *xmalloc PARAMS ((unsigned int));
+@@ -429,6 +431,11 @@
+ extern char *find_percent PARAMS ((char *));
+ extern FILE *open_tmpfile PARAMS ((char **, const char *));
+ 
++extern void init_hash_strings PARAMS ((void));
++extern char *hash_strdup PARAMS ((const char *));
++extern char *hash_savestring PARAMS ((const char *, unsigned int));
++extern void hash_strfree PARAMS ((char *));
++
+ #ifndef NO_ARCHIVES
+ extern int ar_name PARAMS ((char *));
+ extern void ar_parse_name PARAMS ((char *, char **, char **));
+@@ -488,7 +495,7 @@
+ #endif  /* Not GNU C library or POSIX.  */
+ 
+ #ifdef  HAVE_GETCWD
+-# if !defined(VMS) && !defined(__DECC)
++# if !defined(VMS) && !defined(__DECC) && !defined(getcwd)
+ extern char *getcwd ();
+ # endif
+ #else
+diff -urN pristine/make-3.81/misc.c cygwin/make-3.81-2/misc.c
+--- pristine/make-3.81/misc.c	2006-04-01 02:36:40.000000000 -0400
++++ cygwin/make-3.81-2/misc.c	2006-07-09 14:46:44.000000000 -0400
+@@ -16,8 +16,10 @@
+ GNU Make; see the file COPYING.  If not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
+ 
++#include <assert.h>
+ #include "make.h"
+ #include "dep.h"
++#include "hash.h"
+ #include "debug.h"
+ 
+ /* Variadic functions.  We go through contortions to allow proper function
+@@ -311,17 +313,31 @@
+ /* Print an error message from errno.  */
+ 
+ void
++perror_with_name_err (const char *str, const char *name, int errnum)
++{
++  error (NILF, _("%s%s: %s"), str, name, strerror (errnum));
++}
++
++void
+ perror_with_name (const char *str, const char *name)
+ {
+-  error (NILF, _("%s%s: %s"), str, name, strerror (errno));
++  perror_with_name_err (str, name, errno);
+ }
+ 
+ /* Print an error message from errno and exit.  */
+ 
+ void
++pfatal_with_name_err (const char *name, int errnum)
++{
++  fatal (NILF, _("%s: %s"), name, strerror (errnum));
++
++  /* NOTREACHED */
++}
++
++void
+ pfatal_with_name (const char *name)
+ {
+-  fatal (NILF, _("%s: %s"), name, strerror (errno));
++  pfatal_with_name_err (name, errno);
+ 
+   /* NOTREACHED */
+ }
+@@ -497,7 +513,7 @@
+ free_dep (struct dep *d)
+ {
+   if (d->name != 0)
+-    free (d->name);
++    hash_strfree (d->name);
+ 
+   if (d->stem != 0)
+     free (d->stem);
+@@ -521,7 +537,7 @@
+       bcopy ((char *) d, (char *) c, sizeof (struct dep));
+ 
+       if (c->name != 0)
+-	c->name = xstrdup (c->name);
++	c->name = hash_strdup (c->name);
+       if (c->stem != 0)
+ 	c->stem = xstrdup (c->stem);
+ 
+@@ -895,3 +911,154 @@
+       exit (EXIT_FAILURE);
+     }
+ }
++
++/* Hash table of duplicated strings.  */
++
++struct hash_string
++{
++  char *string;
++  unsigned int count;
++};
++
++static unsigned long
++string_hash_1 (key)
++    const void *key;
++{
++  return_ISTRING_HASH_1 (((const struct hash_string *) key)->string);
++}
++
++static unsigned long
++string_hash_2 (key)
++    const void *key;
++{
++  return_ISTRING_HASH_2 (((const struct hash_string *) key)->string);
++}
++
++static int
++string_hash_cmp (x, y)
++    const void *x;
++    const void *y;
++{
++  return_ISTRING_COMPARE (((const struct hash_string *) x)->string,
++			  ((const struct hash_string *) y)->string);
++}
++
++static struct hash_table strings;
++
++void
++init_hash_strings ()
++{
++  hash_init (&strings, 1000, string_hash_1, string_hash_2,
++	     string_hash_cmp);
++}
++
++/* Keep track duplicated string and return the old one if exists.  */
++
++char *
++hash_strdup (ptr)
++     const char *ptr;
++{
++  struct hash_string *h, key;
++
++  if (*ptr == '\0')
++    return "";
++
++  key.string = (char *) ptr;
++  key.count = 0;
++  h = (struct hash_string *) hash_find_item (&strings, &key);
++  if (h == NULL)
++    {
++      char *result = (char *) malloc (strlen (ptr) + 1);
++
++      if (result == NULL)
++	fatal (NILF, _("virtual memory exhausted"));
++
++      strcpy (result, ptr);
++
++      h = (struct hash_string *) malloc (sizeof (struct hash_string));
++      if (h == NULL)
++	fatal (NILF, _("virtual memory exhausted"));
++
++      h->string = result;
++      h->count = 1;
++      hash_insert (&strings, h);
++    }
++  else
++    {
++      h->count++;
++      assert (h->count != 0);
++    }
++
++  return h->string;
++}
++
++char *
++hash_savestring (str, length)
++     const char *str;
++     unsigned int length;
++{
++  struct hash_string *h, key;
++
++  if (length == 0 || *str == '\0')
++    return "";
++
++  key.string = alloca (length + 1);
++  key.count = 0;
++  bcopy (str, key.string, length);
++  key.string [length] = '\0';
++
++  h = (struct hash_string *) hash_find_item (&strings, &key);
++  if (h == NULL)
++    {
++      char *out = (char *) xmalloc (length + 1);
++      bcopy (str, out, length);
++      out[length] = '\0';
++
++      h = (struct hash_string *) malloc (sizeof (struct hash_string));
++      if (h == NULL)
++	fatal (NILF, _("virtual memory exhausted"));
++
++      h->string = out;
++      h->count = 1;
++      hash_insert (&strings, h);
++    }
++  else
++    {
++      h->count++;
++      assert (h->count != 0);
++    }
++
++  return h->string;
++}
++
++void
++hash_strfree (ptr)
++     char *ptr;
++{
++  struct hash_string *h, key;
++
++  if (*ptr == '\0')
++    return;
++
++  key.string = ptr;
++  key.count = 0;
++  h = (struct hash_string *) hash_find_item (&strings, &key);
++
++  /* Check if string comes from hash_strdup or hash_savestring.  */
++  if (h == NULL || h->string != ptr)
++    {
++      free (ptr);
++      return;
++    }
++
++  h->count--;
++  if (h->count == 0)
++    {
++      struct hash_string *d;
++
++      d = hash_delete (&strings, h);
++      assert (d == h);
++      free (h->string);
++      free (h);
++    }
++}

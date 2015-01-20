@@ -1,0 +1,78 @@
+2006-08-18  Eli Zaretskii  <address@hidden>
+
+        * configure.in (PATH_SEPARATOR_CHAR): Define to the value of
+        $PATH_SEPARATOR.
+
+        * make.h (PATH_SEPARATOR_CHAR): Define only if still undefined.
+        Normally, it is defined in config.h.
+
+        * config/dospaths.m4 <ac_cv_dos_paths>: Define to yes on Cygwin as
+        well.
+
+        * job.c (construct_command_argv_internal) [HAVE_DOS_PATHS]: Define
+        sh_chars_sh for Windows platforms that emulate Unix.
+
+
+--- old/make-3.81/configure.in	2006-04-01 12:36:40.000000000 +0300
++++ new/make-3.81/configure.in	2006-08-18 21:12:32.828125000 +0300
+@@ -384,6 +384,8 @@
+     ;;
+ esac
+ 
++AC_DEFINE_UNQUOTED(PATH_SEPARATOR_CHAR,'$PATH_SEPARATOR',[Define to the character that separates directories in PATH.])
++
+ # Include the Maintainer's Makefile section, if it's here.
+ 
+ MAINT_MAKEFILE=/dev/null
+
+--- old/make-3.81/make.h	2006-02-16 03:54:43.000000000 +0200
++++ new/make-3.81/make.h	2006-08-18 21:12:32.859375000 +0300
+@@ -347,12 +347,14 @@
+ #define S_(msg1,msg2,num)   ngettext (msg1,msg2,num)
+ 
+ /* Handle other OSs.  */
+-#if defined(HAVE_DOS_PATHS)
+-# define PATH_SEPARATOR_CHAR ';'
+-#elif defined(VMS)
+-# define PATH_SEPARATOR_CHAR ','
+-#else
+-# define PATH_SEPARATOR_CHAR ':'
++#ifndef PATH_SEPARATOR_CHAR
++# if defined(HAVE_DOS_PATHS)
++#  define PATH_SEPARATOR_CHAR ';'
++# elif defined(VMS)
++#  define PATH_SEPARATOR_CHAR ','
++# else
++#  define PATH_SEPARATOR_CHAR ':'
++# endif
+ #endif
+ 
+ /* This is needed for getcwd() and chdir().  */
+
+--- old/make-3.81/config/dospaths.m4	2006-03-10 06:20:45.000000000 +0200
++++ new/make-3.81/config/dospaths.m4	2006-08-18 21:12:32.859375000 +0300
+@@ -22,7 +22,7 @@
+     AC_CACHE_CHECK([whether system uses MSDOS-style paths], [ac_cv_dos_paths],
+       [
+         AC_COMPILE_IFELSE([
+-#if !defined _WIN32 && !defined __WIN32__ && !defined __MSDOS__ && !defined __EMX__ && !defined __MSYS__
++#if !defined _WIN32 && !defined __WIN32__ && !defined __MSDOS__ && !defined __EMX__ && !defined __MSYS__ && !defined __CYGWIN__
+ neither MSDOS nor Windows nor OS2
+ #endif
+ ],
+
+--- old/make-3.81/job.c	2006-03-20 07:03:04.000000000 +0200
++++ new/make-3.81/job.c	2006-08-19 09:25:07.687500000 +0300
+@@ -2307,6 +2307,12 @@ construct_command_argv_internal (char *l
+                              "login", "logout", "read", "readonly", "set",
+                              "shift", "switch", "test", "times", "trap",
+                              "umask", "wait", "while", 0 };
++# ifdef HAVE_DOS_PATHS
++  /* This is required if the MSYS/Cygwin ports (which do not define
++     WINDOWS32) are compiled with HAVE_DOS_PATHS defined, which uses
++     sh_chars_sh[] directly (see below).  */
++  static char *sh_chars_sh = sh_chars;
++# endif         /* HAVE_DOS_PATHS */
+ #endif
+   register int i;
+   register char *p;

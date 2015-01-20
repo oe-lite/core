@@ -1,0 +1,19 @@
+LICENSE = "GPL-2.0+"
+LICENSE_${PN}-libltdl = "LGPL-2.1+"
+
+require libtool.inc
+
+addtask bootstrap before configure after fetch unpack patch stage
+do_bootstrap[dirs] = "${S}"
+
+do_bootstrap () {
+	if [ "${RECIPE_TYPE}" != "native" ]; then
+		./bootstrap
+	fi
+}
+
+#SRC_URI:>TARGET_LIBC_mingw = " file://default-bindir.patch"
+
+# Local Variables:
+# mode: python
+# End:

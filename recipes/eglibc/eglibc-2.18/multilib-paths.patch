@@ -1,0 +1,108 @@
+--- eglibc-2_18/libc/sysdeps/gnu/configure.in~orig	2014-01-10 11:28:51.208593177 +0100
++++ eglibc-2_18/libc/sysdeps/gnu/configure.in	2014-01-10 11:53:39.592562337 +0100
+@@ -8,26 +8,14 @@
+ # in /lib and /etc.
+ case "$prefix" in
+ /usr | /usr/)
+-  # 64-bit libraries on bi-arch platforms go in /lib64 instead of /lib.
+   # Allow earlier configure scripts to handle libc_cv_slibdir,
+   # libc_cv_rtlddir, libdir, and libc_cv_localedir.
+-  test -n "$libc_cv_slibdir" || \
+-  case $machine in
+-  sparc/sparc64 | x86_64* | powerpc/powerpc64 | s390/s390-64)
+-    libc_cv_slibdir=/lib64
+-    case $machine in
+-    s390/s390-64)
+-      libc_cv_rtlddir=/lib
+-      ;;
+-    esac
+-    if test "$libdir" = '${exec_prefix}/lib'; then
+-      libdir='${exec_prefix}/lib64';
+-      # Locale data can be shared between 32bit and 64bit libraries
+-      libc_cv_localedir='${exec_prefix}/lib/locale'
+-    fi
+-    ;;
+-  *)
++  if test -z "$libc_cv_slibdir"; then
+     libc_cv_slibdir=/lib
++  fi
++  case $machine in
++  s390/s390-64)
++    libc_cv_rtlddir=/lib
+     ;;
+   esac
+   # Allow the user to override the path with --sysconfdir.
+@@ -41,7 +29,18 @@
+     libc_cv_localstatedir=/var
+   else
+     libc_cv_localstatedir=$localstatedir
+-   fi
++  fi
+   libc_cv_rootsbindir=/sbin
+   ;;
+ esac
++
++# Apply multilib library paths
++multi_os_directory=`$CC -print-multi-os-directory`
++case $multi_os_directory in
++.) ;; # Avoid trailing /.
++../*)
++  libdir=$libdir/$multi_os_directory
++  libc_cv_slibdir=$libc_cv_slibdir/$multi_os_directory
++  libc_cv_localedir=$libdir/locale
++  ;;
++esac
+--- eglibc-2_18/libc/sysdeps/gnu/configure~orig	2014-01-10 11:28:45.008593306 +0100
++++ eglibc-2_18/libc/sysdeps/gnu/configure	2014-01-10 11:53:47.856562166 +0100
+@@ -8,26 +8,14 @@
+ # in /lib and /etc.
+ case "$prefix" in
+ /usr | /usr/)
+-  # 64-bit libraries on bi-arch platforms go in /lib64 instead of /lib.
+   # Allow earlier configure scripts to handle libc_cv_slibdir,
+   # libc_cv_rtlddir, libdir, and libc_cv_localedir.
+-  test -n "$libc_cv_slibdir" || \
+-  case $machine in
+-  sparc/sparc64 | x86_64* | powerpc/powerpc64 | s390/s390-64)
+-    libc_cv_slibdir=/lib64
+-    case $machine in
+-    s390/s390-64)
+-      libc_cv_rtlddir=/lib
+-      ;;
+-    esac
+-    if test "$libdir" = '${exec_prefix}/lib'; then
+-      libdir='${exec_prefix}/lib64';
+-      # Locale data can be shared between 32bit and 64bit libraries
+-      libc_cv_localedir='${exec_prefix}/lib/locale'
+-    fi
+-    ;;
+-  *)
++  if test -z "$libc_cv_slibdir"; then
+     libc_cv_slibdir=/lib
++  fi
++  case $machine in
++  s390/s390-64)
++    libc_cv_rtlddir=/lib
+     ;;
+   esac
+   # Allow the user to override the path with --sysconfdir.
+@@ -41,7 +29,18 @@
+     libc_cv_localstatedir=/var
+   else
+     libc_cv_localstatedir=$localstatedir
+-   fi
++  fi
+   libc_cv_rootsbindir=/sbin
+   ;;
+ esac
++
++# Apply multilib library paths
++multi_os_directory=`$CC -print-multi-os-directory`
++case $multi_os_directory in
++.) ;; # Avoid trailing /.
++../*)
++  libdir=$libdir/$multi_os_directory
++  libc_cv_slibdir=$libc_cv_slibdir/$multi_os_directory
++  libc_cv_localedir=$libdir/locale
++  ;;
++esac

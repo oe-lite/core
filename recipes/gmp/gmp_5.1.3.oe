@@ -1,0 +1,4 @@
+require ${PN}.inc
+LICENSE = "LGPL-3.0+"
+
+SRC_URI += "https://gmplib.org/repo/gmp-5.1/raw-rev/d19172622a74;apply=1"
