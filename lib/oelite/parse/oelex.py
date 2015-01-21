@@ -23,6 +23,7 @@ reserved = {
     'addtask'	: 'ADDTASK',
     'addhook'	: 'ADDHOOK',
     'def'	: 'DEF',
+    'prefer'	: 'PREFER',
     }
 tokens += list(reserved.values())
 
@@ -36,6 +37,12 @@ states = (
     ('inherit', 'exclusive'),
     ('addtask', 'exclusive'),
     ('addhook', 'exclusive'),
+    ('prefer', 'exclusive'),
+    ('preferpackage', 'exclusive'),
+    ('packages', 'exclusive'),
+    ('preferrecipe', 'exclusive'),
+    ('preferlayer', 'exclusive'),
+    ('preferversion', 'exclusive'),
     ('dquote', 'exclusive'),
     ('squote', 'exclusive'),
     ('tripledquote', 'exclusive'),
@@ -56,7 +63,8 @@ def t_VARNAME(t):
     t.type = reserved.get(t.value, 'VARNAME')
     if t.type == 'VARNAME':
         pass
-    elif t.type in ('INCLUDE', 'INHERIT', 'ADDTASK', 'ADDHOOK', 'DEF'):
+    elif t.type in ('INCLUDE', 'INHERIT', 'ADDTASK', 'ADDHOOK', 'DEF',
+                    'PREFER'):
         t.lexer.push_state(t.value)
     elif t.type == 'REQUIRE':
         t.lexer.push_state('include')
@@ -288,6 +296,86 @@ def t_addhook_NAME(t):
     return t
 
 def t_addhook_NEWLINE(t):
+    r'\n'
+    t.lexer.lineno += 1
+    t.lexer.pop_state()
+    return t
+
+
+t_prefer_ignore = ' \t'
+
+tokens += [ 'PACKAGE', 'RECIPE', 'LAYER', 'VERSION',
+            'PACKAGENAME', 'RECIPENAME', 'LAYERNAME', 'VERSIONNAME' ]
+
+def t_prefer_PACKAGE(t):
+    r'package'
+    t.lexer.push_state('preferpackage')
+    return t
+
+def t_prefer_RECIPE(t):
+    r'recipe'
+    t.lexer.push_state('preferrecipe')
+    return t
+
+def t_prefer_LAYER(t):
+    r'layer'
+    t.lexer.push_state('preferlayer')
+    return t
+
+def t_prefer_VERSION(t):
+    r'version'
+    t.lexer.push_state('preferversion')
+    return t
+
+t_preferpackage_ignore = ' \t'
+
+def t_preferpackage_PACKAGENAME(t):
+    r'[a-z][a-z0-9\-\+]*'
+    t.lexer.push_state('packages')
+    return t
+
+t_packages_ignore = ','
+
+def t_packages_PACKAGENAME(t):
+    r'[a-z][a-z0-9\-\+]*'
+    return t
+
+def t_packages_WHITESPACE(t):
+    r'[ \t]'
+    t.lexer.pop_state()
+    t.lexer.pop_state()
+    return
+
+def t_packages_NEWLINE(t):
+    r'\n'
+    t.lexer.lineno += 1
+    t.lexer.pop_state()
+    t.lexer.pop_state()
+    t.lexer.pop_state()
+    return t
+
+t_preferrecipe_ignore = ' \t'
+
+def t_preferrecipe_RECIPENAME(t):
+    r'[a-z][a-z0-9\-\+_/\.]*'
+    t.lexer.pop_state()
+    return t
+
+t_preferlayer_ignore = ' \t'
+
+def t_preferlayer_LAYERNAME(t):
+    r'[a-z][a-z0-9\-\+_/\.]*'
+    t.lexer.pop_state()
+    return t
+
+t_preferversion_ignore = ' \t'
+
+def t_preferversion_VERSIONNAME(t):
+    r'[0-9\.a-z\-]+'
+    t.lexer.pop_state()
+    return t
+
+def t_prefer_NEWLINE(t):
     r'\n'
     t.lexer.lineno += 1
     t.lexer.pop_state()

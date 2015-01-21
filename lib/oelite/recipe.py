@@ -29,7 +29,13 @@ class OEliteRecipe:
         self.meta = meta
         self.name = self.meta.get("PN")
         self.version = self.meta.get("PV")
-        self.priority = int(self.meta.get("DEFAULT_PREFERENCE") or "0")
+        self.layer_priority = int(self.meta.get("LAYER_PRIORITY"))
+        self.priority_baseline = int(self.meta.get("PRIORITY_BASELINE"))
+        priority = self.meta.get("PRIORITY")
+        if priority is None:
+            priority = self.meta.get("DEFAULT_PREFERENCE")
+        priority = int(priority)
+        self.priority = self.layer_priority + self.priority_baseline + priority
         self._datahash = None
         self._hash = None
         self.recipe_deps = set([])

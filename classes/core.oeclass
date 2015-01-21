@@ -331,6 +331,45 @@ def core_varname_expansion(d):
 REBUILDALL_SKIP[nohash] = True
 RELAXED[nohash] = True
 
+PRIORITY_MAX			= "90"
+PRIORITY_MIN			= "-9"
+RECIPE_PREFERENCE_PRIORITY	= "2"
+PACKAGE_PREFERENCE_PRIORITY	= "3"
+
+PRIORITY ?= "${DEFAULT_PREFERENCE}"
+DEFAULT_PREFERENCE ?= "0"
+
+addhook core_priority to post_recipe_parse last
+def core_priority(d):
+    layer_name = d.get('LAYER_NAME')
+    recipe_name = d.get('RECIPE_NAME')
+    recipe_version = d.get('RECIPE_VERSION')
+
+    preferred_recipes = d.get('__preferred_recipes') or {}
+    for layer, version in preferred_recipes.get(recipe_name, []):
+        if layer is not None and layer_name != layer:
+            continue
+        if version is not None and recipe_version != version:
+            continue
+        d.set('LAYER_PRIORITY', '${RECIPE_PREFERENCE_LAYER_PRIORITY}')
+        if version is not None:
+            d.set('PRIORITY', '${RECIPE_PREFERENCE_PRIORITY}')
+
+    preferred_packages = d.get('__preferred_packages') or {}
+    package_version = d.get('PV')
+    for package in d.get('PACKAGES').split():
+        for recipe, layer, version in preferred_packages.get(package, []):
+            if recipe is not None and recipe_name != recipe:
+                continue
+            if layer is not None and layer_name != layer:
+                continue
+            if version is not None and package_version != version:
+                continue
+            d.set('LAYER_PRIORITY_' + package,
+                  '${PACKAGE_PREFERENCE_LAYER_PRIORITY}')
+            if version is not None:
+                d.set('PRIORITY_' + package, '${PACKAGE_PREFERENCE_PRIORITY}')
+
 # Local Variables:
 # mode: python
 # End:

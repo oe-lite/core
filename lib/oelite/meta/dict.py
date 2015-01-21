@@ -394,6 +394,34 @@ class DictMeta(MetaData):
                 if function[1][0] is not None]
 
 
+    def set_preference(self, packages=[], recipe=None,
+                       layer=None, version=None):
+        if packages:
+            return self.set_preferred_packages(packages, recipe, layer, version)
+        else:
+            return self.set_preferred_recipe(recipe, layer, version)
+
+    def set_preferred_recipe(self, recipe, layer, version):
+        preferred_recipes = self.get('__preferred_recipes') or {}
+        try:
+            preferences = preferred_recipes[recipe]
+        except KeyError:
+            preferences = preferred_recipes[recipe] = []
+        preferences.append((layer, version))
+        self.set('__preferred_recipes', preferred_recipes)
+
+    def set_preferred_packages(self, packages, recipe, layer, version):
+        preferred_packages = self.get('__preferred_packages') or {}
+        for package in packages:
+            try:
+                preferences = preferred_packages[package]
+            except KeyError:
+                preferences = preferred_packages[package] = []
+            preferences.append((recipe, layer, version))
+        self.set('__preferred_packages', preferred_packages)
+        return
+
+
     def set_input_mtime(self, fn, path=None, mtime=None):
         if mtime is None:
             if path:
