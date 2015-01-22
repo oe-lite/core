@@ -11,6 +11,7 @@ HOMEPAGE = "http://fakeroot.alioth.debian.org"
 inherit autotools
 
 RECIPE_TYPES="native"
+DEPENDS = "native:libacl1-dev"
 
 require conf/fetch/debian.conf
 SRC_URI = "${DEBIAN_MIRROR}/main/f/fakeroot/fakeroot_${PV}.orig.tar.bz2"
