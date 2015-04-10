@@ -70,8 +70,8 @@ def del_useflags(d):
     for useflag in useflags:
         machine_val = d.get('MACHINE_USE_'+useflag)
         if machine_val is not None:
-            oebakery.info('Deleting MACHINE_USE_%s variable from %s:%s_%s'
-                          %(useflag,pkg_type,pkg,d.get("PV")))
+            oebakery.debug('Deleting MACHINE_USE_%s variable from %s:%s_%s'
+                           %(useflag,pkg_type,pkg,d.get("PV")))
             d.del_var('MACHINE_USE_'+useflag)
 
 

@@ -1,0 +1,3 @@
+require ${PN}.inc
+LICENSE = "LGPL-3.0+"
+LICENSE_${PN}-doc = "GFDL-1.3+"

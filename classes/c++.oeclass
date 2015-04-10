@@ -8,9 +8,13 @@ inherit c
 
 OVERRIDES .= ":cxx"
 
-CXX_DEPENDS			= "host-cross:c++ host:libstdc++"
-CXX_DEPENDS:>canadian-cross	= " target-cross:c++ target:libstdc++"
 CLASS_DEPENDS += "${CXX_DEPENDS}"
+CXX_DEPENDS			= "${CXX_DEPENDS_HOST}"
+CXX_DEPENDS:>cross		= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS:>sdk-cross		= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS:>canadian-cross	= " ${CXX_DEPENDS_TARGET}"
+CXX_DEPENDS_HOST		= "host-cross:c++ host:libstdc++"
+CXX_DEPENDS_TARGET		= "target-cross:c++ target:libstdc++"
 
 export CXX
 export CXXFLAGS
@@ -22,38 +26,28 @@ HOST_CXX	= "${HOST_PREFIX}g++"
 TARGET_CXX	= "${TARGET_PREFIX}g++"
 CXX		= "${HOST_CXX}"
 
+export CXXCPP = "${HOST_CXXCPP}"
+export BUILD_CXXCPP
+BUILD_CXXCPP	= "${BUILD_CXX} -E"
+HOST_CXXCPP	= "${HOST_CXX} -E"
+TARGET_CXXCPP	= "${TARGET_CXX} -E"
+
 BUILD_CXXFLAGS		?= "${BUILD_CFLAGS} -fpermissive"
 MACHINE_CXXFLAGS	?= "${MACHINE_CFLAGS} -fpermissive"
 SDK_CXXFLAGS		?= "${SDK_CFLAGS} -fpermissive"
 CXXFLAGS			 = "${HOST_CXXFLAGS}"
 HOST_CXXFLAGS:native		 = "${BUILD_CXXFLAGS}"
 HOST_CXXFLAGS:cross		 = "${BUILD_CXXFLAGS}"
-HOST_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-HOST_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
+HOST_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS}"
+HOST_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS}"
 HOST_CXXFLAGS:sdk-cross		 = "${BUILD_CXXFLAGS}"
-HOST_CXXFLAGS:canadian-cross	 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
+HOST_CXXFLAGS:canadian-cross	 = "${SDK_CXXFLAGS}"
 TARGET_CXXFLAGS:native		 = "${BUILD_CXXFLAGS}"
-TARGET_CXXFLAGS:cross		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:sdk-cross	 = "${SDK_CXXFLAGS} \
-	 -isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}/${SDK_ARCH} \
-	-isystem ${SDK_SYSROOT}${sdk_includedir}/c++/${GCC_VERSION}"
-TARGET_CXXFLAGS:canadian-cross	 = "${MACHINE_CXXFLAGS} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}/${MACHINE_ARCH} \
-	-isystem ${MACHINE_SYSROOT}${machine_includedir}/c++/${GCC_VERSION}"
+TARGET_CXXFLAGS:cross		 = "${MACHINE_CXXFLAGS}"
+TARGET_CXXFLAGS:machine		 = "${MACHINE_CXXFLAGS}"
+TARGET_CXXFLAGS:sdk		 = "${SDK_CXXFLAGS}"
+TARGET_CXXFLAGS:sdk-cross	 = "${SDK_CXXFLAGS}"
+TARGET_CXXFLAGS:canadian-cross	 = "${MACHINE_CXXFLAGS}"
 
 # Local Variables:
 # mode: python

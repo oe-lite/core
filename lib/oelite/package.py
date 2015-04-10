@@ -11,7 +11,16 @@ class OElitePackage:
         self.type = type
         self.arch = arch
         self.recipe = recipe
-        self.priority = recipe.priority
+        layer_priority = recipe.meta.get('LAYER_PRIORITY_%s'%(self.name))
+        if layer_priority is not None:
+            layer_priority = int(layer_priority)
+        else:
+            layer_priority = recipe.layer_priority
+        priority = recipe.meta.get('PRIORITY_%s'%(self.name))
+        if priority is None:
+            priority = recipe.meta.get('PRIORITY')
+        priority = int(priority)
+        self.priority = layer_priority + recipe.priority_baseline + priority
         self.version = recipe.version
         return
 

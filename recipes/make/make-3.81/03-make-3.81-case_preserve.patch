@@ -1,0 +1,226 @@
+diff -rup make-3.81/implicit.c make-3.81-new/implicit.c
+--- old/make-3.81/implicit.c	Wed May 28 23:57:40 2008
++++ new/make-3.81/implicit.c	Wed May 28 23:30:55 2008
+@@ -27,7 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth 
+ 
+ static int
+ pattern_search PARAMS ((struct file *file, int archive,
+-                        unsigned int depth, unsigned int recursions));
++                        unsigned int depth, unsigned int recursions,
++                        int strict_case));
+ 
+ /* For a FILE which has no commands specified, try to figure out some
+    from the implicit pattern rules.
+@@ -36,16 +37,19 @@ pattern_search PARAMS ((struct file *fil
+    or returns 0 if no implicit rule was found.  */
+ 
+ int
+-try_implicit_rule (struct file *file, unsigned int depth)
++try_implicit_rule (struct file *file, unsigned int depth, int strict_case)
+ {
+-  DBF (DB_IMPLICIT, _("Looking for an implicit rule for `%s'.\n"));
++  if (strict_case)
++    DBF (DB_IMPLICIT, _("Looking for an implicit rule for `%s'.\n"));
++  else
++    DBF (DB_IMPLICIT, _("Looking for a case-insensitive implicit rule for `%s'.\n"));
+ 
+   /* The order of these searches was previously reversed.  My logic now is
+      that since the non-archive search uses more information in the target
+      (the archive search omits the archive name), it is more specific and
+      should come first.  */
+ 
+-  if (pattern_search (file, 0, depth, 0))
++  if (pattern_search (file, 0, depth, 0, strict_case))
+     return 1;
+ 
+ #ifndef	NO_ARCHIVES
+@@ -55,7 +59,7 @@ try_implicit_rule (struct file *file, un
+     {
+       DBF (DB_IMPLICIT,
+            _("Looking for archive-member implicit rule for `%s'.\n"));
+-      if (pattern_search (file, 1, depth, 0))
++      if (pattern_search (file, 1, depth, 0, strict_case))
+ 	return 1;
+     }
+ #endif
+@@ -198,7 +202,8 @@ get_next_word (char *buffer, unsigned in
+ 
+ static int
+ pattern_search (struct file *file, int archive,
+-                unsigned int depth, unsigned int recursions)
++                unsigned int depth, unsigned int recursions,
++                int strict_case)
+ {
+   /* Filename we are searching for a rule for.  */
+   char *filename = archive ? strchr (file->name, '(') : file->name;
+@@ -698,13 +703,13 @@ pattern_search (struct file *file, int a
+               /* @@ dep->changed check is disabled. */
+               if (((f = lookup_file (name)) != 0 && f->is_target)
+                   /*|| ((!dep->changed || check_lastslash) && */
+-                  || file_exists_p (name))
++                  || (strict_case ? file_exists_p (name) : (access (name, F_OK) == 0)))
+                 continue;
+ 
+               /* This code, given FILENAME = "lib/foo.o", dependency name
+                  "lib/foo.c", and VPATH=src, searches for "src/lib/foo.c".  */
+               vname = name;
+-              if (vpath_search (&vname, (FILE_TIMESTAMP *) 0))
++              if (vpath_search (&vname, (FILE_TIMESTAMP *) 0, strict_case))
+                 {
+                   DBS (DB_IMPLICIT,
+                        (_("Found prerequisite `%s' as VPATH `%s'\n"),
+@@ -735,7 +740,8 @@ pattern_search (struct file *file, int a
+                   if (pattern_search (intermediate_file,
+                                       0,
+                                       depth + 1,
+-                                      recursions + 1))
++                                      recursions + 1,
++                                      strict_case))
+                     {
+                       d->intermediate_file = intermediate_file;
+                       d->intermediate_pattern = intermediate_file->name;
+@@ -751,7 +757,8 @@ pattern_search (struct file *file, int a
+                      so we won't go through the search again later.  */
+                   if (intermediate_file->variables)
+                     free_variable_set (intermediate_file->variables);
+-                  file_impossible (name);
++                  if (strict_case==0)
++                    file_impossible (name);
+                 }
+ 
+               /* A dependency of this rule does not exist. Therefore,
+diff -rup make-3.81/make.h make-3.81-new/make.h
+--- old/make-3.81/make.h	Wed May 28 23:57:40 2008
++++ new/make-3.81/make.h	Wed May 28 23:30:55 2008
+@@ -459,7 +459,7 @@ extern void install_default_implicit_rul
+ 
+ extern void build_vpath_lists PARAMS ((void));
+ extern void construct_vpath_list PARAMS ((char *pattern, char *dirpath));
+-extern int vpath_search PARAMS ((char **file, FILE_TIMESTAMP *mtime_ptr));
++extern int vpath_search PARAMS ((char **file, FILE_TIMESTAMP *mtime_ptr, int strict_case));
+ extern int gpath_search PARAMS ((char *file, unsigned int len));
+ 
+ extern void construct_include_path PARAMS ((char **arg_dirs));
+diff -rup make-3.81/remake.c make-3.81-new/remake.c
+--- old/make-3.81/remake.c	Wed May 28 23:57:40 2008
++++ new/make-3.81/remake.c	Wed May 28 23:30:55 2008
+@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth 
+ #include <io.h>
+ #endif
+ 
+-extern int try_implicit_rule PARAMS ((struct file *file, unsigned int depth));
++extern int try_implicit_rule PARAMS ((struct file *file, unsigned int depth, int strict_case));
+ 
+ 
+ /* The test for circular dependencies is based on the 'updating' bit in
+@@ -450,8 +450,10 @@ update_file_1 (struct file *file, unsign
+ 
+   if (!file->phony && file->cmds == 0 && !file->tried_implicit)
+     {
+-      if (try_implicit_rule (file, depth))
++      if (try_implicit_rule (file, depth, 1))
+ 	DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
++      else if (try_implicit_rule (file, depth, 0))
++	DBF (DB_IMPLICIT, _("Found an case-insensitive implicit rule for `%s'.\n"));
+       else
+ 	DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
+       file->tried_implicit = 1;
+@@ -958,8 +960,10 @@ check_dep (struct file *file, unsigned i
+ 
+       if (!file->phony && file->cmds == 0 && !file->tried_implicit)
+ 	{
+-	  if (try_implicit_rule (file, depth))
++	  if (try_implicit_rule (file, depth, 1))
+ 	    DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
++	  else if (try_implicit_rule (file, depth, 0))
++	    DBF (DB_IMPLICIT, _("Found an case-insensitive implicit rule for `%s'.\n"));
+ 	  else
+ 	    DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
+ 	  file->tried_implicit = 1;
+@@ -1230,7 +1234,7 @@ f_mtime (struct file *file, int search)
+ 	{
+ 	  /* If name_mtime failed, search VPATH.  */
+ 	  char *name = file->name;
+-	  if (vpath_search (&name, &mtime)
++	  if (vpath_search (&name, &mtime, 1) || vpath_search (&name, &mtime, 0)
+ 	      /* Last resort, is it a library (-lxxx)?  */
+ 	      || (name[0] == '-' && name[1] == 'l'
+ 		  && library_search (&name, &mtime)))
+@@ -1533,7 +1537,7 @@ library_search (char **lib, FILE_TIMESTA
+       /* Now try VPATH search on that.  */
+ 
+       file = libbuf;
+-      if (vpath_search (&file, mtime_ptr))
++      if (vpath_search (&file, mtime_ptr, 1) || vpath_search (&file, mtime_ptr, 1))
+ 	{
+ 	  *lib = file;
+ 	  return 1;
+diff -rup make-3.81/vpath.c make-3.81-new/vpath.c
+--- old/make-3.81/vpath.c	Wed May 28 23:57:40 2008
++++ new/make-3.81/vpath.c	Wed May 28 23:51:23 2008
+@@ -48,7 +48,7 @@ static struct vpath *general_vpath;
+ 
+ static struct vpath *gpaths;
+ 
+-static int selective_vpath_search PARAMS ((struct vpath *path, char **file, FILE_TIMESTAMP *mtime_ptr));
++static int selective_vpath_search PARAMS ((struct vpath *path, char **file, FILE_TIMESTAMP *mtime_ptr, int strict_case));
+ 
+ /* Reverse the chain of selective VPATH lists so they
+    will be searched in the order given in the makefiles
+@@ -334,7 +334,7 @@ gpath_search (char *file, unsigned int l
+    Otherwise we return 0.  */
+ 
+ int
+-vpath_search (char **file, FILE_TIMESTAMP *mtime_ptr)
++vpath_search (char **file, FILE_TIMESTAMP *mtime_ptr, int strict_case)
+ {
+   register struct vpath *v;
+ 
+@@ -351,11 +351,11 @@ vpath_search (char **file, FILE_TIMESTAM
+ 
+   for (v = vpaths; v != 0; v = v->next)
+     if (pattern_matches (v->pattern, v->percent, *file))
+-      if (selective_vpath_search (v, file, mtime_ptr))
++      if (selective_vpath_search (v, file, mtime_ptr, strict_case))
+ 	return 1;
+ 
+   if (general_vpath != 0
+-      && selective_vpath_search (general_vpath, file, mtime_ptr))
++      && selective_vpath_search (general_vpath, file, mtime_ptr, strict_case))
+     return 1;
+ 
+   return 0;
+@@ -370,7 +370,8 @@ vpath_search (char **file, FILE_TIMESTAM
+ 
+ static int
+ selective_vpath_search (struct vpath *path, char **file,
+-                        FILE_TIMESTAMP *mtime_ptr)
++                        FILE_TIMESTAMP *mtime_ptr,
++                        int strict_case)
+ {
+   int not_target;
+   char *name, *n;
+@@ -500,10 +501,19 @@ selective_vpath_search (struct vpath *pa
+ 	     Now NAME is the name of the directory to look in.  */
+ 	  *n = '\0';
+ 
+-	  /* We know the directory is in the hash table now because either
+-	     construct_vpath_list or the code just above put it there.
+-	     Does the file we seek exist in it?  */
+-	  exists_in_cache = exists = dir_file_exists_p (name, filename);
++	  if (strict_case)
++	    {
++	      /* We know the directory is in the hash table now because either
++	         construct_vpath_list or the code just above put it there.
++	         Does the file we seek exist in it?  */
++	      exists_in_cache = exists = dir_file_exists_p (name, filename);
++	    }
++	  else
++	    {
++	      /* If using a case insensitive search, avoid the case sensitive
++	         lookup function above and force a real filesystem check. */
++	      exists_in_cache = exists = 1;
++	    }
+ #endif
+ 	}
+ 

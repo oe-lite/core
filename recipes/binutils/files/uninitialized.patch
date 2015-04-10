@@ -1,0 +1,21 @@
+--- binutils-2.23.2/binutils/strings.c.orig	2014-02-04 14:56:10.190232382 +0100
++++ binutils-2.23.2/binutils/strings.c	2014-02-04 14:56:40.078231949 +0100
+@@ -456,7 +456,7 @@
+ {
+   int c, i;
+   long r = EOF;
+-  unsigned char buf[4];
++  unsigned char buf[4] = {0, 0, 0, 0};
+ 
+   for (i = 0; i < encoding_bytes; i++)
+     {
+--- binutils-2.23.2/ld/ldfile.c.orig	2014-02-04 14:52:09.886235865 +0100
++++ binutils-2.23.2/ld/ldfile.c	2014-02-04 14:52:20.562235711 +0100
+@@ -602,6 +602,7 @@
+     {
+       bfd_set_error (bfd_error_system_call);
+       einfo (_("%P%F: cannot open linker script file %s: %E\n"), name);
++      return;
+     }
+ 
+   lex_push_file (ldlex_input_stack, name, sysrooted);

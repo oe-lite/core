@@ -1,5 +1,12 @@
 require make.inc
 
+SRC_URI:>HOST_LIBC_mingw = "\
+	file://01-make-3.81-2-cygwin.patch;striplevel=2\
+	file://02-make-3.81-dos-path.patch;striplevel=2\
+	file://03-make-3.81-case_preserve.patch;striplevel=2\
+	file://04-make-3.81-msys.patch;striplevel=2\
+"
+
 # Local Variables:
 # mode: python
 # End:

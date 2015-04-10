@@ -8,6 +8,7 @@ from recipe import OEliteRecipe
 from item import OEliteItem
 import oelite.meta
 import oelite.package
+import oelite.path
 import bb.utils
 
 import sys
@@ -27,6 +28,7 @@ class CookBook(Mapping):
         self.baker = baker
         self.config = baker.config
         self.oeparser = baker.oeparser
+        self.init_layer_meta()
         self.db = sqlite.connect(":memory:")
         if not self.db:
             raise Exception("could not create in-memory sqlite db")
@@ -77,6 +79,52 @@ class CookBook(Mapping):
 
         return
 
+    def init_layer_meta(self):
+        self.layer_meta = {}
+        oepath = self.config.get('OEPATH').split(':')
+        layer_priority = 0
+        max_layer_height = 0
+        def layer_height_roundup(priority):
+            return (priority+99)/100*100
+        layer_conf_files = []
+        for layer in reversed(oepath):
+            layer_conf = os.path.join(layer, 'conf', 'layer.conf')
+            layer_meta = self.config.copy()
+            if os.path.exists(layer_conf):
+                self.oeparser.set_metadata(layer_meta)
+                self.oeparser.reset_lexstate()
+                layer_meta = self.oeparser.parse(layer_conf)
+            layer_conf_files.append(layer_conf)
+            priority_max = int(layer_meta.get('PRIORITY_MAX'))
+            priority_min = int(layer_meta.get('PRIORITY_MIN'))
+            layer_meta.set('LAYER_PRIORITY', layer_priority)
+            assert priority_min < 0
+            priority_baseline = (-priority_min) + 1
+            layer_meta.set('PRIORITY_BASELINE', priority_baseline)
+            layer_height = layer_height_roundup(priority_baseline + priority_max)
+            layer_priority += layer_height
+            max_layer_height = max(max_layer_height, layer_height)
+            self.layer_meta[oelite.path.relpath(layer)] = layer_meta
+        for layer in oepath:
+            layer_meta = self.layer_meta[oelite.path.relpath(layer)]
+            layer_meta.set('LAYER_NAME', oelite.path.relpath(layer) or '.')
+            layer_meta.set('RECIPE_PREFERENCE_LAYER_PRIORITY',
+                           layer_priority)
+            layer_meta.set('PACKAGE_PREFERENCE_LAYER_PRIORITY',
+                           layer_priority + max_layer_height)
+            for layer_conf in layer_conf_files:
+                layer_meta.set_input_mtime(layer_conf)
+        return
+
+    def new_recipe_meta(self, recipe):
+        recipe_path = oelite.path.relpath(recipe)
+        for layer in self.layer_meta:
+            if not layer:
+                continue
+            if recipe_path.startswith(layer):
+                return self.layer_meta[layer].copy()
+        assert '' in self.layer_meta
+        return self.layer_meta[''].copy()
 
     def __getitem__(self, key): # required by Mapping
         return self.recipes[key]
@@ -539,7 +587,7 @@ class CookBook(Mapping):
 
     def parse_recipe(self, recipe):
         #print "parsing recipe", recipe
-        base_meta = self.config.copy()
+        base_meta = self.new_recipe_meta(recipe)
         oelite.pyexec.exechooks(base_meta, "pre_recipe_parse")
         self.oeparser.set_metadata(base_meta)
         self.oeparser.reset_lexstate()
@@ -766,17 +814,13 @@ class CookBook(Mapping):
         return self.dbc.lastrowid
 
 
-    def get_providers(self, type, item, recipe=None, version=None):
-        #print "get_providers type=%s item=%s recipe=%s version=%s"%(
-        #    repr(type), repr(item), repr(recipe), repr(version))
+    def get_providers(self, type, item, version):
         select_from = "SELECT package.id FROM package,provide,recipe"
         select_where = "WHERE" + \
             " provide.package=package.id AND provide.item=:item" + \
             " AND package.recipe=recipe.id"
         if type:
             select_where += " AND package.type=:type"
-        if recipe:
-            select_where += " AND recipe.name=:recipe"
         if version is not None:
             select_where += " AND recipe.version=:version"
         query = select_from + " " + select_where
@@ -789,11 +833,6 @@ class CookBook(Mapping):
             return int(p.priority)
         packages = sorted(packages, key=get_priority, reverse=True)
         return packages
-
-    def get_package_providers(self, item):
-        item = self.item_id(item)
-        return flatten_single_column_rows(self.dbc.execute(
-            "SELECT package FROM provide WHERE item=?", (item,)))
 
 
     def get_package_depends(self, package, deptypes):

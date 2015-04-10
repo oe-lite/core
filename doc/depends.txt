@@ -179,3 +179,110 @@ depdendencies.
 When run, the stage task unpacks all the packages from the resolved dependency
 list into the stage directory.
 
+
+
+Provider selection
+------------------
+
+Each package (which provides one or more items), has a priority.
+
+When multiple providers for the same item exists, the package with the highest
+priority is chosen.
+
+If more than one provider has the highest priority, and all these packages has
+the same name, the one with the highest version number is chosen.
+
+In all other situations, the provider selection throws an exception (ie. you
+wil get a failure).
+
+
+Package priority
+----------------
+
+The priority of a package is defined by the sum of the package priority and
+the layer priority.
+
+The package priority is controlled with the +PRIORITY+ metadata variable, and
+package specific variables such as +PRIORITY_hello-libbar+ for the
+hello-libbar package.
+
+The layer priority of a package is set based on the layer that the recipe
+lives in.  Each layer (as specified in conf/bakery.conf) are given a
++LAYER_PRIORITY+, with the bottom layer at +LAYER_PRIORITY=0+.
+
+In conf/layer.conf, you can configure a number of variables:
+
+----
+PRIORITY_MAX			= "90"
+PRIORITY_MIN			= "-9"
+RECIPE_PREFERENCE_PRIORITY	= "2"
+PACKAGE_PREFERENCE_PRIORITY	= "3"
+----
+
+The +PRIORITY_MAX+ is the maximum value allowed for +PRIORITY+ in that layer.
+
+The +PRIORITY_MIN+ is the minimum value allowed for +PRIORITY+ in that layer.
+
+The last two are used internally when the +prefer+ command is used to prefer a
+specific version of a recipe or package.
+
+The +LAYER_PRIORITY+ values are given in chunks of 100, with each layer given
+enough space to allow for setting +PRIORITY+ in the range from +PRIORITY_MIN+
+to +PRIORITY_MAX+.
+
+NOTE: An offset is used internally, so that a +PRIORITY+ set to the value
+specified by +PRIORITY_MIN+ will result in a priority of +LAYER_PRIORITY+, a
++PRIORITY+ set to 0 (zero) will result in a priority of
++LAYER_PRIORITY++++(-PRIORITY-MIN+1+++)+, and a +PRIORITY+ set to
++PRIORITY_MAX+ will result in a priority of
++LAYER_PRIORITY++++(-PRIORITY-MIN+1)+PRIORITY+++_MAX+.
+
+Provider preferences
+~~~~~~~~~~~~~~~~~~~~
+
+When multiple providers exists for the same item, you might want to influence
+the selection of which provider to choose.
+
+In able to do this, you can use the +prefer+ command, fx. in your machine or
+distro configuration files, or perhaps in local.conf.
+
+For example:
+
+----
+prefer recipe linux-imx
+----
+
+Will raise the priority of all packages from recipe(s) with the name linux-imx
+to a priority higher than any non-preferred recipes.
+
+To prefer only specific packages from a recipe instead of all packages from
+it, you can use something like
+
+----
+prefer package hello-libfoo,hello-libbar recipe hello
+----
+
+To prefer a specific version of a recipe, you can use
+
+----
+prefer recipe linux-imx version 3.9.3
+----
+
+To prefer a recipe from a specific layer
+
+----
+prefer recipe linux-imx layer meta/imx
+----
+
+The +prefer+ command support all combinations of +package+, +recipe+, +layer+,
+and +version+.
+
+Packages preferred with +prefer package ...+ are given a higher priority than
+packages preferred with +prefer recipe ...+
+
+NOTE: Internally, two extra layers are used two handle recipe and package
+preferences.  Preferred recipes will get their +LAYER_PRIORITY+ changed to the
+priority of the extra layer for preferred recipes.  Preffered packages, will
+get their package specific +LAYER_PRIORITY+ changed to the priority of the
+extra layer for preferred packages.  This way, the provider selection is kept
+as a simple selection of the package with the highest priority.

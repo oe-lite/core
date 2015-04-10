@@ -96,6 +96,8 @@ do_configure_kernel () {
 		die "No default configuration available"
 	fi
 	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
+		echo 'CONFIG_BLK_DEV_INITRD=y' \
+			>> ${S}/.config
 		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
 			>> ${S}/.config
 		yes '' | oe_runmake oldconfig
@@ -272,22 +274,13 @@ do_install_kernel () {
         cp -fR $d ${D}${kernelsrcdir}/$machdir/
     done
     #find ${D}${kernelsrcdir}/ \( -name \*.o -o -name .\*.cmd \) -exec rm {} \;
-
-    do_install_kernel_headers
-}
-
-INSTALL_HDR_PATH ?= "${D}${includedir}/.."
-
-do_install_kernel_headers () {
-    mkdir -p ${D}${includedir}
-    oe_runmake INSTALL_HDR_PATH="${INSTALL_HDR_PATH}" headers_install
 }
 
 do_install () {
     do_install_kernel
 }
 
-PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-headers ${PN}-modules ${PN}-dtb ${PN}-firmware"
+PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-modules ${PN}-dtb ${PN}-firmware"
 
 FILES_${PN} = "${bootdir}/${KERNEL_IMAGE_FILENAME}"
 FILES_${PN}:USE_kernel_uimage = "${bootdir}/uImage"
@@ -296,7 +289,6 @@ FILES_${PN}-vmlinux = "${bootdir}/vmlinux"
 FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
     ${bootdir}/config ${kernelsrcdir}"
 
-FILES_${PN}-headers = "${includedir}"
 FILES_${PN}-modules = "/lib/modules"
 FILES_${PN}-firmware = "/lib/firmware"
 

@@ -1,0 +1,39 @@
+Workaround for autoconf'ed define of caddr_t
+
+When building canadian cross compiler, I have some trouble with
+configure defining caddr_t as a macro, like:
+#define caddr_t char *
+
+When combined with the types.h where caddr_t is protected together
+with daddr_t, the typedef of caddr_t breaks.
+
+This patch works around it by protecting the caddr_t typedef
+specifically.
+
+Esben Haabendal <esben@haabendal.dk>
+--- eglibc-2_18/libc/posix/sys/types.h~orig	2014-03-06 12:40:06.190851132 +0100
++++ eglibc-2_18/libc/posix/sys/types.h	2014-03-06 12:41:31.358851061 +0100
+@@ -113,7 +113,10 @@
+ #ifdef	__USE_BSD
+ # ifndef __daddr_t_defined
+ typedef __daddr_t daddr_t;
++#  if ! defined(caddr_t) && ! defined(__caddr_t_defined)
+ typedef __caddr_t caddr_t;
++#   define __caddr_t_defined
++#  endif
+ #  define __daddr_t_defined
+ # endif
+ #endif
+--- eglibc-2_18/libc/sunrpc/rpc/types.h~orig	2014-03-06 12:41:54.886851041 +0100
++++ eglibc-2_18/libc/sunrpc/rpc/types.h	2014-03-06 12:42:36.118851007 +0100
+@@ -81,7 +81,10 @@
+ #endif
+ #ifndef __daddr_t_defined
+ typedef __daddr_t daddr_t;
++# if ! defined(caddr_t) && ! defined(__caddr_t_defined)
+ typedef __caddr_t caddr_t;
++#  define __caddr_t_defined
++# endif
+ # define __daddr_t_defined
+ #endif
+ 
