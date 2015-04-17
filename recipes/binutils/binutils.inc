@@ -26,13 +26,17 @@ CHRPATH_TYPES = "HOST"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 
-EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib"
+EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib --enable-plugins"
 EXTRA_OECONF:>HOST_CPU_arm = " --disable-werror"
 
 AR = "ar"
 AS = "as"
 
 DEPENDS += "native:mpc native:mpfr native:gmp native:isl native:cloog"
+
+DEPENDS += "${DEPENDS_HOST_LIBC} host:libz"
+DEPENDS_HOST_LIBC = "host:libdl"
+DEPENDS_HOST_LIBC:HOST_LIBC_mingw = ""
 
 EXTRA_OECONF += "--with-sysroot=/${TARGET_ARCH}/sysroot \
 	--with-build-sysroot=${TARGET_SYSROOT}"
