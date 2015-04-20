@@ -1,18 +1,18 @@
-SUMMARY = "Embedded GLIBC"
-DESCRIPTION = "Embedded GLIBC (EGLIBC) is a variant of the GNU C Library \
-	(GLIBC) that is designed to work well on embedded systems. EGLIBC \
-	strives to be source and binary compatible with GLIBC. EGLIBC's goals \
-	include reduced footprint, configurable components, better support for \
-	cross-compilation and cross-testing."
-HOMEPAGE = "http://www.eglibc.org/"
+SUMMARY = "The GNU C Library"
+DESCRIPTION = """Any Unix-like operating system needs a C library:
+the library which defines the ``system calls'' and other basic facilities such
+as open, malloc, printf, exit...
+
+The GNU C Library is used as the C library in the GNU systems and most systems
+with the Linux kernel.
+"""
+HOMEPAGE = "http://www.gnu.org/software/libc/"
 
 RECIPE_TYPES = "machine sdk"
 
 COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.* .*linux-uclibc.*"
 
-SRC_BRANCH = "eglibc-${@d.get('PV').replace('.','_')}"
-SRC_URI = "svn://www.eglibc.org/branches/${SRC_BRANCH};rev=${SRC_REV}"
-S = "${SRCDIR}/${SRC_BRANCH}/libc"
+SRC_URI = "http://ftp.gnu.org/gnu/glibc/glibc-${PV}.tar.xz"
 
 inherit autotools make-vpath
 
@@ -49,7 +49,7 @@ EXTRA_OECONF += "\
 	--cache-file=config.cache \
 "
 
-#ld-linux do NOT support RPATH. See get-dynamic-info.h within the eglibc src
+#ld-linux do NOT support RPATH. See get-dynamic-info.h within the glibc src
 do_chrpath[postfuncs] += "do_chrpath_fix_ld"
 do_chrpath_fix_ld[expand] = 3
 do_chrpath_fix_ld () {
@@ -92,9 +92,9 @@ RDEPENDS_${PN}-libmemusage = "libdl"
 
 addhook fixup_libc_pkgdepends to post_recipe_parse after auto_package_libs
 def fixup_libc_pkgdepends(d):
-    d.set('DEPENDS_eglibc-libc', '${PN}-libc-dev_${PV} ld-so')
-    d.set('RDEPENDS_eglibc-libc', 'ld-so')
-    d.set('RDEPENDS_eglibc-libc-dev', '${PN}-libc_${PV}')
+    d.set('DEPENDS_glibc-libc', '${PN}-libc-dev_${PV} ld-so')
+    d.set('RDEPENDS_glibc-libc', 'ld-so')
+    d.set('RDEPENDS_glibc-libc-dev', '${PN}-libc_${PV}')
 
 PACKAGES =+ "${PN}-libmcheck-dev"
 FILES_${PN}-libmcheck-dev = "${libdir}/libmcheck.a"
@@ -107,9 +107,9 @@ PROVIDES_${PN}-libmcheck-dev = "libbsd-compat"
 #FIXME: force libc on all lib package (R)DEPENDS and then override R(DEPENDS)
 #for libc to remove it there
 
-#addhook eglibc_pkgdepends to post_recipe_parse before auto_package_libs
+#addhook glibc_pkgdepends to post_recipe_parse before auto_package_libs
 #
-#def eglibc_pkgdepends(d):
+#def glibc_pkgdepends(d):
 #    for lib in d.get('AUTO_PACKAGE_LIBS').split():
 #        pkg = 'lib' + lib
 
