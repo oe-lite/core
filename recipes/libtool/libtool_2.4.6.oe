@@ -1,0 +1,8 @@
+LICENSE = "GPL-2.0+"
+LICENSE_${PN}-libltdl = "LGPL-2.1+"
+
+require libtool.inc
+
+# Local Variables:
+# mode: python
+# End:
