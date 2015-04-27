@@ -1,0 +1,15 @@
+Source: Written by Esben Haabendal <esben@haabendal.dk>
+Upstream: No
+Reason: Allow custom values for bindir and sbindir
+
+--- glibc-2.21/config.make.in~orig	2015-04-20 11:46:53.204230561 +0200
++++ glibc-2.21/config.make.in	2015-04-20 11:47:31.713344497 +0200
+@@ -15,6 +15,8 @@
+ localedir = @libc_cv_localedir@
+ sysconfdir = @libc_cv_sysconfdir@
+ libexecdir = @libexecdir@
++bindir = @bindir@
++sbindir = @sbindir@
+ rootsbindir = @libc_cv_rootsbindir@
+ infodir = @infodir@
+ includedir = @includedir@
