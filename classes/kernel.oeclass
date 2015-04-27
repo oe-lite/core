@@ -102,6 +102,9 @@ do_configure_kernel () {
 			>> ${S}/.config
 		yes '' | oe_runmake oldconfig
 	case "${USE_ramdisk_image_compression}" in
+	gzip)	echo 'CONFIG_RD_GZIP=y' >> ${S}/.config
+		echo 'CONFIG_INITRAMFS_COMPRESSION_GZIP=y' >> ${S}/.config
+		;;
 	lzma)	echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
 		echo 'CONFIG_INITRAMFS_COMPRESSION_LZMA=y' >> ${S}/.config
 		;;

@@ -125,6 +125,8 @@ class GitFetcher():
                 signature = repo.current_head()
             else:
                 signature = repo.get_head(self.branch)
+                if signature is None:
+                    raise Exception('no such branch: %s'%(self.branch))
             if self.dirty:
                 m = hashlib.sha1(signature)
                 m.update(self.dirty_signature)

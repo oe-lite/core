@@ -33,7 +33,9 @@ do_compile[cleandirs] = "${IMAGE_DIR}"
 IMAGE_PURGE_PKGMETADIR ?= "1"
 
 fakeroot do_compile () {
-    cp -a ${RSTAGE_DIR}/. ./
+    cd ${RSTAGE_DIR}
+    tar -cf - . | tar -xf - -C ${IMAGE_DIR}
+    cd ${IMAGE_DIR}
     for func in ${IMAGE_PREPROCESS_FUNCS}; do
         $func
     done

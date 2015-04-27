@@ -1,0 +1,36 @@
+## Class for compiling u-boot multi images.
+##
+## Newer u-boots supports booting FIT images which are a binary containing or or more 
+## kernels, fdts, and ramdisks, in any configuration.
+##
+## @useflag fit_file Device tree source (dts) for generating the FIT image.
+##
+
+
+CLASS_FLAGS += """
+fit_file
+fit_output
+"""
+
+DEFAULT_USE_fit_file = "kernel_its.its"
+DEFAULT_USE_fit_output = "kernel.itb"
+
+SRC_URI += "file://${USE_fit_file}"
+
+do_compile[postfuncs] += "do_compile_fit"
+
+CLASS_DEPENDS += "native:u-boot-tools-mkimage"
+
+do_compile_fit() {
+   [ -e ${SRCDIR}/${USE_fit_file} ] && mv ${SRCDIR}/${USE_fit_file} ${S}/.
+   PATH=$PATH:scripts/dtc/ mkimage -f ${USE_fit_file} ${USE_fit_output}
+}
+
+do_install[postfuncs] += "do_install_fit"
+
+do_install_fit() {
+  install ${S}/${USE_fit_output} ${D}/${USE_fit_output}
+}
+
+PACKAGES =+ "${PN}-fit"
+FILES_${PN}-fit = "/${USE_fit_output}"

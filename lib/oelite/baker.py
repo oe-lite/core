@@ -192,14 +192,17 @@ class OEliteBaker:
         if url.startswith('file:///'):
             url = url[7:]
         srcuri = None
+        protocols = ('git', 'ssh', 'http', 'https', 'ftp', 'ftps', 'rsync')
         if url.startswith('/'):
             srcuri = 'git://%s'%(url)
             protocol = 'file'
         elif url.startswith('git://'):
             srcuri = url
             protocol = None
+        elif not url.split('://')[0] in protocols:
+            url = 'ssh://' + url.replace(':', '/', 1)
         if srcuri is None:
-            for protocol in ('ssh', 'http', 'https', 'ftp', 'ftps', 'rsync'):
+            for protocol in protocols:
                 if url.startswith('%s://'%(protocol)):
                     srcuri = 'git://%s'%(url[len(protocol)+3:])
                     break
