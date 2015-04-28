@@ -64,8 +64,8 @@ DEPENDS_${PN} += "${PN}-cpp"
 DEPENDS_${PN}:>TARGET_LIBC_mingw = " target:libpthread"
 
 inherit auto-package-libs
-AUTO_PACKAGE_LIBS = "gcc gcov asan tsan atomic gomp itm mudflap mudflapth ssp \
-	stdc++ supc++ quadmath"
+AUTO_PACKAGE_LIBS = "gcc gcov atomic gomp itm mudflap mudflapth ssp \
+	stdc++ supc++ quadmath asan tsan ubsan"
 AUTO_PACKAGE_LIBS:canadian-cross = ""
 AUTO_PACKAGE_LIBS_LIBDIR = "/${TARGET_ARCH}/sysroot${target_libdir}:lib:,_s,_s_sjlj,_eh,_nonshared,_pic"
 AUTO_PACKAGE_LIBS_LIBDIR:>TARGET_LIBC_mingw = ":-*.dll"
@@ -95,6 +95,16 @@ RDEPENDS_${PN}-libssp = "libc"
 DEPENDS_${PN}-libstdc++ = "libc libgcc libm"
 RDEPENDS_${PN}-libstdc++ = "libc libgcc libm"
 RDEPENDS_${PN}-libstdc++:>TARGET_BINFMT_elf = " ld-so"
+
+PACKAGES += "${PN}-libsanitizer-dev"
+PACKAGE_TYPE_${PN}-libsanitizer-dev = "${TARGET_TYPE}"
+FILES_${PN}-libsanitizer-dev = "/${TARGET_ARCH}/sysroot${target_libdir}/libsanitizer.spec"
+DEPENDS_${PN}-libasan-dev += "${PN}-libsanitizer-dev"
+DEPENDS_${PN}-libtsan-dev += "${PN}-libsanitizer-dev"
+DEPENDS_${PN}-libubsan-dev += "${PN}-libsanitizer-dev"
+RDEPENDS_${PN}-libasan-dev += "${PN}-libsanitizer-dev"
+RDEPENDS_${PN}-libtsan-dev += "${PN}-libsanitizer-dev"
+RDEPENDS_${PN}-libubsan-dev += "${PN}-libsanitizer-dev"
 
 # FIXME: remove the empty packages instead
 PROVIDES_${PN}-libgcov[qa] = "allow-missing-soname"
