@@ -92,6 +92,7 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
+        self.debug_loglines = self.options.debug_loglines
 
         # Bakery 3 compatibility, configure the logging module
         if (not hasattr(oebakery, "__version__") or
@@ -591,8 +592,14 @@ class OEliteBaker:
         timing_info("Build", start)
 
         if exitcode:
-            for task in failed_task_list:
-                print "ERROR: %s failed  %s"%(task,task.logfn)
+             for task in failed_task_list:
+                print "\nERROR: %s failed  %s"%(task,task.logfn)
+                if self.debug_loglines:
+                    with open(task.logfn, 'r') as fin:
+                        if self.debug_loglines < 0:
+                            print fin.read()
+                        else:
+                            print ''.join(fin.readlines()[-self.debug_loglines:])
         return exitcode
 
 

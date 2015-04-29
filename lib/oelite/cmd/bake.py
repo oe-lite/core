@@ -11,6 +11,9 @@ def add_parser_options(parser):
     parser.add_option("-d", "--debug",
                       action="store_true", default=False,
                       help="Debug the OE-lite metadata")
+    parser.add_option("--debug-loglines",
+                      action="store", default=42, metavar="N",
+                      help="Show last N lines of logfiles of failed tasks (default: 42)")
     return
 
 
