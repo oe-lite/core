@@ -92,7 +92,7 @@ class OEliteBaker:
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
-        self.debug_loglines = self.options.debug_loglines
+        self.debug_loglines = getattr(self.options, 'debug_loglines', None)
 
         # Bakery 3 compatibility, configure the logging module
         if (not hasattr(oebakery, "__version__") or
