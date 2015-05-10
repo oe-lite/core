@@ -75,8 +75,12 @@ def do_chrpath(d):
                     continue
                 dirparts = len(os.path.dirname(path).split('/'))
                 origin_root = '$ORIGIN/' + '/'.join(['..'] * dirparts)
+                if ' RUNPATH=' in old_rpath:
+                    rpath_prefix = 'RUNPATH='
+                else:
+                    rpath_prefix = 'RPATH='
                 old_rpath = old_rpath[
-                    old_rpath.index('RPATH=') + len('RPATH='):].strip()
+                    old_rpath.index(rpath_prefix) + len(rpath_prefix):].strip()
                 rpaths = []
                 for rpath in old_rpath.split(':'):
                     if rpath.startswith('$ORIGIN'):
