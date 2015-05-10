@@ -109,8 +109,8 @@ def do_chrpath(d):
                 if not rc:
                     print 'ERROR: chrpath delete failed: %s'%(path)
                     return False
-                if mode:
-                    os.chmod(path, mode)
+            if mode:
+                os.chmod(path, mode)
         return True
 
     stripdirs = d.get("CHRPATH_STRIP_DIRS").split()
