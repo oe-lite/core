@@ -3,3 +3,6 @@ require ${PN}.inc
 SRC_URI += "file://bindir-paths.patch"
 SRC_URI += "file://multilib-paths.patch"
 SRC_URI += "file://typedef-caddr.patch"
+
+SRC_URI += "file://rootsbindir.patch"
+EXTRA_OECONF += "libc_cv_rootsbindir=${base_sbindir}"
