@@ -75,8 +75,12 @@ def do_chrpath(d):
                     continue
                 dirparts = len(os.path.dirname(path).split('/'))
                 origin_root = '$ORIGIN/' + '/'.join(['..'] * dirparts)
+                if ' RUNPATH=' in old_rpath:
+                    rpath_prefix = 'RUNPATH='
+                else:
+                    rpath_prefix = 'RPATH='
                 old_rpath = old_rpath[
-                    old_rpath.index('RPATH=') + len('RPATH='):].strip()
+                    old_rpath.index(rpath_prefix) + len(rpath_prefix):].strip()
                 rpaths = []
                 for rpath in old_rpath.split(':'):
                     if rpath.startswith('$ORIGIN'):
@@ -109,8 +113,8 @@ def do_chrpath(d):
                 if not rc:
                     print 'ERROR: chrpath delete failed: %s'%(path)
                     return False
-                if mode:
-                    os.chmod(path, mode)
+            if mode:
+                os.chmod(path, mode)
         return True
 
     stripdirs = d.get("CHRPATH_STRIP_DIRS").split()
