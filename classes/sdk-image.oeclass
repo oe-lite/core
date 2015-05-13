@@ -22,6 +22,7 @@ IMAGE_PREPROCESS_NETFILTER:HOST_OS_mingw32 = "image_preprocess_linux_netfilter_h
 IMAGE_PREPROCESS_FUNCS += "${IMAGE_PREPROCESS_NETFILTER}"
 
 inherit elfwrapper
+IMAGE_ELF_SOWRAP_DIRS += "${libexecdir}/gcc/${TARGET_ARCH}//"
 # image_preprocess_elf_sowrap is called in do_rstage, and needs chrpath from
 # CLASS_DEPENDS, so rstage needs to have stage setup.
 addtask rstage after stage
