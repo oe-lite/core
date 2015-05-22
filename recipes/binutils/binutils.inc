@@ -12,12 +12,12 @@ BUGTRACKER = "http://sourceware.org/bugzilla/"
 
 RECIPE_TYPES = "cross sdk-cross machine canadian-cross"
 
-inherit autotools make-vpath gettext
+inherit autotools make-vpath
 
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/binutils/binutils-${PV}.tar.bz2 "
 
-DEPENDS = "native:flex native:bison"
+DEPENDS = "native:flex native:bison native:makeinfo native:m4"
 
 C_DEPENDS_TARGET = ""
 
@@ -26,7 +26,7 @@ CHRPATH_TYPES = "HOST"
 
 LIBTOOL_DEPENDS = "host-cross:libtool"
 
-EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib --enable-plugins"
+EXTRA_OECONF = "--enable-install-libbfd --enable-install-libiberty --enable-shared --enable-static --disable-multilib --enable-plugins --disable-nls"
 EXTRA_OECONF:>HOST_CPU_arm = " --disable-werror"
 
 AR = "ar"
