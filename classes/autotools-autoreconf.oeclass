@@ -6,7 +6,7 @@
 inherit autotools
 
 CLASS_DEPENDS += "${DEPENDS_AUTORECONF}"
-DEPENDS_AUTORECONF ?= "native:glib-dev"
+DEPENDS_AUTORECONF ?= "native:glib-utils native:automake"
 
 EXTRA_AUTORECONF ?= ""
 AUTORECONF_CMD ?= "autoreconf --verbose --install --force \
