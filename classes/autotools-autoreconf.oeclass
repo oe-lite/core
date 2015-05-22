@@ -15,6 +15,7 @@ AUTORECONF_CMD ?= "autoreconf --verbose --install --force \
 
 acpaths = "__default__"
 
+export aclocalprefix = "${STAGE_DIR}/native${stage_prefix}"
 pkgltdldir = "${STAGE_DIR}/${HOST_CROSS}${stage_datadir}/libtool"
 pkgltdldir:native    = "${STAGE_DIR}/native${stage_datadir}/libtool"
 pkgltdldir:cross     = "${STAGE_DIR}/native${stage_datadir}/libtool"
