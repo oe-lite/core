@@ -1,4 +1,4 @@
-PKGCONFIG_DEPENDS = "native:pkg-config"
+PKGCONFIG_DEPENDS = "native:pkg-config-dev"
 CLASS_DEPENDS += "${PKGCONFIG_DEPENDS}"
 
 export PKG_CONFIG_LIBDIR	= "${HOST_SYSROOT}${libdir}/pkgconfig"
