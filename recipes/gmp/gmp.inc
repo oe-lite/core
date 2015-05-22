@@ -9,7 +9,7 @@ RECIPE_TYPES = "native machine sdk"
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/gmp/gmp-${PV}.tar.xz"
 
-DEPENDS = "native:gawk libm"
+DEPENDS = "native:m4 native:gawk libm"
 
 inherit autotools c++ make-vpath
 
