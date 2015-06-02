@@ -8,7 +8,7 @@ inherit autotools
 CLASS_DEPENDS += "${DEPENDS_AUTORECONF}"
 DEPENDS_AUTORECONF ?= "native:glib-dev"
 
-EXTRA_AUTORECONF = ""
+EXTRA_AUTORECONF ?= ""
 AUTORECONF_CMD ?= "autoreconf --verbose --install --force \
 	${EXTRA_AUTORECONF} $acpaths \
 "
