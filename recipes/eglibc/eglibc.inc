@@ -11,7 +11,7 @@ RECIPE_TYPES = "machine sdk"
 COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.* .*linux-uclibc.*"
 
 SRC_BRANCH = "eglibc-${@d.get('PV').replace('.','_')}"
-SRC_URI = "svn://www.eglibc.org/svn/branches/${SRC_BRANCH};protocol=http;rev=${SRC_REV}"
+SRC_URI = "svn://www.eglibc.org/branches/${SRC_BRANCH};rev=${SRC_REV}"
 S = "${SRCDIR}/${SRC_BRANCH}/libc"
 
 inherit autotools make-vpath
