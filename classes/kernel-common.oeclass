@@ -5,7 +5,7 @@
 
 INHIBIT_PACKAGE_STRIP = "1"
 
-inherit c make kernel-arch
+inherit c kbuild kernel-arch
 
 KERNEL_VERSION_PATCHLEVEL = "${@'.'.join(d.get('PV').split('.')[:2])}"
 
