@@ -1,5 +1,5 @@
---- gcc-4.8.2/gcc/config/i386/t-linux64~orig	2014-01-10 10:27:56.292668909 +0100
-+++ gcc-4.8.2/gcc/config/i386/t-linux64	2014-01-10 10:30:34.292665636 +0100
+--- gcc-4.9.2/gcc/config/i386/t-linux64~orig	2015-04-21 16:12:01.599154777 +0200
++++ gcc-4.9.2/gcc/config/i386/t-linux64	2015-04-21 16:13:36.520158158 +0200
 @@ -33,6 +33,6 @@
  comma=,
  MULTILIB_OPTIONS    = $(subst $(comma),/,$(TM_MULTILIB_CONFIG))

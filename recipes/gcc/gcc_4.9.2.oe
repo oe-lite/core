@@ -1,0 +1,5 @@
+require ${PN}.inc
+include gcc-${PV}.inc
+
+# libcilkrts and libvtv support is intel only for now
+AUTO_PACKAGE_LIBS:>TARGET_CPU_x86 = " cilkrts vtv"

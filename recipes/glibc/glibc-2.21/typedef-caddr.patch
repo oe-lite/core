@@ -1,0 +1,30 @@
+Source: Written by Esben Haabendal <esben@haabendal.dk>
+Upstream: No
+Reason: Workaround for autoconf'ed define of caddr_t
+
+--- glibc-2.21/posix/sys/types.h~orig	2015-04-20 13:03:34.970131596 +0200
++++ glibc-2.21/posix/sys/types.h	2015-04-20 13:04:22.527454028 +0200
+@@ -113,7 +113,10 @@
+ #ifdef	__USE_MISC
+ # ifndef __daddr_t_defined
+ typedef __daddr_t daddr_t;
++#  if ! defined(caddr_t) && ! defined(__caddr_t_defined)
+ typedef __caddr_t caddr_t;
++#   define __caddr_t_defined
++#  endif
+ #  define __daddr_t_defined
+ # endif
+ #endif
+--- glibc-2.21/sunrpc/rpc/types.h~orig	2015-04-20 13:05:18.701016683 +0200
++++ glibc-2.21/sunrpc/rpc/types.h	2015-04-20 13:06:47.154478541 +0200
+@@ -86,7 +86,10 @@
+ #endif
+ #ifndef __daddr_t_defined
+ typedef __daddr_t daddr_t;
++# if ! defined(caddr_t) && ! defined(__caddr_t_defined)
+ typedef __caddr_t caddr_t;
++#  define __caddr_t_defined
++# endif
+ # define __daddr_t_defined
+ #endif
+ 

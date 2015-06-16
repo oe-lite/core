@@ -45,7 +45,7 @@ HOST_LDFLAGS:sdk-cross		= "${TARGET_LDFLAGS}"
 
 do_install[postfuncs] += "do_install_symlinks"
 do_install_symlinks () {
-    ln -sf ../../aclocal ${D}${datadir}/libtool/libltdl/m4
+    ln -sf ../aclocal ${D}${datadir}/libtool/m4
     ln -sf ../config ${D}${datadir}/libtool/libltdl/config
 }
 
