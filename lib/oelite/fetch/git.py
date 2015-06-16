@@ -267,6 +267,11 @@ class GitFetcher():
         return True
 
     def mirror(self, mirror=os.getcwd()):
+        if self.is_local:
+            # Don't mirror if the source is local. Concept taken from fetch
+            print "Info: Skipping creating mirror for local path %s"%(self.uri)
+            return True
+
         path = os.path.join(self.uri.isubdir, "git", self.mirror_name) + ".git"
         basedir = os.path.dirname(path)
         if not os.path.exists(path):
