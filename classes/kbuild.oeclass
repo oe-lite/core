@@ -1,0 +1,12 @@
+## Class for recipes using kbuild based build system
+##
+## @var EXTRA_OEMAKE_VERBOSE Make argument to control kbuild verbosity.
+
+inherit make
+
+EXTRA_OEMAKE_VERBOSE ?= "V=1"
+EXTRA_OEMAKE += "${EXTRA_OEMAKE_VERBOSE}"
+
+# Local Variables:
+# mode: python
+# End:
