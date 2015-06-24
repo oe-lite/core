@@ -108,6 +108,9 @@ do_configure_kernel () {
 	lzma)	echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
 		echo 'CONFIG_INITRAMFS_COMPRESSION_LZMA=y' >> ${S}/.config
 		;;
+	xz)	echo 'CONFIG_RD_XZ=y' >> ${S}/.config
+		echo 'CONFIG_INITRAMFS_COMPRESSION_XZ=y' >> ${S}/.config
+		;;
 	*)
 		;;
 	esac
