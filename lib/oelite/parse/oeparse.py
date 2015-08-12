@@ -15,7 +15,12 @@ class OEParser(object):
             lexer = oelite.parse.oelexer
         self.lexer = lexer.clone()
         self.lexer.parser = self
-        self.tokens = lexer.lextokens.keys()
+        if type(lexer.lextokens) == set:
+            # ply >= 3.6
+            self.tokens = list(lexer.lextokens)
+        else:
+            # ply <= 3.4
+            self.tokens = lexer.lextokens.keys()
         oelite.util.makedirs("tmp/ply")
         picklefile = "tmp/ply/" + self.__class__.__module__ + ".p"
         self.yacc = ply.yacc.yacc(module=self, debug=0, picklefile=picklefile)
