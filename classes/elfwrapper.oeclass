@@ -26,23 +26,23 @@ def image_preprocess_elf_sowrap(d):
     filemagic = magic.open(magic.MAGIC_NONE)
     filemagic.load()
     host_elf_re = re.compile(d.get("HOST_ELF"))
+    command_re = re.compile(" executable, ")
+    static_re = re.compile("statically")
     ld_so = d.get("IMAGE_ELF_SOWRAP_LD_SO")
 
-    def is_elf(path):
+    def is_elf_command_shared_with_rpath(path):
         filetype = filemagic.file(path)
-        return bool(host_elf_re.match(filetype))
-
-    def is_static(path):
-        filetype = filemagic.file(path)
-        static_re = re.compile(".*statically.*")
-        return bool(static_re.match(filetype))
-
-    def is_with_rpath(path):
-        chrpath = chrpath_get_cmd(d,filemagic.file(path))
+        if not host_elf_re.match(filetype):
+            return False
+        if not command_re.search(filetype):
+            return False
+        if static_re.search(filetype):
+            return False
+        chrpath = chrpath_get_cmd(d, filetype)
         cmd = [chrpath, '-l', path]
-        rpath = oelite.util.shcmd(cmd, quiet=True,
-                                  silent_errorcodes=[99])
-        return bool(rpath)
+        if not oelite.util.shcmd(cmd, quiet=True, silent_errorcodes=[99]):
+            return False
+        return True
 
     def sowrap_dir(dir, recursive=False):
         if not os.path.exists(dir):
@@ -62,11 +62,7 @@ def image_preprocess_elf_sowrap(d):
                 print "ERROR: file already exists:", os.path.join(dir, path)
                 ok = False
                 continue
-            if not is_elf(path):
-                continue
-            if is_static(path):
-                continue
-            if not is_with_rpath(path):
+            if not is_elf_command_shared_with_rpath(path):
                 continue
             os.rename(path, dotpath)
             with open(path, "w") as wrapper:
