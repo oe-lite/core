@@ -142,7 +142,7 @@ do_compile_kernel () {
 		if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
 			LOADADDR="$USE_kernel_uimage_loadaddress"
 		elif [ -n "$USE_kernel_uimage_entrypoint" ] ; then
-			LOADADDR=="$USE_kernel_uimage_entrypoint"
+			LOADADDR="$USE_kernel_uimage_entrypoint"
 		else
 			oe_runmake vmlinux
 			for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
