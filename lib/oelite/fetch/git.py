@@ -56,6 +56,7 @@ class GitFetcher():
         i = bool(self.commit) + bool(self.tag) + bool(self.branch)
         if i == 0:
             self.branch = "HEAD"
+            i = 1
             if self.is_local and not hasattr(self, 'dirty'):
                 self.dirty = True
         if "dirty" in uri.params:
