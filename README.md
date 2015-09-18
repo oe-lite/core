@@ -1,5 +1,5 @@
 OE-lite/core metadata
----------------------
+=====================
 
 This is the core metadata of the OE-lite project, containing core classes and
 configuration files, and recipes for building a cross-compilation toolchain.
