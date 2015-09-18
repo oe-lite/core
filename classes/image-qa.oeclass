@@ -33,6 +33,8 @@ IMAGEQA_HOST_READELF_SEARCH_DIRS ?= "\
 "
 IMAGEQA_HOST_READELF_LIB_DIRS ?= "\
 	${IMAGE_DIR}${base_libdir} ${IMAGE_DIR}${libdir}"
+IMAGEQA_HOST_READELF_LIB_DIRS:>canadian-cross = "\
+	${IMAGE_DIR}/${HOST_ARCH}/${TARGET_ARCH}/lib"
 
 IMAGEQA_TARGET_READELF:machine ?= "${TARGET_PREFIX}readelf"
 IMAGEQA_TARGET_READELF:canadian-cross ?= "${TARGET_PREFIX}readelf"
