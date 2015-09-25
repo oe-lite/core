@@ -23,6 +23,7 @@ dupdate_image_tar(){
     tar chf ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} .
 }
 
+CLASS_DEPENDS += "native:util/zip"
 dupdate_image_zip(){
     zip ${B}/${IMAGE_BASENAME}${DUPDATE_IMAGE_EXT} *
 }
