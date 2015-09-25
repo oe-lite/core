@@ -508,7 +508,7 @@ def do_packageqa(d):
 
         get_libname_re = re.compile("(lib.*)\.so.*")
         get_libname_re2 = re.compile(r"(.*?)(\.)?$")
-        get_libname_ld_linux_re = re.compile("ld-linux.*\.so.*")
+        get_libname_ld_linux_re = re.compile("ld(-linux.*)?\.so.*")
         def get_libname(soname):
             def _get_libname(s):
                 if get_libname_ld_linux_re.match(s):
