@@ -527,7 +527,7 @@ def do_packageqa(d):
         get_libname_version_re = re.compile("(lib.*)\.so.([0-9]*).*")
         def get_libname_version(soname):
             def _get_libname_version(s):
-                s = s.replace("_","-")
+                s = s.lower().replace("_","-")
                 m = get_libname_version_re.match(s)
                 if not m:
                     oebakery.debug("non-matching SONAME: %s"%(s))
