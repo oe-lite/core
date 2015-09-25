@@ -11,4 +11,4 @@ See http://oe-lite.org for more information.
 
 - Source code, issue tracking, website and wiki is hosted on
   [GitHub](https://github.com)
-- [![Stories in Ready](https://badge.waffle.io/oe-lite/core.png?label=ready&title=Ready)](https://waffle.io/oe-lite/core)
+- [![Stories in Ready](https://badge.waffle.io/oe-lite/core.png?label=ready&title=Ready)](https://waffle.io/oe-lite/core) - Kanban board provided by [waffle.io](https://waffle.io/)
