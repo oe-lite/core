@@ -42,7 +42,7 @@ dupdate_image(){
 
 CLASS_FLAGS += "dupdate_script dupdate_version dupdate_archiveformat"
 DEFAULT_USE_dupdate_script = ""
-DEFAULT_USE_dupdate_version = ""
+DEFAULT_USE_dupdate_version ?= "0"
 DEFAULT_USE_dupdate_archiveformat = "tar"
 
 CLASS_FLAGS += "dupdate_exefile"
