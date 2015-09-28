@@ -70,6 +70,7 @@ AUTO_PACKAGE_LIBS_DEV_RDEPENDS = "${PN}-dev"
 AUTO_PACKAGE_LIBS_DEPENDS = "ld-so libc"
 AUTO_PACKAGE_LIBS_RDEPENDS = "ld-so libc"
 FILES_${PN}-libthread-db += "${base_sharedlibdir}/libthread_db-*.so"
+PROVIDES_${PN}-libnldbl[qa] += "allow-missing-soname:libnldbl"
 
 DEPENDS_${PN}-librt = "libpthread"
 RDEPENDS_${PN}-librt = "libpthread"
