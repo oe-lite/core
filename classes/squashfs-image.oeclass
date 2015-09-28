@@ -1,0 +1,40 @@
+## Used for creating squashfs images.
+##
+## Creates a squashfs image.
+##
+## @var IMAGE_BASENAME Set to a different basename.
+
+IMAGE_BASENAME ?= "${MACHINE_ID}-${PN}"
+
+inherit image
+
+SQUASHFS_IMAGE_DEPENDS = "native:util/mksquashfs"
+CLASS_DEPENDS += "${SQUASHFS_IMAGE_DEPENDS}"
+
+IMAGE_CREATE_FUNCS += "mksquashfs_image"
+
+SQUASHFS_IMAGE_OPTIONS ?= ""
+
+mksquashfs_image () {
+	mksquashfs ${SQUASHFS_IMAGE_OPTIONS} \
+		 ${IMAGE_DIR} ${B}/${IMAGE_BASENAME}.sfs
+}
+
+do_install[postfuncs] += "do_install_squashfs_image"
+do_install_squashfs_image () {
+	install -m 664 ${B}/${IMAGE_BASENAME}.sfs ${D}/
+}
+
+FILES_${PN} += "/*.sfs"
+
+do_deploy[postfuncs] += "do_deploy_squashfs_image"
+do_deploy_squashfs_image () {
+	install -m 664 ${B}/${IMAGE_BASENAME}.sfs \
+		${IMAGE_DEPLOY_DIR}/${IMAGE_FULLNAME}.sfs
+	ln -sf ${IMAGE_FULLNAME}.sfs \
+		${IMAGE_DEPLOY_DIR}/${IMAGE_BASENAME}.sfs
+}
+
+# Local Variables:
+# mode: python
+# End:
