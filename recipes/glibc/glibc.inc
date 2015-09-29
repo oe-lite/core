@@ -70,6 +70,7 @@ AUTO_PACKAGE_LIBS_DEV_RDEPENDS = "${PN}-dev"
 AUTO_PACKAGE_LIBS_DEPENDS = "ld-so libc"
 AUTO_PACKAGE_LIBS_RDEPENDS = "ld-so libc"
 FILES_${PN}-libthread-db += "${base_sharedlibdir}/libthread_db-*.so"
+PROVIDES_${PN}-libnldbl[qa] += "allow-missing-soname:libnldbl"
 
 DEPENDS_${PN}-librt = "libpthread"
 RDEPENDS_${PN}-librt = "libpthread"
@@ -141,25 +142,7 @@ RDEPENDS_${PN}-util-nscd += "libnsl libpthread"
 DEPENDS_${PN}-util-sprof += "libdl"
 RDEPENDS_${PN}-util-sprof += "libdl"
 
-# FIXME: find a better way to package up the iconv .so modules.  Are they
-# needed by some of the library calls?  Also, perhaps split it into different
-# packages to allow selection of individual modules.  Do we need a
-# gconv-modules file generated?  Perhaps create an image .oeclass for keeping
-# selected modules and generate the gconv-modules file?
-PACKAGES =+ "${PN}-gconv-modules"
-FILES_${PN}-gconv-modules = "${libdir}/gconv"
-PROVIDES_${PN}-gconv-modules = "gconv-modules"
-DEPENDS_${PN}-gconv-modules = "libc"
-RDEPENDS_${PN}-gconv-modules = "libc"
-FILES_${PN}-gconv-modules[qa] += "allow-elf-bins-in-other-dirs"
-FILES_${PN}-gconv-modules[qa] += "allow-elf-libs-in-other-dirs"
-PROVIDES_${PN}-gconv-modules[qa] += "allow-missing-provides"
-DEPENDS_${PN}-gconv-modules[qa] += "allow-missing-lib-depends"
-RDEPENDS_${PN}-gconv-modules[qa] += "allow-missing-lib-rdepends"
-
-RDEPENDS_${PN}-util-iconv += "gconv-modules"
-
-CHRPATH_DIRS += "${libdir}/gconv"
+require glibc-gconv-modules.inc
 
 FILES_${PN}-dev += "${libdir}/*.o ${libdir}/*/*.o"
 
