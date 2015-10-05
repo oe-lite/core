@@ -164,7 +164,7 @@ cpuspecs = {
             },
         'cortexa8'		: {
             'mcpu'		: 'cortex-a8',
-            'mtune'	 	: 'cortex-a8',
+            'mtune'             : 'cortex-a8',
             'abi flags'         : [
                 ['float abi', 'hard', {
                         'hard' : {
@@ -184,25 +184,27 @@ cpuspecs = {
                         }
                  ],
                 ['instruction set', 'thumb', {
-                        'arm' : { },
+                        'arm' : {
+                            'mode' : 'arm',
+                            },
                         'thumb' : {
-                            'thumb' : '1',
+                            'mode' : 'thumb',
                             'vendor' : 't',
                             },
                         }
                  ],
                 ]
             },
-        'cortexa8neon'		: {
+        'cortexa8neont'		: {
             'mcpu'		: 'cortex-a8',
             'mtune'		: 'cortex-a8',
             'fpu'		: 'neon',
             'float'		: 'hard',
-            'thumb'		: '1',
+            'mode'		: 'thumb',
             },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
-            'mtune'	 	: 'cortex-a9',
+            'mtune'             : 'cortex-a9',
             'abi flags'         : [
                 ['float abi', 'hard', {
                         'hard' : {
@@ -222,21 +224,23 @@ cpuspecs = {
                         }
                  ],
                 ['instruction set', 'thumb', {
-                        'arm' : { },
+                        'arm' : {
+                            'mode' : 'arm',
+                            },
                         'thumb' : {
-                            'thumb' : '1',
+                            'mode' : 'thumb',
                             'vendor' : 't',
                             },
                         }
                  ],
                 ]
             },
-        'cortexa9neon'		: {
+        'cortexa9neont'		: {
             'mcpu'		: 'cortex-a9',
             'mtune'		: 'cortex-a9',
             'float'		: 'hard',
             'fpu'		: 'neon',
-            'thumb'		: '1',
+            'mode'		: 'thumb',
             },
         },
 
@@ -462,19 +466,22 @@ cpumap = {
         'imx31'			: ('1136jfs', 'imx'),
         'imx35'			: ('1136jfs', 'imx'),
         'imx51'			: ('cortexa8', 'imx'),
-        'imx512'		: ('cortexa8', 'imx', 'imx51'),
-        'imx513'		: ('cortexa8', 'imx', 'imx51'),
-        'imx514'		: ('cortexa8', 'imx', 'imx51'),
-        'imx515'		: ('cortexa8', 'imx', 'imx51'),
-        'imx516'		: ('cortexa8', 'imx', 'imx51'),
+        'imx512'		: ('cortexa8', ('imx51', 'imx')),
+        'imx513'		: ('cortexa8', ('imx51', 'imx')),
+        'imx514'		: ('cortexa8', ('imx51', 'imx')),
+        'imx515'		: ('cortexa8', ('imx51', 'imx')),
+        'imx516'		: ('cortexa8', ('imx51', 'imx')),
         'imx53'			: ('cortexa8', 'imx'),
-        'imx534'		: ('cortexa8', 'imx', 'imx53'),
-        'imx535'		: ('cortexa8', 'imx', 'imx53'),
-        'imx536'		: ('cortexa8', 'imx', 'imx53'),
-        'imx537'		: ('cortexa8', 'imx', 'imx53'),
-        'imx538'		: ('cortexa8', 'imx', 'imx53'),
+        'imx534'		: ('cortexa8', ('imx53', 'imx')),
+        'imx535'		: ('cortexa8', ('imx53', 'imx')),
+        'imx536'		: ('cortexa8', ('imx53', 'imx')),
+        'imx537'		: ('cortexa8', ('imx53', 'imx')),
+        'imx538'		: ('cortexa8', ('imx53', 'imx')),
         'imx6'			: ('cortexa9', 'imx'),
         'ls1021a'		: ('cortexa7', ('ls102x', 'ls1', 'layerscape')),
+        'imx6sl'		: ('cortexa9', ('imx6', 'imx')),
+        'imx6dl'		: ('cortexa9', ('imx6', 'imx')),
+        'imx6q'			: ('cortexa9', ('imx6', 'imx')),
         },
 
     'x86'		: {

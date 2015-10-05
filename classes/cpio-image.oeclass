@@ -42,6 +42,8 @@ cpio_mkimage () {
 			;;
 		lzma) lzma ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
+		xz) xz ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
+			;;
 		lzo)  lzop ${B}/${IMAGE_BASENAME}.cpio -c > ${B}/image.bin
 			;;
 		*) echo "ERROR: mkimage compression ${USE_ramdisk_image_compression} not supported"
