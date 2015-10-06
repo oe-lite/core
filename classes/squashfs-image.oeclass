@@ -16,6 +16,7 @@ IMAGE_CREATE_FUNCS += "mksquashfs_image"
 SQUASHFS_IMAGE_OPTIONS ?= ""
 
 mksquashfs_image () {
+	rm -f ${B}/${IMAGE_BASENAME}.sfs
 	mksquashfs ${SQUASHFS_IMAGE_OPTIONS} \
 		 ${IMAGE_DIR} ${B}/${IMAGE_BASENAME}.sfs
 }
