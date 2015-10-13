@@ -4,6 +4,8 @@
 ## machine, sdk, cross, sdk-cross, canadian-cross (=all). A similar class
 ## exists for c++, see the c++ class.
 
+OVERRIDES .= ":c"
+
 CLASS_DEPENDS += "${C_DEPENDS}"
 C_DEPENDS			= "${C_DEPENDS_HOST}"
 C_DEPENDS:>cross		= " ${C_DEPENDS_TARGET}"
