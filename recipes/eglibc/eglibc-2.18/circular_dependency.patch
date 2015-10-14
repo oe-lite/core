@@ -1,0 +1,82 @@
+diff --git eglibc-2_18/libc/Makefile eglibc-2_18/libc/Makefile
+index 51d10b9..74237eb 100644
+--- eglibc-2_18/libc/Makefile
++++ eglibc-2_18/libc/Makefile
+@@ -131,31 +131,7 @@ endif
+ lib-noranlib: subdir_lib
+ 
+ ifeq (yes,$(build-shared))
+-# Build the shared object from the PIC object library.
+-lib: $(common-objpfx)libc.so
+-
+-lib: $(common-objpfx)linkobj/libc.so
+-
+-# Do not filter ld.so out of libc.so link.
+-$(common-objpfx)linkobj/libc.so: link-libc-deps = # empty
+-
+-$(common-objpfx)linkobj/libc.so: $(elfobjdir)/soinit.os \
+-				 $(common-objpfx)linkobj/libc_pic.a \
+-				 $(elfobjdir)/sofini.os \
+-				 $(elfobjdir)/interp.os \
+-				 $(elfobjdir)/ld.so \
+-				 $(shlib-lds)
+-	$(build-shlib)
+-
+-$(common-objpfx)linkobj/libc_pic.a: $(common-objpfx)libc_pic.a \
+-				    $(common-objpfx)sunrpc/librpc_compat_pic.a
+-	$(..)./scripts/mkinstalldirs $(common-objpfx)linkobj
+-	(cd $(common-objpfx)linkobj; \
+-	 $(AR) x ../libc_pic.a; \
+-	 rm $$($(AR) t ../sunrpc/librpc_compat_pic.a | sed 's/^compat-//'); \
+-	 $(AR) x ../sunrpc/librpc_compat_pic.a; \
+-	 $(AR) cr libc_pic.a *.os; \
+-	 rm *.os)
++lib: $(common-objpfx)libc.so $(common-objpfx)linkobj/libc.so
+ endif
+ 
+ 
+diff --git eglibc-2_18/libc/Makerules eglibc-2_18/libc/Makerules
+index 4bd6c13..9fb6bb2 100644
+--- eglibc-2_18/libc/Makerules
++++ eglibc-2_18/libc/Makerules
+@@ -595,16 +595,39 @@ ifneq ($(versioning),yes)
+ libc_gcclibs := -lgcc_eh
+ endif
+ 
++# Build a possibly-modified version of libc_pic.a for use in building
++# linkobj/libc.so.
++$(common-objpfx)linkobj/libc_pic.a: $(common-objpfx)libc_pic.a \
++				    $(common-objpfx)sunrpc/librpc_compat_pic.a
++	$(..)./scripts/mkinstalldirs $(common-objpfx)linkobj
++	(cd $(common-objpfx)linkobj; \
++	 $(AR) x ../libc_pic.a; \
++	 rm $$($(AR) t ../sunrpc/librpc_compat_pic.a | sed 's/^compat-//'); \
++	 $(AR) x ../sunrpc/librpc_compat_pic.a; \
++	 $(AR) cr libc_pic.a *.os; \
++	 rm *.os)
++
+ # Do not filter ld.so out of libc.so link.
+ $(common-objpfx)libc.so: link-libc-deps = # empty
++$(common-objpfx)linkobj/libc.so: link-libc-deps = # empty
+ 
+ # Use our own special initializer and finalizer files for libc.so.
+ $(common-objpfx)libc.so: $(elfobjdir)/soinit.os \
+ 			 $(common-objpfx)libc_pic.os$(libc_pic_clean) \
+ 			 $(elfobjdir)/sofini.os \
+-			 $(elfobjdir)/interp.os $(elfobjdir)/ld.so \
++			 $(elfobjdir)/interp.os \
++			 $(elfobjdir)/ld.so \
+ 			 $(shlib-lds)
+ 	$(build-shlib) $(libc_gcclibs)
++
++$(common-objpfx)linkobj/libc.so: $(elfobjdir)/soinit.os \
++				 $(common-objpfx)linkobj/libc_pic.a \
++				 $(elfobjdir)/sofini.os \
++				 $(elfobjdir)/interp.os \
++				 $(elfobjdir)/ld.so \
++				 $(shlib-lds)
++	$(build-shlib) $(libc_gcclibs)
++
+ # eglibc: ifeq ($(versioning),yes)
+ $(common-objpfx)libc.so: $(common-objpfx)libc.map
+ # eglibc: endif
