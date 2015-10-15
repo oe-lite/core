@@ -80,7 +80,7 @@ PROVIDES_${PN}-libncurses[qa] = "allow-missing-soname:libtermcap"
 PROVIDES_${PN}-libncurses-dev = "libtermcap-dev"
 
 inherit auto-package-utils
-AUTO_PACKAGE_UTILS = "captoinfo clear infocmp infotocap ncurses5-config reset tabs tic toe tput tset"
+AUTO_PACKAGE_UTILS = "captoinfo clear infocmp infotocap ncurses6-config reset tabs tic toe tput tset"
 RDEPENDS_${PN}-captoinfo += "${PN}-tic"
 RDEPENDS_${PN}-infotocap += "${PN}-tic"
 RDEPENDS_${PN}-reset += "${PN}-tset"
@@ -91,7 +91,7 @@ AUTO_PACKAGE_UTILS_RDEPENDS += "libncurses"
 FILES_${PN} = "${datadir}/tabset ${sysconfdir}/terminfo"
 RDEPENDS_${PN}-tools += "${AUTO_PACKAGE_UTILS_PROVIDES}"
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
-FILES_${PN}-dev += "${bindir}/ncurses5-config"
+FILES_${PN}-dev += "${bindir}/ncurses6-config"
 
 DEPENDS_${PN} += "libncurses"
 DEPENDS_${PN}-dev = ""
