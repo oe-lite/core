@@ -9,3 +9,6 @@ SRC_URI += "file://typedef-caddr.patch;striplevel=2"
 # Fixes for handling of bindir, sbindir and so on
 SRC_URI += "file://bindir-paths.patch;striplevel=2"
 EXTRA_OECONF += "libc_cv_rootsbindir=${base_sbindir}"
+
+# Fix circular dependencies in makefile
+SRC_URI += "file://circular_dependency.patch;striplevel=2"
