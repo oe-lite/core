@@ -1,7 +1,0 @@
-LICENSE = "MIT"
-
-require ncurses.inc
-
-# Local Variables:
-# mode: python
-# End:
