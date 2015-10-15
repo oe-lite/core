@@ -12,3 +12,8 @@ EXTRA_OECONF += "libc_cv_rootsbindir=${base_sbindir}"
 
 # Fix circular dependencies in makefile
 SRC_URI += "file://circular_dependency.patch;striplevel=2"
+
+# On PowerPC32 references from within libc to gettimeofday
+# and time got resolved to placeholder versions of these system
+# calls.
+SRC_URI:>TARGET_CPU_powerpc += "file://gettimeofday_time.patch;striplevel=2"
