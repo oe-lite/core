@@ -1,0 +1,15 @@
+require ${PN}.inc
+include gcc-${PV}.inc
+
+# libcilkrts and libvtv support is intel only for now
+AUTO_PACKAGE_LIBS:>TARGET_CPU_x86 = " cilkrts vtv vtv_stubs"
+#AUTO_PACKAGE_LIBS:>TARGET_CPU_x86_32 = " cilkrts vtv"
+#AUTO_PACKAGE_LIBS:>TARGET_CPU_i686 = " cilkrts vtv"
+
+FILES_${PN} += "${libdir}/libcc1.*"
+
+AUTO_PACKAGE_LIBS += "gomp-plugin-host"
+DEPENDS_${PN}-libgomp += "libgomp-plugin-host"
+RDEPENDS_${PN}-libgomp += "libgomp-plugin-host"
+
+#FILES_${PN}-
