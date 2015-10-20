@@ -7,7 +7,12 @@
 
 CLASS_FLAGS += "largefile"
 EXTRA_OECONF_LARGEFILE = "--disable-largefile"
-EXTRA_OECONF_LARGEFILE:USE_largefile = "--enable-largefile"
+EXTRA_OECONF_LARGEFILE:USE_largefile = "\
+    --enable-largefile \
+    ac_cv_sys_largefile_source=1 \
+    ac_cv_sys_file_offset_bits=64 \
+    ac_cv_sizeof_off_t=8 \
+"
 EXTRA_OECONF += "${EXTRA_OECONF_LARGEFILE}"
 
 # Local Variables:
