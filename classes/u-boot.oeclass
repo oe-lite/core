@@ -126,12 +126,12 @@ do_compile () {
 # Support checking the u-boot image size
 inherit sizecheck
 UBOOT_SIZECHECK = ""
-UBOOT_SIZECHECK:USE_uboot_maxsize = "${UBOOT_IMAGE}:${USE_uboot_maxsize}"
+UBOOT_SIZECHECK:USE_uboot_maxsize = "${UBOOT_IMAGE_FILENAME}:${USE_uboot_maxsize}"
 SIZECHECK += "${UBOOT_SIZECHECK}"
 
 do_install () {
     install -d ${D}${bootdir}
-    install -m 0644 ${UBOOT_IMAGE} ${D}${bootdir}
+    install -m 0644 ${UBOOT_IMAGE_FILENAME} ${D}${bootdir}
     install -m 0644 ${UBOOT_IMAGE_BASE} ${D}${bootdir}
 }
 
@@ -147,9 +147,9 @@ do_deploy[dirs] = "${IMAGE_DEPLOY_DIR} ${S}"
 REBUILD ?= "1"
 
 do_deploy () {
-    install -m 0644 ${UBOOT_IMAGE} \
+    install -m 0644 ${UBOOT_IMAGE_FILENAME} \
 	${IMAGE_DEPLOY_DIR}/${UBOOT_IMAGE_DEPLOY_FILE}
-    md5sum <${UBOOT_IMAGE} \
+    md5sum <${UBOOT_IMAGE_FILENAME} \
 	>${IMAGE_DEPLOY_DIR}/${UBOOT_IMAGE_DEPLOY_FILE}.md5
 
     cd ${IMAGE_DEPLOY_DIR}
@@ -173,7 +173,7 @@ UBOOT_SREC_IMAGE_DEPLOY_LINK ?= "${MACHINE}-${UBOOT_IMAGE_DEPLOY_NAME}${UBOOT_SR
 do_compile[postfuncs] += "${DO_COMPILE_SREC}"
 DO_COMPILE_SREC:USE_uboot_srec = "do_compile_srec"
 do_compile_srec () {
-	srec_cat ${UBOOT_IMAGE} -Binary -o ${UBOOT_SREC_IMAGE} -Motorola
+	srec_cat ${UBOOT_IMAGE_FILENAME} -Binary -o ${UBOOT_SREC_IMAGE} -Motorola
 }
 
 do_install[postfuncs] += "${DO_INSTALL_SREC}"
@@ -191,7 +191,7 @@ DO_DEPLOY_SREC:USE_uboot_srec = "do_deploy_srec"
 do_deploy_srec () {
 	install -m 0644 ${UBOOT_SREC_IMAGE} \
 		${IMAGE_DEPLOY_DIR}/${UBOOT_SREC_IMAGE_DEPLOY_FILE}
-	md5sum <${UBOOT_IMAGE} \
+	md5sum <${UBOOT_IMAGE_FILENAME} \
 		>${IMAGE_DEPLOY_DIR}/${UBOOT_SREC_IMAGE_DEPLOY_FILE}.md5
 
 	cd ${IMAGE_DEPLOY_DIR}
