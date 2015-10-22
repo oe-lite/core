@@ -9,10 +9,10 @@
 ## additional package named ${PN}-foo and ${PN}-bar that provides util/foo and
 ## util/bar.
 ##
-## @var AUTO_PACKAGE_UTILS Set to a list of libraries
-## @var AUTO_PACKAGE_UTILS_RDEPENDS Set to a common RDEPEND for all libraries in
+## @var AUTO_PACKAGE_UTILS Set to a list of utilities
+## @var AUTO_PACKAGE_UTILS_RDEPENDS Set to a common RDEPEND for all utilities in
 ##      the list
-## @var AUTO_PACKAGE_UTILS_DEPENDS Set to a common DEPEND for all libraries in
+## @var AUTO_PACKAGE_UTILS_DEPENDS Set to a common DEPEND for all utilities in
 ##      the list
 ## @var AUTO_PACKAGE_UTILS_BASENAME Base package name for produced packages.
 ##      Defaults to PN.

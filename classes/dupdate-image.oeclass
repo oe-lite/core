@@ -67,6 +67,7 @@ do_rstage_dupdate_flatten_bootdir () {
 }
 do_rstage_dupdate_flatten_bootdir[dirs] = "${RSTAGE_DIR}"
 
+do_rstage_dupdate_version[expand] = 3
 do_rstage_dupdate_version () {
 	echo "${USE_dupdate_version}" > VERSION
 }
