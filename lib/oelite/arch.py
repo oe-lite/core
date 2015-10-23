@@ -195,13 +195,6 @@ cpuspecs = {
                  ],
                 ]
             },
-        'cortexa8neont'		: {
-            'mcpu'		: 'cortex-a8',
-            'mtune'		: 'cortex-a8',
-            'fpu'		: 'neon',
-            'float'		: 'hard',
-            'mode'		: 'thumb',
-            },
         'cortexa9'		: {
             'mcpu'		: 'cortex-a9',
             'mtune'             : 'cortex-a9',
@@ -234,13 +227,6 @@ cpuspecs = {
                         }
                  ],
                 ]
-            },
-        'cortexa9neont'		: {
-            'mcpu'		: 'cortex-a9',
-            'mtune'		: 'cortex-a9',
-            'float'		: 'hard',
-            'fpu'		: 'neon',
-            'mode'		: 'thumb',
             },
         },
 
