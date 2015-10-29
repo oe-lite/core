@@ -4,6 +4,8 @@
 ## machine, sdk, cross, sdk-cross, canadian-cross (=all). A similar class
 ## exists for c++, see the c++ class.
 
+CLASS_FLAGS:>machine	= " powerpc_32bit_addr"
+
 CLASS_DEPENDS += "${C_DEPENDS}"
 C_DEPENDS			= "${C_DEPENDS_HOST}"
 C_DEPENDS:>cross		= " ${C_DEPENDS_TARGET}"
@@ -11,6 +13,14 @@ C_DEPENDS:>sdk-cross		= " ${C_DEPENDS_TARGET}"
 C_DEPENDS:>canadian-cross	= " ${C_DEPENDS_TARGET}"
 C_DEPENDS_HOST			= "host-cross:cc"
 C_DEPENDS_TARGET		= "target-cross:cc"
+
+# Set -fPIC if host/target is powerpc and USE_powerpc_32bit_addr is set
+PIC_OPTION_powerpc				= ""
+PIC_OPTION_powerpc:USE_powerpc_32bit_addr	= "-fPIC"
+HOST_PIC_OPTION					= ""
+HOST_PIC_OPTION:HOST_CPU_powerpc		= "${PIC_OPTION_powerpc}"
+TARGET_PIC_OPTION				= ""
+TARGET_PIC_OPTION:TARGET_CPU_powerpc		= "${PIC_OPTION_powerpc}"
 
 # CPPFLAGS
 export CPPFLAGS = "${HOST_CPPFLAGS}"
@@ -22,13 +32,13 @@ SDK_CPPFLAGS		?= ""
 
 HOST_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
 HOST_CPPFLAGS:cross		 = "${BUILD_CPPFLAGS}"
-HOST_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS}"
+HOST_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} ${HOST_PIC_OPTION}"
 HOST_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS}"
 HOST_CPPFLAGS:sdk-cross		 = "${BUILD_CPPFLAGS}"
 HOST_CPPFLAGS:canadian-cross	 = "${SDK_CPPFLAGS}"
 TARGET_CPPFLAGS:native		 = "${BUILD_CPPFLAGS}"
 TARGET_CPPFLAGS:cross		 = "${MACHINE_CPPFLAGS}"
-TARGET_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS}"
+TARGET_CPPFLAGS:machine		 = "${MACHINE_CPPFLAGS} ${TARGET_PIC_OPTION}"
 TARGET_CPPFLAGS:sdk		 = "${SDK_CPPFLAGS}"
 TARGET_CPPFLAGS:sdk-cross	 = "${SDK_CPPFLAGS}"
 TARGET_CPPFLAGS:canadian-cross	 = "${MACHINE_CPPFLAGS}"
@@ -43,13 +53,13 @@ SDK_CFLAGS		?= "${SDK_CPPFLAGS} ${SDK_CFLAGS_OPT}"
 
 HOST_CFLAGS:native		 = "${BUILD_CFLAGS}"
 HOST_CFLAGS:cross		 = "${BUILD_CFLAGS}"
-HOST_CFLAGS:machine		 = "${MACHINE_CFLAGS}"
+HOST_CFLAGS:machine		 = "${MACHINE_CFLAGS} ${HOST_PIC_OPTION}"
 HOST_CFLAGS:sdk			 = "${SDK_CFLAGS}"
 HOST_CFLAGS:sdk-cross		 = "${BUILD_CFLAGS}"
 HOST_CFLAGS:canadian-cross	 = "${SDK_CFLAGS}"
 TARGET_CFLAGS:native		 = "${BUILD_CFLAGS}"
 TARGET_CFLAGS:cross		 = "${MACHINE_CFLAGS}"
-TARGET_CFLAGS:machine		 = "${MACHINE_CFLAGS}"
+TARGET_CFLAGS:machine		 = "${MACHINE_CFLAGS} ${TARGET_PIC_OPTION}"
 TARGET_CFLAGS:sdk		 = "${SDK_CFLAGS}"
 TARGET_CFLAGS:sdk-cross		 = "${SDK_CFLAGS}"
 TARGET_CFLAGS:canadian-cross	 = "${MACHINE_CFLAGS}"
