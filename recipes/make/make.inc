@@ -12,6 +12,9 @@ RECIPE_TYPES = "native sdk"
 
 DEPENDS = ""
 
+DEPENDS_${PN} = "libc"
+RDEPENDS_${PN} = "libc"
+
 require conf/fetch/gnu.conf
 SRC_URI = "${GNU_MIRROR}/make/make-${PV}.tar.bz2"
 
