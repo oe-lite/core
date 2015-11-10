@@ -4,10 +4,10 @@
 ## /etc/passwd provided by one or more recipes.
 
 require conf/passwd.conf
+require conf/makedevs.conf
 
-IMAGE_PREPROCESS_FUNCS += "image_preprocess_passwd"
-
-image_preprocess_passwd () {
+do_rstage[postfuncs] += "do_rstage_passwd_concat"
+do_rstage_passwd_concat () {
 	cwd=`pwd`
 	if [ -d $cwd/${passwddir} ]; then
 		for f in $cwd/${passwddir}/* ; do
@@ -26,6 +26,146 @@ image_preprocess_passwd () {
 		rm -rf $cwd/${groupdir}
 	fi
 }
+
+# USE_image_passwd_users: line separated list of passwd entries
+# syntax:  <user>:[<passwd>]:[<uid>]:[<gid>]:[<name>]:[<homedir>]:[<shell>]
+# example: user1:$1$L9mzJfTZ$2ED5as2K2yZ98CN/BQuy1.:1000:1000:/home/user1:/bin/sh
+CLASS_FLAGS += "image_passwd_users"
+DEFAULT_USE_image_passwd_users = ""
+do_rstage[postfuncs] += "do_rstage_passwd_users"
+def do_rstage_passwd_users(d):
+    makedevs_dir = d.get("RSTAGE_DIR") + d.get("devtabledir")
+    makedevs_path = makedevs_dir + "/image_passwd"
+    passwd_path = d.get("RSTAGE_DIR") + (d.get("passwdfile") or "/etc/passwd")
+    passwd_users = d.get("USE_image_passwd_users") or ""
+
+    import os
+    if not os.path.exists(passwd_path):
+        return
+
+    if not passwd_users:
+        return
+
+    passwd_lines = open(passwd_path).readlines()
+    uid_next = 1000
+
+    # find the next availabe uid to use when adding new users below
+    for passwd_line in passwd_lines:
+        user,passwd,uid,gid,name,home,shell = passwd_line.split(':')
+
+        uid = int(uid)
+        if uid >= uid_next:
+            uid_next = uid + 1
+
+    passwd_file = open(passwd_path, 'a')
+    makedevs_file = open(makedevs_path, 'w')
+
+    # add configured users to /etc/passwd
+    for passwd_line in passwd_users.splitlines():
+        if not passwd_line:
+            continue
+
+        user,passwd,uid,gid,name,home,shell = passwd_line.split(':')
+        uid = uid or uid_next
+
+        # add a group for users with auto-incremented gid
+        if not gid:
+            gid = uid_next
+            group_line = "{}:x:{}:".format(user, gid)
+            group_lines = d.get("USE_image_passwd_groups")
+            group_lines = "{}\n{}".format(group_lines, group_line)
+            d.set("USE_image_passwd_groups", group_lines)
+
+        print("adding user: '{}'".format(user))
+        passwd_fmt = "{}:{}:{}:{}:{}:{}:{}\n"
+        passwd_line = passwd_fmt.format(user, passwd, uid, gid, user, home, shell)
+        passwd_file.write(passwd_line)
+
+        if home:
+            # exploit image_makedevs.oeclass to defer homedir creation until running in fakeroot
+            makedevs_line = "{} d 700 {} {} - - - - -\n".format(home, uid, gid)
+            makedevs_file.write(makedevs_line)
+
+        uid = int(uid)
+        if uid > uid_next:
+            uid_next = uid + 1
+        else:
+            uid_next += 1
+
+# USE_image_passwd_groups: line separated list of groups to create
+# syntax:  <group>:[<password>]:[<gid>]:[<users>]
+# example: spi:::user1
+CLASS_FLAGS += "image_passwd_groups"
+DEFAULT_USE_image_passwd_groups = ""
+do_rstage[postfuncs] += "do_rstage_passwd_groups"
+def do_rstage_passwd_groups(d):
+    group_path = d.get("RSTAGE_DIR") + (d.get("groupfile") or "/etc/group")
+
+    import os
+    if not os.path.exists(group_path):
+        return
+
+    groups = open(group_path).readlines()
+    group_exists = []
+    group_lines = []
+    group_users = {}
+    gid_next = 1
+
+    # first, create a dict of users in each group to use for existing groups
+    for group_line in (d.get("USE_image_passwd_groups") or "").split('\n'):
+        if not group_line:
+            continue
+
+        group,passwd,gid,users = group_line.split(':')
+        users = users.split(',')
+        group_users[group] = users
+
+    # second, add configured users to existing groups
+    for group_line in groups:
+        group_line = group_line.strip()
+        group,passwd,gid,users = group_line.split(':')
+        users = users.split(',') + group_users.get(group, [])
+        users = filter(None, users)
+        users = ','.join(users)
+        group_line = "{}:{}:{}:{}".format(group, passwd, gid, users)
+        group_lines.append(group_line)
+        group_exists.append(group)
+
+        if group_users.get(group):
+            print("adding user(s) '{}' to group '{}'".format(users, group))
+
+        # remeber which gid to use when adding new groups below
+        gid = int(gid)
+        if gid >= gid_next:
+            gid_next = gid + 1
+
+    # now create configured groups and add users if configured
+    for group_line in (d.get("USE_image_passwd_groups") or "").splitlines():
+        if not group_line:
+            continue
+
+        group,passwd,gid,users = group_line.split(':')
+
+        if group in group_exists:
+            print("skipping existing group: {}".format(group))
+            continue
+
+        print("adding group: '{}'".format(group))
+        gid = gid or gid_next
+        group_line = "{}:{}:{}:{}".format(group, passwd, gid, users)
+        group_lines.append(group_line)
+
+        gid = int(gid)
+        if gid > gid_next:
+            gid_next = gid + 1
+        else:
+            gid_next += 1
+
+    # overwrite the existsing /etc/group with updated content
+    with open(group_path, 'w') as group_file:
+        for group_line in group_lines:
+            group_line += "\n"
+            group_file.write(group_line)
 
 # Local Variables:
 # mode: python
