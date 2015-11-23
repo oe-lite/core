@@ -1,0 +1,15 @@
+## Class to run depmod on final images to resolve module dependencies
+## including modules built out-of-tree.
+
+CLASS_DEPENDS += "native:util/depmod"
+
+IMAGE_PREPROCESS_FUNCS += "image_preprocess_depmod"
+image_preprocess_depmod() {
+    for version in $(ls lib/modules); do
+        depmod -a -b . $version
+    done
+}
+
+# Local Variables:
+# mode: python
+# End:
