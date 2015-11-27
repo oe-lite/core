@@ -212,7 +212,7 @@ class OEliteTask:
 
         if os.path.exists(self.logsymlink) or os.path.islink(self.logsymlink):
             os.remove(self.logsymlink)
-        os.symlink(self.logfn, self.logsymlink)
+        os.symlink(os.path.basename(self.logfn), self.logsymlink)
 
         real_stdin = os.dup(sys.stdin.fileno())
         real_stdout = os.dup(sys.stdout.fileno())
