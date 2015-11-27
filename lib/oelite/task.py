@@ -198,7 +198,7 @@ class OEliteTask:
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
-        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
+        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, meta.get("DATETIME"))
         self.logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
         oelite.util.makedirs(os.path.dirname(self.logfn))
         try:

@@ -122,7 +122,7 @@ class ShellFunction(OEliteFunction):
         return
 
     def __call__(self):
-        runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, str(os.getpid()))
+        runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, self.meta.get("DATETIME"))
         runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
 
         body = self.meta.get(self.name)
