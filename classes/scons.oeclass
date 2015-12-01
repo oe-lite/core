@@ -1,0 +1,28 @@
+CLASS_DEPENDS += "native:scons"
+
+inherit c
+
+EXTRA_OESCONS ?= ""
+
+OESCONS = " \
+    --prefix=${D}${prefix} \
+    TARGET_ARCH=${TARGET_ARCH} \
+    TARGET_OS=linux \
+"
+
+OESCONS:>cxx += " CXX=${HOST_CXX}"
+OESCONS:>c += " CC=${HOST_CC}"
+
+do_compile() {
+    scons ${PARALLEL_MAKE} \
+        ${OESCONS} \
+        ${EXTRA_OESCONS}
+}
+
+do_install() {
+    install -d ${D}${prefix}
+    scons ${PARALLEL_MAKE} \
+        ${OESCONS} \
+        ${EXTRA_OESCONS} \
+        install
+}
