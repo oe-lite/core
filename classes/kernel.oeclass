@@ -325,7 +325,7 @@ do_install_kernel () {
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
 
     if [ -n "${KERNEL_DTB_FILE}" ] ; then
-	install -m 0644 ${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE} ${D}${bootdir}/${KERNEL_DTB_FILE}
+	install -m 0644 ${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE} ${D}${bootdir}/${KERNEL_DTB_FILENAME}
     fi
 
     if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
@@ -370,7 +370,7 @@ PACKAGES = "${PN} ${PN}-vmlinux ${PN}-dev ${PN}-modules ${PN}-dtb ${PN}-firmware
 
 FILES_${PN} = "${bootdir}/${KERNEL_IMAGE_FILENAME}"
 FILES_${PN}:USE_kernel_uimage = "${bootdir}/uImage"
-FILES_${PN}-dtb = "${bootdir}/${KERNEL_DTB_FILE}"
+FILES_${PN}-dtb = "${bootdir}/${KERNEL_DTB_FILE} ${bootdir}/${KERNEL_DTB_FILENAME}"
 FILES_${PN}-vmlinux = "${bootdir}/vmlinux"
 FILES_${PN}-dev = "${bootdir}/System.map ${bootdir}/Module.symvers \
     ${bootdir}/config ${kernelsrcdir}"
