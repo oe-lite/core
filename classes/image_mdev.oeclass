@@ -23,6 +23,18 @@ image_preprocess_mdev () {
 	rm -rf $cwd/${mdevdir}
 }
 
+# USE_image_mdev_lines: lines to add to /etc/mdev.conf
+# syntax:  <match> <user/uid>:<group/gid> <mode> [=<subfolder>]
+# example: spidev.* 0:spi 660
+CLASS_FLAGS += "image_mdev_lines"
+IMAGE_PREPROCESS_FUNCS:>USE_image_mdev_lines = " image_preprocess_mdev_lines"
+image_preprocess_mdev_lines() {
+    cwd=`pwd`
+    echo -e "\n# USE_image_mdev_lines" >> $cwd/${mdevconf}
+    echo -e "${USE_image_mdev_lines}" >> $cwd/${mdevconf}
+}
+image_preprocess_mdev_lines[expand] = 3
+
 # Local Variables:
 # mode: python
 # End:
