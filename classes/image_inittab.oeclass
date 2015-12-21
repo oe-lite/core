@@ -15,7 +15,7 @@ image_preprocess_inittab () {
 	cwd=`pwd`
 	test -d $cwd/${inittabfixupdir} || return 0
 	for f in $cwd/${inittabfixupdir}/* ; do
-		echo -e "\n# $f" >> $cwd${sysconfdir}/inittab
+		echo -e "\n# $(basename $f)" >> $cwd${sysconfdir}/inittab
 		cat $f >> $cwd${sysconfdir}/inittab
 	done
 	rm -rf .${inittabfixupdir}
