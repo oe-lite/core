@@ -122,7 +122,7 @@ class ShellFunction(OEliteFunction):
         return
 
     def __call__(self):
-        runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, str(os.getpid()))
+        runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, self.meta.get("DATETIME"))
         runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
 
         body = self.meta.get(self.name)
@@ -133,7 +133,7 @@ class ShellFunction(OEliteFunction):
         runfile.write("#!/bin/bash -e\n\n")
         if os.path.exists(runsymlink) or os.path.islink(runsymlink):
             os.remove(runsymlink)
-        os.symlink(runfn, runsymlink)
+        os.symlink(os.path.basename(runfn), runsymlink)
 
         vars = self.meta.keys()
         vars.sort()

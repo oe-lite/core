@@ -198,7 +198,7 @@ class OEliteTask:
 
         # Setup stdin, stdout and stderr redirection
         stdin = open("/dev/null", "r")
-        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, str(os.getpid()))
+        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, meta.get("DATETIME"))
         self.logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
         oelite.util.makedirs(os.path.dirname(self.logfn))
         try:
@@ -212,7 +212,7 @@ class OEliteTask:
 
         if os.path.exists(self.logsymlink) or os.path.islink(self.logsymlink):
             os.remove(self.logsymlink)
-        os.symlink(self.logfn, self.logsymlink)
+        os.symlink(os.path.basename(self.logfn), self.logsymlink)
 
         real_stdin = os.dup(sys.stdin.fileno())
         real_stdout = os.dup(sys.stdout.fileno())
