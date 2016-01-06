@@ -15,7 +15,7 @@ image_preprocess_fstab () {
 	cwd=`pwd`
 	test -d $cwd/${fstabfixupdir} || return 0
 	for f in $cwd/${fstabfixupdir}/* ; do
-		echo -e "\n# $f" >> $cwd${sysconfdir}/fstab
+		echo -e "\n# $(basename $f)" >> $cwd${sysconfdir}/fstab
 		cat $f >> $cwd${sysconfdir}/fstab
 	done
 	rm -rf $cwd/${fstabfixupdir}
