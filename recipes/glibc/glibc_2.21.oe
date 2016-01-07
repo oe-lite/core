@@ -7,6 +7,12 @@ SRC_URI += "file://git-65f6f938-o-tmpfile-flags.patch"
 SRC_URI += "file://git-59b61c82-o-tmpfile-nondefault-arch.patch;patchlevel=0"
 SRC_URI += "file://avoid_assert_on_incompatible_locale_settings.patch"
 
+# Compile PowerPC32 startup code with -fPIC instead of -fpic
+# if 32 bit addressing is enabled and target is powerpc
+SRC_URI:>USE_powerpc_32bit_addr		= "${SRC_URI_powerpc_32bit_addr}"
+SRC_URI_powerpc_32bit_addr		?= ""
+SRC_URI_powerpc_32bit_addr:>TARGET_CPU_powerpc	= " file://powerpc_fPIC.patch;striplevel=2"
+
 SRC_URI += "file://rootsbindir.patch"
 EXTRA_OECONF += "libc_cv_rootsbindir=${base_sbindir}"
 

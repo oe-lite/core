@@ -1,0 +1,11 @@
+--- eglibc-2_18/libc/sysdeps/powerpc/powerpc32/Makefile
++++ eglibc-2_18/libc/sysdeps/powerpc/powerpc32/Makefile
+@@ -20,7 +20,7 @@ endif
+ # so that's at least 8192 entries.  Since libc only uses about 2000 entries,
+ # we want to use -fpic, because this generates fewer relocs.
+ ifeq (yes,$(build-shared))
+-pic-ccflag = -fpic
++pic-ccflag = -fPIC
+ endif
+ 
+ ifeq ($(subdir),csu)
