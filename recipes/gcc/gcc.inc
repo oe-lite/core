@@ -79,7 +79,7 @@ PACKAGE_TYPE_${PN}-libgcc-dev = "${TARGET_TYPE}"
 # (ie. mingw-w64-crt)
 FILE_PRIORITY_${PN}-libgcc-dev = "1"
 FILES_${PN}-libgcc-dev += "/${TARGET_ARCH}/sysroot${target_libdir}/crt*.o"
-FILES_${PN}-libstdc++-dev = "/${TARGET_ARCH}/sysroot${target_datadir}/gcc-${PV}/python/libstdcxx /${TARGET_ARCH}/sysroot${target_libdir}/libstdc++*.py"
+FILES_${PN}-libstdc++-dev = "/${TARGET_ARCH}/sysroot${target_datadir}/gcc-${PV}/python/libstdcxx /${TARGET_ARCH}/sysroot${target_libdir}/libstdc++*.py /${TARGET_ARCH}/sysroot${target_libdir}/libstdc++fs.la /${TARGET_ARCH}/sysroot${target_libdir}/libstdc++fs.a"
 PROVIDES_${PN}-libgcc = "libgcc-s"
 PROVIDES_${PN}-libgcc[qa] = "allow-missing-soname:libgcc"
 #DEPENDS_${PN}-libgcc = "libc"
