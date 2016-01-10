@@ -230,6 +230,30 @@ cpuspecs = {
             },
         },
 
+    'aarch64'		: {
+        'DEFAULT'		: {
+            'wordsize'		: '64',
+            'endian'		: 'l',
+            'elf'		: 'ELF 64-bit LSB .*, ARM',
+            },
+        'cortexa53'		: {
+            'mcpu'		: 'cortex-a53',
+            'mtune'             : 'cortex-a53',
+            'abi flags'         : [
+                ['instruction set', 'thumb', {
+                        'arm' : {
+                            'mode' : 'arm',
+                            },
+                        'thumb' : {
+                            'mode' : 'thumb',
+                            'vendor' : 't',
+                            },
+                        }
+                 ],
+                ]
+            },
+        },
+
     'armeb'		: {
         'DEFAULT'		: {
             'wordsize'		: '32',
