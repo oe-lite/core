@@ -48,7 +48,20 @@ autotools_configure[emit] = "do_configure"
 do_configure () {
     do_configure_autotools
 }
+
+AUTOCONFDIRS ?= "/"
+UPDATE_GNUCONF ?= "0"
+UPDATE_GNUCONF:>TARGET_CPU_aarch64 = "1"
+CLASS_DEPENDS += " native:autotools-config"
+
 do_configure_autotools () {
+    if [ "${UPDATE_GNUCONF}" != "0" ] ; then
+	for autoconfdir in ${AUTOCONFDIRS} ; do
+            rm -f ${S}$autoconfdir/config.{guess,sub}
+            cp ${BUILD_SYSROOT}/config.{guess,sub} ${S}$autoconfdir
+        done
+    fi
+
     if [ -f Makefile -a "${AUTOTOOLS_DISTCLEAN}" != "0" ] ; then
         ${MAKE} distclean || true
     fi
