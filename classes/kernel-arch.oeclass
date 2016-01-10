@@ -23,6 +23,7 @@ def map_kernel_arch(d, arch):
     elif re.match('powerpc64', arch):       return 'powerpc'
     elif re.match('arm26$', arch):          return 'arm26'
     elif re.match('armeb$', arch):          return 'arm'
+    elif re.match('aarch64$', arch):        return 'arm64'
     elif re.match('mipsel$', arch):         return 'mips'
     elif re.match('sh(3|4)$', arch):        return 'sh'
     elif re.match('bfin', arch):            return 'blackfin'
