@@ -61,6 +61,10 @@ python do_install_runit () {
             os.makedirs(dst_dir)
         shutil.copy(script, dst)
 	os.chmod(dst, stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
+
+        down = d.get('USE_%s_down'%(option))
+        if down:
+            open(os.path.join(dst_dir, 'down'), 'w').close()
 }
 
 # Local Variables:
