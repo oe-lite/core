@@ -62,6 +62,7 @@ DEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
 RDEPENDS_${PN}-g++ += "${PN} target:${PN}-g++-dev"
 DEPENDS_${PN} += "${PN}-cpp"
 DEPENDS_${PN}:>TARGET_LIBC_mingw = " target:libpthread"
+RDEPENDS_${PN}:>HOST_LIBC_mingw = " host:libpthread"
 
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "gcc gcov atomic gomp itm mudflap mudflapth ssp \
