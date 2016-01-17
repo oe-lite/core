@@ -6,6 +6,7 @@
 ## them.
 
 inherit binconfig-stage
+inherit wrapper-stage
 inherit libtool-stage
 addtask stage
 

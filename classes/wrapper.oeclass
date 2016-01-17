@@ -1,0 +1,55 @@
+## Class for packages having wrapper files.
+##
+## Rewrites the paths in the wrapper files so that it contains valid dirs.
+
+require conf/meta.conf
+
+WRAPPER_FILES ?= "${bindir}/*"
+
+DO_SPLIT_WRAPPER_FIXUP = ""
+DO_SPLIT_WRAPPER_FIXUP:native = "do_split_wrapper_fixup"
+do_split[postfuncs] += "${DO_SPLIT_WRAPPER_FIXUP}"
+def do_split_wrapper_fixup(d):
+    pkgd = d.get("PKGD")
+    pkgmetadir = d.get("pkgmetadir").lstrip("/")
+    wrapper_globs = d.get("WRAPPER_FILES").lstrip("/").split()
+    os.chdir(pkgd)
+    for pkg in os.listdir("."):
+        os.chdir(os.path.join(pkgd, pkg))
+        wrapper_files = []
+        for wrapper_glob in wrapper_globs:
+            for wrapper_file in glob.glob(wrapper_glob.lstrip("/")):
+                wrapper_dotpath = "%s/.%s"%(os.path.dirname(wrapper_file), os.path.basename(wrapper_file))
+
+                wrapper_file_path = os.path.join(d.get("SRCDIR"), wrapper_file)
+                print wrapper_file_path
+                if os.path.isfile(wrapper_file_path):
+                    print "wrapper file %s -> %s" % (wrapper_file, wrapper_dotpath)
+                    wrapper_files.append("/" + wrapper_file)
+                    with open(wrapper_file_path, "r") as input_file:
+                        content = input_file.read()
+
+                    os.rename(wrapper_file, wrapper_dotpath)
+                    content = re.sub(
+                        re.compile('\$\{realfile\}', re.MULTILINE),
+                        r"%s"%("/" + wrapper_dotpath),
+                        content)
+                    content = re.sub(
+                        re.compile('\$\{currentfile\}', re.MULTILINE),
+                        r"%s"%("/" + wrapper_file),
+                        content)
+
+                    with open(wrapper_file, "w") as metafile:
+                        metafile.write(content)
+
+        if not wrapper_files:
+            continue
+        print "wrapper files in package", pkg
+        oelite.util.makedirs(pkgmetadir)
+        metafile_path = os.path.join(pkgmetadir, "wrapper")
+        with open(metafile_path, "w") as metafile:
+            metafile.write("\n".join(wrapper_files) + "\n")
+
+# Local Variables:
+# mode: python
+# End:

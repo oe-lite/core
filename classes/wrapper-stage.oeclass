@@ -1,0 +1,55 @@
+## Class for packages depending on recipes having wrapper files.
+##
+## Rewrites the paths in the wrapper files so that it contains valid dirs.
+
+require conf/meta.conf
+
+STAGE_FIXUP_FUNCS += "wrapper_stage_fixup"
+
+WRAPPER_STAGE_DIRNAMES = "prefix exec_prefix bindir sbindir libdir \
+	includedir libexecdir datarootdir datadir sysconfdir sharedstatedir \
+	localstatedir infodir mandir"
+
+WRAPPER_STAGE_DIRNAMES += "installbuilddir"
+
+def wrapper_stage_fixup(d):
+    import stat
+
+    pkgmetadir = d.get("pkgmetadir").lstrip("/")
+    metafile_path = os.path.join(pkgmetadir, "wrapper").lstrip("/")
+    if not os.path.exists(metafile_path):
+        return
+    with open(metafile_path, "r") as metafile:
+        import string
+        wrapper_files = map(string.strip, metafile.readlines())
+    stage_dir = os.path.realpath(d.get("STAGE_DIR"))
+    pkg_type = d.get("STAGE_FIXUP_PKG_TYPE")
+    sysroot = os.path.join(stage_dir, pkg_type)
+    if pkg_type in ("native", "cross", "sdk-cross"):
+        dirname_prefix = "stage_"
+    elif pkg_type in ("sdk", "canadian-cross"):
+        dirname_prefix = "sdk_"
+    else:
+        dirname_prefix = "machine_"
+    dirnames = d.get("WRAPPER_STAGE_DIRNAMES").split()
+    dirpaths = {}
+    for dirname in dirnames:
+        dirpaths[dirname] = d.get(dirname_prefix + dirname)
+    for filename in wrapper_files:
+        print "fixing up wrapper file", filename
+        filename = filename.lstrip("/")
+        with open(filename, "r") as input_file:
+            wrapper_file = input_file.read()
+        for dirname in dirnames:
+            if dirpaths[dirname] is not None:
+                wrapper_file = re.sub(
+                    re.compile("\$\{%s\}"%(dirname), re.MULTILINE),
+                    r"%s%s"%(sysroot, dirpaths[dirname]),
+                    wrapper_file)
+        with open(filename, "w") as output_file:
+            output_file.write(wrapper_file)
+        os.chmod(filename, stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
+
+# Local Variables:
+# mode: python
+# End:
