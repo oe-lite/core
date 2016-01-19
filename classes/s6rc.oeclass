@@ -1,0 +1,99 @@
+## OE-lite class for handling s6-rc services
+##
+
+CLASS_FLAGS += "s6rc"
+
+RDEPENDS_S6RC ?= "s6-rc"
+RDEPENDS_${PN}:>USE_s6rc = " ${RDEPENDS_S6RC}"
+
+s6rcsrcdir ?= "${sysconfdir}/rc"
+
+do_install[postfuncs] += "${do_install_S6RC}"
+do_install_S6RC = ""
+do_install_S6RC:USE_s6rc = "do_install_s6rc"
+python do_install_s6rc () {
+    import stat
+    import string
+    d_dir = d.get("D")
+    os.chdir(d_dir)
+    s6rcsrcdir = d.get('s6rcsrcdir').lstrip('/')
+    srcdir = d.get('SRCDIR')
+
+    oneshot_services = (d.get('S6RC_ONESHOT_SERVICES') or '').split()
+    longrun_services = (d.get('S6RC_LONGRUN_SERVICES') or '').split()
+    bundle_services = (d.get('S6RC_BUNDLE_SERVICES') or '').split()
+
+    for sv in oneshot_services + longrun_services + bundle_services:
+        sv_dir = os.path.join(s6rcsrcdir, sv)
+        oelite.util.makedirs(sv_dir, mode=0755)
+
+    errors = 0
+    def write_service_file(sv, name, data, mode=0644):
+        dst = os.path.join(s6rcsrcdir, sv, name)
+        with open(dst, 'w') as f:
+            f.write(data)
+        os.chmod(dst, mode)
+    def cp_service_file(sv, name, mode=0644, required=False):
+        sv_ = sv.translate(string.maketrans('-', '_'))
+        src = d.get('S6RC_%s_%s' % (name.upper(), sv_)) or \
+            os.path.join(srcdir, '%s.%s' % (sv, name))
+        if not os.path.exists(src):
+            if required:
+                bb.error('required s6rc file not found: %s' % src)
+                errors += 1
+            return
+        dst = os.path.join(s6rcsrcdir, sv, name)
+        shutil.copyfile(src, dst)
+        os.chmod(dst, mode)
+    def cp_service_dir(sv, name, mode=0755, required=False):
+        src = d.get('S6RC_%s_%s' % (name.upper(), sv_)) or \
+            os.path.join(srcdir, '%s.%s' % (sv, name))
+        if not os.path.exists(src):
+            if required:
+                bb.error('required s6rc dir not found: %s' % src)
+                errors += 1
+            return
+        dst = os.path.join(s6rcsrcdir, sv, name)
+        shutil.copytree(src, dst)
+        os.chmod(dst, mode)
+
+    for sv in oneshot_services:
+        write_service_file(sv, 'type', 'oneshot\n')
+        cp_service_file(sv, 'up', required=True)
+        cp_service_file(sv, 'down')
+
+    for sv in longrun_services:
+        write_service_file(sv, 'type', 'longrun\n')
+        cp_service_file(sv, 'run', mode=0755, required=True)
+        cp_service_file(sv, 'finish', mode=0755)
+        cp_service_file(sv, 'notification-fd')
+        cp_service_file(sv, 'nosetsid')
+        cp_service_file(sv, 'producer-for')
+        cp_service_file(sv, 'consumer-for')
+        cp_service_file(sv, 'pipeline-name')
+        cp_service_file(sv, 'env')
+        cp_service_file(sv, 'data')
+
+    for sv in oneshot_services + longrun_services:
+        sv_ = sv.translate(string.maketrans('-', '_'))
+        timeout_up = d.get('USE_%s_s6rc_timeout_up' % sv_)
+        if timeout_up:
+            write_service_file(sv, 'timeout-up', timeout_up + '\n')
+        timeout_down = d.get('USE_%s_s6rc_timeout_down' % sv_)
+        if timeout_down:
+            write_service_file(sv, 'timeout-down', timeout_down + '\n')
+        dependencies = d.get('USE_%s_s6rc_dependencies' % sv_)
+        if dependencies:
+            dependencies = '\n'.join(dependencies.split() + [''])
+            write_service_file(sv, 'dependencies', dependencies)
+
+    for sv in bundle_services:
+        write_service_file(sv, 'type', 'bundle\n')
+        contents = d.get('USE_%s_s6rc_bundle' % sv) or ''
+        contents = '\n'.join(contents.split() + [''])
+        write_service_file(sv, 'contents', contents)
+}
+
+# Local Variables:
+# mode: python
+# End:
