@@ -1,0 +1,55 @@
+From 978908245b2c0f759100708a9966649f7b273664 Mon Sep 17 00:00:00 2001
+From: Mike Frysinger <vapier@gentoo.org>
+Date: Tue, 28 Jul 2015 02:19:49 -0400
+Subject: [PATCH 08/18] ia64: atomic.h: fix atomic_exchange_and_add 64bit
+ handling
+
+Way back in 2005 the atomic_exchange_and_add function was cleaned up to
+avoid the explicit size checking and instead let gcc handle things itself.
+Unfortunately that change ended up leaving beyond a cast to int, even when
+the incoming value was a long.  This has flown under the radar for a long
+time due to the function not being heavily used in the tree (especially as
+a full 64bit field), but a recent change to semaphores made some nptl tests
+fail reliably.  This is due to the code packing two 32bit values into one
+64bit variable (where the high 32bits contained the number of waiters), and
+then the whole variable being atomically updated between threads.  On ia64,
+that meant we never atomically updated the count, so sometimes the sem_post
+would not wake up the waiters.
+
+(cherry picked from commit cf31a2c79957936b60de34ea1e718e892baf669c)
+---
+ ChangeLog                  | 5 +++++
+ sysdeps/ia64/bits/atomic.h | 4 +---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 68ee6c3..61e6671 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,8 @@
++2015-07-27  Mike Frysinger  <vapier@gentoo.org>
++
++	* sysdeps/ia64/bits/atomic.h (atomic_exchange_and_add): Define
++	directly in terms of __sync_fetch_and_add and delete (int) cast.
++
+ 2015-02-22  Paul Pluzhnikov  <ppluzhnikov@google.com>
+ 
+ 	[BZ #17269]
+diff --git a/sysdeps/ia64/bits/atomic.h b/sysdeps/ia64/bits/atomic.h
+index 0e9dfc7..4c2b540 100644
+--- a/sysdeps/ia64/bits/atomic.h
++++ b/sysdeps/ia64/bits/atomic.h
+@@ -82,9 +82,7 @@ typedef uintmax_t uatomic_max_t;
+   (__sync_synchronize (), __sync_lock_test_and_set (mem, value))
+ 
+ #define atomic_exchange_and_add(mem, value) \
+-  ({ __typeof (*mem) __result;						      \
+-     __result = __sync_fetch_and_add ((mem), (int) (value));		      \
+-     __result; })
++  __sync_fetch_and_add ((mem), (value))
+ 
+ #define atomic_decrement_if_positive(mem) \
+   ({ __typeof (*mem) __oldval, __val;					      \
+-- 
+2.7.1
+
