@@ -6,5 +6,5 @@ SRC_URI = "http://alpha.gnu.org/gnu/bc/bc-${PV}.tar.bz2"
 
 inherit autotools
 
-DEPENDS += "readline"
+DEPENDS += "readline native:makeinfo"
 EXTRA_OECONF += "--with-readline"

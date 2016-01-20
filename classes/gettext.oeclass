@@ -5,9 +5,12 @@
 ##
 ## @useflag nls Enable nls
 
-CLASS_DEPENDS =+ "${DEPENDS_GETTEXT}"
-DEPENDS_GETTEXT = ""
-DEPENDS_GETTEXT:USE_nls = "gettext native:gettext-utils libiconv libintl"
+CLASS_DEPENDS =+ "${DEPENDS_GETTEXT_NLS} ${DEPENDS_GETTEXT_NATIVE}"
+DEPENDS_GETTEXT_NATIVE = ""
+DEPENDS_GETTEXT_NATIVE:native = "native:gettext-utils"
+DEPENDS_GETTEXT_NLS = ""
+DEPENDS_GETTEXT_NLS:USE_nls = "${DEPENDS_GETTEXT}"
+DEPENDS_GETTEXT = "host:gettext native:gettext-utils host:libiconv host:libintl"
 
 CLASS_FLAGS += "nls"
 DEFAULT_USE_nls = "0"
