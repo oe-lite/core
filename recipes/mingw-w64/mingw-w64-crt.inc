@@ -16,3 +16,7 @@ FILES_${PN} = ""
 PROVIDES_${PN} = "libc libm"
 DEPENDS_${PN} = "${PN}-dev_${PV} mingw-w64-headers"
 DEPENDS_${PN}-dev = ""
+
+# Parallel make is racy:
+# https://github.com/crosstool-ng/crosstool-ng/issues/246
+PARALLEL_MAKE = ""
