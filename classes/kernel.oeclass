@@ -264,6 +264,25 @@ do_compile_kernel_dtc() {
 	-o ${KERNEL_DEVICETREE} ${USE_kernel_dtc_source}
 }
 
+CLASS_FLAGS += "kernel_perf"
+DEPENDS:>USE_kernel_perf += " libpthread librt libm libdl"
+DO_INSTALL_PERF = ""
+DO_INSTALL_PERF:USE_kernel_perf = "do_install_perf"
+do_install[postfuncs] += "${DO_INSTALL_PERF}"
+do_install_perf () {
+	oe_runmake -C ${S}/tools/perf install DESTDIR=${D} \
+		prefix=${prefix} \
+		bindir=${bindir}
+}
+PACKAGES:>USE_kernel_perf += " ${PN}-perf ${PN}-perf-doc ${PN}-perf-scripts"
+FILES_${PN}-perf = "${bindir}/perf ${bindir}/trace \
+	${sysconfdir}/bash_completion.d/perf"
+DEPENDS_${PN}-perf += "libpthread librt libm libgcc-s libc libdl"
+RDEPENDS_${PN}-perf += "libpthread librt libm libgcc-s libc libdl"
+PROVIDES_${PN}-perf += "util/perf"
+FILES_${PN}-perf-doc = "${mandir}/man1/perf*"
+FILES_${PN}-perf-scripts = "${prefix}/libexec/perf-core"
+
 do_install_kernel () {
     install -d ${D}${bootdir}
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
