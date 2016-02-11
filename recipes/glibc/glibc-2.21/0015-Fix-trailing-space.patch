@@ -1,0 +1,26 @@
+From f676ce661cc319c0a984b93e4879aa717fb6240b Mon Sep 17 00:00:00 2001
+From: Paul Pluzhnikov <ppluzhnikov@google.com>
+Date: Sat, 8 Aug 2015 15:54:40 -0700
+Subject: [PATCH 15/18] Fix trailing space.
+
+(cherry picked from commit 7565d2a862683a3c26ffb1f32351b8c5ab9f7b31)
+---
+ catgets/tst-catgets.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/catgets/tst-catgets.c b/catgets/tst-catgets.c
+index 140de72..0886938 100644
+--- a/catgets/tst-catgets.c
++++ b/catgets/tst-catgets.c
+@@ -30,7 +30,7 @@ do_bz17905 (void)
+   rl.rlim_cur = sz;
+   setrlimit (RLIMIT_STACK, &rl);
+ 
+-  buf = malloc (sz + 1); 
++  buf = malloc (sz + 1);
+   memset (buf, 'A', sz);
+   buf[sz] = '\0';
+   setenv ("NLSPATH", buf, 1);
+-- 
+2.7.1
+
