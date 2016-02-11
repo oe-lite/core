@@ -10,8 +10,6 @@
 ##          remove it if already present in the rootfs.
 ## @useflag basefiles_buildtime Set to a path to a buildtime file if not
 ##          wanting to remove it if already present in the rootfs.
-## @useflag basefiles_cross_config Set to a path to a cross-config (from ct-ng)
-##          file if not wanting to remove it if already present in the rootfs.
 ## @useflag basefiles_buildtag Set to a path to a buildtag if not wanting to
 ##          remove it if already present in the rootfs.
 
@@ -19,7 +17,7 @@ inherit archive-image fakeroot
 
 IMAGE_BASENAME = "${PN}"
 
-CLASS_FLAGS += "rootfs_name \
+CLASS_FLAGS += "rootfs_name rootfs_archive_tar_ext\
 			basefiles_version basefiles_buildtime \
 			basefiles_cross_config basefiles_buildtag"
 
@@ -27,7 +25,6 @@ DEFAULT_USE_rootfs_name = "base-rootfs"
 
 DEFAULT_USE_basefiles_version = ""
 DEFAULT_USE_basefiles_buildtime = ""
-DEFAULT_USE_basefiles_cross_config = ""
 DEFAULT_USE_basefiles_buildtag = "build_tag"
 
 CLASS_DEPENDS += "${USE_rootfs_name}"
@@ -37,7 +34,7 @@ addtask imageqaprep before configure after stage
 do_imageqaprep[dirs] = "${WORKDIR}/image-qa"
 do_imageqaprep[cleandirs] = "${WORKDIR}/image-qa"
 fakeroot do_imageqaprep () {
-    tar xf ${TARGET_SYSROOT}/${USE_rootfs_name}.tar
+    tar xf ${TARGET_SYSROOT}/${USE_rootfs_name}.${USE_rootfs_archive_tar_ext}
 }
 
 inherit image-qa
@@ -54,7 +51,6 @@ do_removedoubles () {
 			if [ -f ${WORKDIR}/image-qa/$file ] || [ -h ${WORKDIR}/image-qa/$file ]; then
 				if ([ -n ${USE_basefiles_version} ] && [ $(basename $file) = ${USE_basefiles_version} ]) ||
 				  ([ -n ${USE_basefiles_buildtime} ] && [ $(basename $file) = ${USE_basefiles_buildtime} ]) ||
-				  ([ -n ${USE_basefiles_cross_config} ] && [ $(basename $file) = ${USE_basefiles_cross_config} ]) ||
 				  ([ -n ${USE_basefiles_buildtag} ] && [ $(basename $file) = ${USE_basefiles_buildtag} ]); then
 					oenote "Not removing build information: "$file
 				else
