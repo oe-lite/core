@@ -19,7 +19,7 @@ SRC_URI += "file://${USE_fit_file}"
 
 do_compile[postfuncs] += "do_compile_fit"
 
-CLASS_DEPENDS += "native:u-boot-tools-mkimage"
+CLASS_DEPENDS += "native:util/mkimage"
 
 do_compile_fit() {
    [ -e ${SRCDIR}/${USE_fit_file} ] && mv ${SRCDIR}/${USE_fit_file} ${S}/.

@@ -180,11 +180,11 @@ do_compile () {
 }
 
 CLASS_DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
-KERNEL_UIMAGE_DEPENDS = "${@['', 'native:u-boot-tools-mkimage']['${USE_kernel_imagetype}'.startswith('uImage')]}"
+KERNEL_UIMAGE_DEPENDS = "${@['', 'native:util/mkimage']['${USE_kernel_imagetype}'.startswith('uImage')]}"
 
 CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
-KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "native:u-boot-tools-mkimage"
+KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "native:util/mkimage"
 DEFAULT_USE_kernel_uimage = "0"
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 

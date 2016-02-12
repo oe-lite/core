@@ -82,7 +82,7 @@ DEFAULT_USE_sdk_uboot_mkimage = "1"
 RDEPENDS_SDK += "${RDEPENDS_SDK_UBOOT_MKIMAGE}"
 RDEPENDS_SDK_UBOOT_MKIMAGE = ""
 RDEPENDS_SDK_UBOOT_MKIMAGE:USE_sdk_uboot_mkimage = "${UBOOT_MKIMAGE}"
-UBOOT_MKIMAGE = "host:u-boot-tools-mkimage"
+UBOOT_MKIMAGE = "host:util/mkimage"
 UBOOT_MKIMAGE:HOST_OS_mingw32 = ""
 
 CLASS_FLAGS += "sdk_archive_formats sdk_archive_tar_ext"

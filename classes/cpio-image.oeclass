@@ -21,7 +21,7 @@ IMAGE_CREATE_FUNCS += "cpio_image"
 
 inherit kernel-arch
 IMAGE_CREATE_FUNCS:>USE_ramdisk_image = " cpio_mkimage"
-CLASS_DEPENDS:>USE_ramdisk_image = " native:u-boot-tools-mkimage"
+CLASS_DEPENDS:>USE_ramdisk_image = " native:util/mkimage"
 
 cpio_image () {
 	(

@@ -58,7 +58,7 @@ RECIPE_TYPES = "machine"
 
 inherit c make kernel-arch
 
-CLASS_DEPENDS += "native:u-boot-tools-mkimage"
+CLASS_DEPENDS += "native:util/mkimage"
 
 # Why bother?  U-Boot will most likely stay broken for parallel builds
 PARALLEL_MAKE = ""
