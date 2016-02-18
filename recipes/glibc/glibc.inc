@@ -12,7 +12,9 @@ RECIPE_TYPES = "machine sdk"
 
 COMPATIBLE_HOST_ARCHS = ".*-linux-gnu.* .*linux-uclibc.*"
 
-SRC_URI = "http://ftp.gnu.org/gnu/glibc/glibc-${PV}.tar.xz"
+SRC_URI = "git://sourceware.org/git/glibc.git;commit=${STABLE_COMMIT}"
+
+S = "${SRCDIR}/glibc"
 
 inherit autotools make-vpath
 

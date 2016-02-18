@@ -1,30 +1,14 @@
 require ${PN}.inc
 
+STABLE_COMMIT = "965630aefa60ad5f9d8e475ecd8618180f93ec60"
+# Improve-check-against-integer-wraparound-in-hcreate
+
 SRC_URI += "file://bindir-paths.patch"
 SRC_URI += "file://multilib-paths.patch"
 SRC_URI += "file://typedef-caddr.patch"
 SRC_URI += "file://git-65f6f938-o-tmpfile-flags.patch"
 SRC_URI += "file://git-59b61c82-o-tmpfile-nondefault-arch.patch;patchlevel=0"
 SRC_URI += "file://avoid_assert_on_incompatible_locale_settings.patch"
-
-SRC_URI += "file://0001-Fix-missing-ChangeLog-attribution.patch"
-SRC_URI += "file://0002-NEWS-Also-mention-CVE-2015-1473.patch"
-SRC_URI += "file://0003-Fix-__memcpy_chk-on-non-SSE2-CPUs.patch"
-SRC_URI += "file://0004-CVE-2015-1781-resolv-nss_dns-dns-host.c-buffer-overf.patch"
-SRC_URI += "file://0005-sparc-fix-sigaction-for-32bit-builds-BZ-18694.patch"
-SRC_URI += "file://0006-Fix-read-past-end-of-pattern-in-fnmatch-bug-18032.patch"
-SRC_URI += "file://0007-Fix-BZ-17269-_IO_wstr_overflow-integer-overflow.patch"
-SRC_URI += "file://0008-ia64-atomic.h-fix-atomic_exchange_and_add-64bit-hand.patch"
-SRC_URI += "file://0009-getmntent-fix-memory-corruption-w-blank-lines-BZ-188.patch"
-SRC_URI += "file://0010-CVE-2014-8121-Do-not-close-NSS-files-database-during.patch"
-SRC_URI += "file://0011-Fix-parallel-build-error.patch"
-SRC_URI += "file://0012-nscd-drop-selinux-flask.h-include.patch"
-SRC_URI += "file://0013-AArch64-Fix-the-big-endian-loader-name.patch"
-SRC_URI += "file://0014-Fix-BZ-17905.patch"
-SRC_URI += "file://0015-Fix-trailing-space.patch"
-SRC_URI += "file://0016-Fix-BZ-18985-out-of-range-data-to-strftime-causes-a-.patch"
-SRC_URI += "file://0017-Handle-overflow-in-__hcreate_r.patch"
-SRC_URI += "file://0018-Improve-check-against-integer-wraparound-in-hcreate_.patch"
 
 # Compile PowerPC32 startup code with -fPIC instead of -fpic
 # if 32 bit addressing is enabled and target is powerpc
