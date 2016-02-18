@@ -1,7 +1,7 @@
 require ${PN}.inc
 
-STABLE_COMMIT = "965630aefa60ad5f9d8e475ecd8618180f93ec60"
-# Improve-check-against-integer-wraparound-in-hcreate
+STABLE_COMMIT = "16d0a0ce7613552301786bf05d7eba8784b5732c"
+# CVE-2015-7547: getaddrinfo() stack-based buffer overflow (Bug 18665)
 
 SRC_URI += "file://bindir-paths.patch"
 SRC_URI += "file://multilib-paths.patch"
