@@ -137,13 +137,17 @@ do_configure_args ?= ""
 addhook set_configure_arch to post_recipe_parse after arch_update
 def set_configure_arch(d):
     args = []
-    for arg_name in ('arch', 'cpu', 'tune'):
+    target_cpu = d.get('TARGET_CPU');
+    for arg_name in ('cpu', 'arch', 'tune'):
         if not d.get('ARCH_HAS_WITH_' + arg_name.upper()):
             continue
         arg_value = d.get('TARGET_M' + arg_name.upper())
         if not arg_value:
             continue
         args.append('--with-%s=%s'%(arg_name, arg_value))
+        #For arm targets it's only allowed to set either mcpu or march and mtune
+        if "cpu" == arg_name and (target_cpu == "arm" or target_cpu == "aarch64"):
+            break
     for arg_name in ('abi', 'fpu', 'float', 'mode'):
         if not d.get('ARCH_HAS_WITH_' + arg_name.upper()):
             continue
