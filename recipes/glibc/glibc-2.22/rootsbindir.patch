@@ -1,0 +1,28 @@
+Source: Written by Esben Haabendal <esben@haabendal.dk>
+Upstream: No
+Reason: Allow custom values for rootsbindir (/sbin)
+
+diff --git a/sysdeps/gnu/configure b/sysdeps/gnu/configure
+index 9239297..98e7a59 100644
+--- a/sysdeps/gnu/configure
++++ b/sysdeps/gnu/configure
+@@ -32,6 +32,6 @@ case "$prefix" in
+   else
+     libc_cv_localstatedir=$localstatedir
+    fi
+-  libc_cv_rootsbindir=/sbin
++  libc_cv_rootsbindir=${libc_cv_rootsbindir:-/sbin}
+   ;;
+ esac
+diff --git a/sysdeps/gnu/configure.ac b/sysdeps/gnu/configure.ac
+index 634fe4d..a36d046 100644
+--- a/sysdeps/gnu/configure.ac
++++ b/sysdeps/gnu/configure.ac
+@@ -21,6 +21,6 @@ case "$prefix" in
+   else
+     libc_cv_localstatedir=$localstatedir
+    fi
+-  libc_cv_rootsbindir=/sbin
++  libc_cv_rootsbindir=${libc_cv_rootsbindir:-/sbin}
+   ;;
+ esac
