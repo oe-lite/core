@@ -1,14 +1,10 @@
 require ${PN}.inc
 
-STABLE_COMMIT = "16d0a0ce7613552301786bf05d7eba8784b5732c"
-# CVE-2015-7547: getaddrinfo() stack-based buffer overflow (Bug 18665)
+STABLE_COMMIT = "b995d95a5943785be3ab862b2d3276f3b4a22481"
 
 SRC_URI += "file://bindir-paths.patch"
 SRC_URI += "file://multilib-paths.patch"
 SRC_URI += "file://typedef-caddr.patch"
-SRC_URI += "file://git-65f6f938-o-tmpfile-flags.patch"
-SRC_URI += "file://git-59b61c82-o-tmpfile-nondefault-arch.patch;patchlevel=0"
-SRC_URI += "file://avoid_assert_on_incompatible_locale_settings.patch"
 
 # Compile PowerPC32 startup code with -fPIC instead of -fpic
 # if 32 bit addressing is enabled and target is powerpc
