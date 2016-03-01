@@ -28,7 +28,8 @@ do_configure() {
 	--enable-threads=posix \
 	--enable-libstdcxx-time \
 	--disable-libstdcxx-pch \
-	--with-gxx-include-dir=${D_SYSROOT}${target_includedir}/c++
+	--with-gxx-include-dir=${D_SYSROOT}${target_includedir}/c++ \
+	--with-glibc-version="${USE_glibc_min_version}"
 }
 
 inherit libtool

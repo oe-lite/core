@@ -26,7 +26,8 @@ do_configure() {
 	--disable-libatomic \
 	--disable-libitm \
 	--disable-libsanitizer \
-	--disable-libquadmath
+	--disable-libquadmath \
+	--with-glibc-version="${USE_glibc_min_version}"
 }
 
 do_compile_targets = "all-gcc all-target-libgcc"
