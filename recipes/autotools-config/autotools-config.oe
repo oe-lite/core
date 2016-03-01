@@ -1,0 +1,19 @@
+RECIPE_TYPES = "native"
+
+SRC_URI = "file://${TOPDIR}/meta/core/scripts/config.guess \
+           file://${TOPDIR}/meta/core/scripts/config.sub"
+
+C_DEPENDS = ""
+C_DEPENDS_HOST = ""
+C_DEPENDS_TARGET = ""
+CHRPATH_DEPENDS = ""
+CHRPATH_DEPENDS_HOST = ""
+CHRPATH_DEPENDS_TARGET = ""
+
+do_install() {
+        cp ${SRCDIR}/config.guess ${D}
+        cp ${SRCDIR}/config.sub ${D}
+}
+
+FILES_${PN} = "/config.guess \
+               /config.sub"
