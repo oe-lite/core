@@ -346,7 +346,10 @@ class OEliteBaker:
                     progress = True
                     oelite.pyexec.exechooks(recipe.meta, "post_extra_arch")
             if not progress:
-                die("recipe EXTRA_ARCH resolving deadlocked!")
+                foo = ""
+                for r, deps in unresolved_recipes:
+                    foo += "\n %s(%s)"%(r, ",".join(map(str, deps)))
+                die("recipe EXTRA_ARCH resolving deadlocked!" + foo)
 
         # update runq task list, checking recipe and src hashes and
         # determining which tasks needs to be run
