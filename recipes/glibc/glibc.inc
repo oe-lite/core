@@ -37,11 +37,6 @@ DEFAULT_USE_toolchain_kernel_version_sdk	= "2.6.32"
 MIN_KERNEL_VERSION = "${USE_toolchain_kernel_version_native}${USE_toolchain_kernel_version_machine}${USE_toolchain_kernel_version_sdk}"
 MIN_KERNEL_VERSION[expand] = "3"
 
-do_configure[prefuncs] += "do_configure_siteinfo"
-do_configure_siteinfo() {
-	echo "libc_cv_ssp=no" > config.cache
-}
-
 EXTRA_OECONF += "\
 	--disable-profile \
 	--with-tls \

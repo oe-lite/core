@@ -8,6 +8,9 @@ FILESPATHPKG .= ":gcc-${@'.'.join(d.get('PV').split('.')[:2])}"
 
 inherit make make-vpath c c++
 
+RECIPE_FLAGS += "glibc_min_version"
+DEFAULT_USE_glibc_min_version = "2.22"
+
 DEPENDS += "target-cross:binutils target:gcc-bootstrap-libc-headers"
 DEPENDS += "host:mpc host:mpfr host:gmp host:isl host:cloog"
 DEPENDS += "host:libz"
