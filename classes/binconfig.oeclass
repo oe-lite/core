@@ -13,6 +13,9 @@ do_install[postfuncs] += "do_install_binconfig_fixup"
 do_install_binconfig_fixup[dirs] = "${D}"
 
 def do_install_binconfig_fixup(d):
+    import os
+    os.chdir(d.get("D"))
+
     binconfig_files = []
     for pattern in d.get("BINCONFIG_GLOB").split():
         binconfig_files += glob.glob(pattern.lstrip("/"))
