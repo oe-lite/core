@@ -454,7 +454,9 @@ class OEliteBaker:
         if url_prefix is not None:
             info("Trying to use prebakes from url: %s"%(url_prefix))
         for package in depend_packages:
-            # FIXME: skip this package if it is to be rebuild
+            recipe = self.cookbook.get_recipe(package=package)
+            if recipe.get("REBUILD") == "1":
+                continue
             prebake = self.find_prebaked_package(package)
             if prebake:
                 self.runq.set_package_filename(package, prebake,
