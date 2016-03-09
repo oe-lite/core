@@ -72,8 +72,9 @@ def do_rstage(d):
     else:
         def get_dstdir(cwd, package):
             return cwd
+    blacklisted_packages = (d.get("RSTAGE_BLACKLIST_PACKAGES") or "").split()
     retval = set_stage(d, "__rstage", "RSTAGE_FIXUP_FUNCS", get_dstdir,
-                       d.get("RSTAGE_DIR") + ".unpack")
+                       d.get("RSTAGE_DIR") + ".unpack", blacklisted_packages)
     metadir = d.getVar("metadir", True).lstrip("/")
     if os.path.exists(metadir):
         shutil.rmtree(metadir)
