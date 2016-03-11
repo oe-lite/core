@@ -61,7 +61,7 @@ AUTO_PACKAGE_LIBS_LIBDIR = "${AUTO_PACKAGE_LIBS_LIBDIR_PREFIX}${libdir}:lib::-${
 CHRPATH_DIRS += "/${HOST_ARCH}/${TARGET_ARCH}/lib"
 PACKAGEQA_HOST_LIBDIRS += "/${HOST_ARCH}/${TARGET_ARCH}/lib"
 
-PACKAGES += "${PN}-libiberty ${PN}-libiberty-dev"
+PACKAGES =+ "${PN}-libiberty ${PN}-libiberty-dev"
 FILES_${PN}-libiberty = "${libdir}/libiberty.a"
 FILES_${PN}-libiberty-dev = "${includedir}/libiberty.h"
 
