@@ -7,6 +7,9 @@ SRC_URI = "ftp://ftp.gnu.org/gnu/readline/readline-${PV}.tar.gz"
 
 inherit autotools make-vpath
 
+#Only used for Aarch64
+AUTOCONFDIRS = "/support"
+
 inherit auto-package-libs
 AUTO_PACKAGE_LIBS = "readline history"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS = "${PN}-dev"
