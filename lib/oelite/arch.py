@@ -438,6 +438,7 @@ cpumap = {
         'omap3530'		: ('cortexa8', ('omap3', 'omap')),
         'omap4430'		: ('cortexa9neon', ('omap4', 'omap')),
         'omap4440'		: ('cortexa9neon', ('omap4', 'omap')),
+        'am335x'		: ('cortexa8', 'am' ),
         'imx21'			: ('926ejs', 'imx'),
         'imx23'			: ('926ejs', 'mxs'),
         'imx25'			: ('926ejs', 'imx'),
