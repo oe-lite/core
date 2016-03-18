@@ -23,8 +23,13 @@ class DictMeta(MetaData):
         return
 
 
-    INDEXED_FLAGS = ("python", "task", "autoimport", "precondition", "export")
-
+    INDEXED_FLAGS = {
+        "python": 0,
+        "task": 1,
+        "autoimport": 2,
+        "precondition": 3,
+        "export": 4,
+    }
 
     def __init__(self, meta=None):
         if isinstance(meta, file):
@@ -43,9 +48,7 @@ class DictMeta(MetaData):
         else:
             self.dict = {}
             self.expand_cache = {}
-            self.dict["__flag_index"] = {}
-            for flag in self.INDEXED_FLAGS:
-                self.dict["__flag_index"][flag] = set([])
+            self.dict["__flag_index"] = [None] * len(self.INDEXED_FLAGS)
         self.expand_cache_filled = False
         super(DictMeta, self).__init__(meta=meta)
         return
@@ -96,11 +99,18 @@ class DictMeta(MetaData):
             self.dict[var][flag] = val
         except KeyError:
             self.dict[var] = {flag: val}
-        if flag in self.dict["__flag_index"]:
+        try:
+            fidx = self.INDEXED_FLAGS[flag]
             if val:
-                self.dict["__flag_index"][flag].add(var)
+                if self.dict["__flag_index"][fidx] is None:
+                    self.dict["__flag_index"][fidx] = set([])
+                self.dict["__flag_index"][fidx].add(var)
             else:
-                self.dict["__flag_index"][flag].discard(var)
+                if self.dict["__flag_index"][fidx]:
+                    self.dict["__flag_index"][fidx].discard(var)
+        except KeyError:
+            pass
+
         if flag == "":
             self.trim_expand_cache(var)
         return
@@ -240,6 +250,8 @@ class DictMeta(MetaData):
 
     def get_flag(self, var, flag, expand=False):
         assert isinstance(expand, int)
+        if var == "__flag_index":
+            return None
         try:
             val = self.dict[var][flag]
         except KeyError:
@@ -258,8 +270,9 @@ class DictMeta(MetaData):
 
     def del_var(self, var):
         #print "del_var %s"%(var)
-        for flag in self.dict["__flag_index"]:
-            self.dict["__flag_index"][flag].discard(var)
+        for s in self.dict["__flag_index"]:
+            if s:
+                s.discard(var)
         del self.dict[var]
         try:
             del self.expand_cache[var]
@@ -278,13 +291,14 @@ class DictMeta(MetaData):
 
     def get_vars(self, flag="", values=False):
         #print "get_vars flag=%s values=%s"%(flag, values)
-        if flag and not flag in self.dict["__flag_index"]:
+        if flag and not flag in self.INDEXED_FLAGS:
             print "get_vars flag=%s not indexed"%(flag)
             print "__flag_index=%s"%(self.dict["__flag_index"])
         if values:
             vars = {}
-            if flag in self.dict["__flag_index"]:
-                for var in self.dict["__flag_index"][flag]:
+            if flag in self.INDEXED_FLAGS:
+                fidx = self.INDEXED_FLAGS[flag]
+                for var in self.dict["__flag_index"][fidx] or []:
                     try:
                         vars[var] = self.dict[var][""]
                     except KeyError:
@@ -298,8 +312,9 @@ class DictMeta(MetaData):
                     except KeyError:
                         continue
         else:
-            if flag in self.dict["__flag_index"]:
-                vars = self.dict["__flag_index"][flag].copy()
+            if flag in self.INDEXED_FLAGS:
+                fidx = self.INDEXED_FLAGS[flag]
+                vars = (self.dict["__flag_index"][fidx] or set([])).copy()
             else:
                 vars = []
                 for var in self.dict:
