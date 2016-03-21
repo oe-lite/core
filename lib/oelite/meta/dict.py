@@ -9,6 +9,11 @@ import operator
 import types
 import os
 
+def deepcopy_str(x, memo):
+    return intern(x)
+
+copy._deepcopy_dispatch[str] = deepcopy_str
+
 
 def unpickle(file):
     return DictMeta(meta=file)
