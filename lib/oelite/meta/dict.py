@@ -39,9 +39,9 @@ class DictMeta(MetaData):
 
     def __init__(self, meta=None):
         if isinstance(meta, file):
-            self.dict = cPickle.load(meta)
-            self.expand_cache = cPickle.load(meta)
-            self.__flag_index = cPickle.load(meta)
+            self.dict = copy.deepcopy(cPickle.load(meta))
+            self.expand_cache = copy.deepcopy(cPickle.load(meta))
+            self.__flag_index = copy.deepcopy(cPickle.load(meta))
             meta = None
         elif isinstance(meta, DictMeta):
             self.dict = {}
