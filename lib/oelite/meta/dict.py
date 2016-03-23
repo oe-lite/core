@@ -94,7 +94,7 @@ class DictMeta(MetaData):
 
     def trim_expand_cache(self, var):
         for (cached_var, (cached_val, deps)) in self.expand_cache.items():
-            if cached_var == var or var in deps:
+            if cached_var == var or (deps and var in deps):
                 # FIXME: is it safe to delete from the dict we are iterating ?
                 del self.expand_cache[cached_var]
         return
@@ -178,7 +178,10 @@ class DictMeta(MetaData):
         override_dep = None
         if "__overrides" in self.dict[var]:
             current_overrides, override_dep = self._get_overrides()
-            override_dep.add("OVERRIDES")
+            if override_dep:
+                override_dep.add("OVERRIDES")
+            else:
+                override_dep = set(["OVERRIDES"])
             var_overrides = self.dict[var]["__overrides"]['']
             append_overrides = self.dict[var]["__overrides"]['>']
             prepend_overrides = self.dict[var]["__overrides"]['<']
@@ -234,6 +237,8 @@ class DictMeta(MetaData):
 
         if override_dep:
             deps = deps.union(override_dep)
+        if not deps:
+            deps = None
         self.expand_cache[var] = (val, deps)
         return (val, deps)
 
