@@ -267,7 +267,7 @@ class MetaData(MutableMapping):
         expanded_string = ""
         string_ptr = 0
         for var_match in var_re.finditer(string):
-            var = var_match.group(0)[2:-1]
+            var = intern(var_match.group(0)[2:-1])
             (val, recdeps) = self._get(var)
             if val is None:
                 if method == CLEAN_EXPANSION:
@@ -296,7 +296,7 @@ class MetaData(MutableMapping):
                 deps = deps.union(recdeps)
             self.expand_stack.pop()
         #print "returning expanded string %s"%(repr(expanded_string))
-        return (expanded_string, deps)
+        return (intern(expanded_string), deps)
 
 
     def append(self, var, value, separator=""):

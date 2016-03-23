@@ -60,6 +60,7 @@ def t_VARNAME(t):
     #r'[a-zA-Z][a-zA-Z0-9_\-\${}\+\.]*'
     r'[a-zA-Z_][a-zA-Z0-9_\-\${}\+\.]*'
     #r'[a-zA-Z_][a-zA-Z0-9_\-\${}/\+\.]*'
+    t.value = intern(t.value)
     t.type = reserved.get(t.value, 'VARNAME')
     if t.type == 'VARNAME':
         pass
@@ -73,19 +74,19 @@ def t_VARNAME(t):
 
 def t_OVERRIDE(t):
     r':[a-zA-Z0-9\-_]+'
-    t.value = ('', t.value[1:])
+    t.value = ('', intern(t.value[1:]))
     return t
 
 def t_OVERRIDE2(t):
     r':[\>\<][a-zA-Z0-9\-_]+'
     t.type = 'OVERRIDE'
-    t.value = (t.value[1], t.value[2:])
+    t.value = (intern(t.value[1]), intern(t.value[2:]))
     return t
 
 def t_FLAG(t):
     r'\[[a-zA-Z_][a-zA-Z0-9_]*\]'
     #t.type = reserved.get(t.value, 'FLAG')
-    t.value = t.value[1:-1]
+    t.value = intern(t.value[1:-1])
     return t
 
 def t_APPEND(t):
@@ -143,6 +144,7 @@ t_def_ignore = ' \t'
 def t_def_FUNCSTART(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     t.type = "VARNAME"
+    t.value = intern(t.value)
     return t
 
 def t_def_ARGSTART(t):
@@ -436,6 +438,7 @@ def t_dquote_STRING(t):
     t.lexer.lineno += t.value.count('\n')
     t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value)
     t.value = t.value.decode("string-escape")
+    t.value = intern(t.value)
     return t
 
 def t_dquote_QUOTE(t):
@@ -459,6 +462,7 @@ def t_squote_STRING(t):
     t.lexer.lineno += t.value.count('\n')
     t.value = re.sub(r"(\s+\\\n(\s+)?)|(\\\n\s+)", " ", t.value)
     t.value = t.value.decode("string-escape")
+    t.value = intern(t.value)
     return t
 
 def t_squote_QUOTE(t):

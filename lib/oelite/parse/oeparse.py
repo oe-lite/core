@@ -103,7 +103,7 @@ class OEParser(object):
     
     def p_export_variable(self, p):
         '''export_variable : EXPORT VARNAME'''
-        p[0] = self.meta.expand(p[2])
+        p[0] = intern(self.meta.expand(p[2]))
         self.meta.set_flag(p[0], "export", "1")
         return
 
@@ -144,7 +144,7 @@ class OEParser(object):
 
     def p_string_value2(self, p):
         '''string_value : STRING string_value'''
-        p[0] = p[1] + p[2]
+        p[0] = intern(p[1] + p[2])
         return
 
     def p_simple_var_assignment(self, p):
