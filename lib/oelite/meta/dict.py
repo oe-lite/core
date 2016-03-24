@@ -107,7 +107,7 @@ class DictMeta(MetaData):
 
 
     def weak_set_flag(self, var, flag, val):
-        if not var in self.dict.keys() or not flag in self.dict[var].keys():
+        if not var in self.dict or not flag in self.dict[var]:
             self.set_flag(var, flag, val)
 
 
