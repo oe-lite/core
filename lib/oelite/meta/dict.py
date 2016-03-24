@@ -230,7 +230,7 @@ class DictMeta(MetaData):
         return _get_overrides(self)[0]
 
     def _get_overrides(self):
-        overrides = self._get("OVERRIDES", 2)
+        overrides = self._get("OVERRIDES", PARTIAL_EXPANSION)
         filtered = []
         for override in overrides[0].split(":"):
             if not "${" in override:
