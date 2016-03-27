@@ -249,7 +249,7 @@ class OEliteBaker:
             meta = recipe.meta
 
         #meta.dump(pretty=False, nohash=False, flags=True,
-        #          ignore_flags=("filename", "lineno"),
+        #          ignore_flags=re.compile("filename|lineno"),
         meta.dump(pretty=True, nohash=(not self.options.nohash),
                   only=(self.things_todo[1:] or None))
 

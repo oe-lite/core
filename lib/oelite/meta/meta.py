@@ -404,7 +404,7 @@ class MetaData(MutableMapping):
     ]
 
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={},
-                 flags=False, ignore_flags=None):
+                 flags=False, ignore_flags_re=None):
         if pretty:
             eol = "\n\n"
         else:
@@ -413,12 +413,10 @@ class MetaData(MutableMapping):
         var_flags = sorted(self.get_flags(key).items())
 
         if flags:
-            if ignore_flags:
-                ignore_flags = re.compile("|".join(ignore_flags))
             for flag,val in var_flags:
                 if flag == "expand":
                     continue
-                if ignore_flags and ignore_flags.match(flag):
+                if ignore_flags_re and ignore_flags_re.match(flag):
                     continue
                 if pretty and flag in ("python", "bash", "export"):
                     continue
@@ -470,7 +468,7 @@ class MetaData(MutableMapping):
 
 
     def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
-             flags=False, ignore_flags=None):
+             flags=False, ignore_flags_re=None):
 
         dynvars = []
         for varname in ("WORKDIR", "TOPDIR", "DATETIME",
@@ -496,7 +494,7 @@ class MetaData(MutableMapping):
                         break
                 if nohash_prefixed:
                     continue
-            self.dump_var(key, o, pretty, dynvars, flags, ignore_flags)
+            self.dump_var(key, o, pretty, dynvars, flags, ignore_flags_re)
 
 
     def get_function(self, name):
@@ -508,7 +506,7 @@ class MetaData(MutableMapping):
             return oelite.function.ShellFunction(self, name)
 
 
-    def signature(self, ignore_flags=("__", "emit$", "omit$", "filename"),
+    def signature(self, ignore_flags_re=re.compile("|".join(("__", "emit$", "omit$", "filename"))),
                   force=False, dump=None):
         import hashlib
 
@@ -537,13 +535,13 @@ class MetaData(MutableMapping):
             assert isinstance(dump, basestring)
             dumper = StringOutput()
             self.dump(dumper, pretty=False, nohash=False,
-                      flags=True, ignore_flags=ignore_flags)
+                      flags=True, ignore_flags_re=ignore_flags_re)
             dumpdir = os.path.dirname(dump)
             if dumpdir and not os.path.exists(dumpdir):
                 os.makedirs(dumpdir)
             open(dump, "w").write(dumper.blob)
         self.dump(hasher, pretty=False, nohash=False,
-                  flags=True, ignore_flags=ignore_flags)
+                  flags=True, ignore_flags_re=ignore_flags_re)
 
         self._signature = str(hasher)
         return self._signature
