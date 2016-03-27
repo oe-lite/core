@@ -309,8 +309,7 @@ class OEliteBaker:
                 die("No such task: %s: %s"%(thing, e.__str__()))
             except oebakery.FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
-        if self.debug:
-            timing_info("Building dependency tree", start)
+        timing_info("Building dependency tree", start)
 
         # Generate recipe dependency graph
         recipes = set([])
@@ -432,8 +431,7 @@ class OEliteBaker:
         oelite.util.progress_info("Calculating task metadata hashes",
                                   total, count)
 
-        if self.debug:
-            timing_info("Calculation task metadata hashes", start)
+        timing_info("Calculation task metadata hashes", start)
 
         if count != total:
             print ""
