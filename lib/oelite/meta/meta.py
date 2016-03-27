@@ -410,10 +410,10 @@ class MetaData(MutableMapping):
         else:
             eol = "\n"
 
-        var_flags = sorted(self.get_flags(key).items())
+        var_flags = self.get_flags(key)
 
         if flags:
-            for flag,val in var_flags:
+            for flag,val in sorted(var_flags.items()):
                 if flag == "expand":
                     continue
                 if ignore_flags_re and ignore_flags_re.match(flag):
@@ -422,14 +422,14 @@ class MetaData(MutableMapping):
                     continue
                 o.write("%s[%s]=%r\n"%(key, flag, val))
 
-        if self.get_flag(key, "python"): # FIXME: use _flags
+        if var_flags.get("python"):
             func = "python"
-        elif self.get_flag(key, "bash"): # FIXME: use _flags
+        elif var_flags.get("bash"):
             func = "bash"
         else:
             func = None
 
-        expand = self.get_flag(key, "expand") # FIXME: use _flags
+        expand = var_flags.get("expand")
         if expand is not None:
             expand = int(expand)
         elif func == "python":
@@ -460,7 +460,7 @@ class MetaData(MutableMapping):
             o.write("%s() {\n%s}%s"%(key, val, eol))
             return
 
-        if pretty and self.get_flag(key, "export"):
+        if pretty and var_flags.get("export"):
             o.write("export ")
 
         o.write("%s=%s%s"%(key, repr(val), eol))
