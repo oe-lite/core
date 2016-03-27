@@ -371,7 +371,7 @@ class MetaData(MutableMapping):
         return
 
 
-    builtin_nohash = [
+    builtin_nohash = frozenset([
         "OE_REMOTES",
         "OE_MODULES",
         "OE_ENV_WHITELIST",
@@ -396,7 +396,7 @@ class MetaData(MutableMapping):
         "INCOMPATIBLE_RECIPES",
         "COMPATIBLE_IF_FLAGS",
         "_task_deps",
-    ]
+    ])
 
     builtin_nohash_prefix = [
         "OE_REMOTE_",
