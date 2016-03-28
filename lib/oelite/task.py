@@ -151,6 +151,7 @@ class OEliteTask:
     def meta(self):
         if self._meta is not None:
             return self._meta
+        self.recipe.meta._fill_expand_cache()
         meta = self.recipe.meta.copy()
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
