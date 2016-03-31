@@ -55,8 +55,9 @@ class UrlFetcher():
                 print "Skipping", url
                 continue
             if grab(url, self.localpath, proxy=self.proxies, ftpmode=self.ftpmode):
-                grabbed = True
-                break
+                if self.grabbedsignature():
+                    grabbed = True
+                    break
             if os.path.exists(self.localpath):
                 print "Removing ingredient littering:", \
                     os.path.join(self.uri.isubdir, self.localname)
@@ -64,7 +65,9 @@ class UrlFetcher():
         if not grabbed:
             return False
         assert os.path.exists(self.localpath)
+        return self.grabbedsignature()
 
+    def grabbedsignature(self):
         signature = self.localsignature()
         if not "_signature" in dir(self):
             return (self.localname, signature)
