@@ -563,6 +563,9 @@ class CookBook(Mapping):
             if recipe_meta is False:
                 print "ERROR: parsing %s failed"%(filename)
                 return False
+            if not recipe_meta:
+                # recipe not compatible with our usage - pretend we've cached it
+                return True
             recipes = {}
             is_cacheable = True
             for recipe_type in recipe_meta:
