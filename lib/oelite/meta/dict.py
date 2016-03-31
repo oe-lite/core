@@ -46,6 +46,7 @@ class DictMeta(MetaData):
             self.dict["__flag_index"] = {}
             for flag in self.INDEXED_FLAGS:
                 self.dict["__flag_index"][flag] = set([])
+        self.expand_cache_filled = False
         super(DictMeta, self).__init__(meta=meta)
         return
 
@@ -218,6 +219,12 @@ class DictMeta(MetaData):
         self.expand_cache[var] = (val, deps)
         return (val, deps)
 
+    def _fill_expand_cache(self):
+        if self.expand_cache_filled:
+            return
+        for var in self.keys():
+            self._get(var)
+        self.expand_cache_filled = True
 
     def get_overrides(self):
         return _get_overrides(self)[0]

@@ -371,7 +371,7 @@ class MetaData(MutableMapping):
         return
 
 
-    builtin_nohash = [
+    builtin_nohash = frozenset([
         "OE_REMOTES",
         "OE_MODULES",
         "OE_ENV_WHITELIST",
@@ -396,7 +396,7 @@ class MetaData(MutableMapping):
         "INCOMPATIBLE_RECIPES",
         "COMPATIBLE_IF_FLAGS",
         "_task_deps",
-    ]
+    ])
 
     builtin_nohash_prefix = [
         "OE_REMOTE_",
@@ -404,34 +404,32 @@ class MetaData(MutableMapping):
     ]
 
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={},
-                 flags=False, ignore_flags=None):
+                 flags=False, ignore_flags_re=None):
         if pretty:
             eol = "\n\n"
         else:
             eol = "\n"
 
-        var_flags = sorted(self.get_flags(key).items())
+        var_flags = self.get_flags(key)
 
         if flags:
-            if ignore_flags:
-                ignore_flags = re.compile("|".join(ignore_flags))
-            for flag,val in var_flags:
+            for flag,val in sorted(var_flags.items()):
                 if flag == "expand":
                     continue
-                if ignore_flags and ignore_flags.match(flag):
+                if ignore_flags_re and ignore_flags_re.match(flag):
                     continue
                 if pretty and flag in ("python", "bash", "export"):
                     continue
                 o.write("%s[%s]=%r\n"%(key, flag, val))
 
-        if self.get_flag(key, "python"): # FIXME: use _flags
+        if var_flags.get("python"):
             func = "python"
-        elif self.get_flag(key, "bash"): # FIXME: use _flags
+        elif var_flags.get("bash"):
             func = "bash"
         else:
             func = None
 
-        expand = self.get_flag(key, "expand") # FIXME: use _flags
+        expand = var_flags.get("expand")
         if expand is not None:
             expand = int(expand)
         elif func == "python":
@@ -462,7 +460,7 @@ class MetaData(MutableMapping):
             o.write("%s() {\n%s}%s"%(key, val, eol))
             return
 
-        if pretty and self.get_flag(key, "export"):
+        if pretty and var_flags.get("export"):
             o.write("export ")
 
         o.write("%s=%s%s"%(key, repr(val), eol))
@@ -470,7 +468,7 @@ class MetaData(MutableMapping):
 
 
     def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
-             flags=False, ignore_flags=None):
+             flags=False, ignore_flags_re=None):
 
         dynvars = []
         for varname in ("WORKDIR", "TOPDIR", "DATETIME",
@@ -496,7 +494,7 @@ class MetaData(MutableMapping):
                         break
                 if nohash_prefixed:
                     continue
-            self.dump_var(key, o, pretty, dynvars, flags, ignore_flags)
+            self.dump_var(key, o, pretty, dynvars, flags, ignore_flags_re)
 
 
     def get_function(self, name):
@@ -508,7 +506,7 @@ class MetaData(MutableMapping):
             return oelite.function.ShellFunction(self, name)
 
 
-    def signature(self, ignore_flags=("__", "emit$", "omit$", "filename"),
+    def signature(self, ignore_flags_re=re.compile("|".join(("__", "emit$", "omit$", "filename"))),
                   force=False, dump=None):
         import hashlib
 
@@ -537,13 +535,13 @@ class MetaData(MutableMapping):
             assert isinstance(dump, basestring)
             dumper = StringOutput()
             self.dump(dumper, pretty=False, nohash=False,
-                      flags=True, ignore_flags=ignore_flags)
+                      flags=True, ignore_flags_re=ignore_flags_re)
             dumpdir = os.path.dirname(dump)
             if dumpdir and not os.path.exists(dumpdir):
                 os.makedirs(dumpdir)
             open(dump, "w").write(dumper.blob)
         self.dump(hasher, pretty=False, nohash=False,
-                  flags=True, ignore_flags=ignore_flags)
+                  flags=True, ignore_flags_re=ignore_flags_re)
 
         self._signature = str(hasher)
         return self._signature
