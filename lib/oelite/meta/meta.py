@@ -42,7 +42,7 @@ class ExpansionStack:
 
     def push(self, var):
         if var in self.stack:
-            raise Exception("Circular expansion: %s"%("->".join(self.stack)))
+            raise Exception("Circular expansion: %s"%("->".join(map(lambda x: "${%s}" % x, self.stack))))
         self.stack.append(var)
         return
 
