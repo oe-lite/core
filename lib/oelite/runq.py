@@ -371,7 +371,7 @@ class OEliteRunQueue:
             recursion_path[1].append(str(item))
 
             # try to get cached recdepends list of packages
-            packages = self.get_recdepends(package, [deptype])
+            packages = self.get_recdepends(package, deptype)
             if packages:
                 return packages + [package]
 
@@ -788,15 +788,14 @@ class OEliteRunQueue:
         return
 
 
-    def get_recdepends(self, package, deptypes):
+    def get_recdepends(self, package, deptype):
         assert isinstance(package, oelite.package.OElitePackage)
-        assert isinstance(deptypes, list) and len(deptypes) > 0
         recdepends = []
         for package_id in self.dbc.execute(
                 "SELECT parent_package "
                 "FROM runq.recdepend "
-                "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
-                "AND package=?", (deptypes + [package.id])):
+                "WHERE deptype=? "
+                "AND package=?", (deptype, package.id)):
             recdepends.append(self.cookbook.get_package(id=package_id))
         return recdepends
 
