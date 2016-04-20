@@ -1,12 +1,14 @@
 from oebakery import die, err, warn, info, debug
 from oelite import *
 from oelite.dbutil import *
+import oelite.util
 import oelite.recipe
 
 import sys
 import os
 import copy
 import operator
+import datetime
 
 class OEliteRunQueue:
 
@@ -945,6 +947,7 @@ class OEliteRunQueue:
 
     def prune_runq_depends_nobuild(self):
         rowcount = 0
+        start = datetime.datetime.now()
         while True:
             self.dbc.execute(
                 "UPDATE runq.depend SET parent_task=NULL "
@@ -959,14 +962,13 @@ class OEliteRunQueue:
             if not self.dbc.rowcount:
                 break
             rowcount += self.dbc.rowcount
-        if rowcount:
-            debug("pruned %d dependencies that did not have to be rebuilt"%rowcount)
-        return rowcount
+        oelite.util.timing_info("pruned %d dependencies that did not have to be rebuilt"%rowcount, start)
 
 
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
+        start = datetime.datetime.now()
         while True:
             self.dbc.execute(
                 "DELETE FROM runq.depend "
@@ -980,12 +982,11 @@ class OEliteRunQueue:
             if not self.dbc.rowcount:
                 break
             rowcount += self.dbc.rowcount
-        if rowcount:
-            debug("pruned %d dependencies which where not needed anyway"%rowcount)
-        return rowcount
+        oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rowcount, start)
 
 
     def prune_runq_tasks(self):
+        start = datetime.datetime.now()
         rowcount = self.dbc.execute(
             "UPDATE"
             "  runq.task "
@@ -1000,9 +1001,7 @@ class OEliteRunQueue:
             ")").rowcount
         if rowcount == -1:
             die("prune_runq_tasks did not work out")
-        if rowcount:
-            debug("pruned %d tasks that does not need to be build"%rowcount)
-        return rowcount
+        oelite.util.timing_info("pruned %d tasks that does not need to be build"%rowcount, start)
 
 
     def set_task_stamp(self, task, mtime, tmphash):
