@@ -44,18 +44,17 @@ class OEliteTask:
             return []
         return self.cookbook.get_tasks(recipe=self.recipe, name=parents)
 
-    def get_deptasks(self, deptypes):
-        assert isinstance(deptypes, list) and len(deptypes) > 0
+    def get_deptasks(self, deptype):
         return flatten_single_column_rows(self.cookbook.dbc.execute(
             "SELECT deptask FROM task_deptask "
-            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
-            "AND task=?", deptypes + [self.id]))
+            "WHERE deptype=? "
+            "AND task=?", (deptype,self.id)))
 
-    def get_recdeptasks(self, deptypes):
+    def get_recdeptasks(self, deptype):
         return flatten_single_column_rows(self.cookbook.dbc.execute(
             "SELECT recdeptask FROM task_recdeptask "
-            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
-            "AND task=?", deptypes + [self.id]))
+            "WHERE deptype=? "
+            "AND task=?", (deptype,self.id)))
 
     def get_taskdepends(self):
         return flatten_single_column_rows(self.cookbook.dbc.execute(

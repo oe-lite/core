@@ -228,7 +228,7 @@ class OEliteRunQueue:
         # add deptask dependencies
         # (ie. do_sometask[deptask] = "DEPTYPE:do_someothertask")
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            deptasks = task.get_deptasks([deptype])
+            deptasks = task.get_deptasks(deptype)
             if deptasks:
                 # get list of packages providing the dependencies
                 depends = self.get_depends(
@@ -240,7 +240,7 @@ class OEliteRunQueue:
         # add recursive depends tasks
         # (ie. do_sometask[recdeptask] = "DEPTYPE:do_someothertask")
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            recdeptasks = task.get_recdeptasks([deptype])
+            recdeptasks = task.get_recdeptasks(deptype)
             if recdeptasks:
                 # get cumulative list of packages providing the dependencies
                 # and recursively the corresponding package dependencies
