@@ -166,7 +166,6 @@ class DictMeta(MetaData):
 
     def get(self, var, expand=FULL_EXPANSION):
         #print "get var=%s expand=%s"%(var, expand)
-        assert isinstance(expand, int)
         val = self._get(var, expand)[0]
         #print "get returning %s"%(val)
         return val
