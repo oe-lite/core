@@ -19,8 +19,8 @@ class OEliteRunQueue:
         self.rebuild = rebuild
         self.relax = relax
         self.depth_first = depth_first
-        self._assume_provided = (self.config.get("ASSUME_PROVIDED")
-                                or "").split()
+        self._assume_provided = frozenset((self.config.get("ASSUME_PROVIDED")
+                                or "").split())
         self.runable = []
         self.metahashable = []
         self.cookbook.db.execute("ATTACH ':memory:' AS runq")
