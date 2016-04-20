@@ -309,7 +309,7 @@ class OEliteBaker:
                 die("No such task: %s: %s"%(thing, e.__str__()))
             except oebakery.FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
-        timing_info("Building dependency tree", start)
+        oelite.util.timing_info("Building dependency tree", start)
 
         # Generate recipe dependency graph
         recipes = set([])
@@ -431,7 +431,7 @@ class OEliteBaker:
         oelite.util.progress_info("Calculating task metadata hashes",
                                   total, count)
 
-        timing_info("Calculation task metadata hashes", start)
+        oelite.util.timing_info("Calculation task metadata hashes", start)
 
         if count != total:
             print ""
@@ -592,7 +592,7 @@ class OEliteBaker:
                 # FIXME: support command-line option to abort on first
                 # failed task
             task = self.runq.get_runabletask()
-        timing_info("Build", start)
+        oelite.util.timing_info("Build", start)
 
         if exitcode:
              for task in failed_task_list:
@@ -691,19 +691,3 @@ class OEliteBaker:
         return topdir
 
 
-
-def timing_info(msg, start):
-    msg += " time "
-    delta = datetime.datetime.now() - start
-    hours = delta.seconds // 3600
-    minutes = delta.seconds // 60 % 60
-    seconds = delta.seconds % 60
-    milliseconds = delta.microseconds // 1000
-    if hours:
-        msg += "%dh%02dm%02ds"%(hours, minutes, seconds)
-    elif minutes:
-        msg += "%dm%02ds"%(minutes, seconds)
-    else:
-        msg += "%d.%03d seconds"%(seconds, milliseconds)
-    info(msg)
-    return
