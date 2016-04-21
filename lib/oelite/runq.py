@@ -957,11 +957,12 @@ class OEliteRunQueue:
                 " AND runq.task.task=runq.depend.parent_task"
                 " LIMIT 1"
                 ")")
-            if rowcount == -1:
+            rc = self.dbc.rowcount
+            if rc == -1:
                 die("prune_runq_depends_nobuild did not work out")
-            if not self.dbc.rowcount:
+            if not rc:
                 break
-            rowcount += self.dbc.rowcount
+            rowcount += rc
         oelite.util.timing_info("pruned %d dependencies that did not have to be rebuilt"%rowcount, start)
 
 
@@ -977,11 +978,12 @@ class OEliteRunQueue:
                 " WHERE next_depend.parent_task=runq.depend.task"
                 " LIMIT 1"
                 ")")
-            if rowcount == -1:
+            rc = self.dbc.rowcount
+            if rc == -1:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
-            if not self.dbc.rowcount:
+            if not rc:
                 break
-            rowcount += self.dbc.rowcount
+            rowcount += rc
         oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rowcount, start)
 
 
