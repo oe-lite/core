@@ -403,7 +403,7 @@ class MetaData(MutableMapping):
         "OE_MODULE_",
     ]
 
-    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={},
+    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars=[],
                  flags=False, ignore_flags_re=None):
         if pretty:
             eol = "\n\n"
@@ -446,7 +446,7 @@ class MetaData(MutableMapping):
         val = str(val)
 
         for dynvar_name, dynvar_val in dynvars:
-            val = string.replace(val, dynvar_val, "${%s}"%(dynvar_name))
+            val = string.replace(val, dynvar_val, dynvar_name)
 
         if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
@@ -476,7 +476,7 @@ class MetaData(MutableMapping):
                         "MANIFEST_ORIGIN_PARAMS"):
             varval = self.get(varname, True)
             if varval:
-                dynvars.append((varname, varval))
+                dynvars.append(("${" + varname + "}", varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
