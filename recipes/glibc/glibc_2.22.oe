@@ -3,7 +3,6 @@ require ${PN}.inc
 STABLE_COMMIT = "b995d95a5943785be3ab862b2d3276f3b4a22481"
 
 SRC_URI += "file://bindir-paths.patch"
-SRC_URI += "file://multilib-paths.patch"
 SRC_URI += "file://typedef-caddr.patch"
 
 # Compile PowerPC32 startup code with -fPIC instead of -fpic
