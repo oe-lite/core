@@ -44,6 +44,8 @@ EXTRA_OECONF += "\
 	--enable-kernel=${MIN_KERNEL_VERSION} \
 	--with-__thread \
 	--cache-file=config.cache \
+	libc_cv_slibdir='${base_libdir}' \
+	libc_cv_localedir='${base_libdir}/locale' \
 "
 
 #ld-linux do NOT support RPATH. See get-dynamic-info.h within the glibc src
