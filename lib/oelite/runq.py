@@ -969,8 +969,8 @@ class OEliteRunQueue:
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
-        start = datetime.datetime.now()
         while True:
+            start = datetime.datetime.now()
             self.dbc.execute(
                 "DELETE FROM runq.depend "
                 "WHERE prime IS NULL AND NOT EXISTS "
@@ -979,12 +979,13 @@ class OEliteRunQueue:
                 " LIMIT 1"
                 ")")
             rc = self.dbc.rowcount
+            oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rc, start)
             if rc == -1:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
             if not rc:
                 break
             rowcount += rc
-        oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rowcount, start)
+
 
 
     def prune_runq_tasks(self):
