@@ -117,8 +117,6 @@ class MetaData(MutableMapping):
                 self[var] = env_val
                 hasher.update("%s=%r\n"%(var, env_val))
         self['__env_signature'] = hasher.hexdigest()
-        self.set_flag('__env_signature', 'nohash', True)
-        return
 
     def env_signature(self):
         return self.get('__env_signature')

@@ -584,7 +584,6 @@ class OEParser(object):
             filename = os.path.join("classes", "%s.oeclass"%(filename))
         if not "__inherits" in self.meta:
             self.meta["__inherits"] = [filename]
-            self.meta.set_flag("__inherits", "nohash", True)
         else:
             __inherits = self.meta["__inherits"]
             if filename in __inherits:

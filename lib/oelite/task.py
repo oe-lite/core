@@ -140,11 +140,6 @@ class OEliteTask:
         meta["__stage"] = prepare_stage("DEPENDS")
         meta["__rstage"] = prepare_stage("RDEPENDS")
         meta["__fstage"] = prepare_stage("FDEPENDS")
-        meta.set_flag("__stage", "nohash", True)
-        meta.set_flag("__rstage", "nohash", True)
-        meta.set_flag("__fstage", "nohash", True)
-
-        return
 
 
     def meta(self):
