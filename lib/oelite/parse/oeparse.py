@@ -582,13 +582,13 @@ class OEParser(object):
             return
         if not os.path.isabs(filename) and not filename.endswith(".oeclass"):
             filename = os.path.join("classes", "%s.oeclass"%(filename))
-        if not "__inherits" in self.meta:
-            self.meta["__inherits"] = [filename]
-        else:
-            __inherits = self.meta["__inherits"]
+        __inherits = self.meta.get("__inherits")
+        if __inherits:
             if filename in __inherits:
                 return
-            self.meta["__inherits"].append(filename)
+            __inherits.append(filename)
+        else:
+            self.meta["__inherits"] = [filename]
         self.include(filename, p, require=True)
 
 
