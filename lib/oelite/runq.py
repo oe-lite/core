@@ -378,7 +378,7 @@ class OEliteRunQueue:
                 return packages + [package]
 
             packages = set([])
-            depends = self.cookbook.get_package_depends(package, [deptype])
+            depends = self.cookbook.get_package_depends(package, deptype)
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
