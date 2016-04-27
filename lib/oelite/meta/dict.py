@@ -9,6 +9,11 @@ import operator
 import types
 import os
 
+def deepcopy_str(x, memo):
+    return intern(x)
+
+copy._deepcopy_dispatch[str] = deepcopy_str
+
 
 def unpickle(file):
     return DictMeta(meta=file)
@@ -18,34 +23,39 @@ class DictMeta(MetaData):
 
 
     def pickle(self, file):
-        cPickle.dump(self.dict, file, 2)
+        cPickle.dump(self.smpl, file, 2)
+        cPickle.dump(self.cplx, file, 2)
         cPickle.dump(self.expand_cache, file, 2)
+        cPickle.dump(self.__flag_index, file, 2)
         return
 
 
-    INDEXED_FLAGS = ("python", "task", "autoimport", "precondition", "export")
-
+    INDEXED_FLAGS = {
+        "python": 0,
+        "task": 1,
+        "autoimport": 2,
+        "precondition": 3,
+        "export": 4,
+    }
 
     def __init__(self, meta=None):
         if isinstance(meta, file):
-            self.dict = cPickle.load(meta)
-            self.expand_cache = cPickle.load(meta)
+            self.smpl = copy.deepcopy(cPickle.load(meta))
+            self.cplx = copy.deepcopy(cPickle.load(meta))
+            self.expand_cache = copy.deepcopy(cPickle.load(meta))
+            self.__flag_index = copy.deepcopy(cPickle.load(meta))
             meta = None
         elif isinstance(meta, DictMeta):
-            self.dict = {}
-            #self.dict = meta.dict.copy()
-            self.dict = copy.deepcopy(meta.dict)
-            #for var in meta.dict:
-            #    self.dict[var] = meta.dict[var].copy()
+            self.smpl = copy.deepcopy(meta.smpl)
+            self.cplx = copy.deepcopy(meta.cplx)
             self.expand_cache = meta.expand_cache.copy()
-            #self.expand_cache = copy.deepcopy(meta.expand_cache)
+            self.__flag_index = copy.deepcopy(meta.__flag_index)
             meta = None
         else:
-            self.dict = {}
+            self.smpl = {}
+            self.cplx = {}
             self.expand_cache = {}
-            self.dict["__flag_index"] = {}
-            for flag in self.INDEXED_FLAGS:
-                self.dict["__flag_index"][flag] = set([])
+            self.__flag_index = [None] * len(self.INDEXED_FLAGS)
         self.expand_cache_filled = False
         super(DictMeta, self).__init__(meta=meta)
         return
@@ -60,30 +70,34 @@ class DictMeta(MetaData):
 
 
     def __str__(self):
-        return str(self.dict)
+        return ",".join((str(self.smpl), str(self.cplx)))
 
 
     def __len__(self): # required by Sized
-        return len(self.dict)
+        return len(self.cplx) + len(self.smpl)
 
 
     def keys(self):
-        return self.dict.keys()
+        # It's a bug if these two lists are not disjoint
+        return self.cplx.keys() + self.smpl.keys()
 
 
     def set(self, var, val):
         assert not " " in var
-        try:
-            self.dict[var][""] = val
-        except KeyError:
-            self.dict[var] = {"": val}
+        # If var is already a complex variable, just update its ""
+        # member. Otherwise, this is (at least for now) a simple
+        # variable.
+        if var in self.cplx:
+            self.cplx[var][""] = val
+        else:
+            self.smpl[var] = val
         self.trim_expand_cache(var)
         return
 
 
     def trim_expand_cache(self, var):
         for (cached_var, (cached_val, deps)) in self.expand_cache.items():
-            if cached_var == var or var in deps:
+            if cached_var == var or (deps and var in deps):
                 # FIXME: is it safe to delete from the dict we are iterating ?
                 del self.expand_cache[cached_var]
         return
@@ -92,40 +106,63 @@ class DictMeta(MetaData):
     def set_flag(self, var, flag, val):
         #print "set_flag %s[%s]=%s"%(var, flag, val)
         assert not " " in var
-        try:
-            self.dict[var][flag] = val
-        except KeyError:
-            self.dict[var] = {flag: val}
-        if flag in self.dict["__flag_index"]:
-            if val:
-                self.dict["__flag_index"][flag].add(var)
-            else:
-                self.dict["__flag_index"][flag].discard(var)
+
         if flag == "":
-            self.trim_expand_cache(var)
+            self.set(var, val)
+            return
+
+        # Regardless of whether var exists in self.smpl, it is now a
+        # complex variable. So start by setting the flag, creating
+        # self.cplx[var] if it doesn't already exist.
+        try:
+            self.cplx[var][flag] = val
+        except KeyError:
+            self.cplx[var] = {flag: val}
+            if var in self.smpl:
+                # Carry over the simple value
+                self.cplx[var][""] = self.smpl[var]
+                del self.smpl[var]
+
+        try:
+            fidx = self.INDEXED_FLAGS[flag]
+            if val:
+                if self.__flag_index[fidx] is None:
+                    self.__flag_index[fidx] = set([])
+                self.__flag_index[fidx].add(var)
+            else:
+                if self.__flag_index[fidx]:
+                    self.__flag_index[fidx].discard(var)
+        except KeyError:
+            pass
+
         return
 
 
     def weak_set_flag(self, var, flag, val):
-        if not var in self.dict.keys() or not flag in self.dict[var].keys():
+        if var in self.cplx and flag in self.cplx[var]:
+            pass
+        else:
+            # Either var is simple or doesn't exist at all. set_flag
+            # will handle both these cases correctly.
             self.set_flag(var, flag, val)
-
 
     def set_override(self, var, override, val):
         assert var not in ("OVERRIDES", "__overrides", "", ">", "<")
         assert override[0] in ("", ">", "<")
         try:
-            self.dict[var]["__overrides"][override[0]][override[1]] = val
+            self.cplx[var]["__overrides"][override[0]][override[1]] = val
         except KeyError, e:
             if e.args[0] == var:
-                self.dict[var] = {"__overrides": {'':{}, '>':{}, '<':{}}}
+                self.cplx[var] = {"__overrides": {'':{}, '>':{}, '<':{}}}
             else:
                 assert e.args[0] == "__overrides"
-                self.dict[var]["__overrides"] = {'':{}, '>':{}, '<':{}}
-            self.dict[var]["__overrides"][override[0]][override[1]] = val
+                self.cplx[var]["__overrides"] = {'':{}, '>':{}, '<':{}}
+            self.cplx[var]["__overrides"][override[0]][override[1]] = val
+        if var in self.smpl:
+            self.cplx[var][""] = self.smpl[var]
+            del self.smpl[var]
         self.trim_expand_cache(var)
         return
-
 
     def get(self, var, expand=FULL_EXPANSION):
         #print "get var=%s expand=%s"%(var, expand)
@@ -139,15 +176,18 @@ class DictMeta(MetaData):
         #print "_get expand=%s"%(expand)
         assert isinstance(expand, int)
         try:
-            val = self.dict[var][""]
+            val = self.smpl[var]
         except KeyError:
             try:
-                val = self.dict[var]["defaultval"]
+                val = self.cplx[var][""]
             except KeyError:
-                val = None
+                try:
+                    val = self.cplx[var]["defaultval"]
+                except KeyError:
+                    val = None
         if not expand:
             return (val, None)
-        if not var in self.dict:
+        if not var in self.cplx and not var in self.smpl:
             return (None, None)
         if not isinstance(val, (basestring, types.NoneType)):
             return (val, None)
@@ -158,12 +198,15 @@ class DictMeta(MetaData):
                 pass
 
         override_dep = None
-        if "__overrides" in self.dict[var]:
+        if var in self.cplx and "__overrides" in self.cplx[var]:
             current_overrides, override_dep = self._get_overrides()
-            override_dep.add("OVERRIDES")
-            var_overrides = self.dict[var]["__overrides"]['']
-            append_overrides = self.dict[var]["__overrides"]['>']
-            prepend_overrides = self.dict[var]["__overrides"]['<']
+            if override_dep:
+                override_dep.add("OVERRIDES")
+            else:
+                override_dep = set(["OVERRIDES"])
+            var_overrides = self.cplx[var]["__overrides"]['']
+            append_overrides = self.cplx[var]["__overrides"]['>']
+            prepend_overrides = self.cplx[var]["__overrides"]['<']
             oval = None
             append = ""
             prepend = ""
@@ -216,6 +259,8 @@ class DictMeta(MetaData):
 
         if override_dep:
             deps = deps.union(override_dep)
+        if not deps:
+            deps = None
         self.expand_cache[var] = (val, deps)
         return (val, deps)
 
@@ -230,7 +275,7 @@ class DictMeta(MetaData):
         return _get_overrides(self)[0]
 
     def _get_overrides(self):
-        overrides = self._get("OVERRIDES", 2)
+        overrides = self._get("OVERRIDES", PARTIAL_EXPANSION)
         filtered = []
         for override in overrides[0].split(":"):
             if not "${" in override:
@@ -241,9 +286,12 @@ class DictMeta(MetaData):
     def get_flag(self, var, flag, expand=False):
         assert isinstance(expand, int)
         try:
-            val = self.dict[var][flag]
+            val = self.cplx[var][flag]
         except KeyError:
-            val = None
+            if flag == "":
+                val = self.smpl.get(var)
+            else:
+                val = None
         if val and expand:
             (val, deps) = self._expand(val, expand)
         return val
@@ -251,16 +299,20 @@ class DictMeta(MetaData):
 
     def get_override(self, var, override):
         try:
-            return self.dict[var]["__overrides"][override[0]][override[1]]
+            return self.cplx[var]["__overrides"][override[0]][override[1]]
         except KeyError:
             pass
         return None
 
     def del_var(self, var):
         #print "del_var %s"%(var)
-        for flag in self.dict["__flag_index"]:
-            self.dict["__flag_index"][flag].discard(var)
-        del self.dict[var]
+        for s in self.__flag_index:
+            if s:
+                s.discard(var)
+        if var in self.cplx:
+            del self.cplx[var]
+        if var in self.smpl:
+            del self.smpl[var]
         try:
             del self.expand_cache[var]
         except KeyError:
@@ -278,51 +330,63 @@ class DictMeta(MetaData):
 
     def get_vars(self, flag="", values=False):
         #print "get_vars flag=%s values=%s"%(flag, values)
-        if flag and not flag in self.dict["__flag_index"]:
+        if flag and not flag in self.INDEXED_FLAGS:
             print "get_vars flag=%s not indexed"%(flag)
-            print "__flag_index=%s"%(self.dict["__flag_index"])
+            print "__flag_index=%s"%(self.__flag_index)
         if values:
             vars = {}
-            if flag in self.dict["__flag_index"]:
-                for var in self.dict["__flag_index"][flag]:
+            if flag in self.INDEXED_FLAGS:
+                fidx = self.INDEXED_FLAGS[flag]
+                for var in self.__flag_index[fidx] or []:
                     try:
-                        vars[var] = self.dict[var][""]
+                        vars[var] = self.cplx[var][""]
                     except KeyError:
+                        assert var not in self.smpl
                         continue
             else:
-                for var in self.dict:
+                for var in self.cplx:
                     try:
-                        if flag is not None and not self.dict[var][flag]:
+                        if flag is not None and not self.cplx[var][flag]:
                             continue
-                        vars[var] = self.dict[var][""]
+                        vars[var] = self.cplx[var][""]
                     except KeyError:
                         continue
+                if flag == "":
+                    vars.update(self.smpl)
         else:
-            if flag in self.dict["__flag_index"]:
-                vars = self.dict["__flag_index"][flag].copy()
+            if flag in self.INDEXED_FLAGS:
+                fidx = self.INDEXED_FLAGS[flag]
+                vars = (self.__flag_index[fidx] or set([])).copy()
             else:
                 vars = []
-                for var in self.dict:
+                for var in self.cplx:
                     try:
-                        if flag is not None and not self.dict[var][flag]:
+                        if flag is not None and not self.cplx[var][flag]:
                             continue
                         vars.append(var)
                     except KeyError:
                         continue
+                if flag == "":
+                    vars.extend(self.smpl.keys())
         #print "get_vars: %s"%(vars)
         return vars
 
 
     def get_flags(self, var, prune_var_value=True):
         try:
-            flags = self.dict[var].copy()
-            if prune_var_value:
-                try:
-                    del flags[""]
-                except KeyError:
-                    pass
+            flags = self.cplx[var].copy()
         except KeyError:
-            return None
+            try:
+                flags = {"": self.smpl[var]}
+            except KeyError:
+                return None
+
+        if prune_var_value:
+            try:
+                del flags[""]
+            except KeyError:
+                pass
+
         return flags
 
 
@@ -341,9 +405,9 @@ class DictMeta(MetaData):
         if before is None:
             before = []
         try:
-            hooks = self.dict["__hooks"]
+            hooks = self.cplx["__hooks"]
         except KeyError:
-            hooks = self.dict["__hooks"] = {}
+            hooks = self.cplx["__hooks"] = {}
         try:
             functions = hooks[name]
         except KeyError:
@@ -370,7 +434,7 @@ class DictMeta(MetaData):
 
     def get_hooks(self, name):
         try:
-            functions = self.dict["__hooks"][name]
+            functions = self.cplx["__hooks"][name]
         except KeyError:
             return []
         functions = sorted(functions.iteritems(), key=operator.itemgetter(1))
