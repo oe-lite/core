@@ -69,6 +69,9 @@ class OEliteRunQueue:
             "package		INTEGER, "
             "parent_package	INTEGER )")
 
+        self.dbc.execute(
+            "CREATE INDEX runq.recdepend_idx ON recdepend (package)"
+        )
         return
 
 
