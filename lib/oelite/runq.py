@@ -969,8 +969,8 @@ class OEliteRunQueue:
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
+        start = datetime.datetime.now()
         while True:
-            start = datetime.datetime.now()
             # The code below, until the executemany() call, implements
             # what was previously done with this horribly-performing
             # single SQL statement:
@@ -995,8 +995,8 @@ class OEliteRunQueue:
             if rc == -1:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
             assert(rc == len(to_delete))
-            oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rc, start)
             rowcount += rc
+        oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rowcount, start)
 
 
 
