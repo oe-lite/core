@@ -971,19 +971,31 @@ class OEliteRunQueue:
         rowcount = 0
         while True:
             start = datetime.datetime.now()
-            self.dbc.execute(
-                "DELETE FROM runq.depend "
-                "WHERE prime IS NULL AND NOT EXISTS "
-                "(SELECT * FROM runq.depend AS next_depend"
-                " WHERE next_depend.parent_task=runq.depend.task"
-                " LIMIT 1"
-                ")")
+            # The code below, until the executemany() call, implements
+            # what was previously done with this horribly-performing
+            # single SQL statement:
+            #
+            #   self.dbc.execute(
+            #       "DELETE FROM runq.depend "
+            #       "WHERE prime IS NULL AND NOT EXISTS "
+            #       "(SELECT * FROM runq.depend AS next_depend"
+            #       " WHERE next_depend.parent_task=runq.depend.task"
+            #       " LIMIT 1"
+            #       ")")
+            dump = self.dbc.execute("SELECT rowid, prime, task, parent_task "
+                                    "FROM runq.depend").fetchall()
+            has_dependant = set([])
+            for x in dump:
+                has_dependant.add(x[3])
+            to_delete = [(x[0], ) for x in dump if not x[1] and x[2] not in has_dependant]
+            if not to_delete:
+                break
+            self.dbc.executemany("DELETE FROM runq.depend WHERE rowid=?", to_delete)
             rc = self.dbc.rowcount
-            oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rc, start)
             if rc == -1:
                 die("prune_runq_depends_with_no_depending_tasks did not work out")
-            if not rc:
-                break
+            assert(rc == len(to_delete))
+            oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rc, start)
             rowcount += rc
 
 
