@@ -317,6 +317,7 @@ DEPENDS_${PN}-perf += "libpthread librt libm libgcc-s libc libdl"
 RDEPENDS_${PN}-perf += "libpthread librt libm libgcc-s libc libdl"
 PROVIDES_${PN}-perf += "util/perf"
 FILES_${PN}-perf-doc = "${mandir}/man1/perf*"
+FILES_${PN}-perf-doc += "${docdir}/perf-tip/*"
 FILES_${PN}-perf-scripts = "${prefix}/libexec/perf-core"
 
 CLASS_FLAGS += "kernel_trace"
