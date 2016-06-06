@@ -40,31 +40,35 @@ python do_install_s6rc () {
         if not os.path.exists(src):
             if required:
                 bb.error('required s6rc file not found: %s' % src)
-                errors += 1
+                return False
             return
         dst = os.path.join(s6rcsrcdir, sv, name)
         shutil.copyfile(src, dst)
         os.chmod(dst, mode)
+        return True
     def cp_service_dir(sv, name, mode=0755, required=False):
         src = d.get('S6RC_%s_%s' % (name.upper(), sv_)) or \
             os.path.join(srcdir, '%s.%s' % (sv, name))
         if not os.path.exists(src):
             if required:
                 bb.error('required s6rc dir not found: %s' % src)
-                errors += 1
+                return False
             return
         dst = os.path.join(s6rcsrcdir, sv, name)
         shutil.copytree(src, dst)
         os.chmod(dst, mode)
+        return True
 
     for sv in oneshot_services:
         write_service_file(sv, 'type', 'oneshot\n')
-        cp_service_file(sv, 'up', required=True)
+        if not cp_service_file(sv, 'up', required=True):
+            errors += 1
         cp_service_file(sv, 'down')
 
     for sv in longrun_services:
         write_service_file(sv, 'type', 'longrun\n')
-        cp_service_file(sv, 'run', mode=0755, required=True)
+        if not cp_service_file(sv, 'run', mode=0755, required=True):
+            errors += 1
         cp_service_file(sv, 'finish', mode=0755)
         cp_service_file(sv, 'notification-fd')
         cp_service_file(sv, 'nosetsid')
@@ -92,6 +96,9 @@ python do_install_s6rc () {
         contents = d.get('USE_%s_s6rc_bundle' % sv) or ''
         contents = '\n'.join(contents.split() + [''])
         write_service_file(sv, 'contents', contents)
+
+    if errors:
+        return False
 }
 
 # Local Variables:
