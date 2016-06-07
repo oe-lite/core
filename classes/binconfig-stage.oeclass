@@ -82,6 +82,9 @@ def binconfig_stage_fixup(d):
             dstlink = os.path.join(
                 stage_dir, cross_type, d.get("stage_bindir").lstrip("/"),
                 os.path.basename(filename))
+            dstdir = os.path.dirname(dstlink)
+            print("creating destination dir: {}".format(dstdir))
+            oelite.util.makedirs(dstdir)
             print "symlinking %s to %s"%(dstlink, srcfile)
             os.symlink(srcfile, dstlink)
 
