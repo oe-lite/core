@@ -1,12 +1,14 @@
 from oebakery import die, err, warn, info, debug
 from oelite import *
 from oelite.dbutil import *
+import oelite.util
 import oelite.recipe
 
 import sys
 import os
 import copy
 import operator
+import datetime
 
 class OEliteRunQueue:
 
@@ -19,8 +21,8 @@ class OEliteRunQueue:
         self.rebuild = rebuild
         self.relax = relax
         self.depth_first = depth_first
-        self._assume_provided = (self.config.get("ASSUME_PROVIDED")
-                                or "").split()
+        self._assume_provided = frozenset((self.config.get("ASSUME_PROVIDED")
+                                or "").split())
         self.runable = []
         self.metahashable = []
         self.cookbook.db.execute("ATTACH ':memory:' AS runq")
@@ -228,7 +230,7 @@ class OEliteRunQueue:
         # add deptask dependencies
         # (ie. do_sometask[deptask] = "DEPTYPE:do_someothertask")
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            deptasks = task.get_deptasks([deptype])
+            deptasks = task.get_deptasks(deptype)
             if deptasks:
                 # get list of packages providing the dependencies
                 depends = self.get_depends(
@@ -240,7 +242,7 @@ class OEliteRunQueue:
         # add recursive depends tasks
         # (ie. do_sometask[recdeptask] = "DEPTYPE:do_someothertask")
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            recdeptasks = task.get_recdeptasks([deptype])
+            recdeptasks = task.get_recdeptasks(deptype)
             if recdeptasks:
                 # get cumulative list of packages providing the dependencies
                 # and recursively the corresponding package dependencies
@@ -371,12 +373,12 @@ class OEliteRunQueue:
             recursion_path[1].append(str(item))
 
             # try to get cached recdepends list of packages
-            packages = self.get_recdepends(package, [deptype])
+            packages = self.get_recdepends(package, deptype)
             if packages:
                 return packages + [package]
 
             packages = set([])
-            depends = self.cookbook.get_package_depends(package, [deptype])
+            depends = self.cookbook.get_package_depends(package, deptype)
             if depends:
                 for depend in depends:
                     _recursion_path = copy.deepcopy(recursion_path)
@@ -788,15 +790,14 @@ class OEliteRunQueue:
         return
 
 
-    def get_recdepends(self, package, deptypes):
+    def get_recdepends(self, package, deptype):
         assert isinstance(package, oelite.package.OElitePackage)
-        assert isinstance(deptypes, list) and len(deptypes) > 0
         recdepends = []
         for package_id in self.dbc.execute(
                 "SELECT parent_package "
                 "FROM runq.recdepend "
-                "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
-                "AND package=?", (deptypes + [package.id])):
+                "WHERE deptype=? "
+                "AND package=?", (deptype, package.id)):
             recdepends.append(self.cookbook.get_package(id=package_id))
         return recdepends
 
@@ -946,6 +947,7 @@ class OEliteRunQueue:
 
     def prune_runq_depends_nobuild(self):
         rowcount = 0
+        start = datetime.datetime.now()
         while True:
             self.dbc.execute(
                 "UPDATE runq.depend SET parent_task=NULL "
@@ -955,38 +957,51 @@ class OEliteRunQueue:
                 " AND runq.task.task=runq.depend.parent_task"
                 " LIMIT 1"
                 ")")
-            if rowcount == -1:
+            rc = self.dbc.rowcount
+            if rc == -1:
                 die("prune_runq_depends_nobuild did not work out")
-            if not self.dbc.rowcount:
+            if not rc:
                 break
-            rowcount += self.dbc.rowcount
-        if rowcount:
-            debug("pruned %d dependencies that did not have to be rebuilt"%rowcount)
-        return rowcount
+            rowcount += rc
+        oelite.util.timing_info("pruned %d dependencies that did not have to be rebuilt"%rowcount, start)
 
 
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
+        start = datetime.datetime.now()
         while True:
-            self.dbc.execute(
-                "DELETE FROM runq.depend "
-                "WHERE prime IS NULL AND NOT EXISTS "
-                "(SELECT * FROM runq.depend AS next_depend"
-                " WHERE next_depend.parent_task=runq.depend.task"
-                " LIMIT 1"
-                ")")
-            if rowcount == -1:
-                die("prune_runq_depends_with_no_depending_tasks did not work out")
-            if not self.dbc.rowcount:
+            # The code below, until the executemany() call, implements
+            # what was previously done with this horribly-performing
+            # single SQL statement:
+            #
+            #   self.dbc.execute(
+            #       "DELETE FROM runq.depend "
+            #       "WHERE prime IS NULL AND NOT EXISTS "
+            #       "(SELECT * FROM runq.depend AS next_depend"
+            #       " WHERE next_depend.parent_task=runq.depend.task"
+            #       " LIMIT 1"
+            #       ")")
+            dump = self.dbc.execute("SELECT rowid, prime, task, parent_task "
+                                    "FROM runq.depend").fetchall()
+            has_dependant = set([])
+            for x in dump:
+                has_dependant.add(x[3])
+            to_delete = [(x[0], ) for x in dump if not x[1] and x[2] not in has_dependant]
+            if not to_delete:
                 break
-            rowcount += self.dbc.rowcount
-        if rowcount:
-            debug("pruned %d dependencies which where not needed anyway"%rowcount)
-        return rowcount
+            self.dbc.executemany("DELETE FROM runq.depend WHERE rowid=?", to_delete)
+            rc = self.dbc.rowcount
+            if rc == -1:
+                die("prune_runq_depends_with_no_depending_tasks did not work out")
+            assert(rc == len(to_delete))
+            rowcount += rc
+        oelite.util.timing_info("pruned %d dependencies which where not needed anyway"%rowcount, start)
+
 
 
     def prune_runq_tasks(self):
+        start = datetime.datetime.now()
         rowcount = self.dbc.execute(
             "UPDATE"
             "  runq.task "
@@ -1001,9 +1016,7 @@ class OEliteRunQueue:
             ")").rowcount
         if rowcount == -1:
             die("prune_runq_tasks did not work out")
-        if rowcount:
-            debug("pruned %d tasks that does not need to be build"%rowcount)
-        return rowcount
+        oelite.util.timing_info("pruned %d tasks that does not need to be build"%rowcount, start)
 
 
     def set_task_stamp(self, task, mtime, tmphash):

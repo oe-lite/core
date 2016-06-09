@@ -42,7 +42,7 @@ class ExpansionStack:
 
     def push(self, var):
         if var in self.stack:
-            raise Exception("Circular expansion: %s"%("->".join(self.stack)))
+            raise Exception("Circular expansion: %s"%("->".join(map(lambda x: "${%s}" % x, self.stack))))
         self.stack.append(var)
         return
 
@@ -117,8 +117,6 @@ class MetaData(MutableMapping):
                 self[var] = env_val
                 hasher.update("%s=%r\n"%(var, env_val))
         self['__env_signature'] = hasher.hexdigest()
-        self.set_flag('__env_signature', 'nohash', True)
-        return
 
     def env_signature(self):
         return self.get('__env_signature')
@@ -403,7 +401,7 @@ class MetaData(MutableMapping):
         "OE_MODULE_",
     ]
 
-    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars={},
+    def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars=[],
                  flags=False, ignore_flags_re=None):
         if pretty:
             eol = "\n\n"
@@ -446,7 +444,7 @@ class MetaData(MutableMapping):
         val = str(val)
 
         for dynvar_name, dynvar_val in dynvars:
-            val = string.replace(val, dynvar_val, "${%s}"%(dynvar_name))
+            val = string.replace(val, dynvar_val, dynvar_name)
 
         if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
@@ -476,7 +474,7 @@ class MetaData(MutableMapping):
                         "MANIFEST_ORIGIN_PARAMS"):
             varval = self.get(varname, True)
             if varval:
-                dynvars.append((varname, varval))
+                dynvars.append(("${" + varname + "}", varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:

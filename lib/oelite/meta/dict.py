@@ -166,7 +166,6 @@ class DictMeta(MetaData):
 
     def get(self, var, expand=FULL_EXPANSION):
         #print "get var=%s expand=%s"%(var, expand)
-        assert isinstance(expand, int)
         val = self._get(var, expand)[0]
         #print "get returning %s"%(val)
         return val
@@ -253,7 +252,7 @@ class DictMeta(MetaData):
             expand_method = expand
         if val:
             #print "get not expanding anyway"
-            self.expand_stack.push("${%s}"%var)
+            self.expand_stack.push(var)
             (val, deps) = self._expand(val, expand_method, var)
             self.expand_stack.pop()
 

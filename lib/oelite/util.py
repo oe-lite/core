@@ -1,7 +1,9 @@
+from oebakery import info
 import tarfile
 import os
 import sys
 import subprocess
+import datetime
 
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
@@ -162,3 +164,20 @@ def touch(path, makedirs=False, truncate=False):
         globals()['makedirs'](os.path.dirname(path))
     with open(path, mode):
         os.utime(path, None)
+
+
+def timing_info(msg, start):
+    msg += " time "
+    delta = datetime.datetime.now() - start
+    hours = delta.seconds // 3600
+    minutes = delta.seconds // 60 % 60
+    seconds = delta.seconds % 60
+    milliseconds = delta.microseconds // 1000
+    if hours:
+        msg += "%dh%02dm%02ds"%(hours, minutes, seconds)
+    elif minutes:
+        msg += "%dm%02ds"%(minutes, seconds)
+    else:
+        msg += "%d.%03d seconds"%(seconds, milliseconds)
+    info(msg)
+    return

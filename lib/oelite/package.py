@@ -28,9 +28,9 @@ class OElitePackage:
         return "%s:%s"%(self.type, self.name)
 
     def get_provides(self):
-        provides = self.recipe.get('PROVIDES_%s'%(self.name))
+        provides = self.recipe.get('PROVIDES_' + self.name)
         provides = set((provides or "").split())
-        package_type = self.recipe.get('PACKAGE_TYPE_%s'%(self.name))
+        package_type = self.recipe.get('PACKAGE_TYPE_' + self.name)
         if package_type:
             provides.add('%s:%s'%(package_type, self.name))
         else:

@@ -839,10 +839,9 @@ class CookBook(Mapping):
         return packages
 
 
-    def get_package_depends(self, package, deptypes):
+    def get_package_depends(self, package, deptype):
         assert isinstance(package, oelite.package.OElitePackage)
-        assert isinstance(deptypes, list) and len(deptypes) > 0
         return flatten_single_column_rows(self.dbc.execute(
             "SELECT item FROM package_depend "
-            "WHERE deptype IN (%s) "%(",".join("?" for i in deptypes)) +
-            "AND package=?", (deptypes + [package.id])))
+            "WHERE deptype=? "
+            "AND package=?", (deptype, package.id)))
