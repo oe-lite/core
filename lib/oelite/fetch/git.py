@@ -285,5 +285,5 @@ class GitFetcher():
             return oelite.util.shcmd(cmd) is True
         else:
             print "Updating git mirror", path
-            cmd = "git remote update"
+            cmd = "git remote update --prune"
             return oelite.util.shcmd(cmd, dir=path) is True
