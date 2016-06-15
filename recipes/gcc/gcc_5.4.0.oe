@@ -1,0 +1,12 @@
+require ${PN}.inc
+include gcc-${PV}.inc
+
+AUTO_PACKAGE_LIBS:>TARGET_CPU_x86 = " cilkrts vtv vtv_stubs"
+
+FILES_${PN} += "${libdir}/libcc1.*"
+
+AUTO_PACKAGE_LIBS += "gomp-plugin-host"
+DEPENDS_${PN}-libgomp += "libgomp-plugin-host"
+RDEPENDS_${PN}-libgomp += "libgomp-plugin-host"
+
+EXTRA_OECONF += "--disable-multilib"
