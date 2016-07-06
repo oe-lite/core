@@ -465,7 +465,7 @@ class MetaData(MutableMapping):
         return
 
 
-    def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
+    def dump(self, o=sys.__stdout__, pretty=True, show_nohash=False, only=None,
              flags=False, ignore_flags_re=None):
 
         dynvars = []
@@ -480,7 +480,7 @@ class MetaData(MutableMapping):
         for key in keys:
             if only and key not in only:
                 continue
-            if not nohash:
+            if not show_nohash:
                 if key in self.builtin_nohash:
                     continue
                 if self.get_flag(key, "nohash"):
@@ -532,13 +532,13 @@ class MetaData(MutableMapping):
         if dump:
             assert isinstance(dump, basestring)
             dumper = StringOutput()
-            self.dump(dumper, pretty=False, nohash=False,
+            self.dump(dumper, pretty=False, show_nohash=False,
                       flags=True, ignore_flags_re=ignore_flags_re)
             dumpdir = os.path.dirname(dump)
             if dumpdir and not os.path.exists(dumpdir):
                 os.makedirs(dumpdir)
             open(dump, "w").write(dumper.blob)
-        self.dump(hasher, pretty=False, nohash=False,
+        self.dump(hasher, pretty=False, show_nohash=False,
                   flags=True, ignore_flags_re=ignore_flags_re)
 
         self._signature = str(hasher)

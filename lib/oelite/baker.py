@@ -257,7 +257,7 @@ class OEliteBaker:
 
         #meta.dump(pretty=False, nohash=False, flags=True,
         #          ignore_flags=re.compile("filename|lineno"),
-        meta.dump(pretty=True, nohash=(not self.options.nohash),
+        meta.dump(pretty=True, show_nohash=(not self.options.nohash),
                   only=(self.things_todo[1:] or None))
 
         return 0
