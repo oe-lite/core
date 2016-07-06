@@ -436,15 +436,18 @@ class MetaData(MutableMapping):
             expand = FULL_EXPANSION
         if not expand and func != "python":
             expand = OVERRIDES_EXPANSION
-        val = self.get(key, expand)
+        val,deps = self._get(key, expand)
 
         if not val:
             return 0
 
         val = str(val)
 
-        for dynvar_name, dynvar_val in dynvars:
-            val = string.replace(val, dynvar_val, dynvar_name)
+        if deps:
+            for dynvar_name, dynvar_token, dynvar_val in dynvars:
+                if dynvar_name not in deps:
+                    continue
+                val = string.replace(val, dynvar_val, dynvar_token)
 
         if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
@@ -475,7 +478,7 @@ class MetaData(MutableMapping):
                             "MANIFEST_ORIGIN_PARAMS"):
                 varval = self.get(varname, True)
                 if varval:
-                    dynvars.append(("${" + varname + "}", varval))
+                    dynvars.append((varname, "${" + varname + "}", varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
