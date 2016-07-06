@@ -466,15 +466,16 @@ class MetaData(MutableMapping):
 
 
     def dump(self, o=sys.__stdout__, pretty=True, show_nohash=False, only=None,
-             flags=False, ignore_flags_re=None):
+             dynvar_replacement=True, flags=False, ignore_flags_re=None):
 
         dynvars = []
-        for varname in ("WORKDIR", "TOPDIR", "DATETIME",
-                        "MANIFEST_ORIGIN_URL", "MANIFEST_ORIGIN_SRCURI",
-                        "MANIFEST_ORIGIN_PARAMS"):
-            varval = self.get(varname, True)
-            if varval:
-                dynvars.append(("${" + varname + "}", varval))
+        if dynvar_replacement:
+            for varname in ("WORKDIR", "TOPDIR", "DATETIME",
+                            "MANIFEST_ORIGIN_URL", "MANIFEST_ORIGIN_SRCURI",
+                            "MANIFEST_ORIGIN_PARAMS"):
+                varval = self.get(varname, True)
+                if varval:
+                    dynvars.append(("${" + varname + "}", varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
