@@ -406,11 +406,6 @@ class MetaData(MutableMapping):
 
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars=[],
                  flags=False, ignore_flags_re=None):
-        if pretty:
-            eol = "\n\n"
-        else:
-            eol = "\n"
-
         var_flags = self.get_flags(key)
 
         if flags:
@@ -461,13 +456,13 @@ class MetaData(MutableMapping):
             return
 
         if func == "bash":
-            o.write("%s() {\n%s}%s"%(key, val, eol))
+            o.write("%s() {\n%s}\n\n"%(key, val))
             return
 
         if pretty and var_flags.get("export"):
             o.write("export ")
 
-        o.write("%s=%s%s"%(key, repr(val), eol))
+        o.write("%s=%s\n\n"%(key, repr(val)))
         return
 
 
