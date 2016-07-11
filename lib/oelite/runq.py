@@ -249,21 +249,6 @@ class OEliteRunQueue:
                 # add each recdeptask for each package
                 add_package_depends(recdeptasks, deptype, depends)
 
-        # add inter-task dependencies
-        # (ie. do_sometask[depends] = "itemname:do_someothertask")
-        taskdepends = task.get_taskdepends()
-        for taskdepend in taskdepends:
-            task = self.cookbook.get_task(task=task)
-            raise Exception("OE-lite does not currently support inter-task dependencies! %s:%s"%(recipe.name, task.name))
-            if self.assume_provided(taskdepend[0]):
-                #debug("ASSUME_PROVIDED %s"%(
-                #        self.get_item(taskdepend[0])))
-                continue
-            (recipe, package) = self.get_recipe_provider(taskdepend[0])
-            if not recipe:
-                raise NoProvider(taskdepend[0], str(task))
-            add_task_depends([taskdepend[1]], [recipe])
-
         # can self references occur?
         #if task in tasks:
         #    die("self reference for task %s %s"%(
