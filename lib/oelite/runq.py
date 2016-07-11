@@ -48,7 +48,6 @@ class OEliteRunQueue:
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS runq.depend ( "
-            "id			INTEGER PRIMARY KEY, "
             "task		INTEGER, " # references task.id
             "prime		INTEGER, " # boolean
             "parent_task	INTEGER, " # references task.id
