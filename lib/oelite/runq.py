@@ -351,7 +351,7 @@ class OEliteRunQueue:
             recursion_path[1].append(str(item))
 
             # try to get cached recdepends list of packages
-            packages = self.get_recdepends(package, deptype)
+            packages = package.get_recdepends(deptype)
             if packages:
                 return packages + [package]
 
@@ -364,7 +364,7 @@ class OEliteRunQueue:
                         oelite.item.OEliteItem(depend, (deptype, package.type)),
                         _recursion_path, deptype)
                     packages.update(_packages)
-            self.set_recdepends(package, deptype, packages)
+            package.set_recdepends(deptype, packages)
             packages.add(package)
             return packages
 

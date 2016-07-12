@@ -22,6 +22,9 @@ class OElitePackage:
         priority = int(priority)
         self.priority = layer_priority + recipe.priority_baseline + priority
         self.version = recipe.version
+        self.recdepends = dict()
+        for t in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            self.recdepends[t] = set([])
         return
 
     def __str__(self):
@@ -52,3 +55,11 @@ class OElitePackage:
         for package in packages:
             provides.update(package.get_provides())
         return map(str, provides)
+
+    def set_recdepends(self, deptype, packages):
+        assert(deptype in self.recdepends)
+        self.recdepends[deptype].update(packages)
+
+    def get_recdepends(self, deptype):
+        assert(deptype in self.recdepends)
+        return list(self.recdepends[deptype])
