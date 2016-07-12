@@ -58,15 +58,6 @@ class OEliteRunQueue:
             "UNIQUE (task, parent_task, deptype, package) "
             "ON CONFLICT IGNORE )")
 
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS runq.recdepend ( "
-            "deptype            TEXT, "
-            "package		INTEGER, "
-            "parent_package	INTEGER )")
-
-        self.dbc.execute(
-            "CREATE INDEX runq.recdepend_idx ON recdepend (package)"
-        )
         return
 
 
@@ -739,31 +730,6 @@ class OEliteRunQueue:
                 "WHERE package=? "
                 "LIMIT 1", (package.id,)))
 
-
-    def set_recdepends(self, package, deptype, recdepends):
-        if not recdepends:
-            return
-        assert isinstance(package, oelite.package.OElitePackage)
-        def task_tuple(depend):
-            return (deptype, package.id, depend.id)
-        recdepends = map(task_tuple, recdepends)
-        self.dbc.executemany(
-            "INSERT INTO runq.recdepend "
-            "(deptype, package, parent_package) "
-            "VALUES (?, ?, ?)", recdepends)
-        return
-
-
-    def get_recdepends(self, package, deptype):
-        assert isinstance(package, oelite.package.OElitePackage)
-        recdepends = []
-        for package_id in self.dbc.execute(
-                "SELECT parent_package "
-                "FROM runq.recdepend "
-                "WHERE deptype=? "
-                "AND package=?", (deptype, package.id)):
-            recdepends.append(self.cookbook.get_package(id=package_id))
-        return recdepends
 
 
     def get_readytasks(self):
