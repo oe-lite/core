@@ -1,6 +1,6 @@
 require ${PN}.inc
 
-STABLE_COMMIT = "b995d95a5943785be3ab862b2d3276f3b4a22481"
+STABLE_COMMIT = "ea23815a795f72035262953dad5beb03e09c17dd"
 
 SRC_URI += "file://bindir-paths.patch"
 SRC_URI += "file://typedef-caddr.patch"
