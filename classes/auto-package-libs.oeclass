@@ -33,6 +33,7 @@ AUTO_PACKAGE_LIBS ?= ""
 AUTO_PACKAGE_LIBS_LIBDIR ?= "${libdir} ${sharedlibdir}"
 AUTO_PACKAGE_LIBS_PKGPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_PROVIDEPREFIX ?= "lib"
+AUTO_PACKAGE_LIBS_LIBPREFIX ?= "lib"
 AUTO_PACKAGE_LIBS_DEV_DEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEV_RDEPENDS ?= ""
 AUTO_PACKAGE_LIBS_DEPENDS ?= ""
@@ -77,7 +78,7 @@ def auto_package_libs (d):
         if len(libdir) > 5:
             bb.fatal("invalid libdir in AUTO_PACKAGE_LIBS_LIBDIR: %s"%(libdir))
         if len(libdir) < 2:
-            libdir.append("lib")
+            libdir.append(d.get("AUTO_PACKAGE_LIBS_LIBPREFIX"))
         if len(libdir) < 3:
             libdir.append([""])
         else:
