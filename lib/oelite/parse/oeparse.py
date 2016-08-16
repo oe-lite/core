@@ -627,12 +627,6 @@ class OEParser(object):
 
         self.filename = os.path.realpath(filename)
 
-        if self.parent:
-            oldfile = os.path.realpath(self.filename[-1])
-            if self.filename == oldfile:
-                print "don't include yourself!"
-                return
-
         if parser is None and not filename.endswith(".oeclass"):
             self.meta.set("FILE", filename)
             self.meta.set("FILE_DIRNAME", os.path.dirname(filename))
