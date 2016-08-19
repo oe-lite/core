@@ -264,6 +264,11 @@ do_install() {
 			mv "$lib" "${D_SYSROOT}${target_libdir}/"
 			ln -s ../../../../${TARGET_ARCH}/sysroot${target_libdir}/`basename $lib` $lib
 		done
+		for lib in "${D_SYSROOT}${target_libdir}"/*.dll ; do
+			[ -e "$lib" ] || continue
+			mkdir -p "${D_SYSROOT}${target_sharedlibdir}"
+			mv "$lib" "${D_SYSROOT}${target_sharedlibdir}/"
+		done
 	fi
 }
 
