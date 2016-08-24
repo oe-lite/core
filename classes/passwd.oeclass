@@ -1,11 +1,20 @@
 ## OE-lite class for recipes providing content for /etc/passwd and /etc/group
 ##
-## If a recipe has contents for /etc/passwd or /etc/group, just ensure that the
-## content for /etc/passwd is placed in PASSWD_FILES, and contents for
-## /etc/group in GROUP_FILES. The contents from a recipe is placed in
-## a recipe specific dir, so that multiple recipes may provides contents for
-## /etc/passwd and /etc/group. The content is later combined in the
-## image_passwd class.
+## If a recipe has contents for /etc/passwd or /etc/group, just ensure
+## that the content for /etc/passwd is placed in PASSWD_FILES, and
+## contents for /etc/group in GROUP_FILES. The contents from a recipe
+## is placed in a recipe specific dir, so that multiple recipes may
+## provides contents for /etc/passwd and /etc/group. The content is
+## later combined in the image_passwd class.
+##
+## Currently, all files from a given recipe must have different
+## basenames; the file $f gets copied to
+##
+##   ${passwddir}/${PN}/$(basename $f)
+##
+## Should this ever become a problem that cannot be solved by
+## appropriate renaming, see https://github.com/oe-lite/core/pull/154
+## for a possible extension.
 ##
 ## @var PASSWD_FILES Set the ${SRCDIR}/passwd by default.
 ## @var GROUP_FILES Set to ${SRCDIR}/group by default.
@@ -19,18 +28,14 @@ GROUP_FILES ?= "${SRCDIR}/group"
 PASSWD_POSTFUNC:machine = " do_install_passwd"
 do_install[postfuncs] += "${PASSWD_POSTFUNC}"
 do_install_passwd () {
-	i=0
 	for f in ${PASSWD_FILES} ; do
-		mkdir -p ${D}/${passwddir}
-		let i=$i+1
-		cp $f ${D}/${passwddir}/${PN}.$i
+		mkdir -p ${D}/${passwddir}/${PN}
+		cp -n $f ${D}/${passwddir}/${PN}/
 	done
 
-	i=0
 	for f in ${GROUP_FILES} ; do
-		mkdir -p ${D}/${groupdir}
-		let i=$i+1
-		cp $f ${D}/${groupdir}/${PN}.$i
+		mkdir -p ${D}/${groupdir}/${PN}
+		cp -n $f ${D}/${groupdir}/${PN}/
 	done
 }
 do_install_passwd[expand] = "3"

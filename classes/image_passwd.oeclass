@@ -8,22 +8,15 @@ require conf/makedevs.conf
 
 do_rstage[postfuncs] += "do_rstage_passwd_concat"
 do_rstage_passwd_concat () {
-	cwd=`pwd`
-	if [ -d $cwd/${passwddir} ]; then
-		for f in $cwd/${passwddir}/* ; do
-			cat $f >> $cwd/${passwdfile}
-			rm $f
-		done
-		sort -g -t : -k 3 -o $cwd/${passwdfile} $cwd/${passwdfile}
-		rm -rf $cwd/${passwddir}
+	if [ -d ./${passwddir} ]; then
+		cat /dev/null $(find ./${passwddir} -type f) >> ./${passwdfile}
+		sort -g -t : -k 3 -o ./${passwdfile} ./${passwdfile}
+		rm -rf ./${passwddir}
 	fi
-	if [ -d $cwd/${groupdir} ]; then
-		for f in $cwd/${groupdir}/* ; do
-			cat $f >> $cwd/${groupfile}
-			rm $f
-		done
-		sort -g -t : -k 3 -o $cwd/${groupfile} $cwd/${groupfile}
-		rm -rf $cwd/${groupdir}
+	if [ -d ./${groupdir} ]; then
+		cat /dev/null $(find ./${groupdir} -type f) >> ./${groupfile}
+		sort -g -t : -k 3 -o ./${groupfile} ./${groupfile}
+		rm -rf ./${groupdir}
 	fi
 }
 
