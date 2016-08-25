@@ -160,6 +160,27 @@ def do_rstage_passwd_groups(d):
             group_line += "\n"
             group_file.write(group_line)
 
+do_rstage[postfuncs] += "do_rstage_passwd_check_unique_uidgid"
+do_rstage_passwd_check_unique_uidgid () {
+	local dupuids=$(cut -f3 -d: ${passwdfile} | uniq -d)
+	if [ -n "$dupuids" ] ; then
+		echo -n "ERROR: duplicate uids:   "
+		echo $dupuids
+		echo "Conflicting entries:"
+		grep -w -F "$dupuids" ${passwdfile}
+		exit 1
+	fi
+
+	local dupgids=$(cut -f3 -d: ${groupfile} | uniq -d)
+	if [ -n "$dupgids" ] ; then
+		echo -n "ERROR: duplicate gids:   "
+		echo $dupgids
+		echo "Conflicting entries:"
+		grep -w -F "$dupgids" ${groupfile}
+		exit 1
+	fi
+}
+
 # Local Variables:
 # mode: python
 # End:
