@@ -8,22 +8,15 @@ require conf/makedevs.conf
 
 do_rstage[postfuncs] += "do_rstage_passwd_concat"
 do_rstage_passwd_concat () {
-	cwd=`pwd`
-	if [ -d $cwd/${passwddir} ]; then
-		for f in $cwd/${passwddir}/* ; do
-			cat $f >> $cwd/${passwdfile}
-			rm $f
-		done
-		sort -g -t : -k 3 -o $cwd/${passwdfile} $cwd/${passwdfile}
-		rm -rf $cwd/${passwddir}
+	if [ -d ./${passwddir} ]; then
+		cat /dev/null $(find ./${passwddir} -type f) >> ./${passwdfile}
+		sort -g -t : -k 3 -o ./${passwdfile} ./${passwdfile}
+		rm -rf ./${passwddir}
 	fi
-	if [ -d $cwd/${groupdir} ]; then
-		for f in $cwd/${groupdir}/* ; do
-			cat $f >> $cwd/${groupfile}
-			rm $f
-		done
-		sort -g -t : -k 3 -o $cwd/${groupfile} $cwd/${groupfile}
-		rm -rf $cwd/${groupdir}
+	if [ -d ./${groupdir} ]; then
+		cat /dev/null $(find ./${groupdir} -type f) >> ./${groupfile}
+		sort -g -t : -k 3 -o ./${groupfile} ./${groupfile}
+		rm -rf ./${groupdir}
 	fi
 }
 
@@ -166,6 +159,27 @@ def do_rstage_passwd_groups(d):
         for group_line in group_lines:
             group_line += "\n"
             group_file.write(group_line)
+
+do_rstage[postfuncs] += "do_rstage_passwd_check_unique_uidgid"
+do_rstage_passwd_check_unique_uidgid () {
+	local dupuids=$(cut -f3 -d: ${passwdfile} | uniq -d)
+	if [ -n "$dupuids" ] ; then
+		echo -n "ERROR: duplicate uids:   "
+		echo $dupuids
+		echo "Conflicting entries:"
+		grep -w -F "$dupuids" ${passwdfile}
+		exit 1
+	fi
+
+	local dupgids=$(cut -f3 -d: ${groupfile} | uniq -d)
+	if [ -n "$dupgids" ] ; then
+		echo -n "ERROR: duplicate gids:   "
+		echo $dupgids
+		echo "Conflicting entries:"
+		grep -w -F "$dupgids" ${groupfile}
+		exit 1
+	fi
+}
 
 # Local Variables:
 # mode: python
