@@ -126,7 +126,7 @@ class GitRepository(object):
             if url != oldurl:
                 self.set_url(url)
         try:
-            return self.git("remote update", quiet=False) is True
+            return self.git("remote update --prune", quiet=False) is True
         finally:
             if url and url != oldurl:
                 self.set_url(oldurl)
