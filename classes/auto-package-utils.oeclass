@@ -18,6 +18,13 @@
 ##      Defaults to PN.
 ## @var AUTO_PACKAGE_UTILS_PREFIX Prefix used when looking up files to
 ##      package.  Defaults is empty string.
+## @var AUTO_PACKAGE_UTILS_SYMLINKS_foo List of alternate names for
+##      the "foo" utility, usually implemented via symlinks. This will
+##      put these symbolic links into the ${PN}-foo package, and that
+##      package will automatically provide "util/bar", "util/baz",
+##      ... in addition to "util/foo". For example,
+##
+##      AUTO_PACKAGE_UTILS_SYMLINKS_bzip2 = "bunzip2 bzcat"
 
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_DOC_PACKAGES}"
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
@@ -64,24 +71,36 @@ def auto_package_utils (d):
         else:
             utilname = util.replace("_", "-").replace(".", "-").lower()
         pkg = "%s-%s"%(basename, utilname)
-        utilname = "util/" + utilname
+        symlinks = (d.get("AUTO_PACKAGE_UTILS_SYMLINKS_" + utilname) or "").split()
         docpkg = pkg + "-doc"
         packages += [ pkg ]
         doc_packages += [ docpkg ]
-        provides += [ utilname ]
 
-        util = prefix + util
-        files = ("${base_sbindir}/%s "%(util) +
-                 "${base_bindir}/%s "%(util) +
-                 "${sbindir}/%s "%(util) +
-                 "${bindir}/%s "%(util) +
-                 "${libexecdir}/%s "%(util))
-        if exeext:
-            files += (" ${base_sbindir}/%s%s "%(util, exeext) +
-                      "${base_bindir}/%s%s "%(util, exeext) +
-                      "${sbindir}/%s%s "%(util, exeext) +
-                      "${bindir}/%s%s "%(util, exeext) +
-                      "${libexecdir}/%s%s "%(util, exeext))
+        pkg_provides = [ "util/" + utilname ]
+        basenames = [ prefix + util ]
+
+        for s in symlinks:
+            if ":" in s:
+                sname, s = s.split(":", 1)
+                sname = sname.replace("_", "-").replace(".", "-").lower()
+            else:
+                sname = s.replace("_", "-").replace(".", "-").lower()
+            pkg_provides.append("util/" + sname)
+            basenames.append(prefix + s)
+
+        files = ""
+        for b in basenames:
+            files += ("${base_sbindir}/%s "%(b) +
+                      "${base_bindir}/%s "%(b) +
+                      "${sbindir}/%s "%(b) +
+                      "${bindir}/%s "%(b) +
+                      "${libexecdir}/%s "%(b))
+            if exeext:
+                files += (" ${base_sbindir}/%s%s "%(b, exeext) +
+                          "${base_bindir}/%s%s "%(b, exeext) +
+                          "${sbindir}/%s%s "%(b, exeext) +
+                          "${bindir}/%s%s "%(b, exeext) +
+                          "${libexecdir}/%s%s "%(b, exeext))
         files += " " + " ".join(get_extra_files(pkg))
         d.set("FILES_" + pkg, files)
 
@@ -103,8 +122,8 @@ def auto_package_utils (d):
             else:
                 d.set("DEPENDS_" + pkg, auto_depends)
 
-        pkg_provides = (d.get("PROVIDES_" + pkg) or "").split()
-        pkg_provides.append(utilname)
+        provides += pkg_provides
+        pkg_provides += (d.get("PROVIDES_" + pkg) or "").split()
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
     
     d.set("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
