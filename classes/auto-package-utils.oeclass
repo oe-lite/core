@@ -89,6 +89,7 @@ def auto_package_utils (d):
             basenames.append(prefix + s)
 
         files = ""
+        docfiles = ""
         for b in basenames:
             files += ("${base_sbindir}/%s "%(b) +
                       "${base_bindir}/%s "%(b) +
@@ -101,12 +102,12 @@ def auto_package_utils (d):
                           "${sbindir}/%s%s "%(b, exeext) +
                           "${bindir}/%s%s "%(b, exeext) +
                           "${libexecdir}/%s%s "%(b, exeext))
+            docfiles += "${mandir}/man?/%s.* " % b
         files += " " + " ".join(get_extra_files(pkg))
-        d.set("FILES_" + pkg, files)
+        docfiles += " " + " ".join(get_extra_files(docpkg))
 
-        d.set("FILES_" + docpkg,
-              "${mandir}/man?/%s.* "%(util) +
-              " ".join(get_extra_files(docpkg)))
+        d.set("FILES_" + pkg, files)
+        d.set("FILES_" + docpkg, docfiles)
 
         if auto_rdepends:
             rdepends = d.get("RDEPENDS_" + pkg)
@@ -125,7 +126,7 @@ def auto_package_utils (d):
         provides += pkg_provides
         pkg_provides += (d.get("PROVIDES_" + pkg) or "").split()
         d.set("PROVIDES_" + pkg, " ".join(pkg_provides))
-    
+
     d.set("AUTO_PACKAGE_UTILS_PACKAGES", " ".join(packages))
     d.set("AUTO_PACKAGE_UTILS_DOC_PACKAGES", " ".join(doc_packages))
     d.set("AUTO_PACKAGE_UTILS_PROVIDES", " ".join(provides))
