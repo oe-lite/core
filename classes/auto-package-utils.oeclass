@@ -19,6 +19,7 @@
 ## @var AUTO_PACKAGE_UTILS_PREFIX Prefix used when looking up files to
 ##      package.  Defaults is empty string.
 
+PACKAGES =+ "${AUTO_PACKAGE_UTILS_DOC_PACKAGES}"
 PACKAGES =+ "${AUTO_PACKAGE_UTILS_PACKAGES}"
 
 AUTO_PACKAGE_UTILS ?= ""
