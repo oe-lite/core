@@ -15,28 +15,31 @@ do_configure() {
 	    -i Makefile
 }
 
+do_configure_enables = ""
+do_configure[prefuncs] += "${do_configure_enables}"
+
 RECIPE_FLAGS += "squashfs_tools_xz"
 do_configure_xz() {
-	sed -e 's/^#?\(XZ_SUPPORT\) *= .*/\1 = 1/' \
+	sed -e 's/^#\?\(XZ_SUPPORT\) *= .*/\1 = 1/' \
 	    -i Makefile
 }
-do_configure[prefuncs] += "do_configure_xz"
+do_configure_enables:>USE_squashfs_tools_xz = "do_configure_xz"
 DEPENDS:>USE_squashfs_tools_xz = " liblzma"
 
 RECIPE_FLAGS += "squashfs_tools_lzo"
 do_configure_lzo() {
-	sed -e 's/^#?\(LZO_SUPPORT\) *= .*/\1 = 1/' \
+	sed -e 's/^#\?\(LZO_SUPPORT\) *= .*/\1 = 1/' \
 	    -i Makefile
 }
-do_configure[prefuncs] += "do_configure_lzo"
+do_configure_enables:>USE_squashfs_tools_lzo = "do_configure_lzo"
 DEPENDS:>USE_squashfs_tools_lzo = " liblzo"
 
 RECIPE_FLAGS += "squashfs_tools_lz4"
 do_configure_lz4() {
-	sed -e 's/^#?\(LZ4_SUPPORT\) *= .*/\1 = 1/' \
+	sed -e 's/^#\?\(LZ4_SUPPORT\) *= .*/\1 = 1/' \
 	    -i Makefile
 }
-do_configure[prefuncs] += "do_configure_lz4"
+do_configure_enables:>USE_squashfs_tools_lz4 = "do_configure_lz4"
 DEPENDS:>USE_squashfs_tools_lz4 = " liblz4"
 
 inherit auto-package-utils
