@@ -17,8 +17,8 @@ SQUASHFS_IMAGE_OPTIONS ?= ""
 
 mksquashfs_image () {
 	rm -f ${B}/${IMAGE_BASENAME}.sfs
-	mksquashfs ${SQUASHFS_IMAGE_OPTIONS} \
-		 ${IMAGE_DIR} ${B}/${IMAGE_BASENAME}.sfs
+	mksquashfs ${IMAGE_DIR} ${B}/${IMAGE_BASENAME}.sfs \
+		${SQUASHFS_IMAGE_OPTIONS}
 }
 
 do_install[postfuncs] += "do_install_squashfs_image"
