@@ -47,3 +47,6 @@ AUTO_PACKAGE_UTILS = "mksquashfs unsquashfs"
 
 DEPENDS_${PN} = "${AUTO_PACKAGE_UTILS_PROVIDES}"
 RDEPENDS_${PN} = "${AUTO_PACKAGE_UTILS_PROVIDES}"
+
+DEPENDS_${PN}-mksquashfs = "${DEPENDS}"
+DEPENDS_${PN}-unsquashfs = "${DEPENDS}"
