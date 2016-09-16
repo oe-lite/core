@@ -194,6 +194,7 @@ class GitFetcher():
         return False
 
     def fetch_update(self, repo):
+        print "Fetching from: %s"%(self.uri.mirrors)
         fetched = False
         for url in self.uri.premirrors + [self.url] + self.uri.mirrors:
             if not isinstance(url, basestring):
@@ -215,13 +216,29 @@ class GitFetcher():
 
     def has_rev(self, repo):
         if self.commit:
-            return repo.has_commit(self.commit)
+            print "Checking git revision '%s'"%(self.commit)
+            has_commit = repo.has_commit(self.commit)
+            if not has_commit:
+                print "Error: revision not found"
+                return False
+            return has_commit
         elif self.tag:
-            return repo.has_tag(self.tag)
+            print "Checking git tag '%s'"%(self.tag)
+            has_tag = repo.has_tag(self.tag)
+            if not has_tag:
+                print "Error: tag not found"
+                return False
+            return has_tag
         elif self.branch == 'HEAD':
             return True
         elif self.branch:
-            return repo.has_head(self.branch)
+            print "Checking branch '%s'"%(self.branch)
+            has_head = repo.has_head(self.branch)
+            if not has_head:
+                print "Error: branch not found"
+                return False
+            return has_head
+        print("Revision not found")
         return False
 
     def unpack(self, d):
