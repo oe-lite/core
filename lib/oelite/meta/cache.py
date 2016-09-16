@@ -107,7 +107,6 @@ PICKLE_ABI_MODULES = [
     "oelite.fetch.url",
     "oelite.fetch.git",
     "oelite.fetch.svn",
-    "oelite.fetch.hg",
     "oelite",
     "oelite.arch",
     "oelite.baker",
