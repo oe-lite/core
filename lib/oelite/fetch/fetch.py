@@ -9,7 +9,6 @@ import oelite.util
 import local
 import url
 import git
-import hg
 import svn
 
 FETCHERS = {
@@ -18,7 +17,6 @@ FETCHERS = {
     "https"	: url.UrlFetcher,
     "ftp"	: url.UrlFetcher,
     "git"	: git.GitFetcher,
-    "hg"	: hg.HgFetcher,
     "svn"	: svn.SvnFetcher,
 }
 
