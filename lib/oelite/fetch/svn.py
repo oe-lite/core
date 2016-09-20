@@ -6,7 +6,6 @@ import time
 import warnings
 import hashlib
 import oelite.fetch
-import pysvn
 import tarfile
 from oelite.fetch.url import grab
 
@@ -43,6 +42,15 @@ from oelite.fetch.url import grab
 # from ingredients to a skeleton source directory tree, and svn update is then
 # called to checkout the required revision.
 #
+
+# pysvn pulls in _a lot_ of shared libraries.  Since our
+# primary cost of fork'ing is the COW'ing of our entire
+# address space, and since nobody actually uses the svn
+# fetcher, we use this little trick for importing the pysvn
+# module lazily rather than doing it at the top of the file.
+def _lazy_import():
+    global pysvn
+    import pysvn
 
 class SvnFetcher():
 
@@ -111,6 +119,7 @@ class SvnFetcher():
         return bool(self._signature)
 
     def get_revision(self):
+        _lazy_import()
         try:
             return self._rev
         except:
@@ -136,6 +145,7 @@ class SvnFetcher():
         return self._rev
 
     def update_ingredients_wc(self):
+        _lazy_import()
         print "Updating ingredients working copy"
         client = pysvn.Client()
         if os.path.exists(self.wc):
@@ -288,6 +298,7 @@ class SvnFetcher():
         return
 
     def unpack(self, d):
+        _lazy_import()
         # Note: when self.localpath is set, this method is not called, but
         # unpacking is instead handled by OEliteUri.unpack method directly.
         client = pysvn.Client()
