@@ -1,8 +1,6 @@
 import oelite.fetch
 import oelite.util
 import os
-import urlgrabber
-import urlgrabber.progress
 import hashlib
 from oebakery import die, err, warn, info, debug
 
@@ -115,12 +113,15 @@ class UrlFetcher():
         return False
 
 
-class SimpleProgress(urlgrabber.progress.BaseMeter):
-    def _do_end(self, amount_read, now=None):
-        print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
 
 
 def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
+    import urlgrabber
+    import urlgrabber.progress
+    class SimpleProgress(urlgrabber.progress.BaseMeter):
+        def _do_end(self, amount_read, now=None):
+            print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
+
     print "Grabbing", url
     def grab_fail_callback(data):
         # Only print debug here when non fatal retries, debug in other cases
