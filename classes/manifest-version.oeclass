@@ -6,11 +6,14 @@
 ##
 ## @useflag manifest_version_dirty_mark Custom string to append if manifest is
 ##          dirty.
+## @useflag manifest_version_strip_leading If set, the leading prefix
+##          specified by this flag will be stripped if the version string is
+##          starting with the prefix followed by a decimal number.
 
 CLASS_DEPENDS += "native:git"
 __dont_cache = True
 
-CLASS_FLAGS += "manifest_version_dirty_mark"
+CLASS_FLAGS += "manifest_version_dirty_mark manifest_version_strip_leading"
 DEFAULT_USE_manifest_version_dirty_mark = "-dirty"
 
 addhook manifest_version to post_recipe_parse
@@ -23,8 +26,12 @@ def manifest_version(d):
                                 "--dirty="+d.get("USE_manifest_version_dirty_mark")],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         version = cmd.communicate()[0].strip()
+        strip_leading = d.get("USE_manifest_version_strip_leading")
         if cmd.returncode != 0:
             version = None
+        elif (strip_leading and re.match('%s\d'%(strip_leading), version)):
+            # Strip away leading prefix
+            version = version[len(strip_leading):]
     if version is None and os.path.exists("VERSION"):
         version = open("VERSION").readline().strip()
     if version is None:
