@@ -257,12 +257,16 @@ class OEliteTask:
         return None
 
     def start(self):
+        oelite.util.stracehack("==>%s" % self.name)
         self.result = self._start()
+        oelite.util.stracehack("<==%s" % self.name)
 
     def wait(self, poll=False):
+        oelite.util.stracehack("==>%s" % self.name)
         if self.result is not None:
             # Something bad happened in start
             self.cleanup_context()
+            oelite.util.stracehack("<==%s" % self.name)
             return self.result
 
         self.save_context()
@@ -294,6 +298,7 @@ class OEliteTask:
         # we don't need to make that idempotent.
         if self.result is not None:
             self.cleanup_context()
+        oelite.util.stracehack("<==%s" % self.name)
         return self.result
 
 
