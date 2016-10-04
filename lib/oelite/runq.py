@@ -3,6 +3,7 @@ from oelite import *
 from oelite.dbutil import *
 import oelite.util
 import oelite.recipe
+import oelite.profiling
 
 import sys
 import os
@@ -534,7 +535,8 @@ class OEliteRunQueue:
         return
 
 
-    def get_runabletask(self):
+    @oelite.profiling.profile_calls
+    def update_runabletasks(self):
         newrunable = self.get_readytasks()
         if newrunable:
             if self.depth_first:
@@ -544,6 +546,9 @@ class OEliteRunQueue:
             for task_id in newrunable:
                 task = self.cookbook.get_task(id=task_id)
                 self.set_task_pending(task)
+
+    def get_runabletask(self):
+        self.update_runabletasks()
         if not self.runable:
             return None
         task_id = self.runable.pop()
