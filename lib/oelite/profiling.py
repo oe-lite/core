@@ -227,3 +227,28 @@ def do_memdump():
         return
     with profile_output("meliae.json") as f:
         scanner.dump_all_objects(f)
+
+def do_small_dict_stat():
+    try:
+        from meliae import scanner
+    except ImportError:
+        sys.stderr.write("meliae module unavailable\n")
+        return
+    import gc
+    small_dict_keys = dict()
+    for ob in scanner.get_recursive_items(gc.get_objects()):
+        if not isinstance(ob, dict):
+            continue
+        if ob is small_dict_keys:
+            continue
+        if len(ob) >= 4:
+            continue
+        t = tuple(sorted(ob.keys()))
+        if t in small_dict_keys:
+            small_dict_keys[t] += 1
+        else:
+            small_dict_keys[t] = 1
+    with profile_output("small_dict_keys.txt") as f:
+        for t in sorted(small_dict_keys.keys(), key=lambda t: (len(t),small_dict_keys[t])+t):
+            if small_dict_keys[t] > 1:
+                f.write("%s\t%d\n" % (repr(t), small_dict_keys[t]))
