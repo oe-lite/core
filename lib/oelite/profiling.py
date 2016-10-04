@@ -19,6 +19,44 @@ def profile_output(name, mode="a"):
         path = "/dev/null"
     return open(path, mode)
 
+trace_entries = []
+def flush_trace_entries():
+    if profiledir is None:
+        return
+    with profile_output("trace.txt", "a") as f:
+        for e in trace_entries:
+            f.write(e[0])
+            if (e[1] > 1):
+                f.write(" {%d times}" % e[1])
+            f.write("\n")
+    del trace_entries[:]
+
+def trace(payload = "", depth = 3):
+    import inspect
+
+    txt = ""
+    stack = inspect.stack()
+    for i in range(depth, 0, -1):
+        try:
+            frame = stack[i]
+            fn = os.path.basename(frame[1])
+            line = frame[2]
+            func = frame[3]
+            if txt:
+                txt += " -> "
+            txt += "%s:%d:%s()" % (fn, line, func)
+        except IndexError:
+            pass
+    if payload:
+        txt += ": " + payload
+    if trace_entries and trace_entries[-1][0] == txt:
+        trace_entries[-1][1] += 1
+    else:
+        e = [txt, 1]
+        trace_entries.append(e)
+        if len(trace_entries) > 10000:
+            flush_trace_entries()
+
 # Decorating any function with @profile_calls will record the duration
 # of every call of that function. Some statistics on these are
 # automatically printed to $profiledir/callstats.txt on exit.
@@ -180,6 +218,7 @@ def init(config):
     Rusage.print_deferred()
 
     atexit.register(write_call_stats)
+    atexit.register(flush_trace_entries)
 
 class SimpleStats:
     def __init__(self):
