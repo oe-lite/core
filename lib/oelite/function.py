@@ -98,6 +98,7 @@ class PythonFunction(OEliteFunction):
         eval(self.code, g, l)
         self.function = l[var]
         self.set_os_environ = set_os_environ
+        self.result = False
         super(PythonFunction, self).__init__(meta, var, name, tmpdir)
         return
 
