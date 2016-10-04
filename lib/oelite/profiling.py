@@ -218,3 +218,12 @@ class SimpleStats:
         if i == len(self.data)-1:
             return self.data[-1]
         return (p-i)*(self.data[i+1]-self.data[i]) + self.data[i]
+
+def do_memdump():
+    try:
+        from meliae import scanner
+    except ImportError:
+        sys.stderr.write("meliae module unavailable\n")
+        return
+    with profile_output("meliae.json") as f:
+        scanner.dump_all_objects(f)
