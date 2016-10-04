@@ -395,6 +395,7 @@ class MetaData(MutableMapping):
         "COMPATIBLE_IF_FLAGS",
         "_task_deps",
         "REBUILDALL_SKIP",
+        "RELAXED",
     ])
 
     builtin_nohash_prefix = [
