@@ -115,6 +115,12 @@ class OEliteOven:
         if not poll and len(self) == 0:
             raise Exception("nothing in the oven, so you'd wait forever...")
         tasks = self.currently_baking()
+        if not poll and len(tasks) == 1:
+            t = tasks[0]
+            if self.stdout_isatty:
+                now = oelite.util.now()
+                info("waiting for %s (started %6.2f ago) to finish" % (t, now-self.starttime[t]))
+            return self.wait_task(False, t)
         tasks.sort(key=lambda t: self.starttime[t])
         i = 0
         while True:
