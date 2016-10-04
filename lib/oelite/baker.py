@@ -580,7 +580,7 @@ class OEliteBaker:
         pending = PriorityQueue(initial = self.runq.get_runabletasks(),
                                 key = lambda t: (-t.recipe.build_prio, t.recipe.remaining_tasks))
 
-        oven = OEliteOven(self, 8)
+        oven = OEliteOven(self)
         try:
             while oven.count < oven.total:
                 new_runable = self.runq.get_runabletasks()

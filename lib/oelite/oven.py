@@ -25,7 +25,13 @@ import logging
 import time
 
 class OEliteOven:
-    def __init__(self, baker, capacity):
+    def __init__(self, baker, capacity=None):
+        if capacity is None:
+            pmake = baker.config.get("PARALLEL_MAKE")
+            if pmake is None or pmake == "":
+                capacity = 3
+            else:
+                capacity = int(pmake.replace("-j", "")) + 2
         self.capacity = capacity
         self.baker = baker
         self.starttime = dict()
