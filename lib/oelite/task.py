@@ -198,7 +198,7 @@ class OEliteTask:
         self.function = meta.get_function(self.name)
         self.do_cleandirs()
         self.cwd = self.do_dirs() or meta.get("B")
-        self.stdin = open("/dev/null", "r")
+        self.stdin = open_cloexec("/dev/null", os.O_RDONLY)
         self.logfn = "%s/%s.%s.log"%(self.function.tmpdir, self.name, meta.get("DATETIME"))
         self.logsymlink = "%s/%s.log"%(self.function.tmpdir, self.name)
         oelite.util.makedirs(os.path.dirname(self.logfn))
@@ -216,7 +216,7 @@ class OEliteTask:
         self.saved_stdio = oelite.util.StdioSaver()
 
     def apply_context(self):
-        os.dup2(self.stdin.fileno(), sys.stdin.fileno())
+        os.dup2(self.stdin, sys.stdin.fileno())
         os.dup2(self.logfilefd, sys.stdout.fileno())
         os.dup2(self.logfilefd, sys.stderr.fileno())
 
@@ -224,7 +224,7 @@ class OEliteTask:
         self.saved_stdio.restore(True)
 
     def cleanup_context(self):
-        self.stdin.close()
+        os.close(self.stdin)
         os.close(self.logfilefd)
         if os.path.exists(self.logfn):
             if os.path.getsize(self.logfn) == 0:
