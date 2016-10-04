@@ -90,9 +90,12 @@ class CookBook(Mapping):
         def layer_height_roundup(priority):
             return (priority+99)/100*100
         layer_conf_files = []
+        toplevel_vars = (self.config.get("TOPLEVEL_VARS") or "").split()
         for layer in reversed(oepath):
             layer_conf = os.path.join(layer, 'conf', 'layer.conf')
             layer_meta = self.config.copy()
+            for v in toplevel_vars:
+                layer_meta.del_var(v)
             if os.path.exists(layer_conf):
                 self.oeparser.set_metadata(layer_meta)
                 self.oeparser.reset_lexstate()
