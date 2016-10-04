@@ -593,22 +593,21 @@ class OEliteBaker:
                 self.runq.mark_done(task)
             else:
                 err("%s failed"%(task))
-                exitcode = 1
                 failed_task_list.append(task)
                 task.build_failed()
                 # FIXME: support command-line option to abort on first
                 # failed task
         rusage.end()
 
-        if exitcode:
-             for task in failed_task_list:
-                print "\nERROR: %s failed  %s"%(task,task.logfn)
-                if self.debug_loglines:
-                    with open(task.logfn, 'r') as fin:
-                        if self.debug_loglines < 0:
-                            print fin.read()
-                        else:
-                            print ''.join(fin.readlines()[-self.debug_loglines:])
+        for task in failed_task_list:
+            exitcode = 1
+            print "\nERROR: %s failed  %s"%(task,task.logfn)
+            if self.debug_loglines:
+                with open(task.logfn, 'r') as fin:
+                    if self.debug_loglines < 0:
+                        print fin.read()
+                    else:
+                        print ''.join(fin.readlines()[-self.debug_loglines:])
         return exitcode
 
 
