@@ -1,4 +1,4 @@
-import datetime
+import time
 import functools
 import atexit
 import oelite.util
@@ -7,7 +7,7 @@ import os
 import sys
 from resource import *
 
-now = datetime.datetime.utcnow
+now = time.time
 
 profiledir = None
 
@@ -29,7 +29,7 @@ def profile_calls(somefunc):
         try:
             return somefunc(*args, **kwargs)
         finally:
-            delta = (now()-start).total_seconds()
+            delta = now()-start
             if not somefunc in profiled_functions:
                 profiled_functions[somefunc] = SimpleStats()
             profiled_functions[somefunc].append(delta)
@@ -72,7 +72,6 @@ class Rusage:
         delta = dict()
         for m,_,_ in Rusage.rusage_names:
             delta[m] = self.after[m] - self.before[m]
-        delta['wtime'] = delta['wtime'].total_seconds()
         self.delta = delta
 
     @classmethod

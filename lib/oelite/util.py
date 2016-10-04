@@ -3,8 +3,9 @@ import tarfile
 import os
 import sys
 import subprocess
-import datetime
+import time
 
+now = time.time
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
     """
@@ -187,7 +188,7 @@ def pretty_time(delta):
 
 def timing_info(msg, start):
     msg += " time "
-    delta = (datetime.datetime.now() - start).total_seconds()
+    delta = now() - start
     msg += pretty_time(delta)
     info(msg)
     return

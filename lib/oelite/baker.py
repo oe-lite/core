@@ -21,7 +21,6 @@ import sys
 import os
 import glob
 import shutil
-import datetime
 import hashlib
 import logging
 
@@ -294,7 +293,7 @@ class OEliteBaker:
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         for task in self.tasks_todo:
             task = oelite.task.task_name(task)
             try:
@@ -360,7 +359,7 @@ class OEliteBaker:
         task = self.runq.get_metahashable_task()
         total = self.runq.number_of_runq_tasks()
         count = 0
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         while task:
             oelite.util.progress_info("Calculating task metadata hashes",
                                       total, count)
@@ -571,7 +570,7 @@ class OEliteBaker:
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
         task = self.runq.get_runabletask()
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         total = self.runq.number_of_tasks_to_build()
         count = 0
         exitcode = 0

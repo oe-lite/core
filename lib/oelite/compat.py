@@ -2,7 +2,6 @@
 import os
 import fcntl
 import ctypes
-import datetime
 import sys
 
 __all__ = ["dup_cloexec", "open_cloexec"]
