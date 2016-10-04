@@ -33,6 +33,10 @@ class OEliteFunction(object):
         return "OEliteFunction(%s)"%(self.var)
 
     def run(self, cwd):
+        self.start(cwd)
+        return self.wait(False)
+
+    def start(self, cwd):
         # Change directory
         old_cwd = os.getcwd()
         os.chdir(cwd)
@@ -44,18 +48,24 @@ class OEliteFunction(object):
             umask = int(self.meta.get("DEFAULT_UMASK"), 8)
         old_umask = os.umask(umask)
         try:
-            return self()
+            self._start()
         finally:
             # Restore directory
             os.chdir(old_cwd)
             # Restore umask
             os.umask(old_umask)
 
+    def _start(self):
+        self.result = self()
+
+    def wait(self, poll=False):
+        return self.result
+
 
 class NoopFunction(OEliteFunction):
 
-    def run(self, cwd):
-        return True
+    def start(self, cwd):
+        self.result = True
     
 
 class PythonFunction(OEliteFunction):
