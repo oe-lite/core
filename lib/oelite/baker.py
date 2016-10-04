@@ -3,6 +3,7 @@ from oebakery import die, err, warn, info, debug
 from oelite import *
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
+from priq import PriorityQueue
 from oven import OEliteOven
 import oelite.meta
 import oelite.util
@@ -545,6 +546,8 @@ class OEliteBaker:
                 text.append("%s:%s(%d)"%(recipe[1], recipe[2], recipe[4]))
         print oelite.util.format_textblock(" ".join(text))
 
+        self.cookbook.compute_recipe_build_priorities()
+
         if os.isatty(sys.stdin.fileno()) and not self.options.yes:
             while True:
                 try:
@@ -574,12 +577,15 @@ class OEliteBaker:
         # FIXME: add back support for options.fake_build
         rusage = oelite.profiling.Rusage("Build")
         exitcode = 0
-        pending = []
+        pending = PriorityQueue(initial = self.runq.get_runabletasks(),
+                                key = lambda t: (-t.recipe.build_prio, t.recipe.remaining_tasks))
 
         oven = OEliteOven(self, 8)
         try:
             while oven.count < oven.total:
-                pending += self.runq.get_runabletasks()
+                new_runable = self.runq.get_runabletasks()
+                for t in new_runable:
+                    pending.push(t)
                 if not pending or oven.capacity <= 0:
                     # If we have no runable tasks and nothing in the
                     # oven, some tasks must have failed.

@@ -21,7 +21,6 @@ from types import *
 from pysqlite2 import dbapi2 as sqlite
 from collections import Mapping
 
-
 class CookBook(Mapping):
 
     @oelite.profiling.profile_rusage_delta
@@ -791,7 +790,7 @@ class CookBook(Mapping):
                 type = (recipe.meta.get("PACKAGE_TYPE_" + package) or
                         recipe.meta.get("RECIPE_TYPE"))
                 package_id = self.add_package(recipe, package, type, arch)
-            
+
                 provides = recipe.meta.get("PROVIDES_" + package) or ""
                 provides = provides.split()
                 if not package in provides:
@@ -800,7 +799,7 @@ class CookBook(Mapping):
                     self.dbc.execute(
                         "INSERT INTO provide (package, item) "
                         "VALUES (?, ?)", (package_id, item))
-            
+
                 for deptype in ("DEPENDS", "RDEPENDS"):
                     depends = recipe.meta.get("%s_%s"%(deptype , package)) or ""
                     for item in depends.split():
@@ -848,3 +847,31 @@ class CookBook(Mapping):
             "SELECT item FROM package_depend "
             "WHERE deptype=? "
             "AND package=?", (deptype, package.id)))
+
+    def compute_recipe_build_priorities(self):
+        recipes = self.recipes.values()
+        # The dependencies are available as r.recipe_deps. We don't
+        # need to mutate those sets for descendants computations, so
+        # we just take an extra reference.
+        parents = dict()
+        children = dict()
+        descendants = dict()
+        for r in recipes:
+            parents[r] = r.recipe_deps
+            children[r] = set([])
+            descendants[r] = set([r])
+        for c in children:
+            for p in parents[c]:
+                children[p].add(c)
+        childless = [r for r in children if len(children[r]) == 0]
+        while childless:
+            c = childless.pop()
+            for p in parents[c]:
+                descendants[p].update(descendants[c])
+                children[p].remove(c)
+                if not children[p]:
+                    childless.append(p)
+            c.build_prio = len(descendants[c])
+            c.remaining_tasks = len(c.tasks)
+            del descendants[c]
+        assert(len(descendants) == 0)

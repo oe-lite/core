@@ -85,6 +85,7 @@ class OEliteOven:
             return None
         delta = self.remove(task)
 
+        task.recipe.remaining_tasks -= 1
         if result:
             info("%s finished - %s s" % (task, delta))
             task.build_done(self.baker.runq.get_task_buildhash(task))
