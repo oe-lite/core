@@ -103,8 +103,10 @@ class Rusage:
 
     def start(self):
         self.before = self.current_rusage()
+        oelite.util.stracehack("start:" + self.name)
 
     def end(self):
+        oelite.util.stracehack("end:" + self.name)
         self.after = self.current_rusage()
 
         if profiledir:
