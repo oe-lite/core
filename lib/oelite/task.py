@@ -5,6 +5,7 @@ import oelite.recipe
 from oelite.dbutil import *
 import oelite.function
 import oelite.util
+from oelite.compat import open_cloexec
 
 import sys
 import os
@@ -202,7 +203,7 @@ class OEliteTask:
         self.logsymlink = "%s/%s.log"%(self.function.tmpdir, self.name)
         oelite.util.makedirs(os.path.dirname(self.logfn))
         try:
-            self.logfile = open(self.logfn, "w")
+            self.logfilefd = open_cloexec(self.logfn, os.O_WRONLY|os.O_CREAT|os.O_TRUNC, 0666)
         except OSError:
             print "Opening log file failed: %s"%(self.logfn)
             raise
@@ -216,15 +217,15 @@ class OEliteTask:
 
     def apply_context(self):
         os.dup2(self.stdin.fileno(), sys.stdin.fileno())
-        os.dup2(self.logfile.fileno(), sys.stdout.fileno())
-        os.dup2(self.logfile.fileno(), sys.stderr.fileno())
+        os.dup2(self.logfilefd, sys.stdout.fileno())
+        os.dup2(self.logfilefd, sys.stderr.fileno())
 
     def restore_context(self):
         self.saved_stdio.restore(True)
 
     def cleanup_context(self):
         self.stdin.close()
-        self.logfile.close()
+        os.close(self.logfilefd)
         if os.path.exists(self.logfn):
             if os.path.getsize(self.logfn) == 0:
                 os.remove(self.logsymlink)
