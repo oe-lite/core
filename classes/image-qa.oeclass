@@ -52,13 +52,13 @@ IMAGEQA_TARGET_READELF_LIB_DIRS ?= "\
 "
 
 python do_imageqa () {
-    import os, magic, re
+    import os, re
+    import oelite.magiccache
     from subprocess import Popen, PIPE
     from glob import glob
     import oebakery # die, err, warn, info, debug
     os.environ['PATH'] = d.getVar("PATH", True)
-    filemagic = magic.open(magic.MAGIC_NONE)
-    filemagic.load()
+    filemagic = oelite.magiccache.open()
 
     def readelf_check(arch):
         readelf = d.getVar("IMAGEQA_"+arch+"_READELF", True)
