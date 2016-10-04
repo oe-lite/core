@@ -10,6 +10,7 @@ import oelite.meta
 import oelite.package
 import oelite.path
 import bb.utils
+import oelite.profiling
 
 import sys
 import os
@@ -23,7 +24,7 @@ from collections import Mapping
 
 class CookBook(Mapping):
 
-
+    @oelite.profiling.profile_rusage_delta
     def __init__(self, baker):
         self.baker = baker
         self.config = baker.config
@@ -44,6 +45,7 @@ class CookBook(Mapping):
         recipefiles = self.list_recipefiles()
         total = len(recipefiles)
         count = 0
+        rusage = oelite.profiling.Rusage("recipe parsing")
         for recipefile in recipefiles:
             count += 1
             if self.debug:
@@ -73,6 +75,7 @@ class CookBook(Mapping):
                 err("Uncaught Python exception in %s"%(
                         self.shortfilename(recipefile)))
                 fail = True
+        rusage.end()
         if fail:
             die("Errors while adding recipes to cookbook")
 

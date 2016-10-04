@@ -11,6 +11,7 @@ import oelite.task
 import oelite.item
 from oelite.parse import *
 from oelite.cookbook import CookBook
+import oelite.profiling
 
 import oelite.fetch
 
@@ -89,6 +90,7 @@ def add_show_parser_options(parser):
 
 class OEliteBaker:
 
+    @oelite.profiling.profile_rusage_delta
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
