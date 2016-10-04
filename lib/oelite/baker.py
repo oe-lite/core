@@ -591,7 +591,12 @@ class OEliteBaker:
                     continue
                 task = pending.pop()
                 oven.start(task)
-                oven.wait_task(False, task)
+                # After starting a task, always do an immediate poll -
+                # if it was a synchronous task, it is already done by
+                # the time oven.start() returns, so it might as well get
+                # removed from the oven and its dependents made
+                # eligible.
+                oven.wait_task(True, task)
         finally:
             oven.wait_all(False)
 
