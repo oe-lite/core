@@ -40,8 +40,6 @@ def do_split(d):
         package_list.append(pkg)
 
     seen = []
-    main_is_empty = 1
-    main_pkg = bb.data.getVar("PN", d, 1)
 
     for pkg in package_list:
         root = os.path.join(pkgd, pkg)
@@ -81,8 +79,6 @@ def do_split(d):
             ret = bb.utils.copyfile(file, fpath)
             if ret is False or ret == 0:
                 raise bb.build.FuncFailed("File population failed")
-            if pkg == main_pkg and main_is_empty:
-                main_is_empty = 0
 
     unshipped = []
     for root, dirs, files in os.walk(ddir + "/"):
