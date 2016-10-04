@@ -556,6 +556,11 @@ class OEliteRunQueue:
             return None
         return self.cookbook.get_task(id=task_id)
 
+    def get_runabletasks(self):
+        self.update_runabletasks()
+        ret = [self.cookbook.get_task(id=task_id) for task_id in self.runable]
+        self.runable = []
+        return ret
 
     def get_metahashable_task(self):
         if not self.metahashable:
