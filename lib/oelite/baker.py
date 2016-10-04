@@ -602,7 +602,16 @@ class OEliteBaker:
                 # the time oven.start() returns, so it might as well get
                 # removed from the oven and its dependents made
                 # eligible.
-                oven.wait_task(True, task)
+                #
+                # Rather than doing oven.wait_task(True, task), we
+                # actually do a (single) poll for every task in the
+                # oven. This is necessary to ensure that an important
+                # task such as glibc:do_configure doesn't lie around
+                # as a zombie while we do lots of do_fetch etc. - we
+                # want the glibc recipe to proceed as fast as
+                # possible, so that other recipes'
+                # do_stage,do_configure and so on become eligible.
+                oven.wait_all(True)
         finally:
             oven.wait_all(False)
 
