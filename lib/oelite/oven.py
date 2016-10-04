@@ -78,8 +78,6 @@ class OEliteOven:
         return delta
 
     def start(self, task):
-        self.add(task)
-
         self.count += 1
         debug("")
         debug("Preparing %s"%(task))
@@ -87,6 +85,7 @@ class OEliteOven:
         info("%s started - %d / %d "%(task, self.count, self.total))
         task.build_started()
 
+        self.add(task)
         task.start()
 
     def wait_task(self, poll, task):

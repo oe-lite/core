@@ -31,17 +31,18 @@ class OEliteTask:
         self.debug = self.cookbook.debug
         self._meta = None
         self.result = None
-        self.weight = self.get_weight()
         return
 
     def __str__(self):
         return "%s:%s"%(self.recipe, self.name)
 
-    def get_weight(self):
-        # Should depend on whether this is do_compile or something
-        # else, and could also be overridden from recipe data. For
-        # now, keep it simple.
-        return 1
+    def get_weight(self, meta):
+        if not self.name == "do_compile":
+            return 1
+        pmake = meta.get("PARALLEL_MAKE")
+        if pmake is None or pmake == "":
+            return 1
+        return int(pmake.replace("-j", ""))
 
     def get_parents(self):
         parents = flatten_single_column_rows(self.cookbook.dbc.execute(
@@ -126,6 +127,7 @@ class OEliteTask:
 
     def prepare(self):
         meta = self.meta()
+        self.weight = self.get_weight(meta)
 
         buildhash = self.cookbook.baker.runq.get_task_buildhash(self)
         debug("buildhash=%s"%(repr(buildhash)))
