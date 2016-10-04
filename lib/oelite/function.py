@@ -7,6 +7,7 @@ import os
 import shutil
 import warnings
 import re
+import subprocess
 
 class OEliteFunction(object):
 
@@ -120,6 +121,28 @@ class ShellFunction(OEliteFunction):
         super(ShellFunction, self).__init__(meta, var, name, tmpdir)
         return
 
+    def runscript(self, cmd):
+        cmdstr = cmd
+        cmdname = cmd.split(None, 1)[0]
+
+        print '> %s'%(cmdstr,)
+
+        try:
+            retval = None
+            returncode = subprocess.call(cmd, stdin=sys.stdin, shell=True)
+            if returncode == 0:
+                retval = True
+            else:
+                print "Error: Command failed: %r: %d"%(cmdstr, returncode)
+        except OSError, e:
+            if e.errno == 2:
+                print "Error: Command not found:", cmdname
+            else:
+                print "Error: Command failed: %r"%(cmdstr)
+
+        return retval
+
+
     def __call__(self):
         runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, self.meta.get("DATETIME"))
         runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
@@ -174,4 +197,4 @@ class ShellFunction(OEliteFunction):
         if self.meta.get_flag(self.name, "fakeroot"):
             cmd = "%s "%(self.meta.get("FAKEROOT") or "fakeroot") + cmd
         cmd = "LC_ALL=C " + cmd
-        return oelite.util.shcmd(cmd)
+        return self.runscript(cmd)
