@@ -293,7 +293,7 @@ class OEliteBaker:
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
-        start = oelite.util.now()
+        rusage = oelite.profiling.Rusage("Building dependency tree")
         for task in self.tasks_todo:
             task = oelite.task.task_name(task)
             try:
@@ -311,7 +311,7 @@ class OEliteBaker:
                 die("No such task: %s: %s"%(thing, e.__str__()))
             except oebakery.FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
-        oelite.util.timing_info("Building dependency tree", start)
+        rusage.end()
 
         # Generate recipe dependency graph
         recipes = set([])
@@ -359,7 +359,7 @@ class OEliteBaker:
         task = self.runq.get_metahashable_task()
         total = self.runq.number_of_runq_tasks()
         count = 0
-        start = oelite.util.now()
+        rusage = oelite.profiling.Rusage("Calculating task metadata hashes")
         while task:
             oelite.util.progress_info("Calculating task metadata hashes",
                                       total, count)
@@ -433,7 +433,7 @@ class OEliteBaker:
         oelite.util.progress_info("Calculating task metadata hashes",
                                   total, count)
 
-        oelite.util.timing_info("Calculation task metadata hashes", start)
+        rusage.end()
 
         if count != total:
             print ""
@@ -570,7 +570,7 @@ class OEliteBaker:
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
         task = self.runq.get_runabletask()
-        start = oelite.util.now()
+        rusage = oelite.profiling.Rusage("Build")
         total = self.runq.number_of_tasks_to_build()
         count = 0
         exitcode = 0
@@ -594,7 +594,7 @@ class OEliteBaker:
                 # FIXME: support command-line option to abort on first
                 # failed task
             task = self.runq.get_runabletask()
-        oelite.util.timing_info("Build", start)
+        rusage.end()
 
         if exitcode:
              for task in failed_task_list:
