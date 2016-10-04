@@ -171,18 +171,23 @@ def touch(path, makedirs=False, truncate=False):
         os.utime(path, None)
 
 
+def pretty_time(delta):
+    milliseconds = int(1000*(delta % 1))
+    delta = int(delta)
+    seconds = delta % 60
+    minutes = delta // 60 % 60
+    hours = delta // 3600
+    if hours:
+        return "%dh%02dm%02ds"%(hours, minutes, seconds)
+    elif minutes:
+        return "%dm%02ds"%(minutes, seconds)
+    else:
+        return "%d.%03d seconds"%(seconds, milliseconds)
+
+
 def timing_info(msg, start):
     msg += " time "
-    delta = datetime.datetime.now() - start
-    hours = delta.seconds // 3600
-    minutes = delta.seconds // 60 % 60
-    seconds = delta.seconds % 60
-    milliseconds = delta.microseconds // 1000
-    if hours:
-        msg += "%dh%02dm%02ds"%(hours, minutes, seconds)
-    elif minutes:
-        msg += "%dm%02ds"%(minutes, seconds)
-    else:
-        msg += "%d.%03d seconds"%(seconds, milliseconds)
+    delta = (datetime.datetime.now() - start).total_seconds()
+    msg += pretty_time(delta)
     info(msg)
     return
