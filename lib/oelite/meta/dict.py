@@ -161,11 +161,13 @@ class DictMeta(MetaData):
             try:
                 olist = self.cplx[var]["__overrides"]
             except KeyError:
-                olist = self.cplx[var]["__overrides"] = [{}, {}, {}]
+                olist = self.cplx[var]["__overrides"] = [None, None, None]
         else:
-            olist = [{}, {}, {}]
+            olist = [None, None, None]
             self.cplx[var] = {"__overrides": olist}
 
+        if olist[otype] is None:
+            olist[otype] = {}
         olist[otype][override[1]] = val
 
         if var in self.smpl:
@@ -214,9 +216,9 @@ class DictMeta(MetaData):
             else:
                 override_dep = set(["OVERRIDES"])
             olist = self.cplx[var]["__overrides"]
-            var_overrides = olist[self.OVERRIDE_TYPE['']]
-            append_overrides = olist[self.OVERRIDE_TYPE['>']]
-            prepend_overrides = olist[self.OVERRIDE_TYPE['<']]
+            var_overrides = olist[self.OVERRIDE_TYPE['']] or {}
+            append_overrides = olist[self.OVERRIDE_TYPE['>']] or {}
+            prepend_overrides = olist[self.OVERRIDE_TYPE['<']] or {}
             oval = None
             append = ""
             prepend = ""
@@ -312,6 +314,13 @@ class DictMeta(MetaData):
             otype = self.OVERRIDE_TYPE[override[0]]
             return self.cplx[var]["__overrides"][otype][override[1]]
         except KeyError:
+            # No var in cplx, no __overrides in cplx[var], or
+            # override[1] not in the innermost dict
+            pass
+        except TypeError:
+            # Morally, the dict at [otype] is empty, but we've used
+            # None to save memory, so we get 'NoneType' object has no
+            # attribute '__getitem__' instead of KeyError.
             pass
         return None
 
