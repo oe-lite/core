@@ -57,6 +57,11 @@ class TeeStream:
             file.write(text)
         return
 
+def stracehack(msg):
+    try:
+        os.write(-42, msg)
+    except OSError:
+        pass
 
 def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
           silent_errorcodes=[], **kwargs):
