@@ -569,13 +569,17 @@ class OEliteBaker:
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
-        task = self.runq.get_runabletask()
         rusage = oelite.profiling.Rusage("Build")
         total = self.runq.number_of_tasks_to_build()
         count = 0
         exitcode = 0
+        pending = []
         failed_task_list = []
-        while task:
+        while True:
+            pending += self.runq.get_runabletasks()
+            if not pending:
+                break
+            task = pending.pop()
             count += 1
             debug("")
             debug("Preparing %s"%(task))
@@ -592,7 +596,6 @@ class OEliteBaker:
                 task.build_failed()
                 # FIXME: support command-line option to abort on first
                 # failed task
-            task = self.runq.get_runabletask()
         rusage.end()
 
         if exitcode:
