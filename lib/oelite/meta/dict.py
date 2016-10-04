@@ -38,6 +38,12 @@ class DictMeta(MetaData):
         "export": 4,
     }
 
+    OVERRIDE_TYPE = {
+        "": 0,
+        ">": 1,
+        "<": 2,
+    }
+
     def __init__(self, meta=None):
         if isinstance(meta, file):
             self.smpl = copy.deepcopy(cPickle.load(meta))
@@ -148,16 +154,18 @@ class DictMeta(MetaData):
 
     def set_override(self, var, override, val):
         assert var not in ("OVERRIDES", "__overrides", "", ">", "<")
-        assert override[0] in ("", ">", "<")
+
+        otype = self.OVERRIDE_TYPE[override[0]]
+
         try:
-            self.cplx[var]["__overrides"][override[0]][override[1]] = val
+            self.cplx[var]["__overrides"][otype][override[1]] = val
         except KeyError, e:
             if e.args[0] == var:
-                self.cplx[var] = {"__overrides": {'':{}, '>':{}, '<':{}}}
+                self.cplx[var] = {"__overrides": [{}, {}, {}]}
             else:
                 assert e.args[0] == "__overrides"
-                self.cplx[var]["__overrides"] = {'':{}, '>':{}, '<':{}}
-            self.cplx[var]["__overrides"][override[0]][override[1]] = val
+                self.cplx[var]["__overrides"] = [{}, {}, {}]
+            self.cplx[var]["__overrides"][otype][override[1]] = val
         if var in self.smpl:
             self.cplx[var][""] = self.smpl[var]
             del self.smpl[var]
@@ -203,9 +211,10 @@ class DictMeta(MetaData):
                 override_dep.add("OVERRIDES")
             else:
                 override_dep = set(["OVERRIDES"])
-            var_overrides = self.cplx[var]["__overrides"]['']
-            append_overrides = self.cplx[var]["__overrides"]['>']
-            prepend_overrides = self.cplx[var]["__overrides"]['<']
+            olist = self.cplx[var]["__overrides"]
+            var_overrides = olist[self.OVERRIDE_TYPE['']]
+            append_overrides = olist[self.OVERRIDE_TYPE['>']]
+            prepend_overrides = olist[self.OVERRIDE_TYPE['<']]
             oval = None
             append = ""
             prepend = ""
@@ -298,7 +307,8 @@ class DictMeta(MetaData):
 
     def get_override(self, var, override):
         try:
-            return self.cplx[var]["__overrides"][override[0]][override[1]]
+            otype = self.OVERRIDE_TYPE[override[0]]
+            return self.cplx[var]["__overrides"][otype][override[1]]
         except KeyError:
             pass
         return None
