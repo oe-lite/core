@@ -157,15 +157,17 @@ class DictMeta(MetaData):
 
         otype = self.OVERRIDE_TYPE[override[0]]
 
-        try:
-            self.cplx[var]["__overrides"][otype][override[1]] = val
-        except KeyError, e:
-            if e.args[0] == var:
-                self.cplx[var] = {"__overrides": [{}, {}, {}]}
-            else:
-                assert e.args[0] == "__overrides"
-                self.cplx[var]["__overrides"] = [{}, {}, {}]
-            self.cplx[var]["__overrides"][otype][override[1]] = val
+        if var in self.cplx:
+            try:
+                olist = self.cplx[var]["__overrides"]
+            except KeyError:
+                olist = self.cplx[var]["__overrides"] = [{}, {}, {}]
+        else:
+            olist = [{}, {}, {}]
+            self.cplx[var] = {"__overrides": olist}
+
+        olist[otype][override[1]] = val
+
         if var in self.smpl:
             self.cplx[var][""] = self.smpl[var]
             del self.smpl[var]
