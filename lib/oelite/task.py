@@ -203,9 +203,7 @@ class OEliteTask:
         os.symlink(os.path.basename(self.logfn), self.logsymlink)
 
     def save_context(self):
-        self.old_stdin = os.dup(sys.stdin.fileno())
-        self.old_stdout = os.dup(sys.stdout.fileno())
-        self.old_stderr = os.dup(sys.stderr.fileno())
+        self.saved_stdio = oelite.util.StdioSaver()
 
     def apply_context(self):
         os.dup2(self.stdin.fileno(), sys.stdin.fileno())
@@ -213,12 +211,7 @@ class OEliteTask:
         os.dup2(self.logfile.fileno(), sys.stderr.fileno())
 
     def restore_context(self):
-        os.dup2(self.old_stdin, sys.stdin.fileno())
-        os.dup2(self.old_stdout, sys.stdout.fileno())
-        os.dup2(self.old_stderr, sys.stderr.fileno())
-        os.close(self.old_stdin)
-        os.close(self.old_stdout)
-        os.close(self.old_stderr)
+        self.saved_stdio.restore(True)
 
     def cleanup_context(self):
         self.stdin.close()

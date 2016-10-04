@@ -64,6 +64,43 @@ def stracehack(msg):
     except OSError:
         pass
 
+class StdioSaver:
+    class Fds:
+        def __init__(self):
+            self.stdin = os.dup(sys.stdin.fileno())
+            self.stdout = os.dup(sys.stdout.fileno())
+            self.stderr = os.dup(sys.stderr.fileno())
+            self.refs = 1
+
+        def get(self):
+            self.refs += 1
+            return self
+
+        def put(self):
+            assert(self.refs > 0)
+            self.refs -= 1
+            if self.refs == 0:
+                os.close(self.stdin)
+                os.close(self.stdout)
+                os.close(self.stderr)
+
+    def __init__(self, parent=None):
+        if parent is None:
+            self.fds = self.Fds()
+        else:
+            self.fds = self.parent.fds.get()
+
+    def restore(self, close=True):
+        os.dup2(self.fds.stdin, sys.stdin.fileno())
+        os.dup2(self.fds.stdout, sys.stdout.fileno())
+        os.dup2(self.fds.stderr, sys.stderr.fileno())
+        if close:
+            self.close()
+
+    def close(self):
+        self.fds.put()
+        self.fds = None
+
 def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
           silent_errorcodes=[], **kwargs):
 
