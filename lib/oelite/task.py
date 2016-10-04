@@ -243,12 +243,15 @@ class OEliteTask:
         self.apply_context()
 
         try:
+            prefunc_start = oelite.util.now()
             for prefunc in self.get_prefuncs():
                 print "running prefunc", prefunc
                 self.do_cleandirs(prefunc)
                 wd = self.do_dirs(prefunc)
                 if not prefunc.run(wd or self.cwd):
                     return False
+            self.func_start = oelite.util.now()
+            self.prefunc_time = self.func_start - prefunc_start
             try:
                 # start() doesn't return a value - but it may throw an
                 # exception. For, I think, mostly historical reasons,
@@ -290,6 +293,8 @@ class OEliteTask:
             # failed. In either case, we shouldn't run the
             # postfuncs. Otherwise, we should run them.
             if self.result:
+                func_end = oelite.util.now()
+                self.func_time = func_end - self.func_start
                 for postfunc in self.get_postfuncs():
                     print "running postfunc", postfunc
                     self.do_cleandirs(postfunc)
@@ -297,6 +302,7 @@ class OEliteTask:
                     if not postfunc.run(wd or self.cwd):
                         self.result = False
                         break
+                self.postfunc_time = oelite.util.now() - func_end
         finally:
             self.restore_context()
 

@@ -35,6 +35,7 @@ class OEliteOven:
         self.capacity = capacity
         self.baker = baker
         self.starttime = dict()
+        self.completed_tasks = []
         self.failed_tasks = []
         self.total = baker.runq.number_of_tasks_to_build()
         self.count = 0
@@ -99,12 +100,14 @@ class OEliteOven:
         if result is None:
             return None
         delta = self.remove(task)
+        task.task_time = delta
 
         task.recipe.remaining_tasks -= 1
         if result:
             info("%s finished - %s s" % (task, delta))
             task.build_done(self.baker.runq.get_task_buildhash(task))
             self.baker.runq.mark_done(task)
+            self.completed_tasks.append(task)
         else:
             err("%s failed - %s s" % (task, delta))
             self.failed_tasks.append(task)
@@ -162,4 +165,9 @@ class OEliteOven:
                 quarts = ", ".join(["%7.3f" % x for x in stats.quartiles])
                 out.write("%-16s  %7.1fs / %5d = %7.3fs  [%s]\n" %
                           (name, stats.sum, stats.count, stats.mean, quarts))
+
+        with oelite.profiling.profile_output("task_times.txt") as f:
+            for task in self.completed_tasks:
+                f.write("%s\t%.3f\t%.3f\t%.3f\t%.3f\n" %
+                        (task, task.task_time, task.prefunc_time, task.func_time, task.postfunc_time))
 
