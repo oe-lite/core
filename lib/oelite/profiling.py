@@ -228,7 +228,7 @@ def do_memdump():
     with profile_output("meliae.json") as f:
         scanner.dump_all_objects(f)
 
-def do_small_dict_stat():
+def do_dict_stat(small_limit = 4):
     try:
         from meliae import scanner
     except ImportError:
@@ -236,12 +236,18 @@ def do_small_dict_stat():
         return
     import gc
     small_dict_keys = dict()
+    dict_sizes = dict()
     for ob in scanner.get_recursive_items(gc.get_objects()):
         if not isinstance(ob, dict):
             continue
         if ob is small_dict_keys:
             continue
-        if len(ob) >= 4:
+        l = len(ob)
+        if l in dict_sizes:
+            dict_sizes[l] += 1
+        else:
+            dict_sizes[l] = 1
+        if l >= small_limit:
             continue
         t = tuple(sorted(ob.keys()))
         if t in small_dict_keys:
@@ -252,3 +258,6 @@ def do_small_dict_stat():
         for t in sorted(small_dict_keys.keys(), key=lambda t: (len(t),small_dict_keys[t])+t):
             if small_dict_keys[t] > 1:
                 f.write("%s\t%d\n" % (repr(t), small_dict_keys[t]))
+    with profile_output("dict_sizes.txt") as f:
+        for t in sorted(dict_sizes.keys()):
+            f.write("%d\t%d\n" % (t, dict_sizes[t]))
