@@ -23,7 +23,6 @@ class OEliteFunction(object):
             self.tmpdir = self.meta.get("T")
             if not self.tmpdir:
                 die("T variable not set, unable to build")
-        self.flags = meta.get_flags(var, oelite.meta.FULL_EXPANSION)
         return
 
     def __str__(self):
