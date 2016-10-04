@@ -66,7 +66,7 @@ class NoopFunction(OEliteFunction):
 
     def start(self, cwd):
         self.result = True
-    
+
 
 class PythonFunction(OEliteFunction):
 
@@ -128,32 +128,43 @@ class PythonFunction(OEliteFunction):
 class ShellFunction(OEliteFunction):
 
     def __init__(self, meta, var, name=None, tmpdir=None):
+        self.result = None
         super(ShellFunction, self).__init__(meta, var, name, tmpdir)
         return
 
-    def runscript(self, cmd):
-        cmdstr = cmd
+    def wait(self, poll):
+        if self.result is not None:
+            return self.result
+        if poll:
+            ret = self.subprocess.poll()
+        else:
+            ret = self.subprocess.wait()
+        if ret is None:
+            return None
+        if ret == 0:
+            self.result = True
+        else:
+            self.result = False
+            print "Error: Command failed: %r: %d"%(self.cmdstr, ret)
+        return self.result
+
+
+    def startscript(self, cmd):
+        self.cmdstr = cmd
         cmdname = cmd.split(None, 1)[0]
 
-        print '> %s'%(cmdstr,)
+        print '> %s'%(cmd,)
 
         try:
-            retval = None
-            returncode = subprocess.call(cmd, stdin=sys.stdin, shell=True)
-            if returncode == 0:
-                retval = True
-            else:
-                print "Error: Command failed: %r: %d"%(cmdstr, returncode)
+            self.subprocess = subprocess.Popen(cmd, stdin=sys.stdin, shell=True)
         except OSError, e:
             if e.errno == 2:
                 print "Error: Command not found:", cmdname
             else:
-                print "Error: Command failed: %r"%(cmdstr)
+                print "Error: Command failed: %r"%(cmd)
+            self.result = False
 
-        return retval
-
-
-    def __call__(self):
+    def _start(self):
         runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, self.meta.get("DATETIME"))
         runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
 
@@ -207,4 +218,4 @@ class ShellFunction(OEliteFunction):
         if self.meta.get_flag(self.name, "fakeroot"):
             cmd = "%s "%(self.meta.get("FAKEROOT") or "fakeroot") + cmd
         cmd = "LC_ALL=C " + cmd
-        return self.runscript(cmd)
+        return self.startscript(cmd)
