@@ -31,11 +31,17 @@ class OEliteTask:
         self.debug = self.cookbook.debug
         self._meta = None
         self.result = None
+        self.weight = self.get_weight()
         return
 
     def __str__(self):
         return "%s:%s"%(self.recipe, self.name)
 
+    def get_weight(self):
+        # Should depend on whether this is do_compile or something
+        # else, and could also be overridden from recipe data. For
+        # now, keep it simple.
+        return 1
 
     def get_parents(self):
         parents = flatten_single_column_rows(self.cookbook.dbc.execute(

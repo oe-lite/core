@@ -3,6 +3,7 @@ from oebakery import die, err, warn, info, debug
 from oelite import *
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
+from oven import OEliteOven
 import oelite.meta
 import oelite.util
 import oelite.arch
@@ -572,34 +573,24 @@ class OEliteBaker:
         #
         # FIXME: add back support for options.fake_build
         rusage = oelite.profiling.Rusage("Build")
-        total = self.runq.number_of_tasks_to_build()
-        count = 0
         exitcode = 0
         pending = []
-        failed_task_list = []
-        while True:
-            pending += self.runq.get_runabletasks()
-            if not pending:
-                break
-            task = pending.pop()
-            count += 1
-            debug("")
-            debug("Preparing %s"%(task))
-            task.prepare()
-            info("Running %d / %d %s"%(count, total, task))
-            task.build_started()
-            if task.run():
-                task.build_done(self.runq.get_task_buildhash(task))
-                self.runq.mark_done(task)
-            else:
-                err("%s failed"%(task))
-                failed_task_list.append(task)
-                task.build_failed()
-                # FIXME: support command-line option to abort on first
-                # failed task
+
+        oven = OEliteOven(self, 8)
+        try:
+            while True:
+                pending += self.runq.get_runabletasks()
+                if not pending:
+                    break
+                task = pending.pop()
+                oven.start(task)
+                oven.wait_task(False, task)
+        finally:
+            oven.wait_all(False)
+
         rusage.end()
 
-        for task in failed_task_list:
+        for task in oven.failed_tasks:
             exitcode = 1
             print "\nERROR: %s failed  %s"%(task,task.logfn)
             if self.debug_loglines:
@@ -693,5 +684,3 @@ class OEliteBaker:
         if path.startswith(topdir):
             topdir = path[len(topdir)+1:]
         return topdir
-
-
