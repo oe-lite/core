@@ -30,6 +30,7 @@ class OEliteTask:
         self.cookbook = cookbook
         self.debug = self.cookbook.debug
         self._meta = None
+        self.result = None
         return
 
     def __str__(self):
@@ -227,7 +228,7 @@ class OEliteTask:
                     shutil.copyfileobj(f, sys.stdout)
                 print '----- %s ----' % self.logfn
 
-    def run(self):
+    def _start(self):
         self.prepare_context()
 
         self.save_context()
@@ -241,23 +242,64 @@ class OEliteTask:
                 if not prefunc.run(wd or self.cwd):
                     return False
             try:
-                if not self.function.run(self.cwd):
-                    return False
+                # start() doesn't return a value - but it may throw an
+                # exception. For, I think, mostly historical reasons,
+                # we catch one specific exception and treat that
+                # essentially as if the last prefunc failed, and let
+                # others trickle up. For now, keep that oddity, since
+                # it doesn't complicate our wait() method.
+                self.function.start(self.cwd)
             except oebakery.FatalError:
                 return False
-            for postfunc in self.get_postfuncs():
-                print "running postfunc", postfunc
-                self.do_cleandirs(postfunc)
-                wd = self.do_dirs(postfunc)
-                if not postfunc.run(wd or self.cwd):
-                    return False
-            return True
-
         finally:
             # Cleanup stdin, stdout and stderr redirection
             self.restore_context()
-            self.cleanup_context()
+        return None
 
+    def start(self):
+        self.result = self._start()
+
+    def wait(self, poll=False):
+        if self.result is not None:
+            # Something bad happened in start
+            self.cleanup_context()
+            return self.result
+
+        self.save_context()
+        self.apply_context()
+
+        try:
+            # Do the actual wait
+            self.result = self.function.wait(poll)
+            assert(self.result in (True, False, None))
+            assert(poll or self.result is not None)
+            # This may have returned None, in case we were just
+            # polling for completion, or False, in case the function
+            # failed. In either case, we shouldn't run the
+            # postfuncs. Otherwise, we should run them.
+            if self.result:
+                for postfunc in self.get_postfuncs():
+                    print "running postfunc", postfunc
+                    self.do_cleandirs(postfunc)
+                    wd = self.do_dirs(postfunc)
+                    if not postfunc.run(wd or self.cwd):
+                        self.result = False
+                        break
+        finally:
+            self.restore_context()
+
+        # If we've gotten an actual True/False answer, it's time to
+        # close the log file and clean up our context. The caller
+        # shouldn't call wait() once the result has been obtained, so
+        # we don't need to make that idempotent.
+        if self.result is not None:
+            self.cleanup_context()
+        return self.result
+
+
+    def run(self):
+        self.start()
+        return self.wait(False)
 
     def do_cleandirs(self, name=None):
         if not name:
