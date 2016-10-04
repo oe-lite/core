@@ -610,7 +610,6 @@ class OEliteBaker:
                         print ''.join(fin.readlines()[-self.debug_loglines:])
         return exitcode
 
-
     def setup_tmpdir(self):
 
         tmpdir = os.path.realpath(self.config.get("TMPDIR", 1) or "tmp")
