@@ -5,6 +5,7 @@ import oelite.util
 import inspect
 import os
 import sys
+import subprocess
 from resource import *
 
 now = time.time
@@ -143,6 +144,14 @@ def write_basic_info(config):
     with profile_output("info.txt") as f:
         f.write("argv: %s\n" % " ".join(sys.argv))
         f.write("PARALLEL_MAKE: %s\n" % (config.get("PARALLEL_MAKE") or ""))
+        for layer in (config.get("OESTACK") or "").split():
+            layer = layer.split(";")[0]
+            cmd = "cd %s && git describe --long --dirty --abbrev=10 --tags --always" % layer
+            try:
+                desc = subprocess.check_output(cmd, shell=True)
+            except subprocess.CalledProcessError:
+                desc = "unknown\n"
+            f.write("%s: %s" % (layer, desc))
 
 def init(config):
     global profiledir
