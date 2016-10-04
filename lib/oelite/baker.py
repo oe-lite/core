@@ -607,6 +607,7 @@ class OEliteBaker:
             oven.wait_all(False)
 
         rusage.end()
+        oven.write_profiling_data()
 
         for task in oven.failed_tasks:
             exitcode = 1

@@ -32,6 +32,7 @@ class OEliteOven:
         self.failed_tasks = []
         self.total = baker.runq.number_of_tasks_to_build()
         self.count = 0
+        self.task_stat = dict()
 
     # The tasks which are currently baking are the keys in the
     # .starttime member. Implementing __contains__ makes sense of
@@ -50,6 +51,13 @@ class OEliteOven:
     def currently_baking(self):
         return list(self)
 
+    def update_task_stat(self, task, delta):
+        try:
+            stat = self.task_stat[task.name]
+        except KeyError:
+            stat = self.task_stat[task.name] = oelite.profiling.SimpleStats()
+        stat.append(delta)
+
     def add(self, task):
         self.capacity -= task.weight
         self.starttime[task] = oelite.util.now()
@@ -59,6 +67,7 @@ class OEliteOven:
         delta = now - self.starttime[task]
         del self.starttime[task]
         self.capacity += task.weight
+        self.update_task_stat(task, delta)
         return delta
 
     def start(self, task):
@@ -126,3 +135,12 @@ class OEliteOven:
         tasks.sort(key=lambda t: self.starttime[t])
         for t in tasks:
             self.wait_task(poll, t)
+
+    def write_profiling_data(self):
+        with oelite.profiling.profile_output("task_stat.txt") as out:
+            for name,stats in self.task_stat.iteritems():
+                stats.compute()
+                quarts = ", ".join(["%7.3f" % x for x in stats.quartiles])
+                out.write("%-16s  %7.1fs / %5d = %7.3fs  [%s]\n" %
+                          (name, stats.sum, stats.count, stats.mean, quarts))
+
