@@ -259,6 +259,7 @@ class OEliteBaker:
     def bake(self):
 
         self.setup_tmpdir()
+        oelite.profiling.init(self.config)
 
         # task(s) to do
         if self.options.task:
