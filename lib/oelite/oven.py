@@ -33,6 +33,7 @@ class OEliteOven:
         self.total = baker.runq.number_of_tasks_to_build()
         self.count = 0
         self.task_stat = dict()
+        self.stdout_isatty = os.isatty(sys.stdout.fileno())
 
     # The tasks which are currently baking are the keys in the
     # .starttime member. Implementing __contains__ makes sense of
@@ -115,6 +116,7 @@ class OEliteOven:
             raise Exception("nothing in the oven, so you'd wait forever...")
         tasks = self.currently_baking()
         tasks.sort(key=lambda t: self.starttime[t])
+        i = 0
         while True:
             for t in tasks:
                 result = self.wait_task(True, t)
@@ -122,6 +124,12 @@ class OEliteOven:
                     return result
             if poll:
                 break
+            i += 1
+            if i == 4 and self.stdout_isatty:
+                info("waiting for any of these to finish:")
+                now = oelite.util.now()
+                for t in tasks:
+                    info("  %-40s started %6.2f s ago" % (t, now-self.starttime[t]))
             time.sleep(0.1)
         return None
 
