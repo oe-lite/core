@@ -578,10 +578,17 @@ class OEliteBaker:
 
         oven = OEliteOven(self, 8)
         try:
-            while True:
+            while oven.count < oven.total:
                 pending += self.runq.get_runabletasks()
-                if not pending:
-                    break
+                if not pending or oven.capacity <= 0:
+                    # If we have no runable tasks and nothing in the
+                    # oven, some tasks must have failed.
+                    if not oven.currently_baking():
+                        break
+                    # Gotta wait for some task to finish. That may
+                    # make some new task eligible.
+                    oven.wait_any(False)
+                    continue
                 task = pending.pop()
                 oven.start(task)
                 oven.wait_task(False, task)
