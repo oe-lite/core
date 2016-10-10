@@ -37,18 +37,27 @@ def profile_calls(somefunc):
     return recordtime
 
 def write_call_stats():
+    collect = {}
+    for f in profiled_functions:
+        name = f.__name__
+        try:
+            srcfile = inspect.getsourcefile(f)
+        except TypeError:
+            srcfile = "<unknown>"
+        try:
+            lineno = str(inspect.getsourcelines(f)[1])
+        except:
+            lineno = "?"
+        t = (srcfile, lineno, name)
+        if not t in collect:
+            collect[t] = SimpleStats()
+        collect[t].update(profiled_functions[f])
     with profile_output("call_stats.txt") as out:
-        for f in sorted(profiled_functions.keys(), key=lambda x: x.__name__):
-            name = f.__name__
-            try:
-                srcfile = os.path.basename(inspect.getsourcefile(f))
-            except TypeError:
-                srcfile = "<unknown>"
-
-            stats = profiled_functions[f]
+        for (srcfile, lineno, name), stats in sorted(collect.iteritems()):
+            srcfile = os.path.basename(srcfile)
             stats.compute()
             out.write("%-12s\t%-24s\t%9.3fs / %5d = %7.3f " %
-                    (srcfile, f.__name__,
+                    (srcfile + ":" + lineno, name,
                      stats.sum, stats.count, stats.mean))
             out.write("[%s]\n" % ", ".join(["%7.3f" % x for x in stats.quartiles]))
 
@@ -178,6 +187,9 @@ class SimpleStats:
 
     def append(self, val):
         self.data.append(val)
+
+    def update(self, other):
+        self.data.extend(other.data)
 
     def compute(self):
         self.data.sort()
