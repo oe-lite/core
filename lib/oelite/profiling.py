@@ -185,11 +185,14 @@ class SimpleStats:
     def __init__(self):
         self.data = []
 
+    def __iter__(self):
+        return iter(self.data)
+
     def append(self, val):
         self.data.append(val)
 
     def update(self, other):
-        self.data.extend(other.data)
+        self.data.extend(other)
 
     def compute(self):
         self.data.sort()
