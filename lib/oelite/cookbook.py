@@ -33,7 +33,7 @@ class CookBook(Mapping):
         if not self.db:
             raise Exception("could not create in-memory sqlite db")
         self.db.text_factory = str
-        self.dbc = self.db.cursor()
+        self.dbc = CursorWrapper(self.db.cursor(), profile=False)
         self.init_db()
         self.recipes = {}
         self.packages = {}

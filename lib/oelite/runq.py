@@ -26,7 +26,7 @@ class OEliteRunQueue:
         self.runable = []
         self.metahashable = []
         self.cookbook.db.execute("ATTACH ':memory:' AS runq")
-        self.dbc = self.cookbook.db.cursor()
+        self.dbc = CursorWrapper(self.cookbook.db.cursor(), profile=False)
         self.init_db()
         self._provider = {}
         return
