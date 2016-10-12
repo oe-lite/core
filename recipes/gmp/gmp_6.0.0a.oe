@@ -1,4 +1,0 @@
-require ${PN}.inc
-LICENSE = "LGPL-3.0+"
-
-S = "${SRCDIR}/${PN}-6.0.0"
