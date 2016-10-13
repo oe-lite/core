@@ -11,12 +11,25 @@ def write_query_stats():
         return
     with oelite.profiling.profile_output("query_stats.txt") as f:
         for t, l in sorted(query_stats.items()):
-            s = oelite.profiling.SimpleStats()
-            s.update(l)
-            s.compute()
-            f.write("%s:%d\t" % (os.path.basename(t[0]), t[1]))
-            f.write("%f\t%d\t%f\t" % (s.sum, s.count, s.mean))
-            f.write("%s\n" % t[2][0:40])
+            f.write("%s:%d\t%d" % (os.path.basename(t[0]), t[1], len(l)))
+
+            # Each element in l is a three-element list:
+            # 0: #calls of next (or fetch[one,all]) following this query
+            # 1: time used in execute/executemany
+            # 2: time used in all next/fetchone/fetchall calls
+            #
+            # Append one element combining 1 and 2, then print 8
+            # columns with the sums and averages of all these.
+            for x in l:
+                x.append(x[1]+x[2])
+            for i in range(4):
+                s = sum([x[i] for x in l])
+                if i == 0:
+                    f.write("\t%d\t%f" % (s, float(s)/len(l)))
+                else:
+                    f.write("\t%f\t%f" % (s, s/len(l)))
+
+            f.write("\t%s\n" % t[2][0:40])
 atexit.register(write_query_stats)
 
 class CursorWrapper(object):
@@ -54,10 +67,19 @@ class CursorWrapper(object):
             lineno = frame.f_lineno
         filename = inspect.getsourcefile(frame) or inspect.getfile(frame)
         t = (filename, lineno, query)
+        self.current_record = record = [0, delta, 0]
         try:
-            query_stats[t].append(delta)
+            query_stats[t].append(record)
         except KeyError:
-            query_stats[t] = [delta]
+            query_stats[t] = [record]
+
+        # SELECT statements return the cursor object itself, but we
+        # need to also be able to intercept all the .next calls to
+        # really measure how expensive this query ends up being. Other
+        # queries may return None, and we don't want to interfere with
+        # that.
+        if ret is self.cursor:
+            return self
         return ret
 
     def executemany(self, query, *args, **kwargs):
@@ -77,11 +99,61 @@ class CursorWrapper(object):
             lineno = frame.f_lineno
         filename = inspect.getsourcefile(frame) or inspect.getfile(frame)
         t = (filename, lineno, query)
+        self.current_record = record = [0, delta, 0]
         try:
-            query_stats[t].append(delta)
+            query_stats[t].append(record)
         except KeyError:
-            query_stats[t] = [delta]
+            query_stats[t] = [record]
+
+        if ret is self.cursor:
+            return self
         return ret
+
+    def __iter__(self):
+        return self
+
+    # This is Python 2, so we have to define .next rather than .__next__ .
+    def next(self):
+        if not self.profile:
+            # This should never really happen.
+            return self.cursor.next()
+
+        start = oelite.util.now()
+        try:
+            return self.cursor.next()
+        finally:
+            stop = oelite.util.now()
+            delta = stop-start
+            self.current_record[0] += 1
+            self.current_record[2] += delta
+
+    def fetchone(self):
+        if not self.profile:
+            # This should never really happen.
+            return self.cursor.fetchone()
+
+        start = oelite.util.now()
+        try:
+            return self.cursor.fetchone()
+        finally:
+            stop = oelite.util.now()
+            delta = stop-start
+            self.current_record[0] += 1
+            self.current_record[2] += delta
+
+    def fetchall(self):
+        if not self.profile:
+            # This should never really happen.
+            return self.cursor.fetchall()
+
+        start = oelite.util.now()
+        try:
+            return self.cursor.fetchall()
+        finally:
+            stop = oelite.util.now()
+            delta = stop-start
+            self.current_record[0] += 1
+            self.current_record[2] += delta
 
 def flatten_single_value(rows):
     row = rows.fetchone()
