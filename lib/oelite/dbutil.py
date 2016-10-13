@@ -106,3 +106,9 @@ def tuple_to_var(t):
 
 def fulldump(db):
     return os.linesep.join([line for line in db.iterdump()])
+
+def dump_table(dst, db, table):
+    c = db.cursor()
+    for row in c.execute("SELECT * FROM %s" % table):
+        dst.write("\t".join([str(x) for x in row]))
+        dst.write("\n")
