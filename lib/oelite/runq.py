@@ -28,6 +28,7 @@ class OEliteRunQueue:
         self.cookbook.db.execute("ATTACH ':memory:' AS runq")
         self.dbc = self.cookbook.db.cursor()
         self.init_db()
+        self._provider = {}
         return
 
 
@@ -427,6 +428,10 @@ class OEliteRunQueue:
             self.dbc.execute(
                 "INSERT INTO runq.provider (type, item, version, package) VALUES (?, ?, ?, ?)",
                 (item.type, item.name, item.version, package.id))
+
+        t = (item.type, item.name, item.version)
+        assert t not in self._provider
+        self._provider[t] = package
         return
 
 
@@ -439,9 +444,14 @@ class OEliteRunQueue:
             package_id = flatten_single_value(self.dbc.execute(
                     "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=? LIMIT 1",
                 (item.type, item.name, item.version)))
+
+        t = (item.type, item.name, item.version)
         if not package_id:
+            assert t not in self._provider
             return None
-        return self.cookbook.get_package(id=package_id)
+        ret = self.cookbook.get_package(id=package_id)
+        assert(ret is self._provider.get(t))
+        return ret
 
     def get_provider(self, item, allow_no_provider=False):
         """
