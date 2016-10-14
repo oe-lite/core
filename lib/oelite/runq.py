@@ -34,13 +34,6 @@ class OEliteRunQueue:
 
     def init_db(self):
         self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS runq.provider ( "
-            "type		TEXT, "
-            "item		TEXT, "
-            "version		TEXT, "
-            "package		INTEGER )")
-
-        self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS runq.task ( "
             "task		INTEGER, "
             "prime		INTEGER, "
@@ -420,15 +413,6 @@ class OEliteRunQueue:
         return (recipe, package)
 
     def _set_provider(self, item, package):
-        if item.version is None:
-            self.dbc.execute(
-                "INSERT INTO runq.provider (type, item, package) VALUES (?, ?, ?)",
-                (item.type, item.name, package.id))
-        else:
-            self.dbc.execute(
-                "INSERT INTO runq.provider (type, item, version, package) VALUES (?, ?, ?, ?)",
-                (item.type, item.name, item.version, package.id))
-
         t = (item.type, item.name, item.version)
         assert t not in self._provider
         self._provider[t] = package
@@ -436,22 +420,8 @@ class OEliteRunQueue:
 
 
     def _get_provider(self, item):
-        if item.version is None:
-            package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version IS NULL LIMIT 1",
-                    (item.type, item.name)))
-        else:
-            package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=? LIMIT 1",
-                (item.type, item.name, item.version)))
-
         t = (item.type, item.name, item.version)
-        if not package_id:
-            assert t not in self._provider
-            return None
-        ret = self.cookbook.get_package(id=package_id)
-        assert(ret is self._provider.get(t))
-        return ret
+        return self._provider.get(t)
 
     def get_provider(self, item, allow_no_provider=False):
         """
