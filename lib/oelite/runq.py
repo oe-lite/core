@@ -433,11 +433,11 @@ class OEliteRunQueue:
     def _get_provider(self, item):
         if item.version is None:
             package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version IS NULL",
+                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version IS NULL LIMIT 1",
                     (item.type, item.name)))
         else:
             package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=?",
+                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=? LIMIT 1",
                 (item.type, item.name, item.version)))
         if not package_id:
             return None
