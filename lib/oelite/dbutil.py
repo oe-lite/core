@@ -6,6 +6,7 @@ import sys
 import atexit
 
 query_stats = {}
+query_sample = {}
 def write_query_stats():
     if not query_stats:
         return
@@ -29,7 +30,7 @@ def write_query_stats():
                 else:
                     f.write("\t%f\t%f" % (s, s/len(l)))
 
-            f.write("\t%s\n" % t[2][0:40])
+            f.write("\t%s\n" % query_sample[t][0:40])
 atexit.register(write_query_stats)
 
 class CursorWrapper(object):
@@ -66,12 +67,14 @@ class CursorWrapper(object):
         else:
             lineno = frame.f_lineno
         filename = inspect.getsourcefile(frame) or inspect.getfile(frame)
-        t = (filename, lineno, query)
+        t = (filename, lineno)
         self.current_record = record = [0, delta, 0]
         try:
             query_stats[t].append(record)
         except KeyError:
             query_stats[t] = [record]
+        if t not in query_sample:
+            query_sample[t] = query
 
         # SELECT statements return the cursor object itself, but we
         # need to also be able to intercept all the .next calls to
@@ -98,12 +101,14 @@ class CursorWrapper(object):
         else:
             lineno = frame.f_lineno
         filename = inspect.getsourcefile(frame) or inspect.getfile(frame)
-        t = (filename, lineno, query)
+        t = (filename, lineno)
         self.current_record = record = [0, delta, 0]
         try:
             query_stats[t].append(record)
         except KeyError:
             query_stats[t] = [record]
+        if t not in query_sample:
+            query_sample[t] = query
 
         if ret is self.cursor:
             return self
