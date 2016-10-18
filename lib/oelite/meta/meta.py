@@ -10,7 +10,7 @@ from collections import MutableMapping
 from oelite.meta import *
 from oelite.pyexec import *
 import oelite.function
-
+import oelite.profiling
 
 class ExpansionError(Exception):
 
@@ -503,6 +503,7 @@ class MetaData(MutableMapping):
         else:
             return oelite.function.ShellFunction(self, name)
 
+    @oelite.profiling.profile_calls
     def signature(self, ignore_flags_re=re.compile("|".join(("__", "emit$", "filename"))),
                   force=False, dump=None):
         import hashlib
