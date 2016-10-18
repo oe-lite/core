@@ -20,7 +20,7 @@ def task_name(name):
 
 class OEliteTask:
 
-    TASKFUNC_RE = re.compile(r"^do_([a-z]+).*?")
+    TASKFUNC_RE = re.compile(r"^do_[a-z]+")
 
     def __init__(self, id, recipe, name, nostamp, cookbook):
         self.id = id
