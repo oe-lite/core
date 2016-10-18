@@ -172,8 +172,7 @@ class OEliteTask:
             emit = (emit_flag or "").split()
             taskfunc_match = self.TASKFUNC_RE.match(var)
             if taskfunc_match:
-                if taskfunc_match.group(0) not in emit:
-                    emit.append(taskfunc_match.group(0))
+                emit.append(taskfunc_match.group(0))
             for emit_task, emit_prefix in emit_prefix_table.get(var[0], []):
                 if not var.startswith(emit_prefix):
                     continue
@@ -181,8 +180,7 @@ class OEliteTask:
                     if emit_flag is None:
                         emit_flag = ""
                     continue
-                if not emit_task in emit:
-                    emit.append(emit_task)
+                emit.append(emit_task)
             if (emit or emit_flag == "") and not self.name in emit:
                 del meta[var]
                 continue
