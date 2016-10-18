@@ -8,6 +8,7 @@ import cPickle
 import operator
 import types
 import os
+import oelite.profiling
 
 def deepcopy_str(x, memo):
     return intern(x)
@@ -44,6 +45,7 @@ class DictMeta(MetaData):
         "<": 2,
     }
 
+    @oelite.profiling.profile_calls
     def __init__(self, meta=None):
         if isinstance(meta, file):
             self.smpl = copy.deepcopy(cPickle.load(meta))
