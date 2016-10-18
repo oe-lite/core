@@ -94,7 +94,9 @@ class StdioSaver:
 
     def restore(self, close=True):
         os.dup2(self.fds.stdin, sys.stdin.fileno())
+        sys.stdout.flush()
         os.dup2(self.fds.stdout, sys.stdout.fileno())
+        sys.stderr.flush()
         os.dup2(self.fds.stderr, sys.stderr.fileno())
         if close:
             self.close()

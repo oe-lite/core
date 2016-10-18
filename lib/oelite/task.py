@@ -217,7 +217,9 @@ class OEliteTask:
 
     def apply_context(self):
         os.dup2(self.stdin, sys.stdin.fileno())
+        sys.stdout.flush()
         os.dup2(self.logfilefd, sys.stdout.fileno())
+        sys.stderr.flush()
         os.dup2(self.logfilefd, sys.stderr.fileno())
 
     def restore_context(self):
