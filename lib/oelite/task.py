@@ -150,10 +150,12 @@ class OEliteTask:
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
         emit_prefixes = (meta.get("META_EMIT_PREFIX") or "").split()
-        def colon_split(s):
-            import string
-            return string.split(s, ":", 1)
-        emit_prefixes = map(colon_split, emit_prefixes)
+        def emit_prefix_pair(s):
+            task, prefix = s.split(":", 1)
+            if task:
+                task = "do_" + task
+            return (task, prefix)
+        emit_prefixes = map(emit_prefix_pair, emit_prefixes)
         for var in meta.keys():
             emit_flag = meta.get_flag(var, "emit")
             emit = (emit_flag or "").split()
@@ -168,8 +170,6 @@ class OEliteTask:
                     if emit_flag is None:
                         emit_flag = ""
                     continue
-                if not emit_task.startswith("do_"):
-                    emit_task = "do_" + emit_task
                 if not emit_task in emit:
                     emit.append(emit_task)
             if (emit or emit_flag == "") and not self.name in emit:
