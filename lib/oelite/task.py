@@ -155,7 +155,18 @@ class OEliteTask:
             if task:
                 task = "do_" + task
             return (task, prefix)
-        emit_prefixes = map(emit_prefix_pair, emit_prefixes)
+        # To avoid looping over the entire ~20 element list of pairs
+        # for every variable, split that list according to the first
+        # character of the prefix, and fetch the appropriate list
+        # based on var[0].
+        emit_prefix_table = {}
+        for s in emit_prefixes:
+            p = emit_prefix_pair(s)
+            c = p[1][0]
+            if c in emit_prefix_table:
+                emit_prefix_table[c].append(p)
+            else:
+                emit_prefix_table[c] = [p]
         for var in meta.keys():
             emit_flag = meta.get_flag(var, "emit")
             emit = (emit_flag or "").split()
@@ -163,7 +174,7 @@ class OEliteTask:
             if taskfunc_match:
                 if taskfunc_match.group(0) not in emit:
                     emit.append(taskfunc_match.group(0))
-            for emit_task, emit_prefix in emit_prefixes:
+            for emit_task, emit_prefix in emit_prefix_table.get(var[0], []):
                 if not var.startswith(emit_prefix):
                     continue
                 if emit_task == "":
