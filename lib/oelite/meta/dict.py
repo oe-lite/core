@@ -416,14 +416,6 @@ class DictMeta(MetaData):
         return flags
 
 
-    def get_var_flags(self, flag="", append=()):
-        var_flags = []
-        for var in self.get_vars(flag):
-            flags = self.get_flags(var, prune_var_value=False)
-            for flag in flags:
-                var_flags.append((var, flag, flags[flag]) + append)
-        return var_flags
-
 
     def add_hook(self, name, function, sequence=1, after=[], before=[]):
         if after is None:
