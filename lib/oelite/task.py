@@ -184,10 +184,6 @@ class OEliteTask:
             if (emit or emit_flag == "") and not self.name in emit:
                 del meta[var]
                 continue
-            omit = meta.get_flag(var, "omit")
-            if omit is not None and self.name in omit.split():
-                del meta[var]
-                continue
 
         self._meta = meta
         return meta
