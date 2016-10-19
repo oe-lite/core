@@ -29,9 +29,9 @@ def inlineeval(source, meta, var=None):
         raise
 
 
-def exechooks(meta, name):
-    hooks = meta.get_hooks(name)
-    tmpdir = os.path.join(meta.get("HOOKTMPDIR"), name)
+def exechooks(meta, hookname, remove_hooks=True):
+    hooks = meta.get_hooks(hookname)
+    tmpdir = os.path.join(meta.get("HOOKTMPDIR"), hookname)
     oelite.util.makedirs(tmpdir)
     for function in hooks:
         pn = meta.get("PN")
@@ -46,4 +46,6 @@ def exechooks(meta, name):
             raise oelite.HookFailed(name, function, retval)
         elif not retval:
             raise oelite.HookFailed(name, function, retval)
+    if remove_hooks:
+        meta.del_hooks(hookname)
     return

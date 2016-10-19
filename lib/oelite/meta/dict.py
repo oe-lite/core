@@ -455,6 +455,13 @@ class DictMeta(MetaData):
         self.weak_set_flag(function, "emit", "")
         return
 
+    def del_hooks(self, name):
+        try:
+            del self.cplx["__hooks"][name]
+            if len(self.cplx["__hooks"]) == 0:
+                del self.cplx["__hooks"]
+        except KeyError:
+            pass
 
     def get_hooks(self, name):
         try:
