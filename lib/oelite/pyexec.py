@@ -29,9 +29,8 @@ def inlineeval(source, meta, var=None):
         raise
 
 
-def exechooks(meta, name, hooks=None):
-    if hooks is None:
-        hooks = meta.get_hooks(name)
+def exechooks(meta, name):
+    hooks = meta.get_hooks(name)
     tmpdir = os.path.join(meta.get("HOOKTMPDIR"), name)
     oelite.util.makedirs(tmpdir)
     for function in hooks:
