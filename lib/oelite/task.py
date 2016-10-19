@@ -147,6 +147,7 @@ class OEliteTask:
         meta["__fstage"] = prepare_stage("FDEPENDS")
 
 
+    @oelite.profiling.profile_calls
     def meta(self):
         if self._meta is not None:
             return self._meta
