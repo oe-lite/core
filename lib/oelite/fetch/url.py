@@ -2,6 +2,7 @@ import oelite.fetch
 import oelite.util
 import os
 import hashlib
+import subprocess
 from oebakery import die, err, warn, info, debug
 
 class UrlFetcher():
@@ -116,34 +117,26 @@ class UrlFetcher():
 
 
 def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
-    import urlgrabber
-    import urlgrabber.progress
-    class SimpleProgress(urlgrabber.progress.BaseMeter):
-        def _do_end(self, amount_read, now=None):
-            print "grabbed %d bytes in %.2f seconds" %(amount_read,self.re.elapsed_time())
-
     print "Grabbing", url
-    def grab_fail_callback(data):
-        # Only print debug here when non fatal retries, debug in other cases
-        # is already printed
-        if (data.exception.errno in retrycodes) and (data.tries != data.retry):
-            print "grabbing retry %d/%d, exception %s"%(
-                data.tries, data.retry, data.exception)
-    try:
-        retrycodes = urlgrabber.grabber.URLGrabberOptions().retrycodes
-        if 12 not in retrycodes:
-            retrycodes.append(12)
-        if not os.path.exists(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
-        downloaded_file = urlgrabber.urlgrab(
-            url, filename,timeout=timeout,retry=retry, retrycodes=retrycodes,
-            progress_obj=SimpleProgress(), failure_callback=grab_fail_callback,
-            copy_local=True, proxies=proxy, ftp_disable_epsv=ftpmode)
-        if not downloaded_file:
-            return False
-    except urlgrabber.grabber.URLGrabError as e:
-        warn('URLGrabError %i: %s' % (e.errno, e.strerror))
-        if os.path.exists(filename):
-            os.unlink(filename)
+
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
+
+    cmd = ['wget', '-t', str(retry), '-T', str(timeout), '--passive-ftp', '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', filename]
+
+    returncode = subprocess.call(cmd)
+
+    if returncode != 0:
+        err("Error %s %d" % (cmd, returncode))
         return False
+
+    if not os.path.exists(filename):
+        err("The fetch command returned success for url %s but %s doesn't exist?!" % (uri, filename))
+        return False
+
+    if os.path.getsize(filename) == 0:
+        os.remove(filename)
+        err("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (uri))
+        return False
+
     return True
