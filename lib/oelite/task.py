@@ -146,13 +146,10 @@ class OEliteTask:
         meta["__rstage"] = prepare_stage("RDEPENDS")
         meta["__fstage"] = prepare_stage("FDEPENDS")
 
-
     @oelite.profiling.profile_calls
-    def meta(self):
-        if self._meta is not None:
-            return self._meta
-        self.recipe.meta._fill_expand_cache()
-        meta = self.recipe.meta.copy()
+    def filter_meta(self):
+        meta = self._meta
+        assert(meta is not None)
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
         emit_prefixes = (meta.get("META_EMIT_PREFIX") or "").split()
@@ -191,8 +188,14 @@ class OEliteTask:
                 del meta[var]
                 continue
 
-        self._meta = meta
-        return meta
+    @oelite.profiling.profile_calls
+    def meta(self):
+        if self._meta is not None:
+            return self._meta
+        self.recipe.meta._fill_expand_cache()
+        self._meta = self.recipe.meta.copy()
+        self.filter_meta()
+        return self._meta
 
     def prepare_context(self):
         meta = self.meta()
