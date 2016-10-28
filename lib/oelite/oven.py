@@ -104,12 +104,12 @@ class OEliteOven:
 
         task.recipe.remaining_tasks -= 1
         if result:
-            info("%s finished - %s s" % (task, delta))
+            info("%s finished - %.3f s" % (task, delta))
             task.build_done(self.baker.runq.get_task_buildhash(task))
             self.baker.runq.mark_done(task)
             self.completed_tasks.append(task)
         else:
-            err("%s failed - %s s" % (task, delta))
+            err("%s failed - %.3f s" % (task, delta))
             self.failed_tasks.append(task)
             task.build_failed()
 
@@ -127,7 +127,7 @@ class OEliteOven:
             t = tasks[0]
             if self.stdout_isatty:
                 now = oelite.util.now()
-                info("waiting for %s (started %6.2f ago) to finish" % (t, now-self.starttime[t]))
+                info("waiting for %s (started %.3f seconds ago) to finish" % (t, now-self.starttime[t]))
             return self.wait_task(False, t)
         tasks.sort(key=lambda t: self.starttime[t])
         i = 0
@@ -143,7 +143,7 @@ class OEliteOven:
                 info("waiting for any of these to finish:")
                 now = oelite.util.now()
                 for t in tasks:
-                    info("  %-40s started %6.2f s ago" % (t, now-self.starttime[t]))
+                    info("  %-40s started %.3f seconds ago" % (t, now-self.starttime[t]))
             time.sleep(0.1)
         return None
 
