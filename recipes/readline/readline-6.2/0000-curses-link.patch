@@ -1,0 +1,22 @@
+link readline directly to ncurses since it needs symbols from it
+
+upstream readline does this on purpose (no direct linking), but
+it doesn't make much sense in a Linux world
+
+patch from buildroot
+Upstream-Status: Pending
+
+http://cgit.openembedded.org/openembedded-core/tree/meta/recipes-core/readline/readline-6.3/configure-fix.patch?id=b18fa5f2f2f46afc6fdc58f4d29679dea9c36c43
+https://git.busybox.net/buildroot/tree/package/readline/0000-curses-link.patch?id=5f1e0e688bba9b94287302258afdfacd6e6344e2
+
+--- a/support/shobj-conf
++++ b/support/shobj-conf
+@@ -42,7 +42,7 @@
+ SHOBJ_LIBS=
+ 
+ SHLIB_XLDFLAGS=
+-SHLIB_LIBS=
++SHLIB_LIBS=-lncurses
+ 
+ SHLIB_DOT='.'
+ SHLIB_LIBPREF='lib'
