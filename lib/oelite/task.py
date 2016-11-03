@@ -20,7 +20,7 @@ def task_name(name):
 
 class OEliteTask:
 
-    TASKFUNC_RE = re.compile(r"^do_([a-z]+).*?")
+    TASKFUNC_RE = re.compile(r"^do_[a-z]+")
 
     def __init__(self, id, recipe, name, nostamp, cookbook):
         self.id = id
@@ -154,33 +154,38 @@ class OEliteTask:
         # Filter meta-data, enforcing restrictions on which tasks to
         # emit vars to and not including other task functions.
         emit_prefixes = (meta.get("META_EMIT_PREFIX") or "").split()
-        def colon_split(s):
-            import string
-            return string.split(s, ":", 1)
-        emit_prefixes = map(colon_split, emit_prefixes)
+        def emit_prefix_pair(s):
+            task, prefix = s.split(":", 1)
+            if task:
+                task = "do_" + task
+            return (task, prefix)
+        # To avoid looping over the entire ~20 element list of pairs
+        # for every variable, split that list according to the first
+        # character of the prefix, and fetch the appropriate list
+        # based on var[0].
+        emit_prefix_table = {}
+        for s in emit_prefixes:
+            p = emit_prefix_pair(s)
+            c = p[1][0]
+            if c in emit_prefix_table:
+                emit_prefix_table[c].append(p)
+            else:
+                emit_prefix_table[c] = [p]
         for var in meta.keys():
             emit_flag = meta.get_flag(var, "emit")
             emit = (emit_flag or "").split()
             taskfunc_match = self.TASKFUNC_RE.match(var)
             if taskfunc_match:
-                if taskfunc_match.group(0) not in emit:
-                    emit.append(taskfunc_match.group(0))
-            for emit_task, emit_prefix in emit_prefixes:
+                emit.append(taskfunc_match.group(0))
+            for emit_task, emit_prefix in emit_prefix_table.get(var[0], []):
                 if not var.startswith(emit_prefix):
                     continue
                 if emit_task == "":
                     if emit_flag is None:
                         emit_flag = ""
                     continue
-                if not emit_task.startswith("do_"):
-                    emit_task = "do_" + emit_task
-                if not emit_task in emit:
-                    emit.append(emit_task)
+                emit.append(emit_task)
             if (emit or emit_flag == "") and not self.name in emit:
-                del meta[var]
-                continue
-            omit = meta.get_flag(var, "omit")
-            if omit is not None and self.name in omit.split():
                 del meta[var]
                 continue
 
