@@ -3,12 +3,12 @@ from oelite import *
 from oelite.dbutil import *
 import oelite.util
 import oelite.recipe
+import oelite.profiling
 
 import sys
 import os
 import copy
 import operator
-import datetime
 
 class OEliteRunQueue:
 
@@ -535,7 +535,8 @@ class OEliteRunQueue:
         return
 
 
-    def get_runabletask(self):
+    @oelite.profiling.profile_calls
+    def update_runabletasks(self):
         newrunable = self.get_readytasks()
         if newrunable:
             if self.depth_first:
@@ -545,6 +546,9 @@ class OEliteRunQueue:
             for task_id in newrunable:
                 task = self.cookbook.get_task(id=task_id)
                 self.set_task_pending(task)
+
+    def get_runabletask(self):
+        self.update_runabletasks()
         if not self.runable:
             return None
         task_id = self.runable.pop()
@@ -552,6 +556,11 @@ class OEliteRunQueue:
             return None
         return self.cookbook.get_task(id=task_id)
 
+    def get_runabletasks(self):
+        self.update_runabletasks()
+        ret = [self.cookbook.get_task(id=task_id) for task_id in self.runable]
+        self.runable = []
+        return ret
 
     def get_metahashable_task(self):
         if not self.metahashable:
@@ -947,7 +956,7 @@ class OEliteRunQueue:
 
     def prune_runq_depends_nobuild(self):
         rowcount = 0
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         while True:
             self.dbc.execute(
                 "UPDATE runq.depend SET parent_task=NULL "
@@ -969,7 +978,7 @@ class OEliteRunQueue:
     def prune_runq_depends_with_nobody_depending_on_it(self):
         #c = self.dbc.cursor()
         rowcount = 0
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         while True:
             # The code below, until the executemany() call, implements
             # what was previously done with this horribly-performing
@@ -1001,7 +1010,7 @@ class OEliteRunQueue:
 
 
     def prune_runq_tasks(self):
-        start = datetime.datetime.now()
+        start = oelite.util.now()
         rowcount = self.dbc.execute(
             "UPDATE"
             "  runq.task "

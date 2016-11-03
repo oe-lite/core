@@ -30,11 +30,19 @@ class OEliteTask:
         self.cookbook = cookbook
         self.debug = self.cookbook.debug
         self._meta = None
+        self.result = None
         return
 
     def __str__(self):
         return "%s:%s"%(self.recipe, self.name)
 
+    def get_weight(self, meta):
+        if not self.name == "do_compile":
+            return 1
+        pmake = meta.get("PARALLEL_MAKE")
+        if pmake is None or pmake == "":
+            return 1
+        return int(pmake.replace("-j", ""))
 
     def get_parents(self):
         parents = flatten_single_column_rows(self.cookbook.dbc.execute(
@@ -117,8 +125,9 @@ class OEliteTask:
             os.remove(hashpath)
 
 
-    def prepare(self, runq):
+    def prepare(self):
         meta = self.meta()
+        self.weight = self.get_weight(meta)
 
         buildhash = self.cookbook.baker.runq.get_task_buildhash(self)
         debug("buildhash=%s"%(repr(buildhash)))
@@ -183,24 +192,17 @@ class OEliteTask:
         self._meta = meta
         return meta
 
-
-    def run(self):
+    def prepare_context(self):
         meta = self.meta()
-        function = meta.get_function(self.name)
-
+        self.function = meta.get_function(self.name)
         self.do_cleandirs()
-        cwd = self.do_dirs() or meta.get("B")
-
-        # Setup stdin, stdout and stderr redirection
-        stdin = open("/dev/null", "r")
-        self.logfn = "%s/%s.%s.log"%(function.tmpdir, self.name, meta.get("DATETIME"))
-        self.logsymlink = "%s/%s.log"%(function.tmpdir, self.name)
+        self.cwd = self.do_dirs() or meta.get("B")
+        self.stdin = open("/dev/null", "r")
+        self.logfn = "%s/%s.%s.log"%(self.function.tmpdir, self.name, meta.get("DATETIME"))
+        self.logsymlink = "%s/%s.log"%(self.function.tmpdir, self.name)
         oelite.util.makedirs(os.path.dirname(self.logfn))
         try:
-            if self.debug:
-                logfile = os.popen("tee %s"%self.logfn, "w")
-            else:
-                logfile = open(self.logfn, "w")
+            self.logfile = open(self.logfn, "w")
         except OSError:
             print "Opening log file failed: %s"%(self.logfn)
             raise
@@ -209,47 +211,108 @@ class OEliteTask:
             os.remove(self.logsymlink)
         os.symlink(os.path.basename(self.logfn), self.logsymlink)
 
-        real_stdin = os.dup(sys.stdin.fileno())
-        real_stdout = os.dup(sys.stdout.fileno())
-        real_stderr = os.dup(sys.stderr.fileno())
-        os.dup2(stdin.fileno(), sys.stdin.fileno())
-        os.dup2(logfile.fileno(), sys.stdout.fileno())
-        os.dup2(logfile.fileno(), sys.stderr.fileno())
+    def save_context(self):
+        self.saved_stdio = oelite.util.StdioSaver()
+
+    def apply_context(self):
+        os.dup2(self.stdin.fileno(), sys.stdin.fileno())
+        os.dup2(self.logfile.fileno(), sys.stdout.fileno())
+        os.dup2(self.logfile.fileno(), sys.stderr.fileno())
+
+    def restore_context(self):
+        self.saved_stdio.restore(True)
+
+    def cleanup_context(self):
+        self.stdin.close()
+        self.logfile.close()
+        if os.path.exists(self.logfn):
+            if os.path.getsize(self.logfn) == 0:
+                os.remove(self.logsymlink)
+                os.remove(self.logfn) # prune empty logfiles
+            elif self.debug:
+                # cat the log-file to stdout
+                print '----- %s ----' % self.logfn
+                with open(self.logfn) as f:
+                    shutil.copyfileobj(f, sys.stdout)
+                print '----- %s ----' % self.logfn
+
+    def _start(self):
+        self.prepare_context()
+
+        self.save_context()
+        self.apply_context()
 
         try:
             for prefunc in self.get_prefuncs():
                 print "running prefunc", prefunc
                 self.do_cleandirs(prefunc)
                 wd = self.do_dirs(prefunc)
-                if not prefunc.run(wd or cwd):
+                if not prefunc.run(wd or self.cwd):
                     return False
             try:
-                if not function.run(cwd):
-                    return False
+                # start() doesn't return a value - but it may throw an
+                # exception. For, I think, mostly historical reasons,
+                # we catch one specific exception and treat that
+                # essentially as if the last prefunc failed, and let
+                # others trickle up. For now, keep that oddity, since
+                # it doesn't complicate our wait() method.
+                self.function.start(self.cwd)
             except oebakery.FatalError:
                 return False
-            for postfunc in self.get_postfuncs():
-                print "running postfunc", postfunc
-                self.do_cleandirs(postfunc)
-                wd = self.do_dirs(postfunc)
-                if not postfunc.run(wd or cwd):
-                    return False
-            return True
-
         finally:
             # Cleanup stdin, stdout and stderr redirection
-            os.dup2(real_stdin, sys.stdin.fileno())
-            os.dup2(real_stdout, sys.stdout.fileno())
-            os.dup2(real_stderr, sys.stderr.fileno())
-            stdin.close()
-            logfile.close()
-            os.close(real_stdin)
-            os.close(real_stdout)
-            os.close(real_stderr)
-            if os.path.exists(self.logfn) and os.path.getsize(self.logfn) == 0:
-                os.remove(self.logsymlink)
-                os.remove(self.logfn) # prune empty logfiles
+            self.restore_context()
+        return None
 
+    def start(self):
+        oelite.util.stracehack("==>%s" % self.name)
+        self.result = self._start()
+        oelite.util.stracehack("<==%s" % self.name)
+
+    def wait(self, poll=False):
+        oelite.util.stracehack("==>%s" % self.name)
+        if self.result is not None:
+            # Something bad happened in start
+            self.cleanup_context()
+            oelite.util.stracehack("<==%s" % self.name)
+            return self.result
+
+        self.save_context()
+        self.apply_context()
+
+        try:
+            # Do the actual wait
+            self.result = self.function.wait(poll)
+            assert(self.result in (True, False, None))
+            assert(poll or self.result is not None)
+            # This may have returned None, in case we were just
+            # polling for completion, or False, in case the function
+            # failed. In either case, we shouldn't run the
+            # postfuncs. Otherwise, we should run them.
+            if self.result:
+                for postfunc in self.get_postfuncs():
+                    print "running postfunc", postfunc
+                    self.do_cleandirs(postfunc)
+                    wd = self.do_dirs(postfunc)
+                    if not postfunc.run(wd or self.cwd):
+                        self.result = False
+                        break
+        finally:
+            self.restore_context()
+
+        # If we've gotten an actual True/False answer, it's time to
+        # close the log file and clean up our context. The caller
+        # shouldn't call wait() once the result has been obtained, so
+        # we don't need to make that idempotent.
+        if self.result is not None:
+            self.cleanup_context()
+        oelite.util.stracehack("<==%s" % self.name)
+        return self.result
+
+
+    def run(self):
+        self.start()
+        return self.wait(False)
 
     def do_cleandirs(self, name=None):
         if not name:

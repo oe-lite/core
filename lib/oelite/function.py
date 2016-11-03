@@ -7,6 +7,7 @@ import os
 import shutil
 import warnings
 import re
+import subprocess
 
 class OEliteFunction(object):
 
@@ -23,7 +24,6 @@ class OEliteFunction(object):
             self.tmpdir = self.meta.get("T")
             if not self.tmpdir:
                 die("T variable not set, unable to build")
-        self.flags = meta.get_flags(var, oelite.meta.FULL_EXPANSION)
         return
 
     def __str__(self):
@@ -33,6 +33,10 @@ class OEliteFunction(object):
         return "OEliteFunction(%s)"%(self.var)
 
     def run(self, cwd):
+        self.start(cwd)
+        return self.wait(False)
+
+    def start(self, cwd):
         # Change directory
         old_cwd = os.getcwd()
         os.chdir(cwd)
@@ -44,19 +48,25 @@ class OEliteFunction(object):
             umask = int(self.meta.get("DEFAULT_UMASK"), 8)
         old_umask = os.umask(umask)
         try:
-            return self()
+            self._start()
         finally:
             # Restore directory
             os.chdir(old_cwd)
             # Restore umask
             os.umask(old_umask)
 
+    def _start(self):
+        self.result = self()
+
+    def wait(self, poll=False):
+        return self.result
+
 
 class NoopFunction(OEliteFunction):
 
-    def run(self, cwd):
-        return True
-    
+    def start(self, cwd):
+        self.result = True
+
 
 class PythonFunction(OEliteFunction):
 
@@ -88,6 +98,7 @@ class PythonFunction(OEliteFunction):
         eval(self.code, g, l)
         self.function = l[var]
         self.set_os_environ = set_os_environ
+        self.result = False
         super(PythonFunction, self).__init__(meta, var, name, tmpdir)
         return
 
@@ -118,10 +129,43 @@ class PythonFunction(OEliteFunction):
 class ShellFunction(OEliteFunction):
 
     def __init__(self, meta, var, name=None, tmpdir=None):
+        self.result = None
         super(ShellFunction, self).__init__(meta, var, name, tmpdir)
         return
 
-    def __call__(self):
+    def wait(self, poll):
+        if self.result is not None:
+            return self.result
+        if poll:
+            ret = self.subprocess.poll()
+        else:
+            ret = self.subprocess.wait()
+        if ret is None:
+            return None
+        if ret == 0:
+            self.result = True
+        else:
+            self.result = False
+            print "Error: Command failed: %r: %d"%(self.cmdstr, ret)
+        return self.result
+
+
+    def startscript(self, cmd):
+        self.cmdstr = cmd
+        cmdname = cmd.split(None, 1)[0]
+
+        print '> %s'%(cmd,)
+
+        try:
+            self.subprocess = subprocess.Popen(cmd, stdin=sys.stdin, shell=True)
+        except OSError, e:
+            if e.errno == 2:
+                print "Error: Command not found:", cmdname
+            else:
+                print "Error: Command failed: %r"%(cmd)
+            self.result = False
+
+    def _start(self):
         runfn = "%s/%s.%s.run" % (self.tmpdir, self.name, self.meta.get("DATETIME"))
         runsymlink = "%s/%s.run" % (self.tmpdir, self.name)
 
@@ -175,4 +219,4 @@ class ShellFunction(OEliteFunction):
         if self.meta.get_flag(self.name, "fakeroot"):
             cmd = "%s "%(self.meta.get("FAKEROOT") or "fakeroot") + cmd
         cmd = "LC_ALL=C " + cmd
-        return oelite.util.shcmd(cmd)
+        return self.startscript(cmd)

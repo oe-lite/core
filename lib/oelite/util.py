@@ -3,8 +3,9 @@ import tarfile
 import os
 import sys
 import subprocess
-import datetime
+import time
 
+now = time.time
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
     """
@@ -57,6 +58,48 @@ class TeeStream:
             file.write(text)
         return
 
+def stracehack(msg):
+    try:
+        os.write(-42, msg)
+    except OSError:
+        pass
+
+class StdioSaver:
+    class Fds:
+        def __init__(self):
+            self.stdin = os.dup(sys.stdin.fileno())
+            self.stdout = os.dup(sys.stdout.fileno())
+            self.stderr = os.dup(sys.stderr.fileno())
+            self.refs = 1
+
+        def get(self):
+            self.refs += 1
+            return self
+
+        def put(self):
+            assert(self.refs > 0)
+            self.refs -= 1
+            if self.refs == 0:
+                os.close(self.stdin)
+                os.close(self.stdout)
+                os.close(self.stderr)
+
+    def __init__(self, parent=None):
+        if parent is None:
+            self.fds = self.Fds()
+        else:
+            self.fds = self.parent.fds.get()
+
+    def restore(self, close=True):
+        os.dup2(self.fds.stdin, sys.stdin.fileno())
+        os.dup2(self.fds.stdout, sys.stdout.fileno())
+        os.dup2(self.fds.stderr, sys.stderr.fileno())
+        if close:
+            self.close()
+
+    def close(self):
+        self.fds.put()
+        self.fds = None
 
 def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
           silent_errorcodes=[], **kwargs):
@@ -166,18 +209,23 @@ def touch(path, makedirs=False, truncate=False):
         os.utime(path, None)
 
 
+def pretty_time(delta):
+    milliseconds = int(1000*(delta % 1))
+    delta = int(delta)
+    seconds = delta % 60
+    minutes = delta // 60 % 60
+    hours = delta // 3600
+    if hours:
+        return "%dh%02dm%02ds"%(hours, minutes, seconds)
+    elif minutes:
+        return "%dm%02ds"%(minutes, seconds)
+    else:
+        return "%d.%03d seconds"%(seconds, milliseconds)
+
+
 def timing_info(msg, start):
     msg += " time "
-    delta = datetime.datetime.now() - start
-    hours = delta.seconds // 3600
-    minutes = delta.seconds // 60 % 60
-    seconds = delta.seconds % 60
-    milliseconds = delta.microseconds // 1000
-    if hours:
-        msg += "%dh%02dm%02ds"%(hours, minutes, seconds)
-    elif minutes:
-        msg += "%dm%02ds"%(minutes, seconds)
-    else:
-        msg += "%d.%03d seconds"%(seconds, milliseconds)
+    delta = now() - start
+    msg += pretty_time(delta)
     info(msg)
     return

@@ -3,6 +3,8 @@ from oebakery import die, err, warn, info, debug
 from oelite import *
 from recipe import OEliteRecipe
 from runq import OEliteRunQueue
+from priq import PriorityQueue
+from oven import OEliteOven
 import oelite.meta
 import oelite.util
 import oelite.arch
@@ -11,6 +13,7 @@ import oelite.task
 import oelite.item
 from oelite.parse import *
 from oelite.cookbook import CookBook
+import oelite.profiling
 
 import oelite.fetch
 
@@ -20,7 +23,6 @@ import sys
 import os
 import glob
 import shutil
-import datetime
 import hashlib
 import logging
 
@@ -89,6 +91,7 @@ def add_show_parser_options(parser):
 
 class OEliteBaker:
 
+    @oelite.profiling.profile_rusage_delta
     def __init__(self, options, args, config):
         self.options = options
         self.debug = self.options.debug
@@ -243,7 +246,7 @@ class OEliteBaker:
             self.runq = OEliteRunQueue(self.config, self.cookbook)
             self.runq._add_recipe(recipe, task)
             task = self.cookbook.get_task(recipe=recipe, name=task)
-            task.prepare(self.runq)
+            task.prepare()
             meta = task.meta()
         else:
             meta = recipe.meta
@@ -259,6 +262,7 @@ class OEliteBaker:
     def bake(self):
 
         self.setup_tmpdir()
+        oelite.profiling.init(self.config)
 
         # task(s) to do
         if self.options.task:
@@ -291,7 +295,7 @@ class OEliteBaker:
         # first, add complete dependency tree, with complete
         # task-to-task and task-to-package/task dependency information
         debug("Building dependency tree")
-        start = datetime.datetime.now()
+        rusage = oelite.profiling.Rusage("Building dependency tree")
         for task in self.tasks_todo:
             task = oelite.task.task_name(task)
             try:
@@ -309,7 +313,7 @@ class OEliteBaker:
                 die("No such task: %s: %s"%(thing, e.__str__()))
             except oebakery.FatalError, e:
                 die("Failed to add %s:%s to runqueue"%(thing, task))
-        oelite.util.timing_info("Building dependency tree", start)
+        rusage.end()
 
         # Generate recipe dependency graph
         recipes = set([])
@@ -357,7 +361,7 @@ class OEliteBaker:
         task = self.runq.get_metahashable_task()
         total = self.runq.number_of_runq_tasks()
         count = 0
-        start = datetime.datetime.now()
+        rusage = oelite.profiling.Rusage("Calculating task metadata hashes")
         while task:
             oelite.util.progress_info("Calculating task metadata hashes",
                                       total, count)
@@ -431,7 +435,7 @@ class OEliteBaker:
         oelite.util.progress_info("Calculating task metadata hashes",
                                   total, count)
 
-        oelite.util.timing_info("Calculation task metadata hashes", start)
+        rusage.end()
 
         if count != total:
             print ""
@@ -542,6 +546,8 @@ class OEliteBaker:
                 text.append("%s:%s(%d)"%(recipe[1], recipe[2], recipe[4]))
         print oelite.util.format_textblock(" ".join(text))
 
+        self.cookbook.compute_recipe_build_priorities()
+
         if os.isatty(sys.stdin.fileno()) and not self.options.yes:
             while True:
                 try:
@@ -567,44 +573,61 @@ class OEliteBaker:
 
         # FIXME: add some kind of statistics, with total_tasks,
         # prebaked_tasks, running_tasks, failed_tasks, done_tasks
-        task = self.runq.get_runabletask()
-        start = datetime.datetime.now()
-        total = self.runq.number_of_tasks_to_build()
-        count = 0
+        #
+        # FIXME: add back support for options.fake_build
+        rusage = oelite.profiling.Rusage("Build")
         exitcode = 0
-        failed_task_list = []
-        while task:
-            count += 1
-            debug("")
-            debug("Preparing %s"%(task))
-            task.prepare(self.runq)
-            meta = task.meta()
-            info("Running %d / %d %s"%(count, total, task))
-            task.build_started()
-            if self.options.fake_build or task.run():
-                task.build_done(self.runq.get_task_buildhash(task))
-                self.runq.mark_done(task)
-            else:
-                err("%s failed"%(task))
-                exitcode = 1
-                failed_task_list.append(task)
-                task.build_failed()
-                # FIXME: support command-line option to abort on first
-                # failed task
-            task = self.runq.get_runabletask()
-        oelite.util.timing_info("Build", start)
+        pending = PriorityQueue(initial = self.runq.get_runabletasks(),
+                                key = lambda t: (-t.recipe.build_prio, t.recipe.remaining_tasks))
 
-        if exitcode:
-             for task in failed_task_list:
-                print "\nERROR: %s failed  %s"%(task,task.logfn)
-                if self.debug_loglines:
-                    with open(task.logfn, 'r') as fin:
-                        if self.debug_loglines < 0:
-                            print fin.read()
-                        else:
-                            print ''.join(fin.readlines()[-self.debug_loglines:])
+        oven = OEliteOven(self)
+        try:
+            while oven.count < oven.total:
+                new_runable = self.runq.get_runabletasks()
+                for t in new_runable:
+                    pending.push(t)
+                if not pending or oven.capacity <= 0:
+                    # If we have no runable tasks and nothing in the
+                    # oven, some tasks must have failed.
+                    if not oven.currently_baking():
+                        break
+                    # Gotta wait for some task to finish. That may
+                    # make some new task eligible.
+                    oven.wait_any(False)
+                    continue
+                task = pending.pop()
+                oven.start(task)
+                # After starting a task, always do an immediate poll -
+                # if it was a synchronous task, it is already done by
+                # the time oven.start() returns, so it might as well get
+                # removed from the oven and its dependents made
+                # eligible.
+                #
+                # Rather than doing oven.wait_task(True, task), we
+                # actually do a (single) poll for every task in the
+                # oven. This is necessary to ensure that an important
+                # task such as glibc:do_configure doesn't lie around
+                # as a zombie while we do lots of do_fetch etc. - we
+                # want the glibc recipe to proceed as fast as
+                # possible, so that other recipes'
+                # do_stage,do_configure and so on become eligible.
+                oven.wait_all(True)
+        finally:
+            oven.wait_all(False)
+
+        rusage.end()
+        oven.write_profiling_data()
+
+        for task in oven.failed_tasks:
+            exitcode = 1
+            print "\nERROR: %s failed  %s"%(task,task.logfn)
+            if self.debug_loglines:
+                with open(task.logfn, 'r') as fin:
+                    if self.debug_loglines < 0:
+                        print fin.read()
+                    else:
+                        print ''.join(fin.readlines()[-self.debug_loglines:])
         return exitcode
-
 
     def setup_tmpdir(self):
 
@@ -689,5 +712,3 @@ class OEliteBaker:
         if path.startswith(topdir):
             topdir = path[len(topdir)+1:]
         return topdir
-
-
