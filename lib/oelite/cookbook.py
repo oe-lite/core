@@ -211,17 +211,6 @@ class CookBook(Mapping):
             "recdeptask  TEXT, "
             "UNIQUE (task, deptype, recdeptask) ON CONFLICT IGNORE )")
 
-        # Note: yes, we do want to keep this type of task
-        # dependencies, although in OE-lite, you should NEVER EVER
-        # depend on other task outputs than what is packaged, but it
-        # can come in handy when automating some execution of some
-        # specific tasks to be able to describe it in a a recipe.
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS task_depend ( "
-            "task        INTEGER, "
-            "parent_item INTEGER, "
-            "parent_task INTEGER )")
-
         return
 
 
@@ -766,19 +755,6 @@ class CookBook(Mapping):
                 self.dbc.execute(
                     "INSERT INTO task_recdeptask (task, deptype, recdeptask) "
                     "VALUES (?, ?, ?)", ([task_id] + recdeptask))
-
-            for depends in recipe.meta.get_list_flag(task_name, "depends"):
-                try:
-                    (parent_item, parent_task) = depends.split(":")
-                    self.dbc.execute(
-                        "INSERT INTO task_depend "
-                        "(task, parent_item, parent_task) "
-                        "VALUES (?, ?, ?)",
-                        (task_id, parent_item, parent_task))
-                except ValueError:
-                    err("invalid task 'depends' value for %s "
-                        "(valid syntax is item:task): %s"%(
-                            task_name, depends))
 
         packages = recipe.meta.get_list("PACKAGES")
         if not packages:

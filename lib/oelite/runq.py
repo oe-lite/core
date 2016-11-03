@@ -28,17 +28,11 @@ class OEliteRunQueue:
         self.cookbook.db.execute("ATTACH ':memory:' AS runq")
         self.dbc = self.cookbook.db.cursor()
         self.init_db()
+        self._provider = {}
         return
 
 
     def init_db(self):
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS runq.provider ( "
-            "type		TEXT, "
-            "item		TEXT, "
-            "version		TEXT, "
-            "package		INTEGER )")
-
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS runq.task ( "
             "task		INTEGER, "
@@ -54,7 +48,6 @@ class OEliteRunQueue:
 
         self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS runq.depend ( "
-            "id			INTEGER PRIMARY KEY, "
             "task		INTEGER, " # references task.id
             "prime		INTEGER, " # boolean
             "parent_task	INTEGER, " # references task.id
@@ -65,15 +58,6 @@ class OEliteRunQueue:
             "UNIQUE (task, parent_task, deptype, package) "
             "ON CONFLICT IGNORE )")
 
-        self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS runq.recdepend ( "
-            "deptype            TEXT, "
-            "package		INTEGER, "
-            "parent_package	INTEGER )")
-
-        self.dbc.execute(
-            "CREATE INDEX runq.recdepend_idx ON recdepend (package)"
-        )
         return
 
 
@@ -256,21 +240,6 @@ class OEliteRunQueue:
                 # add each recdeptask for each package
                 add_package_depends(recdeptasks, deptype, depends)
 
-        # add inter-task dependencies
-        # (ie. do_sometask[depends] = "itemname:do_someothertask")
-        taskdepends = task.get_taskdepends()
-        for taskdepend in taskdepends:
-            task = self.cookbook.get_task(task=task)
-            raise Exception("OE-lite does not currently support inter-task dependencies! %s:%s"%(recipe.name, task.name))
-            if self.assume_provided(taskdepend[0]):
-                #debug("ASSUME_PROVIDED %s"%(
-                #        self.get_item(taskdepend[0])))
-                continue
-            (recipe, package) = self.get_recipe_provider(taskdepend[0])
-            if not recipe:
-                raise NoProvider(taskdepend[0], str(task))
-            add_task_depends([taskdepend[1]], [recipe])
-
         # can self references occur?
         #if task in tasks:
         #    die("self reference for task %s %s"%(
@@ -373,7 +342,7 @@ class OEliteRunQueue:
             recursion_path[1].append(str(item))
 
             # try to get cached recdepends list of packages
-            packages = self.get_recdepends(package, deptype)
+            packages = package.get_recdepends(deptype)
             if packages:
                 return packages + [package]
 
@@ -386,7 +355,7 @@ class OEliteRunQueue:
                         oelite.item.OEliteItem(depend, (deptype, package.type)),
                         _recursion_path, deptype)
                     packages.update(_packages)
-            self.set_recdepends(package, deptype, packages)
+            package.set_recdepends(deptype, packages)
             packages.add(package)
             return packages
 
@@ -419,29 +388,15 @@ class OEliteRunQueue:
         return (recipe, package)
 
     def _set_provider(self, item, package):
-        if item.version is None:
-            self.dbc.execute(
-                "INSERT INTO runq.provider (type, item, package) VALUES (?, ?, ?)",
-                (item.type, item.name, package.id))
-        else:
-            self.dbc.execute(
-                "INSERT INTO runq.provider (type, item, version, package) VALUES (?, ?, ?, ?)",
-                (item.type, item.name, item.version, package.id))
+        t = (item.type, item.name, item.version)
+        assert t not in self._provider
+        self._provider[t] = package
         return
 
 
     def _get_provider(self, item):
-        if item.version is None:
-            package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version IS NULL",
-                    (item.type, item.name)))
-        else:
-            package_id = flatten_single_value(self.dbc.execute(
-                    "SELECT package FROM runq.provider WHERE type=? AND item=? AND version=?",
-                (item.type, item.name, item.version)))
-        if not package_id:
-            return None
-        return self.cookbook.get_package(id=package_id)
+        t = (item.type, item.name, item.version)
+        return self._provider.get(t)
 
     def get_provider(self, item, allow_no_provider=False):
         """
@@ -784,31 +739,6 @@ class OEliteRunQueue:
                 "WHERE package=? "
                 "LIMIT 1", (package.id,)))
 
-
-    def set_recdepends(self, package, deptype, recdepends):
-        if not recdepends:
-            return
-        assert isinstance(package, oelite.package.OElitePackage)
-        def task_tuple(depend):
-            return (deptype, package.id, depend.id)
-        recdepends = map(task_tuple, recdepends)
-        self.dbc.executemany(
-            "INSERT INTO runq.recdepend "
-            "(deptype, package, parent_package) "
-            "VALUES (?, ?, ?)", recdepends)
-        return
-
-
-    def get_recdepends(self, package, deptype):
-        assert isinstance(package, oelite.package.OElitePackage)
-        recdepends = []
-        for package_id in self.dbc.execute(
-                "SELECT parent_package "
-                "FROM runq.recdepend "
-                "WHERE deptype=? "
-                "AND package=?", (deptype, package.id)):
-            recdepends.append(self.cookbook.get_package(id=package_id))
-        return recdepends
 
 
     def get_readytasks(self):

@@ -64,11 +64,6 @@ class OEliteTask:
             "WHERE deptype=? "
             "AND task=?", (deptype,self.id)))
 
-    def get_taskdepends(self):
-        return flatten_single_column_rows(self.cookbook.dbc.execute(
-            "SELECT parent_item, parent_task FROM task_depend WHERE task=?",
-            (self.id,)))
-
 
     def stampfile_path(self):
         try:
