@@ -92,8 +92,9 @@ python do_install_s6rc () {
             write_service_file(sv, 'dependencies', dependencies)
 
     for sv in bundle_services:
+        sv_ = sv.translate(string.maketrans('-', '_'))
         write_service_file(sv, 'type', 'bundle\n')
-        contents = d.get('USE_%s_s6rc_bundle' % sv) or ''
+        contents = d.get('USE_%s_s6rc_bundle' % sv_) or ''
         contents = '\n'.join(contents.split() + [''])
         write_service_file(sv, 'contents', contents)
 
