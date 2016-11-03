@@ -279,7 +279,11 @@ class DictMeta(MetaData):
     def _fill_expand_cache(self):
         if self.expand_cache_filled:
             return
-        for var in self.keys():
+        for var in self.smpl:
+            self._get(var)
+        for var, val in self.cplx.iteritems():
+            if "python" in val:
+                continue
             self._get(var)
         self.expand_cache_filled = True
 
