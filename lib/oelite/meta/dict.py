@@ -38,6 +38,12 @@ class DictMeta(MetaData):
         "export": 4,
     }
 
+    OVERRIDE_TYPE = {
+        "": 0,
+        ">": 1,
+        "<": 2,
+    }
+
     def __init__(self, meta=None):
         if isinstance(meta, file):
             self.smpl = copy.deepcopy(cPickle.load(meta))
@@ -148,16 +154,22 @@ class DictMeta(MetaData):
 
     def set_override(self, var, override, val):
         assert var not in ("OVERRIDES", "__overrides", "", ">", "<")
-        assert override[0] in ("", ">", "<")
-        try:
-            self.cplx[var]["__overrides"][override[0]][override[1]] = val
-        except KeyError, e:
-            if e.args[0] == var:
-                self.cplx[var] = {"__overrides": {'':{}, '>':{}, '<':{}}}
-            else:
-                assert e.args[0] == "__overrides"
-                self.cplx[var]["__overrides"] = {'':{}, '>':{}, '<':{}}
-            self.cplx[var]["__overrides"][override[0]][override[1]] = val
+
+        otype = self.OVERRIDE_TYPE[override[0]]
+
+        if var in self.cplx:
+            try:
+                olist = self.cplx[var]["__overrides"]
+            except KeyError:
+                olist = self.cplx[var]["__overrides"] = [None, None, None]
+        else:
+            olist = [None, None, None]
+            self.cplx[var] = {"__overrides": olist}
+
+        if olist[otype] is None:
+            olist[otype] = {}
+        olist[otype][override[1]] = val
+
         if var in self.smpl:
             self.cplx[var][""] = self.smpl[var]
             del self.smpl[var]
@@ -203,9 +215,10 @@ class DictMeta(MetaData):
                 override_dep.add("OVERRIDES")
             else:
                 override_dep = set(["OVERRIDES"])
-            var_overrides = self.cplx[var]["__overrides"]['']
-            append_overrides = self.cplx[var]["__overrides"]['>']
-            prepend_overrides = self.cplx[var]["__overrides"]['<']
+            olist = self.cplx[var]["__overrides"]
+            var_overrides = olist[self.OVERRIDE_TYPE['']] or {}
+            append_overrides = olist[self.OVERRIDE_TYPE['>']] or {}
+            prepend_overrides = olist[self.OVERRIDE_TYPE['<']] or {}
             oval = None
             append = ""
             prepend = ""
@@ -298,8 +311,16 @@ class DictMeta(MetaData):
 
     def get_override(self, var, override):
         try:
-            return self.cplx[var]["__overrides"][override[0]][override[1]]
+            otype = self.OVERRIDE_TYPE[override[0]]
+            return self.cplx[var]["__overrides"][otype][override[1]]
         except KeyError:
+            # No var in cplx, no __overrides in cplx[var], or
+            # override[1] not in the innermost dict
+            pass
+        except TypeError:
+            # Morally, the dict at [otype] is empty, but we've used
+            # None to save memory, so we get 'NoneType' object has no
+            # attribute '__getitem__' instead of KeyError.
             pass
         return None
 

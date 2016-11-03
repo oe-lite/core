@@ -313,18 +313,6 @@ def core_varname_expansion(d):
             flags = d.get_flags(varname, prune_var_value=False)
             #print "flags =",flags
             for flag in flags:
-                if flag == "__overrides":
-                    overrides = flags[flag]
-                    old_overrides = d.get_flag(expanded_varname, flag)
-                    if not old_overrides:
-                        d.set_flag(expanded_varname, flag, overrides)
-                        continue
-                    for type in overrides:
-                        for override_name in overrides[type]:
-                            old_overrides[type][override_name] = \
-                                overrides[type][override_name]
-                    d.set_flag(expanded_varname, flag, old_overrides)
-                    continue
                 d.set_flag(expanded_varname, flag, flags[flag])
             del d[varname]
 
