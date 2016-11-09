@@ -226,7 +226,7 @@ def do_packageqa(d):
     from glob import glob
     import oebakery # die, err, warn, info, debug
 
-    def BadElfType(Exception):
+    class BadElfType(Exception):
         pass
 
     os.environ['PATH'] = d.getVar("PATH", True)
