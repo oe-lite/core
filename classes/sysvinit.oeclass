@@ -7,7 +7,13 @@
 ## <chosen name> (declare this to RECIPE_FLAGS)
 ## SYSVINIT_SCRIPT_<chosen name> Set this to the name of your initscript.
 ## <chosen name>_sysvinit_start Set this to the start level.
-## <chosen name>_sysvinit_stop (optional) Set this to the stop level.
+## <chosen name>_sysvinit_stop Set this to the stop level.
+##
+## The level must be a two-digit string. To omit the start/stop
+## script, set <chosen name>_sysvinit_start / <chosen
+## name>_sysvinit_stop to False, e.g.
+##
+##   DEFAULT_USE_sshd_sysvinit_stop = False
 ##
 ## @useflag sysvinit Enable or disable sysvinit. Enabled by default by base
 ##          distro conf.
@@ -28,6 +34,7 @@ CLASS_FLAGS += "sysvinit"
 do_install[postfuncs] += "do_install_sysvinit"
 python do_install_sysvinit () {
     import os
+    import re
 
     path = d.get("D")
     os.chdir(path)
@@ -49,6 +56,17 @@ python do_install_sysvinit () {
         prio = d.get("USE_" + option)
         if not prio:
             continue
+        # "0" is the legacy way of disabling, and also what the token
+        # False currently translates to.
+        if prio == "0":
+            continue
+
+        # Anything but a two-digit string (or False, or "0") is a hard
+        # error.
+        if not re.match("[0-9][0-9]$", prio):
+            bb.error("Invalid value of 'USE_%s': %s" % (option, prio))
+            bb.error("Must be two-digit string or False")
+            return False
 
         if start_symlink:
             name = option[0:-len("_sysvinit_start")]
