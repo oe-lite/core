@@ -664,7 +664,7 @@ class CookBook(Mapping):
                     return True
                 for name in flags.split():
                     val = meta.get("USE_"+name)
-                    if not val:
+                    if not val or val == "0":
                         debug("skipping %s:%s_%s (required %s USE flag not set)"%(
                                 recipe_type, meta.get("PN"), meta.get("PV"),
                                 name))
