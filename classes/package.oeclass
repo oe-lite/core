@@ -210,7 +210,8 @@ def do_package(d):
         os.system("tar cf %s/%s_%s_%s.tar ."%(outdir, package, pv, buildhash))
         srcfile = "%s_%s_%s.tar"%(package, pv, buildhash)
         symlink = "%s/%s_%s.tar"%(outdir, package, pv)
-        if os.path.exists(symlink):
+        #lexists() to make sure we also check for broken symlinks
+        if os.path.lexists(symlink):
             os.remove(symlink)
         os.symlink(srcfile, symlink)
 
