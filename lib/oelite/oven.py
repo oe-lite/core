@@ -35,6 +35,7 @@ class OEliteOven:
         self.capacity = capacity
         self.baker = baker
         self.starttime = dict()
+        self.completed_tasks = []
         self.failed_tasks = []
         self.total = baker.runq.number_of_tasks_to_build()
         self.count = 0
@@ -99,14 +100,16 @@ class OEliteOven:
         if result is None:
             return None
         delta = self.remove(task)
+        task.task_time = delta
 
         task.recipe.remaining_tasks -= 1
         if result:
-            info("%s finished - %s s" % (task, delta))
+            info("%s finished - %.3f s" % (task, delta))
             task.build_done(self.baker.runq.get_task_buildhash(task))
             self.baker.runq.mark_done(task)
+            self.completed_tasks.append(task)
         else:
-            err("%s failed - %s s" % (task, delta))
+            err("%s failed - %.3f s" % (task, delta))
             self.failed_tasks.append(task)
             task.build_failed()
 
@@ -124,7 +127,7 @@ class OEliteOven:
             t = tasks[0]
             if self.stdout_isatty:
                 now = oelite.util.now()
-                info("waiting for %s (started %6.2f ago) to finish" % (t, now-self.starttime[t]))
+                info("waiting for %s (started %.3f seconds ago) to finish" % (t, now-self.starttime[t]))
             return self.wait_task(False, t)
         tasks.sort(key=lambda t: self.starttime[t])
         i = 0
@@ -140,7 +143,7 @@ class OEliteOven:
                 info("waiting for any of these to finish:")
                 now = oelite.util.now()
                 for t in tasks:
-                    info("  %-40s started %6.2f s ago" % (t, now-self.starttime[t]))
+                    info("  %-40s started %.3f seconds ago" % (t, now-self.starttime[t]))
             time.sleep(0.1)
         return None
 
@@ -162,4 +165,9 @@ class OEliteOven:
                 quarts = ", ".join(["%7.3f" % x for x in stats.quartiles])
                 out.write("%-16s  %7.1fs / %5d = %7.3fs  [%s]\n" %
                           (name, stats.sum, stats.count, stats.mean, quarts))
+
+        with oelite.profiling.profile_output("task_times.txt") as f:
+            for task in self.completed_tasks:
+                f.write("%s\t%.3f\t%.3f\t%.3f\t%.3f\n" %
+                        (task, task.task_time, task.prefunc_time, task.func_time, task.postfunc_time))
 
