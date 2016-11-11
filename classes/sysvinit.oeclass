@@ -31,15 +31,15 @@ RDEPENDS_${PN}:>USE_sysvinit = " ${RDEPENDS_SYSVINIT}"
 
 CLASS_FLAGS += "sysvinit"
 
-do_install[postfuncs] += "do_install_sysvinit"
+DO_INSTALL_SYSVINIT = ""
+DO_INSTALL_SYSVINIT:USE_sysvinit = "do_install_sysvinit"
+do_install[postfuncs] += "${DO_INSTALL_SYSVINIT}"
 python do_install_sysvinit () {
     import os
     import re
 
     path = d.get("D")
     os.chdir(path)
-    if not d.get("USE_sysvinit"):
-        return
 
     options = ((d.get("RECIPE_FLAGS") or "").split() +
                (d.get("CLASS_FLAGS") or "").split())
