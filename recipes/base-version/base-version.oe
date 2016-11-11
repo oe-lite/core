@@ -35,7 +35,7 @@ OESTACK_VERSION[nohash] = "1"
 RECIPE_FLAGS += "basefiles_manifest_version"
 BASE_VERSION:USE_basefiles_manifest_version = "${OESTACK_VERSION}"
 
-DEFAULT_USE_basefiles_manifest_version = "1"
+DEFAULT_USE_basefiles_manifest_version = True
 
 RECIPE_FLAGS += "basefiles_version"
 BASE_VERSION_POSTFUNCS:>USE_basefiles_version = " do_install_basefiles_version"
