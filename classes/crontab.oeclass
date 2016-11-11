@@ -13,12 +13,11 @@ require conf/crontab.conf
 CRONTAB_DEPENDS = " crond"
 RDEPENDS_${PN}:>USE_crontab = "${CRONTAB_DEPENDS}"
 
-do_install[postfuncs] += "do_install_crontab"
+DO_INSTALL_CRONTAB = ""
+DO_INSTALL_CRONTAB:USE_crontab = "do_install_crontab"
+do_install[postfuncs] += "${DO_INSTALL_CRONTAB}"
 python do_install_crontab () {
     import os
-
-    if not d.get('USE_crontab'):
-	return
 
     options = ((d.get('RECIPE_FLAGS') or "").split() +
                (d.get('CLASS_FLAGS') or "").split())
