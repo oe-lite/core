@@ -5,6 +5,8 @@ import sys
 import subprocess
 import time
 
+from oelite.compat import dup_cloexec
+
 now = time.time
 
 def format_textblock(text, indent=2, width=78, first_indent=None):
@@ -67,9 +69,9 @@ def stracehack(msg):
 class StdioSaver:
     class Fds:
         def __init__(self):
-            self.stdin = os.dup(sys.stdin.fileno())
-            self.stdout = os.dup(sys.stdout.fileno())
-            self.stderr = os.dup(sys.stderr.fileno())
+            self.stdin = dup_cloexec(sys.stdin.fileno())
+            self.stdout = dup_cloexec(sys.stdout.fileno())
+            self.stderr = dup_cloexec(sys.stderr.fileno())
             self.refs = 1
 
         def get(self):
@@ -92,7 +94,9 @@ class StdioSaver:
 
     def restore(self, close=True):
         os.dup2(self.fds.stdin, sys.stdin.fileno())
+        sys.stdout.flush()
         os.dup2(self.fds.stdout, sys.stdout.fileno())
+        sys.stderr.flush()
         os.dup2(self.fds.stderr, sys.stderr.fileno())
         if close:
             self.close()
