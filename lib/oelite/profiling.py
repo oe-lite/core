@@ -19,6 +19,44 @@ def profile_output(name, mode="a"):
         path = "/dev/null"
     return open(path, mode)
 
+trace_entries = []
+def flush_trace_entries():
+    if profiledir is None:
+        return
+    with profile_output("trace.txt", "a") as f:
+        for e in trace_entries:
+            f.write(e[0])
+            if (e[1] > 1):
+                f.write(" {%d times}" % e[1])
+            f.write("\n")
+    del trace_entries[:]
+
+def trace(payload = "", depth = 3):
+    import inspect
+
+    txt = ""
+    stack = inspect.stack()
+    for i in range(depth, 0, -1):
+        try:
+            frame = stack[i]
+            fn = os.path.basename(frame[1])
+            line = frame[2]
+            func = frame[3]
+            if txt:
+                txt += " -> "
+            txt += "%s:%d:%s()" % (fn, line, func)
+        except IndexError:
+            pass
+    if payload:
+        txt += ": " + payload
+    if trace_entries and trace_entries[-1][0] == txt:
+        trace_entries[-1][1] += 1
+    else:
+        e = [txt, 1]
+        trace_entries.append(e)
+        if len(trace_entries) > 10000:
+            flush_trace_entries()
+
 # Decorating any function with @profile_calls will record the duration
 # of every call of that function. Some statistics on these are
 # automatically printed to $profiledir/callstats.txt on exit.
@@ -37,18 +75,27 @@ def profile_calls(somefunc):
     return recordtime
 
 def write_call_stats():
+    collect = {}
+    for f in profiled_functions:
+        name = f.__name__
+        try:
+            srcfile = inspect.getsourcefile(f)
+        except TypeError:
+            srcfile = "<unknown>"
+        try:
+            lineno = str(inspect.getsourcelines(f)[1])
+        except:
+            lineno = "?"
+        t = (srcfile, lineno, name)
+        if not t in collect:
+            collect[t] = SimpleStats()
+        collect[t].update(profiled_functions[f])
     with profile_output("call_stats.txt") as out:
-        for f in sorted(profiled_functions.keys(), key=lambda x: x.__name__):
-            name = f.__name__
-            try:
-                srcfile = os.path.basename(inspect.getsourcefile(f))
-            except TypeError:
-                srcfile = "<unknown>"
-
-            stats = profiled_functions[f]
+        for (srcfile, lineno, name), stats in sorted(collect.iteritems()):
+            srcfile = os.path.basename(srcfile)
             stats.compute()
             out.write("%-12s\t%-24s\t%9.3fs / %5d = %7.3f " %
-                    (srcfile, f.__name__,
+                    (srcfile + ":" + lineno, name,
                      stats.sum, stats.count, stats.mean))
             out.write("[%s]\n" % ", ".join(["%7.3f" % x for x in stats.quartiles]))
 
@@ -171,13 +218,20 @@ def init(config):
     Rusage.print_deferred()
 
     atexit.register(write_call_stats)
+    atexit.register(flush_trace_entries)
 
 class SimpleStats:
     def __init__(self):
         self.data = []
 
+    def __iter__(self):
+        return iter(self.data)
+
     def append(self, val):
         self.data.append(val)
+
+    def update(self, other):
+        self.data.extend(other)
 
     def compute(self):
         self.data.sort()
@@ -203,3 +257,53 @@ class SimpleStats:
         if i == len(self.data)-1:
             return self.data[-1]
         return (p-i)*(self.data[i+1]-self.data[i]) + self.data[i]
+
+def do_memdump():
+    try:
+        from meliae import scanner
+    except ImportError:
+        sys.stderr.write("meliae module unavailable\n")
+        return
+    import gc
+    # to get more accurate and comparable results, do a full garbage
+    # collection before dumping.
+    gc.collect()
+    with profile_output("meliae.json") as f:
+        scanner.dump_all_objects(f)
+
+def do_dict_stat(small_limit = 4):
+    try:
+        from meliae import scanner
+    except ImportError:
+        sys.stderr.write("meliae module unavailable\n")
+        return
+    import gc
+    # to get more accurate and comparable results, do a full garbage
+    # collection before dumping.
+    gc.collect()
+    small_dict_keys = dict()
+    dict_sizes = dict()
+    for ob in scanner.get_recursive_items(gc.get_objects()):
+        if not isinstance(ob, dict):
+            continue
+        if ob is small_dict_keys:
+            continue
+        l = len(ob)
+        if l in dict_sizes:
+            dict_sizes[l] += 1
+        else:
+            dict_sizes[l] = 1
+        if l >= small_limit:
+            continue
+        t = tuple(sorted(ob.keys()))
+        if t in small_dict_keys:
+            small_dict_keys[t] += 1
+        else:
+            small_dict_keys[t] = 1
+    with profile_output("small_dict_keys.txt") as f:
+        for t in sorted(small_dict_keys.keys(), key=lambda t: (len(t),small_dict_keys[t])+t):
+            if small_dict_keys[t] > 1:
+                f.write("%s\t%d\n" % (repr(t), small_dict_keys[t]))
+    with profile_output("dict_sizes.txt") as f:
+        for t in sorted(dict_sizes.keys()):
+            f.write("%d\t%d\n" % (t, dict_sizes[t]))
