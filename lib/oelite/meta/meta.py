@@ -189,17 +189,6 @@ class MetaData(MutableMapping):
         return g
 
 
-    #def get_autoimport_pythonfuncs(self, g=None):
-    #    return self.get_pythonfuncs(self.get_vars(flag="autoimport"), g)
-
-
-    def get_pythonfuncs(self, functions, g=None):
-        pythonfuncs = {}
-        for function in functions:
-            pythonfuncs[function] = self.get_pythonfunc(function, g)
-        return pythonfuncs
-
-
     def get_pythonfunc(self, var, name=None, tmpdir=None, set_os_environ=True):
         #if function in self.pythonfunc_cache:
         #    return self.pythonfunc_cache[function]
