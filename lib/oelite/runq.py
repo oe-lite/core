@@ -502,15 +502,6 @@ class OEliteRunQueue:
                 task = self.cookbook.get_task(id=task_id)
                 self.set_task_pending(task)
 
-    def get_runabletask(self):
-        self.update_runabletasks()
-        if not self.runable:
-            return None
-        task_id = self.runable.pop()
-        if not task_id:
-            return None
-        return self.cookbook.get_task(id=task_id)
-
     def get_runabletasks(self):
         self.update_runabletasks()
         ret = [self.cookbook.get_task(id=task_id) for task_id in self.runable]
