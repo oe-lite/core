@@ -13,10 +13,6 @@ lib/oelite/
 	Files in the lib/oelite subdirectory is covered by the MIT License
 	(see COPYING.MIT).
 
-lib/oe
-	Files in the lib/oe subdirectory originates from the OpenEmbedded
-	project, and is covered by the MIT License (see COPYING.MIT).
-
 lib/bb/
 	Files in the lib/bb subdirectory originates from the BitBake project,
 	and is covered by the GNU General Public License, version 2 (see
