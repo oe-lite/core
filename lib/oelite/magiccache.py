@@ -39,3 +39,8 @@ def clear_cache():
     for f in cache.keys():
         cache[f].close()
         del cache[f]
+
+# Pre-cache the handle everybody in practice wants to use. Otherwise,
+# when we run python tasks in their own processes, they won't benefit
+# from this cache.
+open().close()
