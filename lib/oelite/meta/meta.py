@@ -504,7 +504,7 @@ class MetaData(MutableMapping):
             return oelite.function.ShellFunction(self, name)
 
     @oelite.profiling.profile_calls
-    def signature(self, ignore_flags_re=re.compile("|".join(("__", "emit$", "filename"))),
+    def signature(self, ignore_flags_re=re.compile("|".join(("__", "emit$", "filename$", "lineno$"))),
                   force=False, dump=None):
         import hashlib
 
