@@ -279,63 +279,6 @@ def join_deps(deps):
             result.append(dep)
     return ", ".join(result)
 
-def lockfile(name):
-    """
-    Use the file fn as a lock file, return when the lock has been acquired.
-    Returns a variable to pass to unlockfile().
-    """
-    path = os.path.dirname(name)
-    if not os.path.isdir(path):
-        logger.error("Lockfile destination directory '%s' does not exist", path)
-        sys.exit(1)
-
-    while True:
-        # If we leave the lockfiles lying around there is no problem
-        # but we should clean up after ourselves. This gives potential
-        # for races though. To work around this, when we acquire the lock
-        # we check the file we locked was still the lock file on disk.
-        # by comparing inode numbers. If they don't match or the lockfile
-        # no longer exists, we start again.
-
-        # This implementation is unfair since the last person to request the
-        # lock is the most likely to win it.
-
-        try:
-            lf = open(name, 'a+')
-            fileno = lf.fileno()
-            fcntl.flock(fileno, fcntl.LOCK_EX)
-            statinfo = os.fstat(fileno)
-            if os.path.exists(lf.name):
-                statinfo2 = os.stat(lf.name)
-                if statinfo.st_ino == statinfo2.st_ino:
-                    return lf
-            lf.close()
-        except Exception:
-            continue
-
-def unlockfile(lf):
-    """
-    Unlock a file locked using lockfile()
-    """
-    os.unlink(lf.name)
-    fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
-    lf.close()
-
-def md5_file(filename):
-    """
-    Return the hex string representation of the MD5 checksum of filename.
-    """
-    try:
-        import hashlib
-        m = hashlib.md5()
-    except ImportError:
-        import md5
-        m = md5.new()
-
-    for line in open(filename):
-        m.update(line)
-    return m.hexdigest()
-
 def remove(path, recurse=False):
     """Equivalent to rm -f or rm -rf"""
     import os, errno, shutil
@@ -346,35 +289,6 @@ def remove(path, recurse=False):
             shutil.rmtree(path)
         elif exc.errno != errno.ENOENT:
             raise
-
-def prunedir(topdir):
-    # Delete everything reachable from the directory named in 'topdir'.
-    # CAUTION:  This is dangerous!
-    for root, dirs, files in os.walk(topdir, topdown = False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            if os.path.islink(os.path.join(root, name)):
-                os.remove(os.path.join(root, name))
-            else:
-                os.rmdir(os.path.join(root, name))
-    os.rmdir(topdir)
-
-#
-# Could also use return re.compile("(%s)" % "|".join(map(re.escape, suffixes))).sub(lambda mo: "", var)
-# but thats possibly insane and suffixes is probably going to be small
-#
-def prune_suffix(var, suffixes, d):
-    # See if var ends with any of the suffixes listed and
-    # remove it if found
-    for suffix in suffixes:
-        if var.endswith(suffix):
-            return var.replace(suffix, "")
-    return var
-
-def mkdirhier(directory):
-    import oelite.util
-    oelite.util.makedirs(directory)
 
 def movefile(src, dest, newmtime = None, sstat = None):
     """Moves a file from src to dest, preserving all permissions and
@@ -537,19 +451,3 @@ def copyfile(src, dest, newmtime = None, sstat = None):
         os.utime(dest, (sstat[stat.ST_ATIME], sstat[stat.ST_MTIME]))
         newmtime = sstat[stat.ST_MTIME]
     return newmtime
-
-def which(path, item, direction = 0):
-    """
-    Locate a file in a PATH
-    """
-
-    paths = (path or "").split(':')
-    if direction != 0:
-        paths.reverse()
-
-    for p in paths:
-        next = os.path.join(p, item)
-        if os.path.exists(next):
-            return next
-
-    return ""
