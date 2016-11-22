@@ -16,7 +16,6 @@ addtask configure after stage fetch unpack patch
 addtask compile after configure
 addtask install after compile
 addtask build after install
-addtask buildall after build
 addtask clean
 
 do_build = ""
@@ -89,9 +88,6 @@ python do_clean() {
     bb.note("removing " + stampdir)
     shutil.rmtree(stampdir)
 }
-
-do_buildall[recadaptask] = "do_build"
-do_buildall[func] = True
 
 do_configure[dirs] = "${S} ${B}"
 
