@@ -381,8 +381,6 @@ class MetaData(MutableMapping):
         "TMPDIR",
         "OEPATH",
         "OEPATH_PRETTY",
-        "OERECIPES",
-        "OERECIPES_PRETTY",
         "FILE",
         "COMPATIBLE_BUILD_ARCHS",
         "COMPATIBLE_HOST_ARCHS",
