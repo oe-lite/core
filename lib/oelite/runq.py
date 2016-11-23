@@ -1094,10 +1094,6 @@ class OEliteRunQueue:
         return
 
 
-    def set_task_failed(self, task):
-        return self._set_task_status(task, -1)
-
-
     def set_task_metahash(self, task, metahash):
         assert isinstance(task, oelite.task.OEliteTask)
         self.dbc.execute(
