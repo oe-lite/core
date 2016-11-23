@@ -561,18 +561,6 @@ class OEliteRunQueue:
         return tasks
 
 
-    def print_runq_tasks(self):
-        runq_tasks = self.dbc.execute(
-            "SELECT prime,build,status,relax,metahash,tmphash,mtime,task "
-            "FROM runq.task").fetchall()
-        for row in runq_tasks:
-            for col in row:
-                print "%s "%(col),
-            print "%s:%s"%(self.get_recipe(task=row[7]).get_name(),
-                           self.cookbook.get_task(task=row[7]))
-        return
-
-
     def get_tasks_to_build_description(self, hashinfo=False):
         tasks = []
         if hashinfo:
