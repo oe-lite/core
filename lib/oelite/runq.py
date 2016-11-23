@@ -185,17 +185,6 @@ class OEliteRunQueue:
 
         package_depends = {}
 
-        # helper to add multipe task_depends
-        def add_task_depends(task_names, recipes):
-            for task_name in task_names:
-                for recipe in recipes:
-                    task = self.cookbook.get_task(recipe, task_name)
-                    if task:
-                        task_depends.add(task)
-                    else:
-                        debug("not adding unsupported task %s:%s"%(
-                                recipe, task_name))
-
         def add_package_depends(task_names, deptype, depends):
             if not depends:
                 return
