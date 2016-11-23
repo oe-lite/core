@@ -115,11 +115,6 @@ class OEliteTask:
         return
 
 
-    def task_cleaned(self):
-        hashpath = self.stampfile_path()[1]
-        if os.path.exists(hashpath):
-            os.remove(hashpath)
-
     @oelite.profiling.profile_calls
     def prepare(self):
         meta = self.meta()
