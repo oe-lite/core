@@ -66,19 +66,19 @@ RDEPENDS_SDK_LIBC_EXTRA = "target:libnss-files-dev target:libnss-dns-dev"
 RDEPENDS_SDK_LIBC_EXTRA:TARGET_LIBC_uclibc = ""
 
 CLASS_FLAGS += "sdk_cxx"
-DEFAULT_USE_sdk_cxx = "1"
+DEFAULT_USE_sdk_cxx = True
 RDEPENDS_SDK += "${RDEPENDS_SDK_CXX}"
 RDEPENDS_SDK_CXX = ""
 RDEPENDS_SDK_CXX:USE_sdk_cxx = "gcc-g++ target:libstdc++-dev"
 
 CLASS_FLAGS += "sdk_gdb"
-DEFAULT_USE_sdk_gdb = "1"
+DEFAULT_USE_sdk_gdb = True
 RDEPENDS_SDK += "${RDEPENDS_SDK_GDB}"
 RDEPENDS_SDK_GDB = ""
 RDEPENDS_SDK_GDB:USE_sdk_gdb = "gdb"
 
 CLASS_FLAGS += "sdk_uboot_mkimage"
-DEFAULT_USE_sdk_uboot_mkimage = "1"
+DEFAULT_USE_sdk_uboot_mkimage = True
 RDEPENDS_SDK += "${RDEPENDS_SDK_UBOOT_MKIMAGE}"
 RDEPENDS_SDK_UBOOT_MKIMAGE = ""
 RDEPENDS_SDK_UBOOT_MKIMAGE:USE_sdk_uboot_mkimage = "${UBOOT_MKIMAGE}"

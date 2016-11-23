@@ -13,7 +13,7 @@ inherit image image_mdev image_inetd image_crontab image_makedevs image_inittab 
 
 CLASS_FLAGS += "ramdisk_image \
     ramdisk_image_name ramdisk_image_compression"
-DEFAULT_USE_ramdisk_image = "0"
+DEFAULT_USE_ramdisk_image = False
 DEFAULT_USE_ramdisk_image_name = "${IMAGE_BASENAME}"
 DEFAULT_USE_ramdisk_image_compression = "none"
 

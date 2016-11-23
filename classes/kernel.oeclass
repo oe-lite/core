@@ -195,7 +195,7 @@ KERNEL_UIMAGE_DEPENDS = "${@['', 'native:util/mkimage']['${USE_kernel_imagetype}
 CLASS_FLAGS += "kernel_uimage \
     kernel_uimage_entrypoint kernel_uimage_loadaddress kernel_uimage_name"
 KERNEL_UIMAGE_DEPENDS:USE_kernel_uimage = "native:util/mkimage"
-DEFAULT_USE_kernel_uimage = "0"
+DEFAULT_USE_kernel_uimage = False
 DEFAULT_USE_kernel_uimage_name = "${DISTRO}/${PV}/${MACHINE}"
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_uimage = " do_compile_kernel_uimage"
