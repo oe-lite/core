@@ -1098,14 +1098,6 @@ class OEliteRunQueue:
         return self._set_task_status(task, -1)
 
 
-    def prune_done_tasks(self):
-        self.dbc.execute(
-            "DELETE FROM runq.depend WHERE EXISTS "
-            "( SELECT * FROM runq.task "
-            "WHERE runq.task.task = runq.depend.parent_task AND status=3 )")
-        return
-
-
     def set_task_metahash(self, task, metahash):
         assert isinstance(task, oelite.task.OEliteTask)
         self.dbc.execute(
