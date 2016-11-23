@@ -1077,11 +1077,6 @@ class OEliteRunQueue:
     def set_task_pending(self, task):
         return self._set_task_status(task, 1)
 
-
-    def set_task_running(self, task):
-        return self._set_task_status(task, 2)
-
-
     def set_task_done(self, task, delete):
         assert isinstance(task, oelite.task.OEliteTask)
         self._set_task_status(task, 3)
