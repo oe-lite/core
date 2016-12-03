@@ -44,6 +44,7 @@
 ## @var KERNEL_IMAGE_DEPLOY_LINK The link name of the symlink to
 ##      KERNEL_IMAGE_DEPLOY_FILE.
 ## @var KERNEL_DTB_DIR Location of the compiled devicetree.
+## @var KERNEL_DTB_VENDOR Vendor subdir of the compiled devicetree.
 ## @var KERNEL_DTB_FILE Name of the compiled devicetree
 ## @var KERNEL_DTB_DEPLOY_NAME name of the deployed devicetree. Used in
 ##      KERNEL_DTB_DEPLOY_FILE and in
@@ -248,18 +249,20 @@ UIMAGE_KERNEL_OUTPUT = ""
 UIMAGE_KERNEL_OUTPUT:USE_kernel_uimage = "arch/${KERNEL_ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
-CLASS_FLAGS += "kernel_external_dtb kernel_dtc kernel_dtc_flags kernel_dts"
+CLASS_FLAGS += "kernel_external_dtb kernel_dtc kernel_dtc_flags kernel_dts_vendor kernel_dts"
 DEFAULT_USE_kernel_dtc_flags = "-R 8 -p 0x3000"
 
 KERNEL_DTS_DIR = "arch/${KERNEL_ARCH}/boot/dts/"
 KERNEL_DTS_DIR:USE_kernel_dts_dir = "${USE_kernel_dts_dir}"
 KERNEL_DTS_FILE = "${MACHINE}.dts"
 KERNEL_DTS_NAME = "${MACHINE}"
+KERNEL_DTB_VENDOR = ""
 KERNEL_DTB_FILE = ""
 
 addhook kernel_devicetree_init to post_recipe_parse after set_useflags
 def kernel_devicetree_init(d):
     kernel_dtb = d.get('USE_kernel_external_dtb')
+    kernel_dts_vendor = d.get('USE_kernel_dts_vendor')
     kernel_dts = d.get('USE_kernel_dts')
     if (kernel_dts and kernel_dts != "1"):
         if(kernel_dtb):
@@ -268,6 +271,8 @@ def kernel_devicetree_init(d):
             " and USE_kernel_dts makes no sense")
         dts_name,ext = os.path.splitext(kernel_dts)
         d.set('KERNEL_DTS_FILE', kernel_dts)
+        if (kernel_dts_vendor and kernel_dts_vendor != "1"):
+            d.set('KERNEL_DTB_VENDOR', kernel_dts_vendor)
         d.set('KERNEL_DTB_FILE',dts_name+'.dtb')
         d.set('KERNEL_DTS_NAME',dts_name)
         d.set('KERNEL_DTB_TARGET',dts_name)
@@ -287,12 +292,12 @@ do_compile_kernel_dtc() {
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_dts += " do_compile_kernel_dts"
 do_compile_kernel_dts() {
-	oe_runmake "${KERNEL_DTB_FILE}"
+	oe_runmake "${KERNEL_DTB_VENDOR}/${KERNEL_DTB_FILE}"
 }
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_external_dtb += " do_compile_kernel_external_dtb"
 do_compile_kernel_external_dtb() {
-	cp ${SRCDIR}/${KERNEL_DTB_FILE} ${S}/${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE}
+	cp ${SRCDIR}/${KERNEL_DTB_FILE} ${S}/${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}/${KERNEL_DTB_FILE}
 }
 
 CLASS_FLAGS += "kernel_perf"
@@ -325,7 +330,7 @@ do_install_kernel () {
     install -m 0644 ${KERNEL_IMAGE} ${D}${bootdir}/${KERNEL_IMAGE_FILENAME}
 
     if [ -n "${KERNEL_DTB_FILE}" ] ; then
-	install -m 0644 ${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE} ${D}${bootdir}/${KERNEL_DTB_FILENAME}
+	install -m 0644 ${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}/${KERNEL_DTB_FILE} ${D}${bootdir}/${KERNEL_DTB_FILENAME}
     fi
 
     if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
@@ -407,9 +412,9 @@ do_deploy() {
 	>${IMAGE_DEPLOY_DIR}/${KERNEL_IMAGE_DEPLOY_FILE}.md5
 
     if [ -n "${KERNEL_DTB_FILE}" ] ; then
-	install -m 0644 "${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE}" \
+	install -m 0644 "${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}/${KERNEL_DTB_FILE}" \
 	    ${IMAGE_DEPLOY_DIR}/${KERNEL_DTB_DEPLOY_FILE}
-	md5sum <"${KERNEL_DTS_DIR}/${KERNEL_DTB_FILE}" \
+	md5sum <"${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}/${KERNEL_DTB_FILE}" \
 	    >${IMAGE_DEPLOY_DIR}/${KERNEL_DTB_DEPLOY_FILE}.md5
     fi
 
