@@ -131,12 +131,12 @@ def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
         return False
 
     if not os.path.exists(filename):
-        err("The fetch command returned success for url %s but %s doesn't exist?!" % (uri, filename))
+        err("The fetch command returned success for url %s but %s doesn't exist?!" % (url, filename))
         return False
 
     if os.path.getsize(filename) == 0:
         os.remove(filename)
-        err("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (uri))
+        err("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (url))
         return False
 
     return True
