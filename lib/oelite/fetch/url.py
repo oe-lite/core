@@ -22,7 +22,7 @@ class UrlFetcher():
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
         self.proxies = self.get_proxies(d)
-        self.ftpmode = self.get_disable_ftp_epsv(d)
+        self.passive_ftp = self.get_passive_ftp(d)
         return
 
     def signature(self):
@@ -53,7 +53,7 @@ class UrlFetcher():
             if not self.uri.allow_url(url):
                 print "Skipping", url
                 continue
-            if grab(url, self.localpath, proxies=self.proxies, ftpmode=self.ftpmode):
+            if grab(url, self.localpath, proxies=self.proxies, passive_ftp=self.passive_ftp):
                 if self.grabbedsignature():
                     grabbed = True
                     break
@@ -92,19 +92,16 @@ class UrlFetcher():
                 proxies[v] = proxy
         return proxies
 
-    def get_disable_ftp_epsv(self, d):
-        val = d.get("DISABLE_FTP_EXTENDED_PASSIVE_MODE") or None
-        if val is not None:
-            if val == "0":
-                return False
-            if val == "1":
-                return True
-        return False
+    def get_passive_ftp(self, d):
+        val = d.get("DISABLE_FTP_EXTENDED_PASSIVE_MODE")
+        if val == "1":
+            return False
+        return True
 
 
 
 
-def grab(url, filename, timeout=120, retry=5, proxies=None, ftpmode=False):
+def grab(url, filename, timeout=120, retry=5, proxies=None, passive_ftp=True):
     print "Grabbing", url
 
     if proxies:
@@ -112,11 +109,16 @@ def grab(url, filename, timeout=120, retry=5, proxies=None, ftpmode=False):
         env.update(proxies)
     else:
         env = None # this is the default, uses a copy of the current environment
-        
+
+    if passive_ftp:
+        psvftp = '--passive-ftp'
+    else:
+        psvftp = '--no-passive-ftp'
+
     if not os.path.exists(os.path.dirname(filename)):
         os.makedirs(os.path.dirname(filename))
 
-    cmd = ['wget', '-t', str(retry), '-T', str(timeout), '--passive-ftp', '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', filename]
+    cmd = ['wget', '-t', str(retry), '-T', str(timeout), psvftp, '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', filename]
 
     returncode = subprocess.call(cmd, env=env)
 
