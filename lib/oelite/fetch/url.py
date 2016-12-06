@@ -21,7 +21,7 @@ class UrlFetcher():
         self.signatures = d.get("FILE") + ".sig"
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
-        self.proxies = self.get_proxy(d)
+        self.proxies = self.get_proxies(d)
         self.ftpmode = self.get_disable_ftp_epsv(d)
         return
 
@@ -53,7 +53,7 @@ class UrlFetcher():
             if not self.uri.allow_url(url):
                 print "Skipping", url
                 continue
-            if grab(url, self.localpath, proxy=self.proxies, ftpmode=self.ftpmode):
+            if grab(url, self.localpath, proxies=self.proxies, ftpmode=self.ftpmode):
                 if self.grabbedsignature():
                     grabbed = True
                     break
@@ -84,24 +84,12 @@ class UrlFetcher():
         m.update(open(self.localpath, "r").read())
         return m.hexdigest()
 
-    def get_proxy(self, d):
-        proxy = d.get("http_proxy")
-        proxies = None
-        if not proxy is None:
-            proxies = {}
-            proxies["http"] = proxy
-
-            ftpproxy = d.get("ftp_proxy")
-            if ftpproxy is None:
-                proxies["ftp"] = proxy
-            else:
-                proxies["ftp"] = ftpproxy
-
-            httpsproxy = d.get("https_proxy")
-            if httpsproxy is None:
-                proxies["https"] = proxy
-            else:
-                proxies["https"] = httpsproxy
+    def get_proxies(self, d):
+        proxies = {}
+        for v in ("http_proxy", "ftp_proxy", "https_proxy"):
+            proxy = d.get(v)
+            if proxy:
+                proxies[v] = proxy
         return proxies
 
     def get_disable_ftp_epsv(self, d):
@@ -116,15 +104,21 @@ class UrlFetcher():
 
 
 
-def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
+def grab(url, filename, timeout=120, retry=5, proxies=None, ftpmode=False):
     print "Grabbing", url
 
+    if proxies:
+        env = os.environ.copy()
+        env.update(proxies)
+    else:
+        env = None # this is the default, uses a copy of the current environment
+        
     if not os.path.exists(os.path.dirname(filename)):
         os.makedirs(os.path.dirname(filename))
 
     cmd = ['wget', '-t', str(retry), '-T', str(timeout), '--passive-ftp', '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', filename]
 
-    returncode = subprocess.call(cmd)
+    returncode = subprocess.call(cmd, env=env)
 
     if returncode != 0:
         err("Error %s %d" % (cmd, returncode))
