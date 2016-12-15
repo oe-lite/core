@@ -384,6 +384,9 @@ class MetaData(MutableMapping):
         "OERECIPES",
         "OERECIPES_PRETTY",
         "FILE",
+        "FILE_DIRNAME",
+        "FILESPATH_EXISTS",
+        "SIGNATURE_FILE",
         "COMPATIBLE_BUILD_ARCHS",
         "COMPATIBLE_HOST_ARCHS",
         "COMPATIBLE_TARGET_ARCHS",
@@ -403,11 +406,6 @@ class MetaData(MutableMapping):
 
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars=[],
                  flags=False, ignore_flags_re=None):
-        if pretty:
-            eol = "\n\n"
-        else:
-            eol = "\n"
-
         var_flags = self.get_flags(key)
 
         if flags:
@@ -436,15 +434,18 @@ class MetaData(MutableMapping):
             expand = FULL_EXPANSION
         if not expand and func != "python":
             expand = OVERRIDES_EXPANSION
-        val = self.get(key, expand)
+        val,deps = self._get(key, expand)
 
         if not val:
             return 0
 
         val = str(val)
 
-        for dynvar_name, dynvar_val in dynvars:
-            val = string.replace(val, dynvar_val, dynvar_name)
+        if deps:
+            for dynvar_name, dynvar_token, dynvar_val in dynvars:
+                if dynvar_name not in deps:
+                    continue
+                val = string.replace(val, dynvar_val, dynvar_token)
 
         if pretty and expand and expand != OVERRIDES_EXPANSION:
             o.write("# %s=%r\n"%(key, self.get(key, OVERRIDES_EXPANSION)))
@@ -455,32 +456,33 @@ class MetaData(MutableMapping):
             return
 
         if func == "bash":
-            o.write("%s() {\n%s}%s"%(key, val, eol))
+            o.write("%s() {\n%s}\n\n"%(key, val))
             return
 
         if pretty and var_flags.get("export"):
             o.write("export ")
 
-        o.write("%s=%s%s"%(key, repr(val), eol))
+        o.write("%s=%s\n\n"%(key, repr(val)))
         return
 
 
-    def dump(self, o=sys.__stdout__, pretty=True, nohash=False, only=None,
-             flags=False, ignore_flags_re=None):
+    def dump(self, o=sys.__stdout__, pretty=True, show_nohash=False, only=None,
+             dynvar_replacement=True, flags=False, ignore_flags_re=None):
 
         dynvars = []
-        for varname in ("WORKDIR", "TOPDIR", "DATETIME",
-                        "MANIFEST_ORIGIN_URL", "MANIFEST_ORIGIN_SRCURI",
-                        "MANIFEST_ORIGIN_PARAMS"):
-            varval = self.get(varname, True)
-            if varval:
-                dynvars.append(("${" + varname + "}", varval))
+        if dynvar_replacement:
+            for varname in ("WORKDIR", "TOPDIR", "DATETIME",
+                            "MANIFEST_ORIGIN_URL", "MANIFEST_ORIGIN_SRCURI",
+                            "MANIFEST_ORIGIN_PARAMS"):
+                varval = self.get(varname, True)
+                if varval:
+                    dynvars.append((varname, "${" + varname + "}", varval))
 
         keys = sorted((key for key in self.keys() if not key.startswith("__")))
         for key in keys:
             if only and key not in only:
                 continue
-            if not nohash:
+            if not show_nohash:
                 if key in self.builtin_nohash:
                     continue
                 if self.get_flag(key, "nohash"):
@@ -532,13 +534,13 @@ class MetaData(MutableMapping):
         if dump:
             assert isinstance(dump, basestring)
             dumper = StringOutput()
-            self.dump(dumper, pretty=False, nohash=False,
+            self.dump(dumper, pretty=False, show_nohash=False,
                       flags=True, ignore_flags_re=ignore_flags_re)
             dumpdir = os.path.dirname(dump)
             if dumpdir and not os.path.exists(dumpdir):
                 os.makedirs(dumpdir)
             open(dump, "w").write(dumper.blob)
-        self.dump(hasher, pretty=False, nohash=False,
+        self.dump(hasher, pretty=False, show_nohash=False,
                   flags=True, ignore_flags_re=ignore_flags_re)
 
         self._signature = str(hasher)

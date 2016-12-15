@@ -85,6 +85,9 @@ def add_show_parser_options(parser):
     parser.add_option("--nohash",
                       action="store_true",
                       help="don't show variables that will be ignored when computing data hash")
+    parser.add_option("--nodynvar",
+                      action="store_true",
+                      help="do not replace occurrences of values 'dynvars' (e.g. DATETIME) with their unexpanded form (e.g. '${DATETIME}')")
     parser.add_option("-t", "--task",
                       action="store", type="str", default=None,
                       metavar="TASK",
@@ -257,7 +260,8 @@ class OEliteBaker:
 
         #meta.dump(pretty=False, nohash=False, flags=True,
         #          ignore_flags=re.compile("filename|lineno"),
-        meta.dump(pretty=True, nohash=(not self.options.nohash),
+        meta.dump(pretty=True, show_nohash=(not self.options.nohash),
+                  dynvar_replacement=(not self.options.nodynvar),
                   only=(self.things_todo[1:] or None))
 
         return 0
