@@ -31,6 +31,10 @@ do_install() {
 	mkdir -p ${INSTALL_HDR_PATH}
 	make ARCH=${KERNEL_ARCH} headers_install \
 		INSTALL_HDR_PATH="${INSTALL_HDR_PATH}/.."
+	# Remove kernel build system artifacts
+	find ${INSTALL_HDR_PATH} \
+		\( -name .install -o -name ..install.cmd \) \
+		-delete
 }
 
 PACKAGES = "${PN}"
