@@ -1,5 +1,6 @@
 from oelite.meta import *
 import oelite.path
+import oelite.dicttrim
 
 import sys
 import copy
@@ -72,6 +73,9 @@ class DictMeta(MetaData):
     def copy(self):
         return DictMeta(meta=self)
 
+    def trim(self):
+        self.smpl = oelite.dicttrim.trim(self.smpl)
+        self.cplx = oelite.dicttrim.trim(self.cplx)
 
     def __repr__(self):
         return '%s()'%(self.__class__.__name__)
