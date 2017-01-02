@@ -446,39 +446,6 @@ class OEliteRunQueue:
         return choose_provider(providers)
 
 
-    def update_task(self, task):
-
-        get_recipe_datahash(task.recipe)
-        if task is fetch:
-            get_recipe_srchash(task.recipe)
-        get_dependencies_hash(task)
-        taskhash = hashit(recipehash, srchash, dephash)
-        run=0
-        if has_build(task):
-            if datahash != build_datahash(task):
-                info("recipe changes trigger run")
-                run=1
-            if srchash != build_srchash(task):
-                info("src changes trigger run")
-                run=1
-            if dephash != build_dephash(task):
-                info("dep changes trigger run")
-                run=1
-        else:
-            info("no existing build")
-            run=1
-        if run:
-            set_runable(task, datahash, srchash, dephash)
-            # this marks task for run
-            # and saves a combined taskhash for following
-            # iterations (into runq_taskdepend.hash)
-            # and all hashes for saving with build
-            # result
-            set_runq_taskdepend_checked(task)
-
-        return
-
-
     @oelite.profiling.profile_calls
     def update_runabletasks(self):
         newrunable = self.get_readytasks()
