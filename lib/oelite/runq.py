@@ -553,13 +553,6 @@ class OEliteRunQueue:
                 "SELECT COUNT(*) FROM runq.task WHERE build IS NOT NULL"))
 
 
-    def add_runq_task(self, task):
-        assert isinstance(task, int)
-        self.dbc.execute(
-            "INSERT INTO runq.task (task) VALUES (?)", (task,))
-        return
-
-
     def add_runq_tasks(self, tasks):
         def task_id_tuple(v):
             return (v.id,)
