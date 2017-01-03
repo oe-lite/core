@@ -78,6 +78,8 @@ class CookBook(Mapping):
         if fail:
             die("Errors while adding recipes to cookbook")
 
+        self.create_world_recipes()
+
         #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
         return
@@ -840,3 +842,48 @@ class CookBook(Mapping):
             c.remaining_tasks = len(c.tasks)
             del descendants[c]
         assert(len(descendants) == 0)
+
+    def create_world_recipes(self):
+        tmpdir = self.config.get("TMPDIR") or "tmp"
+        recipe_file = os.path.join(tmpdir, "recipes", "world.oe")
+        recipe_types = ("machine", "native", "sdk",
+                        "cross", "sdk-cross", "canadian-cross")
+        tasks = (
+            "do_stage",
+            "do_fstage",
+            "do_fetch",
+            "do_unpack",
+            "do_patch",
+            "do_configure",
+            "do_compile",
+            "do_install",
+            "do_chrpath",
+            "do_split",
+            "do_package",
+            "do_build",
+        )
+
+        oelite.util.makedirs(os.path.dirname(recipe_file))
+        with open(recipe_file, "w") as f:
+            f.write(
+'''# This "recipe" is automatically generated on every "oe bake"
+# invocation. Edits will be lost. It is used internally to implement
+# the "world" and "universe" pseudo-targets.
+
+RECIPE_TYPES = ""
+__dont_cache = True
+CLASS_DEPENDS = ""
+''')
+
+            for t in recipe_types:
+                f.write("\n")
+                f.write('RECIPE_TYPES += "%s"\n' % t)
+                f.write('DEPENDS:%s = """\n' % t)
+                for r in self.get_recipes(type=t):
+                    f.write('%s\n' % str(r))
+                f.write('"""\n')
+            for t in tasks:
+                f.write('def %s(d):\n    return True\n' % t)
+                f.write('%s[prefuncs] = ""\n' % t)
+                f.write('%s[postfuncs] = ""\n' % t)
+        self.add_recipefile(recipe_file)
