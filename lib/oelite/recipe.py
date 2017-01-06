@@ -7,7 +7,7 @@ import sys
 import os
 import cPickle
 import warnings
-
+import shutil
 
 def unpickle(file, filename, cookbook):
     type = cPickle.load(file)
@@ -44,6 +44,7 @@ class OEliteRecipe:
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
             # (type, itemname) => version
             self.item_deps[deptype] = set()
+        self.rmwork = False
         return
 
 
@@ -124,3 +125,27 @@ class OEliteRecipe:
         if dont_cache and dont_cache != "0":
             return False
         return True
+
+    def do_rmwork(self):
+        if not self.rmwork:
+            return
+
+        workdir = self.meta.get("WORKDIR")
+        if not workdir:
+            print "ERROR: WORKDIR not set for %s" % self
+            return
+        tmp = os.path.basename(self.meta.get("T"))
+        stampdir = self.meta.get("STAMPDIR")
+        try:
+            shutil.rmtree(stampdir)
+            for entry in os.listdir(workdir):
+                if entry == tmp:
+                    continue
+                e = os.path.join(workdir, entry)
+                if os.path.isdir(e):
+                    shutil.rmtree(e)
+                else:
+                    os.remove(e)
+
+        except Exception as e:
+            print "ERROR: exception %s during rmwork for %s" % (e, self)
