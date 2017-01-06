@@ -132,20 +132,28 @@ class OEliteRecipe:
 
         workdir = self.meta.get("WORKDIR")
         if not workdir:
-            print "ERROR: WORKDIR not set for %s" % self
+            print "ERROR: rmwork %s: WORKDIR not set" % self
             return
-        tmp = os.path.basename(self.meta.get("T"))
         stampdir = self.meta.get("STAMPDIR")
+        if not stampdir:
+            print "ERROR: rmwork %s: STAMPDIR not set" % self
+            return
+        dirs = (self.meta.get("RMWORK_DIRS") or "").split()
         try:
             shutil.rmtree(stampdir)
-            for entry in os.listdir(workdir):
-                if entry == tmp:
+            for d in dirs:
+                if not (d == workdir or d.startswith(workdir + "/")):
+                    # We should probably canonicalize the paths before
+                    # the comparison, but this is 99% good enough.
+                    print "INFO: rmwork %s: skipping %s, not a subdirectory of ${WORKDIR}" % (self, d)
                     continue
-                e = os.path.join(workdir, entry)
-                if os.path.isdir(e):
-                    shutil.rmtree(e)
-                else:
-                    os.remove(e)
+                if not os.path.isdir(d):
+                    # No diagnostic, we may just have removed the same
+                    # directory or a parent already (e.g. when B==S),
+                    # or the directory not be applicable to this
+                    # recipe (e.g. IMAGE_DIR).
+                    continue
+                shutil.rmtree(d)
 
         except Exception as e:
-            print "ERROR: exception %s during rmwork for %s" % (e, self)
+            print "ERROR: rmwork %s: exception %s" % (self, e)
