@@ -43,7 +43,7 @@ class OEliteRecipe:
         self.item_deps = {}
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
             # (type, itemname) => version
-            self.item_deps[deptype] = {}
+            self.item_deps[deptype] = set()
         return
 
 
@@ -74,11 +74,8 @@ class OEliteRecipe:
         if not deptypes:
             deptypes = self.item_deps.keys()
         for t in deptypes:
-            for ((type, item), version) in self.item_deps[t].items():
-                if version is None:
-                    depends.append("%s:%s" % (type, item))
-                else:
-                    depends.append("%s:%s_%s" % (type, item, version))
+            for item in self.item_deps[t]:
+                depends.append(str(item))
         return depends
 
 

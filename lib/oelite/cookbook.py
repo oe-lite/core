@@ -705,15 +705,12 @@ class CookBook(Mapping):
                 taskseq)
 
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            recipe_depends = []
             for item in (recipe.meta.get(deptype) or "").split():
                 item = oelite.item.OEliteItem(item, (deptype, recipe.type))
-                recipe_depends.append((deptype, item))
+                recipe.item_deps[deptype].add(item)
             for item in (recipe.meta.get("CLASS_"+deptype) or "").split():
                 item = oelite.item.OEliteItem(item, (deptype, recipe.type))
-                recipe_depends.append((deptype, item))
-            for (deptype, item) in recipe_depends:
-                recipe.item_deps[deptype][(item.type, item.name)] = item.version
+                recipe.item_deps[deptype].add(item)
 
         for task_name in task_names:
             task_id = flatten_single_value(self.dbc.execute(
