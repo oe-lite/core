@@ -71,29 +71,14 @@ class OEliteRecipe:
 
     def get_depends(self, deptypes=[]):
         depends = []
-        depends2 = []
-        if deptypes:
-            deptypes_in = " AND deptype IN (%s)"%(
-                ",".join("?" for i in deptypes))
-        else:
-            deptypes_in = ""
-        for type, item, version in self.cookbook.dbc.execute(
-            "SELECT type, item, version FROM recipe_depend "
-            "WHERE recipe_depend.recipe=?%s"%(deptypes_in),
-            ([self.id] + deptypes)):
-            if version is None:
-                depends.append("%s:%s"%(type, item))
-            else:
-                depends.append("%s:%s_%s"%(type, item, version))
         if not deptypes:
             deptypes = self.item_deps.keys()
         for t in deptypes:
             for ((type, item), version) in self.item_deps[t].items():
                 if version is None:
-                    depends2.append("%s:%s" % (type, item))
+                    depends.append("%s:%s" % (type, item))
                 else:
-                    depends2.append("%s:%s_%s" % (type, item, version))
-        assert(sorted(depends) == sorted(depends2))
+                    depends.append("%s:%s_%s" % (type, item, version))
         return depends
 
 

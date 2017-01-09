@@ -169,15 +169,6 @@ class CookBook(Mapping):
             "UNIQUE (recipe, name) ON CONFLICT IGNORE ) ")
 
         self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS recipe_depend ( "
-            "recipe      INTEGER, "
-            "deptype     TEXT, "
-            "type        TEXT, "
-            "item        TEXT, "
-            "version     TEXT, "
-            "UNIQUE (recipe, deptype, type, item) ON CONFLICT REPLACE )")
-
-        self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS provide ( "
             "package     INTEGER, "
             "item        TEXT, "
@@ -721,10 +712,6 @@ class CookBook(Mapping):
             for item in (recipe.meta.get("CLASS_"+deptype) or "").split():
                 item = oelite.item.OEliteItem(item, (deptype, recipe.type))
                 recipe_depends.append((recipe_id, deptype, item.type, item.name, item.version))
-            if recipe_depends:
-                self.dbc.executemany(
-                    "INSERT INTO recipe_depend (recipe, deptype, type, item, version) "
-                    "VALUES (?, ?, ?, ?, ?)", recipe_depends)
             for d in recipe_depends:
                 recipe.item_deps[d[1]][(d[2], d[3])] = d[4]
 
