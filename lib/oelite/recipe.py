@@ -40,6 +40,10 @@ class OEliteRecipe:
         self._hash = None
         self.recipe_deps = set([])
         self.tasks = set([])
+        self.item_deps = {}
+        for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            # (type, itemname) => version
+            self.item_deps[deptype] = {}
         return
 
 
@@ -67,6 +71,7 @@ class OEliteRecipe:
 
     def get_depends(self, deptypes=[]):
         depends = []
+        depends2 = []
         if deptypes:
             deptypes_in = " AND deptype IN (%s)"%(
                 ",".join("?" for i in deptypes))
@@ -80,6 +85,15 @@ class OEliteRecipe:
                 depends.append("%s:%s"%(type, item))
             else:
                 depends.append("%s:%s_%s"%(type, item, version))
+        if not deptypes:
+            deptypes = self.item_deps.keys()
+        for t in deptypes:
+            for ((type, item), version) in self.item_deps[t].items():
+                if version is None:
+                    depends2.append("%s:%s" % (type, item))
+                else:
+                    depends2.append("%s:%s_%s" % (type, item, version))
+        assert(sorted(depends) == sorted(depends2))
         return depends
 
 

@@ -725,6 +725,8 @@ class CookBook(Mapping):
                 self.dbc.executemany(
                     "INSERT INTO recipe_depend (recipe, deptype, type, item, version) "
                     "VALUES (?, ?, ?, ?, ?)", recipe_depends)
+            for d in recipe_depends:
+                recipe.item_deps[d[1]][(d[2], d[3])] = d[4]
 
         for task_name in task_names:
             task_id = flatten_single_value(self.dbc.execute(
