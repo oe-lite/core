@@ -544,13 +544,17 @@ class OEliteBaker:
             debug("%d tasks remains after adding rmwork"%remaining)
             recipes = self.runq.get_recipes_with_tasks_to_build()
 
-        print "The following will be build:"
         text = []
-        for recipe in recipes:
-            if recipe[1] == "machine":
-                text.append("%s(%d)"%(recipe[2], recipe[4]))
+        total_tasks = 0
+        for (recipe_id, recipe_type, name, version, task_count) in recipes:
+            total_tasks += task_count
+            if recipe_type == "machine":
+                text.append("%s(%d)"%(name, task_count))
             else:
-                text.append("%s:%s(%d)"%(recipe[1], recipe[2], recipe[4]))
+                text.append("%s:%s(%d)"%(recipe_type, name, task_count))
+            recipe = self.cookbook.get_recipe(recipe_id)
+            recipe.remaining_tasks = task_count
+        print "The following will be build (%d tasks in total):" % total_tasks
         print oelite.util.format_textblock(" ".join(text))
 
         if self.options.dryrun:

@@ -837,6 +837,5 @@ class CookBook(Mapping):
                 if not children[p]:
                     childless.append(p)
             c.build_prio = len(descendants[c])
-            c.remaining_tasks = len(c.tasks)
             del descendants[c]
         assert(len(descendants) == 0)
