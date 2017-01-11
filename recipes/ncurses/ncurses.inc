@@ -37,6 +37,8 @@ EXTRA_OECONF += "\
 --without-cxx-binding \
 --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
 --enable-overwrite \
+--enable-pc-files \
+--with-pkg-config-libdir=${libdir}/pkgconfig \
 "
 
 do_install() {
