@@ -26,7 +26,6 @@ import shutil
 import hashlib
 import logging
 
-#INITIAL_OE_IMPORTS = "oe.path oe.utils sys os time"
 INITIAL_OE_IMPORTS = "sys os time"
 
 def add_bake_parser_options(parser):

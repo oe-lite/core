@@ -185,17 +185,6 @@ class OEliteRunQueue:
 
         package_depends = {}
 
-        # helper to add multipe task_depends
-        def add_task_depends(task_names, recipes):
-            for task_name in task_names:
-                for recipe in recipes:
-                    task = self.cookbook.get_task(recipe, task_name)
-                    if task:
-                        task_depends.add(task)
-                    else:
-                        debug("not adding unsupported task %s:%s"%(
-                                recipe, task_name))
-
         def add_package_depends(task_names, deptype, depends):
             if not depends:
                 return
@@ -457,39 +446,6 @@ class OEliteRunQueue:
         return choose_provider(providers)
 
 
-    def update_task(self, task):
-
-        get_recipe_datahash(task.recipe)
-        if task is fetch:
-            get_recipe_srchash(task.recipe)
-        get_dependencies_hash(task)
-        taskhash = hashit(recipehash, srchash, dephash)
-        run=0
-        if has_build(task):
-            if datahash != build_datahash(task):
-                info("recipe changes trigger run")
-                run=1
-            if srchash != build_srchash(task):
-                info("src changes trigger run")
-                run=1
-            if dephash != build_dephash(task):
-                info("dep changes trigger run")
-                run=1
-        else:
-            info("no existing build")
-            run=1
-        if run:
-            set_runable(task, datahash, srchash, dephash)
-            # this marks task for run
-            # and saves a combined taskhash for following
-            # iterations (into runq_taskdepend.hash)
-            # and all hashes for saving with build
-            # result
-            set_runq_taskdepend_checked(task)
-
-        return
-
-
     @oelite.profiling.profile_calls
     def update_runabletasks(self):
         newrunable = self.get_readytasks()
@@ -501,15 +457,6 @@ class OEliteRunQueue:
             for task_id in newrunable:
                 task = self.cookbook.get_task(id=task_id)
                 self.set_task_pending(task)
-
-    def get_runabletask(self):
-        self.update_runabletasks()
-        if not self.runable:
-            return None
-        task_id = self.runable.pop()
-        if not task_id:
-            return None
-        return self.cookbook.get_task(id=task_id)
 
     def get_runabletasks(self):
         self.update_runabletasks()
@@ -570,18 +517,6 @@ class OEliteRunQueue:
         return tasks
 
 
-    def print_runq_tasks(self):
-        runq_tasks = self.dbc.execute(
-            "SELECT prime,build,status,relax,metahash,tmphash,mtime,task "
-            "FROM runq.task").fetchall()
-        for row in runq_tasks:
-            for col in row:
-                print "%s "%(col),
-            print "%s:%s"%(self.get_recipe(task=row[7]).get_name(),
-                           self.cookbook.get_task(task=row[7]))
-        return
-
-
     def get_tasks_to_build_description(self, hashinfo=False):
         tasks = []
         if hashinfo:
@@ -616,13 +551,6 @@ class OEliteRunQueue:
     def number_of_tasks_to_build(self):
         return flatten_single_value(self.dbc.execute(
                 "SELECT COUNT(*) FROM runq.task WHERE build IS NOT NULL"))
-
-
-    def add_runq_task(self, task):
-        assert isinstance(task, int)
-        self.dbc.execute(
-            "INSERT INTO runq.task (task) VALUES (?)", (task,))
-        return
 
 
     def add_runq_tasks(self, tasks):
@@ -1086,11 +1014,6 @@ class OEliteRunQueue:
     def set_task_pending(self, task):
         return self._set_task_status(task, 1)
 
-
-    def set_task_running(self, task):
-        return self._set_task_status(task, 2)
-
-
     def set_task_done(self, task, delete):
         assert isinstance(task, oelite.task.OEliteTask)
         self._set_task_status(task, 3)
@@ -1100,18 +1023,6 @@ class OEliteRunQueue:
         self.dbc.execute(
             "UPDATE runq.depend SET parent_task=NULL "
             "WHERE parent_task=?", (task.id,))
-        return
-
-
-    def set_task_failed(self, task):
-        return self._set_task_status(task, -1)
-
-
-    def prune_done_tasks(self):
-        self.dbc.execute(
-            "DELETE FROM runq.depend WHERE EXISTS "
-            "( SELECT * FROM runq.task "
-            "WHERE runq.task.task = runq.depend.parent_task AND status=3 )")
         return
 
 

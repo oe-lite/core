@@ -194,6 +194,3 @@ TYPEMAP = {
             },
         },
 }
-
-def typemap(type):
-    assert type
