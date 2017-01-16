@@ -28,8 +28,8 @@ python do_install_runit () {
 
     options = ((d.get("RECIPE_FLAGS") or "").split() +
                (d.get("CLASS_FLAGS") or "").split())
-    runitservicedir = bb.data.getVar('runitservicedir', d, True)
-    srcdir = bb.data.getVar('SRCDIR', d, True)
+    runitservicedir = d.get('runitservicedir')
+    srcdir = d.get('SRCDIR')
 
     for option in options:
 
@@ -41,11 +41,11 @@ python do_install_runit () {
             continue
 
 	name = option[0:-len('_runit')]
-        svname = bb.data.getVar('RUNIT_NAME_'+name, d, True)
+        svname = d.get('RUNIT_NAME_'+name)
         if not svname:
             svname = name.replace('_', '-')
 
-        script = bb.data.getVar('RUNIT_SCRIPT_'+name, d, True)
+        script = d.get('RUNIT_SCRIPT_'+name)
         if not script:
             script = srcdir + '/' + svname + '.runit'
 

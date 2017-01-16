@@ -120,7 +120,7 @@ def runstrip(file, d):
 
     import commands, stat, re, magic
 
-    pathprefix = "export PATH=%s; " % bb.data.getVar('PATH', d, True)
+    pathprefix = "export PATH=%s; " % d.get('PATH')
     print "pathprefix =",pathprefix
 
     filemagic = magic.open(magic.MAGIC_NONE)

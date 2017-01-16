@@ -20,15 +20,14 @@ META_EMIT_PREFIX += "split:FILES_${PN} split:ALLOW_EMPTY"
 def do_split(d):
     import errno, stat
 
-    packages = (bb.data.getVar("PACKAGES", d, 1) or "").split()
+    packages = (d.get("PACKAGES") or "").split()
     if len(packages) < 1:
         bb.error("No packages to build")
         return False
 
-    ddir = bb.data.getVar("D", d, True)
-    pkgd = bb.data.getVar("PKGD", d, True)
-    pn = bb.data.getVar("PN", d, True)
-    packages = bb.data.getVar("PACKAGES", d, True).split()
+    ddir = d.get("D")
+    pkgd = d.get("PKGD")
+    pn = d.get("PN")
 
     # Sanity check PACKAGES for duplicates.
     # move to sanity.oeclass once we have the infrastucture
@@ -40,8 +39,6 @@ def do_split(d):
         package_list.append(pkg)
 
     seen = []
-    main_is_empty = 1
-    main_pkg = bb.data.getVar("PN", d, 1)
 
     for pkg in package_list:
         root = os.path.join(pkgd, pkg)
@@ -81,8 +78,6 @@ def do_split(d):
             ret = bb.utils.copyfile(file, fpath)
             if ret is False or ret == 0:
                 raise bb.build.FuncFailed("File population failed")
-            if pkg == main_pkg and main_is_empty:
-                main_is_empty = 0
 
     unshipped = []
     for root, dirs, files in os.walk(ddir + "/"):
