@@ -36,10 +36,13 @@ class OEliteItem:
         return string
 
     def __eq__(self, other):
-        return (self.type == other.type and
-                self.item == other.item and
-                self.version == other.version)
+        return (self.as_tuple() == other.as_tuple())
 
+    def as_tuple(self):
+        return (self.type, self.name, self.version)
+
+    def __hash__(self):
+        return hash(self.as_tuple())
 
 TYPEMAP = {
 

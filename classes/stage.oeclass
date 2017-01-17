@@ -91,7 +91,8 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir,
         oelite.util.makedirs(dstdir)
 
         pkgmetadir = d.get("pkgmetadir").lstrip("/")
-        dst_pkgmetadir = os.path.join(dstdir, pkgmetadir, package.name)
+        pkgname_ver = package.name + "_" + package.version
+        dst_pkgmetadir = os.path.join(dstdir, pkgmetadir, pkgname_ver)
         if os.path.exists(pkgmetadir):
             os.renames(pkgmetadir, dst_pkgmetadir)
 
@@ -124,7 +125,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir,
                 if os.path.exists(dstfile):
                     file_priorities = {}
                     update_file_priority(file_priorities, srcfile,
-                                         package.name, dstdir)
+                                         pkgname_ver, dstdir)
 
                     for (pkgtarfn, pkgname, pkgdstdir) in staged_packages:
                         if pkgdstdir != dstdir:
@@ -148,9 +149,9 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir,
                         conflicts = True
                         continue
                     bb.debug("priority overwrite of stage file: /%s"%(srcfile))
-                    if file_priorities[priority][0] != package.name:
+                    if file_priorities[priority][0] != pkgname_ver:
                         continue
-                    print "overwriting with %s from %s"%(srcfile, package.name)
+                    print "overwriting with %s from %s"%(srcfile, pkgname_ver)
 
                 # FIXME: check if owner/group/perms match
                 os.renames(srcfile, dstfile)
@@ -160,7 +161,7 @@ def set_stage(d, stage, stage_fixup_funcs, get_dstdir, unpackdir,
         os.chdir(dstdir)
         shutil.rmtree(unpackdir)
 
-        staged_packages.append((filename, package.name, dstdir))
+        staged_packages.append((filename, pkgname_ver, dstdir))
 
 STAGE_FIXUP_FUNCS ?= ""
 

@@ -172,15 +172,6 @@ class CookBook(Mapping):
             "UNIQUE (recipe, name) ON CONFLICT IGNORE ) ")
 
         self.dbc.execute(
-            "CREATE TABLE IF NOT EXISTS recipe_depend ( "
-            "recipe      INTEGER, "
-            "deptype     TEXT, "
-            "type        TEXT, "
-            "item        TEXT, "
-            "version     TEXT, "
-            "UNIQUE (recipe, deptype, type, item) ON CONFLICT REPLACE )")
-
-        self.dbc.execute(
             "CREATE TABLE IF NOT EXISTS provide ( "
             "package     INTEGER, "
             "item        TEXT, "
@@ -717,17 +708,12 @@ class CookBook(Mapping):
                 taskseq)
 
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
-            recipe_depends = []
             for item in (recipe.meta.get(deptype) or "").split():
                 item = oelite.item.OEliteItem(item, (deptype, recipe.type))
-                recipe_depends.append((recipe_id, deptype, item.type, item.name, item.version))
+                recipe.item_deps[deptype].add(item)
             for item in (recipe.meta.get("CLASS_"+deptype) or "").split():
                 item = oelite.item.OEliteItem(item, (deptype, recipe.type))
-                recipe_depends.append((recipe_id, deptype, item.type, item.name, item.version))
-            if recipe_depends:
-                self.dbc.executemany(
-                    "INSERT INTO recipe_depend (recipe, deptype, type, item, version) "
-                    "VALUES (?, ?, ?, ?, ?)", recipe_depends)
+                recipe.item_deps[deptype].add(item)
 
         for task_name in task_names:
             task_id = flatten_single_value(self.dbc.execute(

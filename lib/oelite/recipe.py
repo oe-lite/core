@@ -40,6 +40,10 @@ class OEliteRecipe:
         self._hash = None
         self.recipe_deps = set([])
         self.tasks = set([])
+        self.item_deps = {}
+        for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
+            # (type, itemname) => version
+            self.item_deps[deptype] = set()
         return
 
 
@@ -67,19 +71,11 @@ class OEliteRecipe:
 
     def get_depends(self, deptypes=[]):
         depends = []
-        if deptypes:
-            deptypes_in = " AND deptype IN (%s)"%(
-                ",".join("?" for i in deptypes))
-        else:
-            deptypes_in = ""
-        for type, item, version in self.cookbook.dbc.execute(
-            "SELECT type, item, version FROM recipe_depend "
-            "WHERE recipe_depend.recipe=?%s"%(deptypes_in),
-            ([self.id] + deptypes)):
-            if version is None:
-                depends.append("%s:%s"%(type, item))
-            else:
-                depends.append("%s:%s_%s"%(type, item, version))
+        if not deptypes:
+            deptypes = self.item_deps.keys()
+        for t in deptypes:
+            for item in self.item_deps[t]:
+                depends.append(str(item))
         return depends
 
 
