@@ -64,6 +64,7 @@ PACKAGEQA_HOST_LIBDIRS += "/${HOST_ARCH}/${TARGET_ARCH}/lib"
 PACKAGES =+ "${PN}-libiberty ${PN}-libiberty-dev"
 FILES_${PN}-libiberty = "${libdir}/libiberty.a"
 FILES_${PN}-libiberty-dev = "${includedir}/libiberty.h"
+PROVIDES_${PN}-libiberty += "libiberty"
 
 FILES_${PN}-libopcodes-dev = "${AUTO_PACKAGE_LIBS_LIBDIR_PREFIX}${includedir}/dis-asm.h"
 FILES_${PN}-libbfd-dev = "${AUTO_PACKAGE_LIBS_LIBDIR_PREFIX}${includedir}/"
