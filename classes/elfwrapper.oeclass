@@ -21,10 +21,9 @@ IMAGE_PREPROCESS_ELF_SOWRAP = ""
 IMAGE_PREPROCESS_ELF_SOWRAP:HOST_BINFMT_elf = " image_preprocess_elf_sowrap"
 def image_preprocess_elf_sowrap(d):
     import stat
-    import magic
+    import oelite.magiccache
 
-    filemagic = magic.open(magic.MAGIC_NONE)
-    filemagic.load()
+    filemagic = oelite.magiccache.open()
     host_elf_re = re.compile(d.get("HOST_ELF"))
     command_re = re.compile(" executable, ")
     static_re = re.compile("statically")

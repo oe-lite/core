@@ -118,13 +118,12 @@ def runstrip(file, d):
     # A working 'file' (one which works on the target architecture)
     # is necessary for this stuff to work, hence the addition to do_package[depends]
 
-    import commands, stat, re, magic
+    import commands, stat, re, oelite.magiccache
 
     pathprefix = "export PATH=%s; " % d.get('PATH')
     print "pathprefix =",pathprefix
 
-    filemagic = magic.open(magic.MAGIC_NONE)
-    filemagic.load()
+    filemagic = oelite.magiccache.open()
     filetype = filemagic.file(file)
     filemagic.close()
 
