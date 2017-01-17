@@ -359,8 +359,6 @@ class MetaData(MutableMapping):
 
 
     builtin_nohash = frozenset([
-        "OE_REMOTES",
-        "OE_MODULES",
         "OE_ENV_WHITELIST",
         "PATH",
         "PWD",
@@ -387,11 +385,6 @@ class MetaData(MutableMapping):
         "REBUILDALL_SKIP",
         "RELAXED",
     ])
-
-    builtin_nohash_prefix = [
-        "OE_REMOTE_",
-        "OE_MODULE_",
-    ]
 
     def dump_var(self, key, o=sys.__stdout__, pretty=True, dynvars=[],
                  flags=False, ignore_flags_re=None):
@@ -475,13 +468,6 @@ class MetaData(MutableMapping):
                 if key in self.builtin_nohash:
                     continue
                 if self.get_flag(key, "nohash"):
-                    continue
-                nohash_prefixed = False
-                for prefix in self.builtin_nohash_prefix:
-                    if key.startswith(prefix):
-                        nohash_prefixed = True
-                        break
-                if nohash_prefixed:
                     continue
             self.dump_var(key, o, pretty, dynvars, flags, ignore_flags_re)
 
