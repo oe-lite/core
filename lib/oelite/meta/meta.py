@@ -370,8 +370,6 @@ class MetaData(MutableMapping):
         "TMPDIR",
         "OEPATH",
         "OEPATH_PRETTY",
-        "OERECIPES",
-        "OERECIPES_PRETTY",
         "FILE",
         "FILE_DIRNAME",
         "FILESPATH_EXISTS",
@@ -386,6 +384,8 @@ class MetaData(MutableMapping):
         "INCOMPATIBLE_RECIPES",
         "COMPATIBLE_IF_FLAGS",
         "_task_deps",
+        "REBUILDALL_SKIP",
+        "RELAXED",
     ])
 
     builtin_nohash_prefix = [
