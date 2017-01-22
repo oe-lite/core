@@ -30,3 +30,34 @@ def restore_defaults():
         signal.signal(signal.SIGXFZ, signal.SIG_DFL)
     if hasattr(signal, "SIGXFSZ"):
         signal.signal(signal.SIGXFSZ, signal.SIG_DFL)
+
+def test_restore():
+    import os
+    import subprocess
+    import errno
+
+    PIPE=subprocess.PIPE
+    sub = subprocess.Popen(["yes"], stdout=PIPE, stderr=PIPE)
+    # Force a broken pipe.
+    sub.stdout.close()
+    err = sub.stderr.read()
+    # This should terminate with a write error; we assume that 'yes'
+    # is so well-behaved that it both exits with a non-zero exit code
+    # as well as prints an error message containing strerror(errno).
+    ret = sub.wait()
+    assert(ret > 0)
+    assert(os.strerror(errno.EPIPE) in err)
+
+    sub = subprocess.Popen(["yes"], stdout=PIPE, stderr=PIPE, preexec_fn = restore_defaults)
+    # Force a broken pipe.
+    sub.stdout.close()
+    err = sub.stderr.read()
+    # This should terminate due to SIGPIPE, and not get a chance to write to stderr.
+    ret = sub.wait()
+    assert(ret == -signal.SIGPIPE)
+    assert(err == "")
+
+if __name__ == "__main__":
+    # To run:
+    # meta/core/lib$ python -m oelite.signal
+    test_restore()
