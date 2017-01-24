@@ -4,6 +4,8 @@ import os
 import hashlib
 import subprocess
 from oebakery import die, err, warn, info, debug
+import tempfile
+import errno
 
 class UrlFetcher():
 
@@ -21,8 +23,8 @@ class UrlFetcher():
         self.signatures = d.get("FILE") + ".sig"
         self.uri = uri
         self.fetch_signatures = d["__fetch_signatures"]
-        self.proxies = self.get_proxy(d)
-        self.ftpmode = self.get_disable_ftp_epsv(d)
+        self.proxies = self.get_proxies(d)
+        self.passive_ftp = self.get_passive_ftp(d)
         return
 
     def signature(self):
@@ -53,7 +55,7 @@ class UrlFetcher():
             if not self.uri.allow_url(url):
                 print "Skipping", url
                 continue
-            if grab(url, self.localpath, proxy=self.proxies, ftpmode=self.ftpmode):
+            if grab(url, self.localpath, proxies=self.proxies, passive_ftp=self.passive_ftp):
                 if self.grabbedsignature():
                     grabbed = True
                     break
@@ -84,59 +86,94 @@ class UrlFetcher():
         m.update(open(self.localpath, "r").read())
         return m.hexdigest()
 
-    def get_proxy(self, d):
-        proxy = d.get("http_proxy")
-        proxies = None
-        if not proxy is None:
-            proxies = {}
-            proxies["http"] = proxy
-
-            ftpproxy = d.get("ftp_proxy")
-            if ftpproxy is None:
-                proxies["ftp"] = proxy
-            else:
-                proxies["ftp"] = ftpproxy
-
-            httpsproxy = d.get("https_proxy")
-            if httpsproxy is None:
-                proxies["https"] = proxy
-            else:
-                proxies["https"] = httpsproxy
+    def get_proxies(self, d):
+        proxies = {}
+        for v in ("http_proxy", "ftp_proxy", "https_proxy"):
+            proxy = d.get(v)
+            if proxy:
+                proxies[v] = proxy
         return proxies
 
-    def get_disable_ftp_epsv(self, d):
-        val = d.get("DISABLE_FTP_EXTENDED_PASSIVE_MODE") or None
-        if val is not None:
-            if val == "0":
-                return False
-            if val == "1":
-                return True
-        return False
+    def get_passive_ftp(self, d):
+        val = d.get("DISABLE_FTP_EXTENDED_PASSIVE_MODE")
+        if val == "1":
+            return False
+        return True
 
 
 
 
-def grab(url, filename, timeout=120, retry=5, proxy=None, ftpmode=False):
+def grab(url, filename, timeout=120, retry=5, proxies=None, passive_ftp=True):
     print "Grabbing", url
 
-    if not os.path.exists(os.path.dirname(filename)):
-        os.makedirs(os.path.dirname(filename))
+    if proxies:
+        env = os.environ.copy()
+        env.update(proxies)
+    else:
+        env = None # this is the default, uses a copy of the current environment
 
-    cmd = ['wget', '-t', str(retry), '-T', str(timeout), '--passive-ftp', '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', filename]
+    if passive_ftp:
+        psvftp = '--passive-ftp'
+    else:
+        psvftp = '--no-passive-ftp'
 
-    returncode = subprocess.call(cmd)
+    d = os.path.dirname(filename)
+    f = os.path.basename(filename)
+    if not os.path.exists(d):
+        os.makedirs(d)
 
-    if returncode != 0:
-        err("Error %s %d" % (cmd, returncode))
-        return False
+    # Use mkstemp to create and open a guaranteed unique file. We use
+    # the file descriptor as wget's stdout. We must download to the
+    # actual ingredient dir rather than e.g. /tmp to ensure that we
+    # can do a link(2) call without encountering EXDEV.
+    (fd, dl_tgt) = tempfile.mkstemp(prefix = f + ".", dir = d)
 
-    if not os.path.exists(filename):
-        err("The fetch command returned success for url %s but %s doesn't exist?!" % (uri, filename))
-        return False
+    cmd = ['wget', '-t', str(retry), '-T', str(timeout), psvftp, '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', '-']
 
-    if os.path.getsize(filename) == 0:
-        os.remove(filename)
-        err("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (uri))
-        return False
+    try:
+        returncode = subprocess.call(cmd, env=env, stdout=fd)
+
+        if returncode != 0:
+            err("Error %s %d" % (cmd, returncode))
+            return False
+
+        if os.fstat(fd).st_size == 0:
+            err("The fetch of %s resulted in a zero size file?! Failing since this isn't right." % (url))
+            return False
+
+        # We use link(2) rather than rename(2), since the latter would
+        # replace an existing target. Although that's still done
+        # atomically and the new file should be identical to the old,
+        # it's better that once created, the target dentry is
+        # "immutable". For example, there might be some code that,
+        # when opening a file, first does a stat(2), then actually
+        # opens the file, and then does an fstat() and compares the
+        # inode numbers. We don't want such code to fail. It's also
+        # slightly simpler that we need to do an unlink(2) on all exit
+        # paths.
+        try:
+            os.link(dl_tgt, filename)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                # Some other fetcher beat us to it, signature checking
+                # should ensure we don't end up using a wrong
+                # file. But do make a note of this in the log file so
+                # that we can see that the races do occur, and that
+                # this works as intended.
+                info("Fetching %s raced with another process - this is harmless" % url)
+                pass
+            else:
+                err("os.link(%s, %s) failed: %s", dl_tgt, filename, str(e))
+                return False
+    finally:
+        # Regardless of how all of the above went, we have to delete
+        # the temporary dentry and close the file descriptor. We do
+        # not wrap these in ignoreall-try-except, since something is
+        # really broken if either fails (in particular, subprocess is
+        # not supposed to close the fd we give it; it should only dup2
+        # it to 1, and then close the original _in the child_).
+        os.unlink(dl_tgt)
+        os.close(fd)
+
 
     return True
