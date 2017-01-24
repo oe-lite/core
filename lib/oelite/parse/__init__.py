@@ -131,10 +131,9 @@ class ParseError(Exception):
                 print self.more_details
         return
 
+class StatementNotAllowedInConf(ParseError):
 
-class StatementNotAllowed(ParseError):
-
-    def __init(self, parser, p, statement):
+    def __init__(self, parser, p, statement):
         super(StatementNotAllowedInConf, self).__init__(
             parser, "%s statement not allowed"%(statement), p)
         return
@@ -151,7 +150,7 @@ class FileNotFound(ParseError):
 
 __all__ = [
     "oelex", "oeparse", "confparse",
-    "ParseError", "StatementNotAllowed", "FileNotFound",
+    "ParseError", "StatementNotAllowedInConf", "FileNotFound",
     "oelexer",
     ]
 
