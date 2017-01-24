@@ -174,15 +174,6 @@ class OEliteBaker:
             dont_do_thing("universe")
             for recipe_type in recipe_types:
                 thing_todo(recipe_type + ":world")
-        if "world" in self.things_todo:
-            dont_do_thing("world")
-            thing_todo("machine:world")
-        for recipe_type in recipe_types:
-            world = recipe_type + ":world"
-            if world in self.things_todo:
-                dont_do_thing(world)
-                for recipe in self.cookbook.get_recipes(type=recipe_type):
-                    self.recipes_todo.add(recipe)
 
         return
 
