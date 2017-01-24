@@ -19,7 +19,7 @@ SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz"
 DEPENDS = "native:libncurses libm"
 DEPENDS:native = "libm"
 
-inherit autotools make-vpath c++
+inherit autotools make-vpath c++ binconfig
 
 export LTCC="${CC}"
 export LTCFLAGS="${CFLAGS}"
@@ -37,6 +37,8 @@ EXTRA_OECONF += "\
 --without-cxx-binding \
 --with-terminfo-dirs=${sysconfdir}/terminfo:${datadir}/terminfo \
 --enable-overwrite \
+--enable-pc-files \
+--with-pkg-config-libdir=${libdir}/pkgconfig \
 "
 
 do_install() {
@@ -84,7 +86,7 @@ PROVIDES_${PN}-libncurses[qa] = "allow-missing-soname:libtermcap"
 PROVIDES_${PN}-libncurses-dev = "libtermcap-dev"
 
 inherit auto-package-utils
-AUTO_PACKAGE_UTILS = "captoinfo clear infocmp infotocap ncurses6-config reset tabs tic toe tput tset"
+AUTO_PACKAGE_UTILS = "captoinfo clear infocmp infotocap reset tabs tic toe tput tset"
 RDEPENDS_${PN}-captoinfo += "${PN}-tic"
 RDEPENDS_${PN}-infotocap += "${PN}-tic"
 RDEPENDS_${PN}-reset += "${PN}-tset"
@@ -95,7 +97,6 @@ AUTO_PACKAGE_UTILS_RDEPENDS += "libncurses"
 FILES_${PN} = "${datadir}/tabset ${sysconfdir}/terminfo"
 RDEPENDS_${PN}-tools += "${AUTO_PACKAGE_UTILS_PROVIDES}"
 FILES_${PN}-terminfo = "${datadir}/terminfo ${libdir}/terminfo"
-FILES_${PN}-dev += "${bindir}/ncurses6-config"
 
 DEPENDS_${PN} += "libncurses"
 DEPENDS_${PN}-dev = ""
