@@ -8,6 +8,7 @@ import shutil
 import warnings
 import re
 import subprocess
+import oelite.signal
 
 class OEliteFunction(object):
 
@@ -157,7 +158,8 @@ class ShellFunction(OEliteFunction):
         print '> %s'%(cmd,)
 
         try:
-            self.subprocess = subprocess.Popen(cmd, stdin=sys.stdin, shell=True)
+            self.subprocess = subprocess.Popen(cmd, stdin=sys.stdin, shell=True,
+                                               preexec_fn = oelite.signal.restore_defaults)
         except OSError, e:
             if e.errno == 2:
                 print "Error: Command not found:", cmdname

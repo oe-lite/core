@@ -6,6 +6,7 @@ import subprocess
 import time
 
 from oelite.compat import dup_cloexec
+import oelite.signal
 
 now = time.time
 
@@ -119,6 +120,17 @@ def shcmd(cmd, dir=None, quiet=False, success_returncode=0,
     if dir:
         pwd = os.getcwd()
         os.chdir(dir)
+
+    # In the unlikely case the user passed in a preexec_fn, call that
+    # in addition to oelite.signal.restore_defaults.
+    user_pfn = kwargs.get("preexec_fn")
+    if user_pfn:
+        def preexec_wrapper():
+            user_pfn()
+            oelite.signal.restore_defaults()
+        kwargs["preexec_fn"] = preexec_wrapper
+    else:
+        kwargs["preexec_fn"] = oelite.signal.restore_defaults
 
     if not quiet:
         if dir:
