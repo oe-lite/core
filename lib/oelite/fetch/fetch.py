@@ -353,16 +353,24 @@ def patch_init(d):
     patchdir = d.get("PATCHDIR")
     with open(quiltrc, "w") as quiltrcfile:
         quiltrcfile.write("QUILT_PATCHES=%s\n"%(patchdir))
-    series = os.path.join(patchdir, "series")
-    if os.path.exists(series):
-        os.remove(series)
     s = d.get("S")
     os.chdir(s)
     if os.path.exists(".pc"):
-        while os.path.exists(".pc/applied-patches"):
-            if oelite.util.shcmd("quilt -v --quiltrc %s pop"%(quiltrc)):
-                # FIXME: proper error handling
-                raise Exception("quilt pop failed")
+        if os.path.exists(".pc/applied-patches"):
+            if not oelite.util.shcmd("quilt -a -v --quiltrc %s pop"%(quiltrc)):
+                # quilt itself as well as shcmd has already printed
+                # diagnostic messages, so we just propagate the sad
+                # news.
+                return False
+        # The above should cause this file to no longer exist.
+        if os.path.exists(".pc/applied-patches"):
+            print "Error: quilt pop -a succeeded, but .pc/applied-patches still exists"
+            return False
+
         if not os.path.exists(".pc/series") and not os.path.exists(".pc/.quilt_series"):
-            # FIXME: proper error handling
-            raise Exception("Bad quilt .pc dir")
+            print "Error: Bad quilt .pc dir"
+            return False
+    series = os.path.join(patchdir, "series")
+    if os.path.exists(series):
+        os.remove(series)
+    return True

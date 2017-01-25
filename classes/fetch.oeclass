@@ -99,19 +99,20 @@ def do_unpack(d):
             unpack_cmd = None
         if not uri.unpack(d, unpack_cmd):
             return False
-    return
+    return True
 
 
 do_patch[dirs] = "${S} ${PATCHDIR}"
 
 def do_patch(d):
-    uri = oelite.fetch.patch_init(d)
+    if not oelite.fetch.patch_init(d):
+        return False
     for uri in d.get("__fetch"):
         if not "apply" in uri.params:
             continue
         if not uri.patch(d):
             return False
-    return
+    return True
 
 do_fstage[cleandirs]	= "${FSTAGE_DIR} ${FSTAGE_DIR}.unpack"
 do_fstage[dirs]		= "${FSTAGE_DIR}"
