@@ -112,6 +112,11 @@ class OEliteOven:
             err("%s failed - %.3f s" % (task, delta))
             self.failed_tasks.append(task)
             task.build_failed()
+            # If any task for a recipe fails, ensure that we don't do rmwork.
+            task.recipe.rmwork = False
+
+        if task.recipe.remaining_tasks == 0:
+            task.recipe.do_rmwork()
 
         return (task, result, delta)
 

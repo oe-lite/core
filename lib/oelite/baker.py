@@ -131,19 +131,6 @@ class OEliteBaker:
 
         # Handle any INHERITs and inherit the base class
         inherits  = ["core"] + (self.config.get("INHERIT", 1) or "").split()
-        # and inherit rmwork when needed
-        try:
-            rmwork = self.options.rmwork
-            if rmwork is None:
-                rmwork = self.config.get("RMWORK", True)
-                if rmwork == "0":
-                    rmwork = False
-            if rmwork:
-                debug("rmwork")
-                inherits.append("rmwork")
-                self.options.rmwork = True
-        except AttributeError:
-            pass
         self.oeparser = oeparse.OEParser(self.config)
         for inherit in inherits:
             self.oeparser.reset_lexstate()
@@ -519,29 +506,33 @@ class OEliteBaker:
             info("Nothing to do")
             return 0
 
-        if self.options.rmwork:
+        rmwork = self.options.rmwork
+        if rmwork is None:
+            rmwork = self.config.get("RMWORK", True)
+            if rmwork == "0":
+                rmwork = False
+
+        if rmwork:
             for recipe in recipes:
                 if (tasks_todo != ["build"]
                     and self.runq.is_recipe_primary(recipe[0])):
-                    debug("skipping...")
+                    debug("skipping rmwork for %s:%s" % (recipe[1], recipe[2]))
                     continue
-                debug("adding %s:do_rmwork"%(recipe[1]))
+                debug("setting rmwork for %s:%s" % (recipe[1], recipe[2]))
                 recipe = self.cookbook.get_recipe(recipe[0])
-                self.runq._add_recipe(recipe, "do_rmwork")
-                task = self.cookbook.get_task(recipe=recipe, name="do_rmwork")
-                self.runq.set_task_build(task)
-            self.runq.propagate_runq_task_build()
-            remaining = self.runq.number_of_tasks_to_build()
-            debug("%d tasks remains after adding rmwork"%remaining)
-            recipes = self.runq.get_recipes_with_tasks_to_build()
+                recipe.rmwork = True
 
-        print "The following will be build:"
         text = []
-        for recipe in recipes:
-            if recipe[1] == "machine":
-                text.append("%s(%d)"%(recipe[2], recipe[4]))
+        total_tasks = 0
+        for (recipe_id, recipe_type, name, version, task_count) in recipes:
+            total_tasks += task_count
+            if recipe_type == "machine":
+                text.append("%s(%d)"%(name, task_count))
             else:
-                text.append("%s:%s(%d)"%(recipe[1], recipe[2], recipe[4]))
+                text.append("%s:%s(%d)"%(recipe_type, name, task_count))
+            recipe = self.cookbook.get_recipe(recipe_id)
+            recipe.remaining_tasks = task_count
+        print "The following will be build (%d tasks in total):" % total_tasks
         print oelite.util.format_textblock(" ".join(text))
 
         if self.options.dryrun:

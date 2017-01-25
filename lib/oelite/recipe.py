@@ -7,7 +7,7 @@ import sys
 import os
 import cPickle
 import warnings
-
+import shutil
 
 def unpickle(file, filename, cookbook):
     type = cPickle.load(file)
@@ -44,6 +44,7 @@ class OEliteRecipe:
         for deptype in ("DEPENDS", "RDEPENDS", "FDEPENDS"):
             # (type, itemname) => version
             self.item_deps[deptype] = set()
+        self.rmwork = False
         return
 
 
@@ -124,3 +125,35 @@ class OEliteRecipe:
         if dont_cache and dont_cache != "0":
             return False
         return True
+
+    def do_rmwork(self):
+        if not self.rmwork:
+            return
+
+        workdir = self.meta.get("WORKDIR")
+        if not workdir:
+            print "ERROR: rmwork %s: WORKDIR not set" % self
+            return
+        stampdir = self.meta.get("STAMPDIR")
+        if not stampdir:
+            print "ERROR: rmwork %s: STAMPDIR not set" % self
+            return
+        dirs = (self.meta.get("RMWORK_DIRS") or "").split()
+        try:
+            shutil.rmtree(stampdir)
+            for d in dirs:
+                if not (d == workdir or d.startswith(workdir + "/")):
+                    # We should probably canonicalize the paths before
+                    # the comparison, but this is 99% good enough.
+                    print "INFO: rmwork %s: skipping %s, not a subdirectory of ${WORKDIR}" % (self, d)
+                    continue
+                if not os.path.isdir(d):
+                    # No diagnostic, we may just have removed the same
+                    # directory or a parent already (e.g. when B==S),
+                    # or the directory not be applicable to this
+                    # recipe (e.g. IMAGE_DIR).
+                    continue
+                shutil.rmtree(d)
+
+        except Exception as e:
+            print "ERROR: rmwork %s: exception %s" % (self, e)
