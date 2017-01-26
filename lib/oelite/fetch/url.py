@@ -127,6 +127,12 @@ def grab(url, filename, timeout=120, retry=5, proxies=None, passive_ftp=True):
     # actual ingredient dir rather than e.g. /tmp to ensure that we
     # can do a link(2) call without encountering EXDEV.
     (fd, dl_tgt) = tempfile.mkstemp(prefix = f + ".", dir = d)
+    # Unfortunately, mkstemp() uses mode 0o600 when opening the file,
+    # but we'd rather have used 0o644. So we get to do a little syscall
+    # dance, yay.
+    mask = os.umask(0o022)
+    os.fchmod(fd, 0o644 & ~mask)
+    os.umask(mask)
 
     cmd = ['wget', '-t', str(retry), '-T', str(timeout), psvftp, '--no-check-certificate', '--progress=dot:mega', '-v', url, '-O', '-']
 
