@@ -252,6 +252,11 @@ do_install() {
 		[ -e "$libdir" ] || continue
 		mkdir -p $target_libdir_parent
 		mv $libdir $target_libdir_parent/`basename $libdir`
+		# Fix .la files; replace old path with new
+		for lafile in $target_libdir_parent/`basename $libdir`/*.la ; do
+			[ -f "$lafile" ] || continue
+			sed -i -e "s:$libdir:$target_libdir_parent/`basename $libdir`:g" "$lafile"
+		done
 	done
 	for d in "${D}/share/gcc-${PV}/python/"* ; do
 		[ -e "$d" ] || continue

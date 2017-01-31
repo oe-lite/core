@@ -36,6 +36,7 @@ inherit libtool
 LIBTOOL_DEPENDS = ""
 LIBTOOL_FIXUP_SEARCH_DIRS_CROSS += "${D}${libexecdir}/gcc/${TARGET_ARCH}/${PV}"
 LIBTOOL_FIXUP_STRIP_DIRS += "${HOST_SYSROOT} ${STAGE_DIR}/${TARGET_CROSS}"
+LIBTOOL_FIXUP_STRIP_DIRS =+ "${D_SYSROOT}"
 do_compile_targets:canadian-cross = "all-gcc"
 
 do_install_targets:canadian-cross = "install-gcc"

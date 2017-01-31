@@ -114,6 +114,7 @@ def do_install_libtool_lafile_fixup(d):
         with open(filename, "r") as input_file:
             lafile = input_file.read()
         for strip_dir in strip_dirs:
+            strip_dir = re.escape(strip_dir)
             lafile = re.sub("-L%s"%(strip_dir),
                              "-L", lafile)
             lafile = re.sub("([' ])%s"%(strip_dir),
