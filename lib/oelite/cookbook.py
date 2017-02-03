@@ -569,8 +569,9 @@ class CookBook(Mapping):
                 os.remove(cachefile)
 
         for recipe_type in recipes:
-            oelite.pyexec.exechooks(recipes[recipe_type].meta,
-                                    "pre_cookbook")
+            meta = recipes[recipe_type].meta
+            oelite.pyexec.exechooks(meta, "pre_cookbook")
+            meta.trim_unused_overrides()
             self.add_recipe(recipes[recipe_type])
 
         return True
