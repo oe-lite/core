@@ -318,6 +318,9 @@ class OEliteUri:
         return oelite.util.shcmd(cmd)
 
     def mirror(self, d, mirror):
+        if not int(self.params.get("mirror", 1)):
+            print "Skipping mirroring of %s due to mirror parameter" % self
+            return True
         if not "localpath" in dir(self.fetcher):
             if not "mirror" in dir(self.fetcher):
                 return True
