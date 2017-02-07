@@ -80,6 +80,10 @@ class CookBook(Mapping):
 
         self.create_world_recipes()
 
+        # All recipes parsed, no reason to hold on to the layer
+        # metadata (this frees a few MB of memory).
+        del self.layer_meta
+
         #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
         return
