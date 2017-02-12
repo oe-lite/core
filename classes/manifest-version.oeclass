@@ -9,11 +9,17 @@
 ## @useflag manifest_version_strip_leading If set, the leading prefix
 ##          specified by this flag will be stripped if the version string is
 ##          starting with the prefix followed by a decimal number.
+## @useflag manifest_version_cmd If set, this is used as the entire
+##          command to execute to produce the version. The string is
+##          interpreted by "sh -c", so some quoting may be necessary.
+##          If this is set, none of the above USE flags have any
+##          effect.
 
 CLASS_DEPENDS += "native:git"
 __dont_cache = True
 
 CLASS_FLAGS += "manifest_version_dirty_mark manifest_version_strip_leading"
+CLASS_FLAGS += "manifest_version_cmd"
 DEFAULT_USE_manifest_version_dirty_mark = "-dirty"
 
 addhook manifest_version to post_recipe_parse
@@ -21,13 +27,22 @@ def manifest_version(d):
     import subprocess
     os.chdir(d.get("TOPDIR"))
     version = None
-    if os.path.exists(".git"):
-        cmd = subprocess.Popen(["git", "describe", "--always",
+    cmd = d.get("USE_manifest_version_cmd", expand=False)
+    if cmd:
+        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (out, err) = sub.communicate()
+        if sub.returncode == 0:
+            version = out.strip()
+        else:
+            sys.stderr.write("Command '%s' failed: %s" % (cmd, err))
+            version = None
+    elif os.path.exists(".git"):
+        sub = subprocess.Popen(["git", "describe", "--always",
                                 "--dirty="+d.get("USE_manifest_version_dirty_mark")],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        version = cmd.communicate()[0].strip()
+        version = sub.communicate()[0].strip()
         strip_leading = d.get("USE_manifest_version_strip_leading")
-        if cmd.returncode != 0:
+        if sub.returncode != 0:
             version = None
         elif (strip_leading and re.match('%s\d'%(strip_leading), version)):
             # Strip away leading prefix
