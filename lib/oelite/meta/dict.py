@@ -293,8 +293,45 @@ class DictMeta(MetaData):
             self._get(var)
         self.expand_cache_filled = True
 
+    def trim_unused_overrides(self):
+        overrides = set(self.get_overrides())
+        for var in self.cplx.keys():
+            value = self.cplx[var]
+            if not "__overrides" in value:
+                continue
+            olist = value["__overrides"]
+            for i in range(len(olist)):
+                d = olist[i]
+                if d is None:
+                    continue
+                key_deleted = False
+                for k in d.keys():
+                    if k not in overrides:
+                        # This one won't be used
+                        key_deleted = True
+                        del d[k]
+                # If we have no overrides of type i left, delete the dict.
+                if len(d) == 0:
+                    olist[i] = None
+                # Otherwise, if we deleted at least one key, trim the dict.
+                elif key_deleted:
+                    olist[i] = oelite.dicttrim.trim(olist[i])
+
+            # If no dicts remain, delete the __overrides key
+            if olist == [None]*len(olist):
+                del value["__overrides"]
+                # A variable which only has overrides but no value by
+                # itself (and no defaultval flag) expands to the empty
+                # string.
+                if not "" in value and not "defaultval" in value:
+                    value[""] = ""
+                # Can we now demote var to a simple var?
+                if list(value.keys()) == [""]:
+                    self.smpl[var] = value[""]
+                    del self.cplx[var]
+
     def get_overrides(self):
-        return _get_overrides(self)[0]
+        return (self._get_overrides())[0]
 
     def _get_overrides(self):
         overrides = self._get("OVERRIDES", PARTIAL_EXPANSION)

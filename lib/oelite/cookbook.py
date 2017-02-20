@@ -80,6 +80,10 @@ class CookBook(Mapping):
 
         self.create_world_recipes()
 
+        # All recipes parsed, no reason to hold on to the layer
+        # metadata (this frees a few MB of memory).
+        del self.layer_meta
+
         #print "when instantiating from a parsed oefile, do some 'finalizing', ie. collapsing of overrides and append, and remember to save expand_cache also"
 
         return
@@ -569,8 +573,10 @@ class CookBook(Mapping):
                 os.remove(cachefile)
 
         for recipe_type in recipes:
-            oelite.pyexec.exechooks(recipes[recipe_type].meta,
-                                    "pre_cookbook")
+            meta = recipes[recipe_type].meta
+            oelite.pyexec.exechooks(meta, "pre_cookbook")
+            meta.trim_unused_overrides()
+            meta.del_var("__mtimes")
             self.add_recipe(recipes[recipe_type])
 
         return True
