@@ -8,6 +8,7 @@ addtask mirror after fetch
 addtask mirrorall after mirror
 
 MIRRORDIR ?= ""
+MIRRORDIR[emit] = "do_mirror"
 
 do_mirror[dirs] = "${WORKDIR} ${MIRRORDIR}"
 def do_mirror(d):
