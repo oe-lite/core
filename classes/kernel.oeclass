@@ -365,7 +365,7 @@ do_install_kernel () {
         mkdir -p ${D}${kernelsrcdir}/$machdir
         cp -fR $d ${D}${kernelsrcdir}/$machdir/
     done
-    #find ${D}${kernelsrcdir}/ \( -name \*.o -o -name .\*.cmd \) -exec rm {} \;
+    find ${D}${kernelsrcdir}/ \( -name \*.o -o -name .\*.cmd \) -delete
 }
 
 do_install () {
