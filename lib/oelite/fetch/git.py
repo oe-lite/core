@@ -282,6 +282,27 @@ class GitFetcher():
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: git checkout failed"
             return False
+        # git checkout ends up setting the mtime of all the files to
+        # almost-but-not-quite the same time. That may lead to all
+        # kinds of hard-to-debug and hard-to-reproduce problems. Fix
+        # that up by setting the mtimes (and atimes) to a common
+        # value. xargs may end up invoking touch multiple times (if
+        # all the file names do not fit in one command line), but the
+        # shell only evaluates the $(date) once, before the pipeline
+        # is even started.
+        cmd = 'git ls-files -z | xargs -0 touch -h --date="$(date --rfc-3339=ns)"'
+        if not oelite.util.shcmd(cmd, dir=self.dest):
+            print "Error: setting common mtimes failed"
+            return False
+        # However, now we've messed up git's view of the world, namely
+        # its index. That may lead to other problems, e.g. the
+        # kernel's setlocalversion script thinking that the tree is
+        # dirty, due to its naive use of "git diff-index --name-only
+        # HEAD".
+        cmd = "git update-index --refresh"
+        if not oelite.util.shcmd(cmd, dir=self.dest):
+            print "Error: git update-index failed"
+            return False
         return True
 
     def mirror(self, mirror=os.getcwd()):
