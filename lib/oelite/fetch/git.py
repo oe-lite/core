@@ -290,7 +290,7 @@ class GitFetcher():
         # all the file names do not fit in one command line), but the
         # shell only evaluates the $(date) once, before the pipeline
         # is even started.
-        cmd = 'git ls-files -z | xargs -0 touch -h --date="$(date --rfc-3339=ns)"'
+        cmd = 'git ls-files -z | xargs -0 touch -h --date="$(date --rfc-3339=ns) --"'
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: setting common mtimes failed"
             return False
