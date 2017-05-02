@@ -29,7 +29,7 @@ class CookBook(Mapping):
         self.config = baker.config
         self.oeparser = baker.oeparser
         self.init_layer_meta()
-        self.db = sqlite.connect(":memory:")
+        self.db = sqlite.connect(":memory:", isolation_level=None)
         if not self.db:
             raise Exception("could not create in-memory sqlite db")
         self.db.text_factory = str
