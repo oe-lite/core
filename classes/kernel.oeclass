@@ -249,7 +249,7 @@ UIMAGE_KERNEL_OUTPUT = ""
 UIMAGE_KERNEL_OUTPUT:USE_kernel_uimage = "arch/${KERNEL_ARCH}/boot/uImage"
 KERNEL_OUTPUT += "${UIMAGE_KERNEL_OUTPUT}"
 
-CLASS_FLAGS += "kernel_external_dtb kernel_dtc kernel_dtc_flags kernel_dts_vendor kernel_dts"
+CLASS_FLAGS += "kernel_external_dtb kernel_dtc kernel_dtc_flags kernel_dts_vendor kernel_dts kernel_dts_dir"
 DEFAULT_USE_kernel_dtc_flags = "-R 8 -p 0x3000"
 
 KERNEL_DTS_DIR = "arch/${KERNEL_ARCH}/boot/dts/"
