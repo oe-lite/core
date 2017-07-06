@@ -80,13 +80,16 @@ python do_install_s6rc () {
 
     for sv in oneshot_services + longrun_services:
         sv_ = sv.translate(string.maketrans('-', '_'))
-        timeout_up = d.get('USE_%s_s6rc_timeout_up' % sv_)
+        timeout_up = d.get('S6RC_TIMEOUT_UP_%s' % sv_) or \
+            d.get('USE_%s_s6rc_timeout_up' % sv_)
         if timeout_up:
             write_service_file(sv, 'timeout-up', timeout_up + '\n')
-        timeout_down = d.get('USE_%s_s6rc_timeout_down' % sv_)
+        timeout_down = d.get('S6RC_TIMEOUT_DOWN_%s' % sv_) or \
+            d.get('USE_%s_s6rc_timeout_down' % sv_)
         if timeout_down:
             write_service_file(sv, 'timeout-down', timeout_down + '\n')
-        dependencies = d.get('USE_%s_s6rc_dependencies' % sv_)
+        dependencies = d.get('S6RC_DEPENDENCIES_%s' % sv_) or \
+            d.get('USE_%s_s6rc_dependencies' % sv_)
         if dependencies:
             dependencies = '\n'.join(dependencies.split() + [''])
             write_service_file(sv, 'dependencies', dependencies)
@@ -94,7 +97,8 @@ python do_install_s6rc () {
     for sv in bundle_services:
         sv_ = sv.translate(string.maketrans('-', '_'))
         write_service_file(sv, 'type', 'bundle\n')
-        contents = d.get('USE_%s_s6rc_bundle' % sv_) or ''
+        contents = d.get('S6RC_BUNDLE_%s' % sv_) or \
+            d.get('USE_%s_s6rc_bundle' % sv_) or ''
         contents = '\n'.join(contents.split() + [''])
         write_service_file(sv, 'contents', contents)
 
