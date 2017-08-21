@@ -8,6 +8,29 @@ RDEPENDS_${PN}:>USE_s6rc = " ${RDEPENDS_S6RC}"
 
 s6rcsrcdir ?= "${sysconfdir}/rc"
 
+addhook s6_use_flags to post_recipe_parse first before set_useflags
+def s6_use_flags(d):
+    oneshot_services = (d.get('S6RC_ONESHOT_SERVICES') or '').split()
+    longrun_services = (d.get('S6RC_LONGRUN_SERVICES') or '').split()
+    bundle_services = (d.get('S6RC_BUNDLE_SERVICES') or '').split()
+
+    class_flags = (d.get('CLASS_FLAGS' or '')).split()
+    use_flags = class_flags + (d.get('RECIPE_FLAGS' or '')).split()
+
+    for sv in oneshot_services + longrun_services:
+        for sfx in ["timeout_up", "timeout_down", "dependencies"]:
+            flag = "USE_" + sv + "s6rc_" + sfx
+            if flag not in use_flags:
+                class_flags.append(flag)
+
+    for sv in bundle_services:
+        for sfx in ["bundle"]:
+            flag = "USE_" + sv + "s6rc_" + sfx
+            if flag not in use_flags:
+                class_flags.append(flag)
+
+    d.set('CLASS_FLAGS', " ".join(class_flags))
+
 do_install[postfuncs] += "${do_install_S6RC}"
 do_install_S6RC = ""
 do_install_S6RC:USE_s6rc = "do_install_s6rc"
