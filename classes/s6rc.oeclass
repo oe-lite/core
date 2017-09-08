@@ -19,13 +19,13 @@ def s6_use_flags(d):
 
     for sv in oneshot_services + longrun_services:
         for sfx in ["timeout_up", "timeout_down", "dependencies"]:
-            flag = "USE_" + sv + "s6rc_" + sfx
+            flag = sv + "_s6rc_" + sfx
             if flag not in use_flags:
                 class_flags.append(flag)
 
     for sv in bundle_services:
         for sfx in ["bundle"]:
-            flag = "USE_" + sv + "s6rc_" + sfx
+            flag = sv + "_s6rc_" + sfx
             if flag not in use_flags:
                 class_flags.append(flag)
 
