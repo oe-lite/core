@@ -1,0 +1,16 @@
+## Translate our $TARGET_CPU to the name used by qemu.
+##
+
+QEMU_USER_CPUS = "arm armeb aarch64 ppc"
+QEMU_USER_CPU = "${@map_qemu_user_cpu(d, 'TARGET_CPU')}"
+QEMU_USER_CPU[import] = "map_qemu_user_cpu"
+
+def map_qemu_user_cpu(d, cpu):
+    cpu = d.get(cpu)
+    valid_cpus = d.get("QEMU_USER_CPUS").split()
+
+    if cpu in valid_cpus:  return cpu
+
+    if cpu == 'powerpc':   return 'ppc'
+
+    bb.error("cannot map '%s' to a known qemu cpu" % cpu)
