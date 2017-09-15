@@ -58,14 +58,20 @@ def do_chrpath(d):
                 if recursive:
                     chrpath_dir(path, recursive, replace)
                 continue
-            chrpath = chrpath_get_cmd(d,filemagic.file(path))
-            if not chrpath:
-                continue
+
             mode = os.stat(path)[stat.ST_MODE]
-            if os.access(path, os.W_OK|os.R_OK):
+            highbits = (stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX)
+            if os.access(path, os.W_OK|os.R_OK) and (mode & highbits) == 0:
                 mode = None
             else:
-                os.chmod(path, mode|stat.S_IRWXU)
+                os.chmod(path, (mode|stat.S_IRWXU) & ~highbits)
+
+            chrpath = chrpath_get_cmd(d,filemagic.file(path))
+            if not chrpath:
+                if mode is not None:
+                    os.chmod(path, mode)
+                continue
+
             if replace:
                 cmd = [chrpath, '-l', path]
                 old_rpath = oelite.util.shcmd(cmd, quiet=True,
