@@ -1,0 +1,11 @@
+inherit qemu-cpu
+
+CLASS_DEPENDS += "native:util/qemu-${QEMU_USER_CPU}"
+
+CLASS_DEPENDS += "util/ldconfig"
+
+IMAGE_PREPROCESS_FUNCS += "image_preprocess_ldconfig"
+image_preprocess_ldconfig() {
+  touch ./etc/ld.so.conf
+  qemu-${QEMU_USER_CPU} -L . ${TARGET_SYSROOT}/sbin/ldconfig -c new -r . -v -X
+}
