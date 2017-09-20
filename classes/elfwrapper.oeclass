@@ -68,7 +68,7 @@ def image_preprocess_elf_sowrap(d):
                 dirparts = len(os.path.dirname(path).split('/'))
                 relative_root = "/".join([".."] * dirparts)
                 wrapper.write("#!/bin/sh\n")
-                wrapper.write("$(dirname $(readlink -f $0))/%s%s $(dirname $(readlink -f $0))/%s \"$@\""%(
+                wrapper.write("exec $(dirname $(readlink -f $0))/%s%s $(dirname $(readlink -f $0))/%s \"$@\""%(
                         relative_root, ld_so, os.path.basename(dotpath)))
             os.chmod(path, stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
         return True
