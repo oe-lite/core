@@ -69,7 +69,8 @@ def image_preprocess_elf_sowrap(d):
                 dirparts = len(os.path.dirname(path).split('/'))
                 relative_root = "/".join([".."] * dirparts)
                 wrapper.write("#!/bin/sh\n")
-                wrapper.write("exec $(dirname $(readlink -f $0))/%s%s $(dirname $(readlink -f $0))/%s \"$@\""%(
+                wrapper.write("dir=$(dirname $(readlink -f $0))\n")
+                wrapper.write("exec $dir/%s%s $dir/%s \"$@\""%(
                         relative_root, ld_so, os.path.basename(dotpath)))
             shutil.copymode(dotpath, path)
         return True
