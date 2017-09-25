@@ -22,6 +22,7 @@ IMAGE_PREPROCESS_ELF_SOWRAP:HOST_BINFMT_elf = " image_preprocess_elf_sowrap"
 def image_preprocess_elf_sowrap(d):
     import stat
     import oelite.magiccache
+    import shutil
 
     filemagic = oelite.magiccache.open()
     host_elf_re = re.compile(d.get("HOST_ELF"))
@@ -68,9 +69,10 @@ def image_preprocess_elf_sowrap(d):
                 dirparts = len(os.path.dirname(path).split('/'))
                 relative_root = "/".join([".."] * dirparts)
                 wrapper.write("#!/bin/sh\n")
-                wrapper.write("$(dirname $(readlink -f $0))/%s%s $(dirname $(readlink -f $0))/%s \"$@\""%(
+                wrapper.write("dir=$(dirname $(readlink -f $0))\n")
+                wrapper.write("exec $dir/%s%s $dir/%s \"$@\""%(
                         relative_root, ld_so, os.path.basename(dotpath)))
-            os.chmod(path, stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
+            shutil.copymode(dotpath, path)
         return True
 
     bindirs = set(d.get("IMAGE_ELF_SOWRAP_DIRS").split())
