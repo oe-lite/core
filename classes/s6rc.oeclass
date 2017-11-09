@@ -15,7 +15,7 @@ def s6_use_flags(d):
     bundle_services = (d.get('S6RC_BUNDLE_SERVICES') or '').split()
 
     class_flags = (d.get('CLASS_FLAGS' or '')).split()
-    use_flags = class_flags + (d.get('RECIPE_FLAGS' or '')).split()
+    use_flags = class_flags + (d.get('RECIPE_FLAGS') or '').split()
 
     for sv in oneshot_services + longrun_services:
         for sfx in ["timeout_up", "timeout_down", "dependencies"]:
