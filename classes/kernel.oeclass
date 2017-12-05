@@ -353,6 +353,9 @@ do_install_kernel () {
     for file in Makefile .config Module.symvers System.map ; do
         cp -f $file ${D}${kernelsrcdir}
     done
+    for file in localversion-rt ; do
+        test -e $file && cp -f $file ${D}${kernelsrcdir}
+    done
     mkdir -p ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/lib ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/include ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
