@@ -241,7 +241,7 @@ class GitFetcher():
         print("Revision not found")
         return False
 
-    def unpack(self, d):
+    def _unpack(self, d):
         wc = os.path.join(d.get("SRCDIR"), self.dest)
         basedir = os.path.dirname(wc)
         oelite.util.makedirs(basedir)
@@ -282,14 +282,19 @@ class GitFetcher():
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: git checkout failed"
             return False
-        # git checkout ends up setting the mtime of all the files to
-        # almost-but-not-quite the same time. That may lead to all
-        # kinds of hard-to-debug and hard-to-reproduce problems. Fix
-        # that up by setting the mtimes (and atimes) to a common
-        # value. xargs may end up invoking touch multiple times (if
-        # all the file names do not fit in one command line), but the
-        # shell only evaluates the $(date) once, before the pipeline
-        # is even started.
+        return True
+
+    def unpack(self, d):
+        if not self._unpack(d):
+            return False
+        # git checkout/git clone ends up setting the mtime of all the
+        # files to almost-but-not-quite the same time. That may lead
+        # to all kinds of hard-to-debug and hard-to-reproduce
+        # problems. Fix that up by setting the mtimes (and atimes) to
+        # a common value. xargs may end up invoking touch multiple
+        # times (if all the file names do not fit in one command
+        # line), but the shell only evaluates the $(date) once, before
+        # the pipeline is even started.
         cmd = 'git ls-files -z | xargs -0 touch -h --date="$(date --rfc-3339=ns)" --'
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: setting common mtimes failed"
