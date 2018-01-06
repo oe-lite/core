@@ -304,8 +304,11 @@ class GitFetcher():
         # its index. That may lead to other problems, e.g. the
         # kernel's setlocalversion script thinking that the tree is
         # dirty, due to its naive use of "git diff-index --name-only
-        # HEAD".
-        cmd = "git update-index --refresh"
+        # HEAD". Please note that -q needs to preceed --refresh to
+        # have any effect, contrary to what the documentation might
+        # lead one to think - this requirement is singled out for
+        # --ignore-submodules but not for -q.
+        cmd = "git update-index -q --refresh"
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: git update-index failed"
             return False
