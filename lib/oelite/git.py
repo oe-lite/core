@@ -139,7 +139,7 @@ class GitRepository(object):
         untracked = ' '.join(untracked.split())
         if untracked:
             self.git("add %s"%(untracked))
-        diff = self.git("diff HEAD", strip=False)
+        diff = self.git("diff --binary HEAD", strip=False)
         if untracked:
             self.git("rm --cached %s"%(untracked))
         return diff

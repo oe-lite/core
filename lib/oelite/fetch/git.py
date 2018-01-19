@@ -295,7 +295,8 @@ class GitFetcher():
         # times (if all the file names do not fit in one command
         # line), but the shell only evaluates the $(date) once, before
         # the pipeline is even started.
-        cmd = 'git ls-files -z | xargs -0 touch -h --date="$(date --rfc-3339=ns)" --'
+        cmd = ('find . \( -type f -o -type l \) -print0' +
+               ' | xargs -0 touch -c -h --date="$(date --rfc-3339=ns)" --')
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: setting common mtimes failed"
             return False
@@ -303,8 +304,11 @@ class GitFetcher():
         # its index. That may lead to other problems, e.g. the
         # kernel's setlocalversion script thinking that the tree is
         # dirty, due to its naive use of "git diff-index --name-only
-        # HEAD".
-        cmd = "git update-index --refresh"
+        # HEAD". Please note that -q needs to preceed --refresh to
+        # have any effect, contrary to what the documentation might
+        # lead one to think - this requirement is singled out for
+        # --ignore-submodules but not for -q.
+        cmd = "git update-index -q --refresh"
         if not oelite.util.shcmd(cmd, dir=self.dest):
             print "Error: git update-index failed"
             return False
