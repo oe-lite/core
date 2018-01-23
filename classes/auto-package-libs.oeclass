@@ -172,6 +172,9 @@ def auto_package_libs (d):
         devpkg_provides = (d.get("PROVIDES_" + devpkg) or "").split()
         devpkg_provides.append("%s%s-dev"%(provideprefix,
                                            lib.replace("_", "-").lower()))
+        if library_version:
+            devpkg_provides.append("%s%s-%s-dev"%(
+                provideprefix, lib.replace("_","-").lower(), library_version))
         d.set("PROVIDES_" + devpkg, " ".join(devpkg_provides))
 
         pkg_depends = (d.get("DEPENDS_" + pkg) or "").split()
