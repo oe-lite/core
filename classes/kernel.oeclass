@@ -125,6 +125,7 @@ do_configure_kernel () {
 	    *)
 		;;
 	esac
+	yes '' | oe_runmake oldconfig
     fi
 }
 
