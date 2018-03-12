@@ -95,41 +95,44 @@ CLASS_FLAGS += "ramdisk_image_compression"
 DEFAULT_USE_ramdisk_image_compression = "none"
 
 do_configure_kernel () {
-	if [ "${DEFCONFIG}" = "file" ] ; then
-		cp ${DEFCONFIG_FILE} ${S}/.config
-		yes '' | oe_runmake oldconfig
-	elif [ -n "${DEFCONFIG}" ] ; then
-		oe_runmake ${DEFCONFIG}
-	elif [ -e "${HOST_SYSROOT}/kernel_defconfig" ] ; then
-		cp ${HOST_SYSROOT}/kernel_defconfig ${S}/.config
-		yes '' | oe_runmake oldconfig
-	else
-		die "No default configuration available"
-	fi
-	if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
-		echo 'CONFIG_BLK_DEV_INITRD=y' \
-			>> ${S}/.config
-		echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
-			>> ${S}/.config
-		yes '' | oe_runmake oldconfig
+    if [ "${DEFCONFIG}" = "file" ] ; then
+	cp ${DEFCONFIG_FILE} ${S}/.config
+	yes '' | oe_runmake oldconfig
+    elif [ -n "${DEFCONFIG}" ] ; then
+	oe_runmake ${DEFCONFIG}
+    elif [ -e "${HOST_SYSROOT}/kernel_defconfig" ] ; then
+	cp ${HOST_SYSROOT}/kernel_defconfig ${S}/.config
+	yes '' | oe_runmake oldconfig
+    else
+	die "No default configuration available"
+    fi
+    if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
+	echo 'CONFIG_BLK_DEV_INITRD=y' \
+	     >> ${S}/.config
+	echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
+	     >> ${S}/.config
+	yes '' | oe_runmake oldconfig
 	case "${USE_ramdisk_image_compression}" in
-	gzip)	echo 'CONFIG_RD_GZIP=y' >> ${S}/.config
+	    gzip)
+		echo 'CONFIG_RD_GZIP=y' >> ${S}/.config
 		echo 'CONFIG_INITRAMFS_COMPRESSION_GZIP=y' >> ${S}/.config
 		;;
-	lzma)	echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
+	    lzma)
+		echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
 		echo 'CONFIG_INITRAMFS_COMPRESSION_LZMA=y' >> ${S}/.config
 		;;
-	xz)	echo 'CONFIG_RD_XZ=y' >> ${S}/.config
+	    xz)
+		echo 'CONFIG_RD_XZ=y' >> ${S}/.config
 		echo 'CONFIG_INITRAMFS_COMPRESSION_XZ=y' >> ${S}/.config
 		;;
-	*)
+	    *)
 		;;
 	esac
-	fi
+    fi
 }
 
 do_configure () {
-	do_configure_kernel
+    do_configure_kernel
 }
 
 export BUILD_TAG
@@ -141,53 +144,53 @@ export HOSTLDFLAGS  = "${BUILD_LDFLAGS}"
 CLASS_DEPENDS:>BUILD_KERNEL_darwin += "build:libelf"
 
 do_compile_kernel () {
-	if [ -n "$BUILD_TAG" ]; then
-		export KBUILD_BUILD_VERSION="$BUILD_TAG"
-	fi
+    if [ -n "$BUILD_TAG" ]; then
+	export KBUILD_BUILD_VERSION="$BUILD_TAG"
+    fi
 
-	if [ `grep "^VERSION =" Makefile | cut -d'=' -f2` -le 3 -a \
-		`grep "^PATCHLEVEL =" Makefile | cut -d'=' -f2` -le 6 ]; then
-		oe_runmake include/linux/version.h
+    if [ `grep "^VERSION =" Makefile | cut -d'=' -f2` -le 3 -a \
+	 `grep "^PATCHLEVEL =" Makefile | cut -d'=' -f2` -le 6 ]; then
+	oe_runmake include/linux/version.h
+    else
+	oe_runmake include/generated/uapi/linux/version.h
+    fi
+    LOADADDR_ARG=""
+    if [ "${USE_kernel_imagetype}" = "uImage" ] ; then
+	if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
+	    LOADADDR="$USE_kernel_uimage_loadaddress"
+	elif [ -n "$USE_kernel_uimage_entrypoint" ] ; then
+	    LOADADDR="$USE_kernel_uimage_entrypoint"
 	else
-		oe_runmake include/generated/uapi/linux/version.h
-	fi
-	LOADADDR_ARG=""
-	if [ "${USE_kernel_imagetype}" = "uImage" ] ; then
-		if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
-			LOADADDR="$USE_kernel_uimage_loadaddress"
-		elif [ -n "$USE_kernel_uimage_entrypoint" ] ; then
-			LOADADDR="$USE_kernel_uimage_entrypoint"
-		else
-			oe_runmake vmlinux
-			for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
-				LOADADDR=`${HOST_PREFIX}nm ${S}/vmlinux | \
-				awk '$3=="'"$symbol"'" {print $1}'`
-				if [ -n "$LOADADDR" ] ; then
-					break
-				fi
-			done
+	    oe_runmake vmlinux
+	    for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
+		LOADADDR=`${HOST_PREFIX}nm ${S}/vmlinux | \
+			  awk '$3=="'"$symbol"'" {print $1}'`
+		if [ -n "$LOADADDR" ] ; then
+		    break
 		fi
-		LOADADDR_ARG="LOADADDR=$LOADADDR"
+	    done
 	fi
+	LOADADDR_ARG="LOADADDR=$LOADADDR"
+    fi
 
-	oe_runmake ${USE_kernel_imagetype} ${EXTRA_OEMAKE_COMPILE} $LOADADDR_ARG
+    oe_runmake ${USE_kernel_imagetype} ${EXTRA_OEMAKE_COMPILE} $LOADADDR_ARG
 
-	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
-		oe_runmake modules
-	else
-		oenote "no modules to compile"
-	fi
+    if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
+	oe_runmake modules
+    else
+	oenote "no modules to compile"
+    fi
 
-	# Check if scripts/genksyms exists and if so, build it
-	if [ -e scripts/genksyms/ ]; then
-		oe_runmake SUBDIRS="scripts/genksyms"
-	fi
+    # Check if scripts/genksyms exists and if so, build it
+    if [ -e scripts/genksyms/ ]; then
+	oe_runmake SUBDIRS="scripts/genksyms"
+    fi
 }
 
 do_compile[postfuncs] += "${KERNEL_COMPILE_POSTFUNCS}"
 KERNEL_COMPILE_POSTFUNCS = ""
 do_compile () {
-	do_compile_kernel
+    do_compile_kernel
 }
 
 CLASS_DEPENDS += "${KERNEL_UIMAGE_DEPENDS}"
@@ -205,7 +208,7 @@ export USE_kernel_uimage_loadaddress
 export USE_kernel_uimage_entrypoint
 do_compile_kernel_uimage() {
     if [ -n "$USE_kernel_uimage_entrypoint" ] ; then
-        ENTRYPOINT="$USE_kernel_uimage_entrypoint"
+	ENTRYPOINT="$USE_kernel_uimage_entrypoint"
     else
 	for symbol in ${UIMAGE_ENTRYPOINT_SYMBOL} ; do
 	    ENTRYPOINT=`${HOST_PREFIX}nm ${S}/vmlinux | \
@@ -216,9 +219,9 @@ do_compile_kernel_uimage() {
 	done
     fi
     if [ -n "$USE_kernel_uimage_loadaddress" ] ; then
-        LOADADDRESS="$USE_kernel_uimage_loadaddress"
+	LOADADDRESS="$USE_kernel_uimage_loadaddress"
     else
-        LOADADDRESS="$ENTRYPOINT"
+	LOADADDRESS="$ENTRYPOINT"
     fi
 
     if [ -e "arch/${KERNEL_ARCH}/boot/compressed/vmlinux" ] ; then
@@ -292,12 +295,12 @@ do_compile_kernel_dtc() {
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_dts += " do_compile_kernel_dts"
 do_compile_kernel_dts() {
-	oe_runmake "${KERNEL_DTB_VENDOR}${KERNEL_DTB_FILE}"
+    oe_runmake "${KERNEL_DTB_VENDOR}${KERNEL_DTB_FILE}"
 }
 
 KERNEL_COMPILE_POSTFUNCS:>USE_kernel_external_dtb += " do_compile_kernel_external_dtb"
 do_compile_kernel_external_dtb() {
-	cp ${SRCDIR}/${KERNEL_DTB_FILE} ${S}/${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}${KERNEL_DTB_FILE}
+    cp ${SRCDIR}/${KERNEL_DTB_FILE} ${S}/${KERNEL_DTS_DIR}/${KERNEL_DTB_VENDOR}${KERNEL_DTB_FILE}
 }
 
 CLASS_FLAGS += "kernel_perf"
@@ -348,25 +351,25 @@ do_install_kernel () {
 
     install -d ${D}${kernelsrcdir}
     for dir in scripts include ; do
-        cp -fR $dir ${D}${kernelsrcdir}/
+	cp -fR $dir ${D}${kernelsrcdir}/
     done
     for file in Makefile .config Module.symvers System.map ; do
-        cp -f $file ${D}${kernelsrcdir}
+	cp -f $file ${D}${kernelsrcdir}
     done
     for file in localversion-rt ; do
-        test -e $file && cp -f $file ${D}${kernelsrcdir}
+	test -e $file && cp -f $file ${D}${kernelsrcdir}
     done
     mkdir -p ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/lib ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/include ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     cp -fR arch/${KERNEL_ARCH}/Makefile* ${D}${kernelsrcdir}/arch/${KERNEL_ARCH}
     for d in arch/${KERNEL_ARCH}/mach-*/include ; do
-        if [ "$d" = "arch/${KERNEL_ARCH}/mach-*/include" ] ; then
-            continue
-        fi
-        machdir=`dirname $d`
-        mkdir -p ${D}${kernelsrcdir}/$machdir
-        cp -fR $d ${D}${kernelsrcdir}/$machdir/
+	if [ "$d" = "arch/${KERNEL_ARCH}/mach-*/include" ] ; then
+	    continue
+	fi
+	machdir=`dirname $d`
+	mkdir -p ${D}${kernelsrcdir}/$machdir
+	cp -fR $d ${D}${kernelsrcdir}/$machdir/
     done
     find ${D}${kernelsrcdir}/ \( -name \*.o -o -name .\*.cmd \) -delete
 }
