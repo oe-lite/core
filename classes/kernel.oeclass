@@ -122,6 +122,14 @@ do_configure_kernel () {
 		./scripts/config --enable CONFIG_RD_XZ
 		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_XZ
 		;;
+	    lzo)
+		./scripts/config --enable CONFIG_RD_LZO
+		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_LZO
+		;;
+	    lz4)
+		./scripts/config --enable CONFIG_RD_LZ4
+		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_LZ4
+		;;
 	    *)
 		;;
 	esac
