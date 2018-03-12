@@ -107,23 +107,20 @@ do_configure_kernel () {
 	die "No default configuration available"
     fi
     if [ -n "${USE_KERNEL_INITRAMFS}" ] ; then
-	echo 'CONFIG_BLK_DEV_INITRD=y' \
-	     >> ${S}/.config
-	echo 'CONFIG_INITRAMFS_SOURCE="${KERNEL_INITRAMFS}"' \
-	     >> ${S}/.config
-	yes '' | oe_runmake oldconfig
+	./scripts/config --enable CONFIG_BLK_DEV_INITRD
+	./scripts/config --set-str CONFIG_INITRAMFS_SOURCE "${KERNEL_INITRAMFS}"
 	case "${USE_ramdisk_image_compression}" in
 	    gzip)
-		echo 'CONFIG_RD_GZIP=y' >> ${S}/.config
-		echo 'CONFIG_INITRAMFS_COMPRESSION_GZIP=y' >> ${S}/.config
+		./scripts/config --enable CONFIG_RD_GZIP
+		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_GZIP
 		;;
 	    lzma)
-		echo 'CONFIG_RD_LZMA=y' >> ${S}/.config
-		echo 'CONFIG_INITRAMFS_COMPRESSION_LZMA=y' >> ${S}/.config
+		./scripts/config --enable CONFIG_RD_LZMA
+		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_LZMA
 		;;
 	    xz)
-		echo 'CONFIG_RD_XZ=y' >> ${S}/.config
-		echo 'CONFIG_INITRAMFS_COMPRESSION_XZ=y' >> ${S}/.config
+		./scripts/config --enable CONFIG_RD_XZ
+		./scripts/config --enable CONFIG_INITRAMFS_COMPRESSION_XZ
 		;;
 	    *)
 		;;
