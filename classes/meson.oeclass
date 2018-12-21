@@ -1,0 +1,130 @@
+# build rules for meson
+# Needed for latest versions of gnome packages. 
+
+# remember to install
+# python >= 3.5
+# pip3 install meson
+# ninja-build
+
+inherit pkgconfig c c++
+
+def meson_array(d, var):
+    items = d.get(var).split()
+    return repr(items[0] if len(items) == 1 else items)
+
+# Map our ARCH values to what Meson expects:
+# http://mesonbuild.com/Reference-tables.html#cpu-families
+def meson_cpu_family(d, var):
+    import re
+    arch = d.getVar(var)
+    if arch == 'powerpc':
+        return 'ppc'
+    elif arch == 'powerpc64':
+        return 'ppc64'
+    elif arch == 'mipsel':
+        return 'mips'
+    elif arch == 'mips64el':
+        return 'mips64'
+    elif re.match(r"i[3-6]86", arch):
+        return "x86"
+    else:
+        return arch
+
+def meson_endian(d, prefix):
+    endian = d.getVar(prefix + "_ENDIAN")
+    if endian == 'l':
+        return "little"
+    elif endian == 'b':
+        return "big"
+    else:
+        bb.fatal("Cannot determine endianism for %s" % (prefix))
+
+B = "${WORKDIR}/build"
+# meson must run in the source dir
+do_configure[dirs] = "${B} ${S}"
+do_configure[cleandirs] = "${B}"
+
+OE_MESON_CROSSFILE = "${B}/meson.cross"
+OE_MESON_CONF = "--cross-file ${OE_MESON_CROSSFILE}" 
+EXTRA_OEMESON = ""
+MESON_TOOLCHAIN_ARGS = ""
+MESON_LINK_ARGS = "${@meson_array(d, 'LDFLAGS')}"
+MESON_LINK_ARGS[import] = "meson_array"
+MESON_C_ARGS = "${@meson_array(d, 'CFLAGS')}"
+MESON_C_ARGS[import] = "meson_array"
+MESON_CPP_ARGS = "${MESON_C_ARGS}"
+
+MESON_HOST_CPU_FAMILY = "${@meson_cpu_family(d, 'HOST_CPU')}"
+MESON_HOST_CPU_FAMILY[import] = "meson_cpu_family"
+MESON_TARGET_CPU_FAMILY = "${@meson_cpu_family(d, 'HOST_CPU')}"
+MESON_TARGET_CPU_FAMILY[import] = "meson_cpu_family"
+
+MESON_HOST_ENDIAN = "${@meson_endian(d, 'HOST')}"
+MESON_HOST_ENDIAN[import] = "meson_endian"
+MESON_TARGET_ENDIAN = "${@meson_endian(d, 'TARGET')}"
+MESON_TARGET_ENDIAN[import] = "meson_endian"
+
+override_native_tools() {
+    # Set these so that meson uses the native tools for its build sanity tests,
+    # which require executables to be runnable. The cross file will still
+    # override these for the target build.
+    export CC="${BUILD_CC}"
+    export CXX="${BUILD_CPP}"
+    export LD="${BUILD_LD}"
+    export AR="${BUILD_AR}"
+    export CPPFLAGS="${BUILD_CPPFLAGS}"
+    export CFLAGS="${BUILD_CFLAGS}"
+    export CXXFLAGS="${BUILD_CXXFLAGS}"
+    export LDFLAGS="${BUILD_LDFLAGS}"
+}
+
+do_configure() {
+	# generate the cross file, which meson uses to determine target compile options
+	cat > ${OE_MESON_CROSSFILE} <<EOF
+[binaries]
+c = '$CC'
+cpp = '$CPP'
+ar = '$AR'
+nm = '$NM'
+ld = '$LD'
+readelf = '$READELF'
+strip = '$STRIP'
+pkgconfig = 'pkg-config'
+
+[host_machine]
+system = '${HOST_VENDOR}'
+cpu_family = '${MESON_HOST_CPU_FAMILY}'
+cpu = '${HOST_ARCH}'
+endian = '${MESON_HOST_ENDIAN}'
+
+[target_machine]
+system = '${TARGET_VENDOR}'
+cpu_family = '${MESON_TARGET_CPU_FAMILY}'
+cpu = '${TARGET_MCPU}'
+endian = '${MESON_TARGET_ENDIAN}'
+
+[properties]
+needs_exe_wrapper = true
+c_args = ${MESON_C_ARGS}
+c_link_args = ${MESON_LINK_ARGS}
+cpp_args = ${MESON_CPP_ARGS}
+cpp_link_args = ${MESON_LINK_ARGS}
+EOF
+
+	override_native_tools
+	# --prefix=/usr --libdir=lib looks like default values, but without them libdir will be locked to x86
+	# https://github.com/mesonbuild/meson/issues/2535
+	meson --prefix=/usr --libdir=lib ${B} ${EXTRA_OEMESON} ${OE_MESON_CONF}
+}
+
+do_compile() {
+	override_native_tools
+	ninja -C ${B}
+}
+
+do_install() {
+	override_native_tools
+	export DESTDIR='${D}'
+	ninja -C ${B} -v install
+}
+
